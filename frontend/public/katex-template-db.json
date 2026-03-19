@@ -1,0 +1,69 @@
+{
+  "DivRing.div": {
+    "description": "DivRing 上的除法运算，通常表示一个元素除以另一个元素。",
+    "styles": {
+      "frac": {
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{\\frac{@CHILD1@}{@CHILD2@}}}",
+        "childCount": 2,
+        "kind": "const",
+        "description": "分数线形式渲染除法。"
+      },
+      "inline-div": {
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{\\div} @CHILD2@}",
+        "childCount": 2,
+        "kind": "const",
+        "description": "行内 \\div 符号渲染除法。"
+      }
+    }
+  },
+  "Add.add": {
+    "description": "加法运算，组合两个输入得到它们的和。",
+    "styles": {
+      "infix": {
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{+} @CHILD2@}",
+        "childCount": 2,
+        "kind": "const",
+        "description": "中缀加号形式渲染。"
+      }
+    }
+  },
+  "Sub.sub": {
+    "description": "减法运算，计算两个输入的差。",
+    "styles": {
+      "infix": {
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{-} @CHILD2@}",
+        "childCount": 2,
+        "kind": "const",
+        "description": "中缀减号形式渲染。"
+      }
+    }
+  },
+  "Mul.mul": {
+    "description": "乘法运算，计算两个输入的积。",
+    "styles": {
+      "infix": {
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{\\cdot} @CHILD2@}",
+        "childCount": 2,
+        "kind": "const",
+        "description": "以 \\cdot 作为乘号渲染。"
+      },
+      "implicit": {
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@\\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{}@CHILD2@}",
+        "childCount": 2,
+        "kind": "const",
+        "description": "省略乘号的隐式相乘渲染。"
+      }
+    }
+  },
+  "Pow.pow": {
+    "description": "幂运算，表示底数的指数次方。",
+    "styles": {
+      "sup": {
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{{@CHILD1@}^{@CHILD2@}}}",
+        "childCount": 2,
+        "kind": "const",
+        "description": "上标形式渲染幂。"
+      }
+    }
+  }
+}

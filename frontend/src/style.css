@@ -1,0 +1,295 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f6f7fb;
+  color: #1d2330;
+}
+
+#app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page h1 {
+  margin: 0 0 12px;
+}
+
+.section {
+  border: 1px solid #dce1ea;
+  border-radius: 10px;
+  background: #fff;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.panel-subtitle {
+  font-size: 13px;
+  color: #475467;
+  margin: 6px 0;
+}
+
+.panel-pre {
+  margin: 0 0 8px;
+  border-radius: 8px;
+  padding: 8px;
+  background: #f9fafb;
+  border: 1px solid #e4e7ec;
+  white-space: pre-wrap;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.expr-input {
+  flex: 1;
+}
+
+input,
+button {
+  font: inherit;
+  padding: 2px 6px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.error,
+.katex-error {
+  color: #b42318;
+  margin-top: 6px;
+}
+
+.tree-editor {
+  border: 1px dashed #c6cfdd;
+  border-radius: 8px;
+  padding: 4px;
+  margin-top: 6px;
+}
+
+.tree-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  position: relative;
+}
+
+.tree-editor-left-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-width: 28px;
+  padding: 0 4px;
+  border-right: 2px solid #64748b;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px 0 0 6px;
+}
+
+.tree-name-input {
+  flex: 1;
+  min-width: 80px;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+}
+
+.tree-name-wrap {
+  flex: 1;
+}
+
+.tree-style-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #475467;
+}
+
+.tree-input-with-suggest {
+  position: relative;
+}
+
+.tree-style-input {
+  width: 54px;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  outline: none;
+  height: 20px;
+  padding: 0 2px;
+  background: #fff;
+}
+
+.match-ok {
+  border-color: #166534 !important;
+  background: #dcfce7 !important;
+}
+
+.match-fail {
+  border-color: #991b1b !important;
+  background: #fee2e2 !important;
+}
+
+.tree-suggest-list {
+  position: absolute;
+  left: 0;
+  right: auto;
+  top: calc(100% + 2px);
+  z-index: 20;
+  margin: 0;
+  padding: 2px;
+  list-style: none;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.12);
+  min-width: 180px;
+  max-width: 320px;
+}
+
+.tree-suggest-style {
+  min-width: 100px;
+}
+
+.tree-suggest-list li {
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tree-suggest-list li.active,
+.tree-suggest-list li:hover {
+  background: #eef4ff;
+}
+
+.tree-children {
+  margin-top: 3px;
+}
+
+.tree-child-item {
+  margin-bottom: 4px;
+}
+
+.katex-panel {
+  min-height: 120px;
+}
+
+.katex-html {
+  padding: 8px;
+  background: #fcfcfd;
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+/* 悬浮效果由 JS 添加 .katex-hovered。const 算子符号整字变蓝。 */
+.katex-html [data-kind='const'].katex-hovered {
+  color: #0000ff;
+}
+
+/* 分数线算子：仅分数线变蓝，分子分母保持黑色。 */
+.katex-html [data-kind='const'].katex-hovered:has(.mfrac) {
+  color: #000;
+}
+.katex-html [data-kind='const'].katex-hovered:has(.mfrac) .frac-line,
+.katex-html [data-kind='const'].katex-hovered:has(.mfrac) .frac-line::before,
+.katex-html [data-kind='const'].katex-hovered:has(.mfrac) .frac-line::after {
+  border-color: #0000ff !important;
+}
+
+/* 染色框：box-shadow 模拟边框（不占布局），border-radius 圆角，无 padding 避免嵌套撑大。 */
+.katex-html [data-kind='contantSubtree'] {
+  display: inline-block;
+  vertical-align: baseline;
+  border-radius: 2px;
+}
+
+.katex-html [data-kind='contantSubtree'].katex-hovered {
+  background: rgba(147, 197, 253, 0.18);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+}
+
+/* bvar 变量：橘色边框和浅橘色背景，与 const 结构相同。 */
+.katex-html [data-kind='bvar'] {
+  display: inline-block;
+  vertical-align: baseline;
+  border-radius: 2px;
+}
+
+.katex-html [data-kind='bvar'].katex-hovered {
+  color: #c2410c;
+  background: rgba(234, 88, 12, 0.18);
+  box-shadow: 0 0 0 1px rgba(194, 65, 12, 0.5);
+}
+
+.katex-hover-tooltip {
+  position: fixed;
+  max-width: 360px;
+  padding: 8px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #111827;
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.12);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.katex-hover-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tooltip-title {
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.tooltip-kind {
+  font-size: 11px;
+  color: #475467;
+  margin-bottom: 4px;
+}
+
+.tooltip-loading,
+.tooltip-desc {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #344054;
+}
+
+.latex-preview {
+  margin: 0;
+  border-radius: 8px;
+  padding: 8px;
+  background: #101828;
+  color: #f2f4f7;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
