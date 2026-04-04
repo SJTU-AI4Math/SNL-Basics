@@ -1,80 +1,20 @@
 import { useEffect, useMemo, useState, type KeyboardEventHandler } from 'react'
-import { OperatorTreeEditor } from './components/OperatorTreeEditor/OperatorTreeEditor'
-import { OperatorTreeKaTeXView } from './components/OperatorTreeKaTeXView'
-import type { KaTeXTemplateQuery } from './operator-tree/query'
-import { parseOperatorTree } from './operator-tree/parser'
-import type { TemplateDb } from './operator-tree/template-db'
-import type { OperatorTree } from './operator-tree/types'
+import {
+  createDefaultTemplateQuery,
+  loadTemplateDb,
+  OperatorTreeEditor,
+  OperatorTreeKaTeXView,
+  parseOperatorTree,
+  serializeOperatorTree,
+  tryParseOperatorTree,
+  type OperatorTree,
+  type TemplateDb,
+} from './operator-katex'
 
-const INITIAL_INPUT = 'DivRing.div[frac](Add.add[infix](Mul.mul[infix](a,b),c),Sub.sub[infix](d,e))'
+const INITIAL_INPUT =
+  'FOL.forall(x[binder],FOL.implies(FOL.app(P,x),FOL.paren(FOL.or(y,FOL.app(Q,x)))))'
 
 const MAX_UNDO_CHECKPOINTS = 10
-
-let dbCache: TemplateDb | null = null
-
-function escapeLatexText(raw: string): string {
-  return raw.replace(/[\\{}_$%&#^~]/g, (ch) => `\\${ch}`)
-}
-
-function fallbackLatexSymbol(name: string): string {
-  // 常见变量名直接透传；复杂名字用 \mathrm{...} 包裹，减少 KaTeX 语法错误风险。
-  if (/^[A-Za-z]+$/.test(name)) {
-    return name
-  }
-  return `\\mathrm{${escapeLatexText(name)}}`
-}
-
-async function loadTemplateDb(): Promise<TemplateDb> {
-  if (dbCache) {
-    return dbCache
-  }
-  const res = await fetch('/katex-template-db.json')
-  if (!res.ok) {
-    throw new Error(`template db load failed (${res.status})`)
-  }
-  dbCache = (await res.json()) as TemplateDb
-  return dbCache
-}
-
-function createDbQuery(): KaTeXTemplateQuery {
-  return async ({ name, style }) => {
-    // 模拟一次异步数据库查询延迟。
-    await new Promise((resolve) => setTimeout(resolve, 100))
-    const db = await loadTemplateDb()
-    const byName = db[name]
-    const templateFromStyle = style ? byName?.styles?.[style]?.latex : undefined
-    const firstStyleTemplate =
-      !style && byName
-        ? Object.values(byName.styles)[0]?.latex
-        : undefined
-    const template = templateFromStyle ?? firstStyleTemplate
-    if (template) {
-      return template
-    }
-    return `\\htmlData{name=@NAME@,style=@STYLE@,kind=bvar}{${fallbackLatexSymbol(name)}}`
-  }
-}
-
-function tryParseTree(input: string): { tree: OperatorTree | null; error: string | null } {
-  try {
-    return { tree: parseOperatorTree(input), error: null }
-  } catch (error) {
-    return {
-      tree: null,
-      error: error instanceof Error ? error.message : String(error),
-    }
-  }
-}
-
-// 把树结构还原成输入语法，便于用户复制和二次编辑。
-function serializeOperatorTree(node: OperatorTree): string {
-  const stylePart = node.style ? `[${node.style}]` : ''
-  const childrenPart =
-    node.children.length > 0
-      ? `(${node.children.map((child) => serializeOperatorTree(child)).join(',')})`
-      : ''
-  return `${node.name}${stylePart}${childrenPart}`
-}
 
 // 用简洁文本方式展示树形层级，方便肉眼检查 parser/编辑器结果。
 function toTreeDiagram(node: OperatorTree, depth = 0): string {
@@ -113,7 +53,7 @@ export default function App() {
   const [latexSource, setLatexSource] = useState('')
   const [templateDb, setTemplateDb] = useState<TemplateDb>({})
   const [, setUndoStack] = useState<OperatorTree[]>([])
-  const query = useMemo(() => createDbQuery(), [])
+  const query = useMemo(() => createDefaultTemplateQuery(), [])
   const treeString = useMemo(() => serializeOperatorTree(tree), [tree])
   const treeDiagram = useMemo(() => toTreeDiagram(tree), [tree])
 
@@ -124,11 +64,13 @@ export default function App() {
   }, [])
 
   const parseFromInput = () => {
-    const result = tryParseTree(expression)
-    setParseError(result.error)
-    if (result.tree) {
+    const result = tryParseOperatorTree(expression)
+    if (result.ok) {
+      setParseError(null)
       setTree(result.tree)
       setUndoStack([])
+    } else {
+      setParseError(result.error)
     }
   }
 
@@ -173,7 +115,11 @@ export default function App() {
       <h1>OperatorTree 全量 Demo</h1>
       <div className="section">
         <h2>1) Parser 输入</h2>
-        <p>语法：name[style](child1,child2(...))，例如 DivRing.div[frac](a,b)</p>
+        <p>
+          语法：name（可选 [style]）(child1,child2(…))；无 style 时省略方括号。量词处 binder 须写
+          <code>[binder]</code>；裸名叶子是否在作用域内由编译期推断为 bvar / fvar，无需写
+          <code>[bvar]</code>。例如 FOL.forall(x[binder],…)、DivRing.div[frac](a,b)
+        </p>
         <div className="row">
           <input
             value={expression}

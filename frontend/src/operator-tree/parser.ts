@@ -1,11 +1,73 @@
+import { annotateBindings } from './annotate-bind'
 import { createOperatorNode, type OperatorTree } from './types'
 
-type TokenType = 'IDENT' | 'LBRACK' | 'RBRACK' | 'LPAREN' | 'RPAREN' | 'COMMA' | 'EOF'
+type TokenType =
+  | 'IDENT'
+  | 'NUMBER'
+  | 'EQ'
+  | 'LBRACK'
+  | 'RBRACK'
+  | 'LPAREN'
+  | 'RPAREN'
+  | 'COMMA'
+  | 'EOF'
 
 interface Token {
   type: TokenType
   value: string
   position: number
+}
+
+/** 解析方括号内文本（如 binder）；bvar 由 annotateBindings 按父语境推断，一般不必手写 */
+export function parseStyleMeta(raw: string): {
+  style: string
+  kind: string
+  mdata: Record<string, unknown> | null
+} {
+  const segments = raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  if (segments.length === 0) {
+    return { style: '', kind: '', mdata: null }
+  }
+
+  const first = segments[0]
+  let style: string
+  let kvStart: number
+  if (first.includes('=')) {
+    style = ''
+    kvStart = 0
+  } else {
+    style = first
+    kvStart = 1
+  }
+
+  const mdata: Record<string, unknown> = {}
+  let explicitKind = ''
+  for (let i = kvStart; i < segments.length; i += 1) {
+    const seg = segments[i]
+    const eq = seg.indexOf('=')
+    if (eq === -1) {
+      continue
+    }
+    const k = seg.slice(0, eq).trim()
+    const v = seg.slice(eq + 1).trim()
+    if (k === 'kind') {
+      explicitKind = v
+    }
+  }
+
+  let kind = explicitKind
+  if (!kind && style === 'binder') {
+    kind = 'binder'
+  }
+  if (!kind && style === 'bvar') {
+    kind = 'bvar'
+  }
+
+  const cleaned = Object.keys(mdata).length > 0 ? mdata : null
+  return { style, kind, mdata: cleaned }
 }
 
 export class OperatorTreeParseError extends Error {
@@ -67,6 +129,21 @@ function tokenize(input: string): Token[] {
       continue
     }
 
+    if (ch === '=') {
+      tokens.push({ type: 'EQ', value: ch, position: i })
+      i += 1
+      continue
+    }
+
+    if (/\d/.test(ch)) {
+      const start = i
+      while (i < input.length && /\d/.test(input[i])) {
+        i += 1
+      }
+      tokens.push({ type: 'NUMBER', value: input.slice(start, i), position: start })
+      continue
+    }
+
     throw new OperatorTreeParseError(`Unexpected character "${ch}"`, i)
   }
 
@@ -95,8 +172,12 @@ class Parser {
 
     if (this.peek().type === 'LBRACK') {
       this.consume('LBRACK')
-      node.style = this.parseStyleText()
+      const rawStyle = this.parseStyleText()
       this.expect('RBRACK')
+      const meta = parseStyleMeta(rawStyle)
+      node.style = meta.style
+      node.kind = meta.kind
+      node.mdata = meta.mdata
     }
 
     if (this.peek().type === 'LPAREN') {
@@ -109,7 +190,7 @@ class Parser {
   }
 
   private parseStyleText(): string {
-    // 保留 style 原文（去掉外层 []），暂不做更细粒度语义解析。
+    // 方括号内如 binder、bvar 或留空，拼接为原始串再交给 parseStyleMeta。
     const parts: string[] = []
     while (this.peek().type !== 'RBRACK') {
       const token = this.peek()
@@ -162,5 +243,7 @@ class Parser {
 export function parseOperatorTree(input: string): OperatorTree {
   const tokens = tokenize(input)
   const parser = new Parser(tokens)
-  return parser.parse()
+  const tree = parser.parse()
+  annotateBindings(tree)
+  return tree
 }

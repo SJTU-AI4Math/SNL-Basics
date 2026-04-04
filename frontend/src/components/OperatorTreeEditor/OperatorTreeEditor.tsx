@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { getEffectiveStyle } from '../../operator-tree/effective-style'
 import type { TemplateDb } from '../../operator-tree/template-db'
 import type { OperatorTree } from '../../operator-tree/types'
 
@@ -93,13 +94,11 @@ export function OperatorTreeEditor({
   useEffect(() => {
     const byName = templateDb?.[value.name]
     if (!byName) {
-      if (value.children.length > 0 || value.kind) {
-        onChange({ ...value, kind: '', children: [] })
-      }
       return
     }
 
-    const autoStyle = value.style || Object.keys(byName.styles)[0]
+    const autoStyle =
+      value.style || getEffectiveStyle(value, templateDb) || Object.keys(byName.styles)[0]
     if (!autoStyle) {
       return
     }

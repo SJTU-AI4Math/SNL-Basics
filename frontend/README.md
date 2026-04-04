@@ -113,3 +113,65 @@ npm run dev
 npm run test
 npm run build
 ```
+
+## 作为 npm 包在其他项目中使用
+
+本目录发布为 **`@fulcrum-smarterm/operator-katex`**（见 `package.json` 的 `exports`）。对外入口为 **`src/operator-katex/index.ts`**，构建库产物：`npm run build:lib` → `dist-lib/`。
+
+### 安装与三条必做
+
+1. 安装依赖：`react`、`katex`（与 `peerDependencies` 一致）。
+2. 样式（三处）：  
+   - `import 'katex/dist/katex.min.css'`  
+   - `import '@fulcrum-smarterm/operator-katex/style.css'`  
+3. 把 **`katex-template-db.json`** 放到站点可访问路径（如 `public/`），或 `import` JSON 后 `setTemplateDbCache(db)`；默认 `createDefaultTemplateQuery()` 会请求 **`/katex-template-db.json`**（可用 `templateDbUrl` 改）。
+
+### 最小示例
+
+```tsx
+import 'katex/dist/katex.min.css'
+import '@fulcrum-smarterm/operator-katex/style.css'
+import {
+  OperatorTreeKaTeXView,
+  createDefaultTemplateQuery,
+  loadTemplateDb,
+  parseOperatorTree,
+  type TemplateDb,
+} from '@fulcrum-smarterm/operator-katex'
+import { useEffect, useMemo, useState } from 'react'
+
+export function FormulaBlock({ expr }: { expr: string }) {
+  const tree = useMemo(() => parseOperatorTree(expr), [expr])
+  const [db, setDb] = useState<TemplateDb>({})
+  const query = useMemo(() => createDefaultTemplateQuery(), [])
+
+  useEffect(() => {
+    void loadTemplateDb('/katex-template-db.json').then(setDb).catch(() => setDb({}))
+  }, [])
+
+  return (
+    <OperatorTreeKaTeXView
+      tree={tree}
+      query={query}
+      templateDb={db}
+      katexOptions={{ displayMode: true, trust: true }}
+    />
+  )
+}
+```
+
+### 常用 API（按需 import）
+
+| 符号 | 作用 |
+|------|------|
+| `parseOperatorTree` / `tryParseOperatorTree` | 文本 → 树 |
+| `serializeOperatorTree` | 树 → 文本 |
+| `createDefaultTemplateQuery` / `createTemplateQueryFromDb` | KaTeX 模板查询 |
+| `loadTemplateDb` / `setTemplateDbCache` / `clearTemplateDbCache` | 模板库加载与缓存 |
+| `DEFAULT_TEMPLATE_DB_URL` | 默认 fetch 路径 |
+| `OperatorTreeKaTeXView` | 渲染 + 悬停 |
+| `OperatorTreeEditor` | 可选：树编辑器 |
+| `annotateBindings` | 量词 bindRef（parser 已调用时可忽略） |
+| `getEffectiveStyle` / `fillLatexTemplate` | 进阶 |
+
+发布前将 `package.json` 中 `"private": true` 改为 `false`（或仅在发布时覆盖），并执行 `npm run build:lib`。

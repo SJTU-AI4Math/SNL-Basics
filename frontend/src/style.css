@@ -1,3 +1,5 @@
+@import './operator-katex/style.css';
+
 :root {
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
@@ -62,8 +64,7 @@ button {
   gap: 12px;
 }
 
-.error,
-.katex-error {
+.error {
   color: #b42318;
   margin-top: 6px;
 }
@@ -185,98 +186,6 @@ button {
 
 .tree-child-item {
   margin-bottom: 4px;
-}
-
-.katex-panel {
-  min-height: 120px;
-}
-
-.katex-html {
-  padding: 8px;
-  background: #fcfcfd;
-  border: 1px solid #e4e7ec;
-  border-radius: 8px;
-  overflow-x: auto;
-}
-
-/* 悬浮效果由 JS 添加 .katex-hovered。const 算子符号整字变蓝。 */
-.katex-html [data-kind='const'].katex-hovered {
-  color: #0000ff;
-}
-
-/* 分数线算子：仅分数线变蓝，分子分母保持黑色。 */
-.katex-html [data-kind='const'].katex-hovered:has(.mfrac) {
-  color: #000;
-}
-.katex-html [data-kind='const'].katex-hovered:has(.mfrac) .frac-line,
-.katex-html [data-kind='const'].katex-hovered:has(.mfrac) .frac-line::before,
-.katex-html [data-kind='const'].katex-hovered:has(.mfrac) .frac-line::after {
-  border-color: #0000ff !important;
-}
-
-/* 染色框：box-shadow 模拟边框（不占布局），border-radius 圆角，无 padding 避免嵌套撑大。 */
-.katex-html [data-kind='contantSubtree'] {
-  display: inline-block;
-  vertical-align: baseline;
-  border-radius: 2px;
-}
-
-.katex-html [data-kind='contantSubtree'].katex-hovered {
-  background: rgba(147, 197, 253, 0.18);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
-}
-
-/* bvar 变量：橘色边框和浅橘色背景，与 const 结构相同。 */
-.katex-html [data-kind='bvar'] {
-  display: inline-block;
-  vertical-align: baseline;
-  border-radius: 2px;
-}
-
-.katex-html [data-kind='bvar'].katex-hovered {
-  color: #c2410c;
-  background: rgba(234, 88, 12, 0.18);
-  box-shadow: 0 0 0 1px rgba(194, 65, 12, 0.5);
-}
-
-.katex-hover-tooltip {
-  position: fixed;
-  max-width: 360px;
-  padding: 8px 10px;
-  border: 1px solid #d0d5dd;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.96);
-  color: #111827;
-  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.12);
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 180ms ease, transform 180ms ease;
-  pointer-events: none;
-  z-index: 40;
-}
-
-.katex-hover-tooltip.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.tooltip-title {
-  font-weight: 600;
-  font-size: 12px;
-  margin-bottom: 4px;
-}
-
-.tooltip-kind {
-  font-size: 11px;
-  color: #475467;
-  margin-bottom: 4px;
-}
-
-.tooltip-loading,
-.tooltip-desc {
-  font-size: 12px;
-  line-height: 1.35;
-  color: #344054;
 }
 
 .latex-preview {
