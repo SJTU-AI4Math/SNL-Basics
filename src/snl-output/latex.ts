@@ -1,6 +1,7 @@
 import type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/node-types'
 
+/** Options for {@link toLatex}. */
 export interface LatexOutputOptions {
   strategy?: 'built_in' | 'synthesis'  // default 'built_in'
   include_preamble?: boolean            // default true

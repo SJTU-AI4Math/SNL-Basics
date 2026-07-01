@@ -80,6 +80,7 @@ export function createMacroTemplateQueryFromDb(db: SnlMacroDb): SnlMacroTemplate
   return buildQueryBody(db)
 }
 
+/** Options for {@link createDefaultMacroTemplateQuery}. */
 export interface DefaultMacroTemplateQueryOptions {
   /** 模板库 URL，默认 {@link DEFAULT_SNL_MACRO_DB_URL} */
   templateDbUrl?: string

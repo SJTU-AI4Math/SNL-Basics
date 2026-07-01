@@ -17,6 +17,7 @@ function updateChildAt(
   return children.map((child, i) => (i === index ? updater(child) : child))
 }
 
+/** Interactive tree editor for the demo app. Not part of the core render library. */
 export function SnlSyntaxTreeEditor({
   value,
   onChange,

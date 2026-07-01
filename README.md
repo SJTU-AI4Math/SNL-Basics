@@ -1,154 +1,60 @@
-# SnlSyntaxTree React Demo
+# SNL-Basics
 
-一个轻量级的 React + TypeScript 示例，展示以下能力：
+Structured Natural Language (SNL) base library — parse a macro DSL into syntax
+trees and render them to KaTeX-in-React with hover interactions, plus
+Typst / LaTeX / Markdown / plain-text output backends.
 
-- 将 `a[b](c,d(e))` 语法解析为 `SnlSyntaxTree`
-- 通过可插拔异步查询函数获取 LaTeX 模板
-- 递归替换 `{{child0}}`、`{{child1}}` 占位符
-- 使用 KaTeX 渲染 HTML
-- 通过 GUI 编辑 `SnlSyntaxTree`
+Design goals: **simple, clear interfaces · highly modular · deeply customizable.**
+Every interaction (tooltip, hover highlight, source resolution, block rendering)
+is overridable through a single `hooks` prop.
 
-> 注：`mdata` 当前作为预留扩展字段，不参与 parser 语法与默认渲染流程。
+## Install
 
-## 目录结构
+```bash
+npm i @snl-basics/react katex react
+```
 
-- `src/operator-tree/types.ts`: `SnlSyntaxTree` 类型与工具函数
-- `src/operator-tree/parser.ts`: 递归下降 parser
-- `src/operator-tree/query.ts`: 异步查询接口类型定义
-- `src/operator-tree/template.ts`: 模板占位符替换
-- `src/components/SnlSyntaxTreeView.tsx`: 异步渲染组件
-- `src/components/SnlSyntaxTreeEditor/SnlSyntaxTreeEditor.tsx`: GUI 编辑组件
-- `src/App.tsx`: 示例串联（mock query + parser + editor + renderer）
-
-## 语法约定
-
-- `name[style](child1,child2(...))`
-- `name`: 节点名
-- `[style]`: 节点样式字符串
-- `( ... )`: 子节点列表
-
-示例：`a[frac](b,d(sum))`
-
-说明：
-
-- `[]` 映射到节点 `style`
-- `()` 映射到节点 `children`
-- 空子节点列表允许写成 `x[y]()`
-
-## 模板占位符
-
-查询函数返回 LaTeX 模板字符串，支持：
-
-- `{{child0}}`, `{{child1}}`, ... 对应子节点递归计算出的 LaTeX
-- `@CHILD1@`, `@CHILD2@`, ...（数据库模板常用写法）
-
-例如：
-
-- 模板：`\\frac{{child0}}{{child1}}`
-- children: `x`, `y`
-- 结果：`\\frac{x}{y}`
-
-> 注：若模板中未出现某个占位符，替换阶段会忽略该 child；若占位符不存在对应值，默认替换为空字符串。
-
-## 查询接口
-
-`SnlMacroTemplateQuery`:
+Import the stylesheets once (KaTeX + the SNL hover/block styles):
 
 ```ts
-type SnlMacroTemplateQuery = (args: {
-  name: string
-  style: string
-  node: SnlSyntaxTree
-}) => Promise<string>
+import 'katex/dist/katex.min.css'
+import '@snl-basics/react/style.css'
 ```
 
-你可以替换 `App.tsx` 中的 mock query，接入自己的后端查询方式。
+## 5-minute quickstart
 
-## 模拟数据库（JSON）
-
-本 demo 使用 `public/snl-macro-db.json` 作为模板库，推荐结构为：
-
-- 第一层 key：语义名（如 `DivRing.div`）
-- 第二层 key：渲染 style（如 `frac`）
-- 值：`{ "latex": "..." }`
-- 每个 style 记录：`{ "latex": "...", "childCount": number }`
-
-示例：
-
-```json
-{
-  "DivRing.div": {
-    "frac": { "latex": "\\frac{@CHILD1@}{@CHILD2@}", "childCount": 2 }
-  }
-}
-```
-
-查询逻辑：
-
-- 命中 `(name, style)` => 使用数据库模板
-- 若未提供 `style`（没有 `[]`）=> 默认使用该 `name` 下的第一个 style
-- 未命中 => 把 `name` 当临时符号渲染（会做基础转义，尽量避免 KaTeX 语法错误）
-
-编辑器行为：
-
-- 当输入 `name` 后命中数据库且 `style` 为空，会自动填充默认 style
-- 编辑器会根据命中 style 的 `childCount` 自动补齐/裁剪子节点数量
-
-## Demo 页面包含
-
-- 左侧：`SnlSyntaxTree` GUI 编辑器
-- 右侧：当前树结构（字符串 + 文本树示意图）
-- 下方：生成的 KaTeX 源码（最终 LaTeX）与渲染结果
-
-## 运行
-
-```bash
-npm install
-npm run dev
-```
-
-测试与构建：
-
-```bash
-npm run test
-npm run build
-```
-
-## 作为 npm 包在其他项目中使用
-
-本目录发布为 **`@snl-basics/react`**（见 `package.json` 的 `exports`）。对外入口为 **`src/operator-katex/index.ts`**，构建库产物：`npm run build:lib` → `dist-lib/`。
-
-### 安装与三条必做
-
-1. 安装依赖：`react`、`katex`（与 `peerDependencies` 一致）。
-2. 样式（三处）：  
-   - `import 'katex/dist/katex.min.css'`  
-   - `import '@snl-basics/react/style.css'`  
-3. 把 **`snl-macro-db.json`** 放到站点可访问路径（如 `public/`），或 `import` JSON 后 `setSnlMacroDbCache(db)`；默认 `createDefaultMacroTemplateQuery()` 会请求 **`/snl-macro-db.json`**（可用 `templateDbUrl` 改）。
-
-### 最小示例
+The macro DB ships with the package as JSON, so no network fetch is needed —
+import it directly, build a query from it, parse an expression, and render:
 
 ```tsx
 import 'katex/dist/katex.min.css'
 import '@snl-basics/react/style.css'
+
+import { useMemo } from 'react'
 import {
   SnlSyntaxTreeView,
-  createDefaultMacroTemplateQuery,
-  loadSnlMacroDb,
   parseSnlSyntaxTree,
+  annotateBindings,
+  createMacroTemplateQueryFromDb,
   type SnlMacroDb,
+  type SnlSyntaxTree,
 } from '@snl-basics/react'
-import { useEffect, useMemo, useState } from 'react'
+import macroDb from '@snl-basics/react/snl-macro-db.json'
 
-export function FormulaBlock({ expr }: { expr: string }) {
-  const tree = useMemo(() => parseSnlSyntaxTree(expr), [expr])
-  const [db, setDb] = useState<SnlMacroDb>({})
-  const query = useMemo(() => createDefaultMacroTemplateQuery(), [])
+const db = macroDb as unknown as SnlMacroDb
 
-  useEffect(() => {
-    void loadSnlMacroDb('/snl-macro-db.json').then(setDb).catch(() => setDb({}))
+export function Demo() {
+  // 1. A query resolves a macro name to its KaTeX template (from the DB).
+  const query = useMemo(() => createMacroTemplateQueryFromDb(db), [])
+
+  // 2. Parse SNL source, then annotate binders/bound-variables for hover.
+  const tree: SnlSyntaxTree = useMemo(() => {
+    const t = parseSnlSyntaxTree('FOL.forall.binder(x, FOL.eq.infix(x, x))')
+    annotateBindings(t)
+    return t
   }, [])
 
+  // 3. Render. `trust: true` lets KaTeX emit the \htmlData hover hooks.
   return (
     <SnlSyntaxTreeView
       tree={tree}
@@ -160,18 +66,121 @@ export function FormulaBlock({ expr }: { expr: string }) {
 }
 ```
 
-### 常用 API（按需 import）
+Prefer to load the DB over HTTP (e.g. served from your `public/` dir)? Use
+`loadSnlMacroDb(url)` instead of the direct import:
 
-| 符号 | 作用 |
-|------|------|
-| `parseSnlSyntaxTree` / `tryParseSnlSyntaxTree` | 文本 → 树 |
-| `serializeSnlSyntaxTree` | 树 → 文本 |
-| `createDefaultMacroTemplateQuery` / `createMacroTemplateQueryFromDb` | KaTeX 模板查询 |
-| `loadSnlMacroDb` / `setSnlMacroDbCache` / `clearSnlMacroDbCache` | 模板库加载与缓存 |
-| `DEFAULT_SNL_MACRO_DB_URL` | 默认 fetch 路径 |
-| `SnlSyntaxTreeView` | 渲染 + 悬停 |
-| `SnlSyntaxTreeEditor` | 可选：树编辑器 |
-| `annotateBindings` | 量词 bindRef（parser 已调用时可忽略） |
-| `getEffectiveStyle` / `fillLatexTemplate` | 进阶 |
+```tsx
+import { loadSnlMacroDb, createDefaultMacroTemplateQuery } from '@snl-basics/react'
 
-发布前将 `package.json` 中 `"private": true` 改为 `false`（或仅在发布时覆盖），并执行 `npm run build:lib`。
+const db = await loadSnlMacroDb('/snl-macro-db.json')
+const query = createDefaultMacroTemplateQuery({ templateDbUrl: '/snl-macro-db.json' })
+```
+
+## Concepts
+
+- **Macro** — a named renderer with five output strategies (`typst`, `latex`,
+  `markdown`, `text`, `katex_react`). Fields and semantics live in
+  [`src/snl-macro/types.ts`](src/snl-macro/types.ts).
+- **Syntax tree** — the parsed representation (`{ name, kind, mdata, children }`).
+  At render time each node is dispatched by its macro's `katex_react.mode`:
+  `math` (KaTeX), `text` (`<span>`), or `block` (a registered block renderer).
+- **Hooks** — every interaction is customizable via `SnlRenderHooks`: supply your
+  own `renderTooltip`, `onHover` / `onLeave`, `resolveMacroInfo`, `resolveSource`,
+  `highlightStrategy`, or `renderers`. Anything you omit falls back to
+  `defaultRenderHooks`.
+- **Arity & placeholders** — fixed-arity macros use `@CHILD0@`, `@CHILD1@`, …;
+  variadic macros use `@CHILDREN@` joined by `variadic_join` (e.g. `pmatrix` /
+  `matrix.row`).
+
+## Customization examples
+
+### Custom tooltip
+
+```tsx
+<SnlSyntaxTreeView
+  tree={tree}
+  query={query}
+  templateDb={db}
+  hooks={{
+    renderTooltip: (state) =>
+      state.visible ? (
+        <div className="my-tooltip" style={{ position: 'fixed', left: state.x, top: state.y }}>
+          <strong>{state.name}</strong>
+          <div>{state.info?.description ?? '…'}</div>
+        </div>
+      ) : null,
+  }}
+/>
+```
+
+### Custom source resolver (entry id → URL)
+
+```tsx
+import type { SnlResolvedSource } from '@snl-basics/react'
+
+const resolveSource = (source: { entries: string[]; urls: string[] }): SnlResolvedSource | null => {
+  if (source.entries[0]) {
+    return { kind: 'entry', ref: source.entries[0], href: `https://my-wiki/entry/${source.entries[0]}` }
+  }
+  if (source.urls[0]) {
+    return { kind: 'url', ref: source.urls[0], href: source.urls[0] }
+  }
+  return null
+}
+
+<SnlSyntaxTreeView tree={tree} query={query} templateDb={db} hooks={{ resolveSource }} />
+```
+
+### Custom block renderer
+
+Register a renderer keyed by the macro's `katex_react.react_renderer_key`. Spread
+`defaultRenderers` to keep the built-in `list` / `table` / `centered` renderers:
+
+```tsx
+import { defaultRenderers, type SnlBlockRenderer } from '@snl-basics/react'
+
+// Macro DB entry: { katex_react: { arity: 'variadic', mode: 'block', react_renderer_key: 'callout', template: '' } }
+const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
+  <aside className="callout">
+    {node.children.map((child, i) => (
+      <span key={i}>{renderChild(child)}</span>
+    ))}
+  </aside>
+)
+
+<SnlSyntaxTreeView
+  tree={tree}
+  query={query}
+  templateDb={db}
+  hooks={{ renderers: { ...defaultRenderers, callout: Callout } }}
+/>
+```
+
+The library also ships sample block macros in
+`@snl-basics/react/snl-macro-db-samples.json` (`sample.list`, `sample.table`,
+`sample.centered`) that you can merge into your DB to try the built-in renderers.
+
+## Output backends
+
+```ts
+import { toLatex, buildLatexPreamble, toTypst, toMarkdown, toText } from '@snl-basics/react'
+```
+
+`toLatex` / `toTypst` / `toMarkdown` / `toText` convert a tree to the respective
+format (Typst/LaTeX also expose `build*Preamble` for collected `built_in`
+declarations). These are currently stubs pending Phase 2.5+.
+
+## API
+
+The full public surface is the grouped barrel in
+[`src/snl-react-view/index.ts`](src/snl-react-view/index.ts); TypeScript
+declarations are published at `dist-lib/index.d.ts`.
+
+## Development
+
+```bash
+npm install
+npm run build:lib   # emits dist-lib/ (JS + types + style.css + macro DBs)
+npm test            # vitest
+npm run dev         # interactive demo (src/App.tsx)
+```

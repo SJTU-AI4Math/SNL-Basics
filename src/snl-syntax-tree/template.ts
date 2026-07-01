@@ -1,3 +1,10 @@
+/**
+ * Fill a KaTeX template string. Supported placeholders:
+ *   `{{ key }}` — value by key; `@CHILD0@`/`@CHILD1@`/… — 0-indexed children;
+ *   `@CHILDREN@` — variadic children (`values.children_joined`);
+ *   `@NAME@`/`@KIND@`/`@BIND_REF@`/`@BIND_REF_ATTR@` — node metadata.
+ * Unknown placeholders resolve to the empty string.
+ */
 export function fillLatexTemplate(
   template: string,
   values: Record<string, string | number | undefined>,

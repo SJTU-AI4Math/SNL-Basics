@@ -1,14 +1,16 @@
 /**
- * @snl-basics/react — SNL 语法树 → KaTeX（htmlData 交互）
+ * `@snl-basics/react` — Structured Natural Language (SNL) base library.
  *
- * 样式：import '@snl-basics/react/style.css'
- * KaTeX：import 'katex/dist/katex.min.css'
+ * Parse a macro DSL to syntax trees and render them to KaTeX-in-React with hover
+ * interactions, plus Typst / LaTeX / Markdown / plain-text output backends.
+ *
+ * Styles: `import '@snl-basics/react/style.css'` and `import 'katex/dist/katex.min.css'`.
  */
 
+// === Core types ===
+export type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
 export type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 export { createSnlSyntaxTreeNode, isSnlSyntaxTree } from '../snl-syntax-tree/types'
-
-// v1 前瞻类型（mode 判别联合）——尚未由 parser 产出，供消费者/后续阶段使用
 export type {
   SnlSyntaxTreeBase,
   SnlSyntaxTreeMathNode,
@@ -16,42 +18,42 @@ export type {
   SnlSyntaxTreeBlockNode,
 } from '../snl-syntax-tree/node-types'
 
-export type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
-
-export type { SnlMacroTemplateQuery, SnlMacroTemplateQueryArgs } from '../snl-syntax-tree/query'
-
+// === Parser ===
+export { parseSnlSyntaxTree, tryParseSnlSyntaxTree, SnlSyntaxTreeParseError } from './parse'
+export { serializeSnlSyntaxTree } from './serialize'
 export { annotateBindings } from '../snl-syntax-tree/annotate-bind'
 
+// === DB loading & template query ===
 export {
+  loadSnlMacroDb,
+  DEFAULT_SNL_MACRO_DB_URL,
+  setSnlMacroDbCache,
   clearSnlMacroDbCache,
   createDefaultMacroTemplateQuery,
   createMacroTemplateQueryFromDb,
-  DEFAULT_SNL_MACRO_DB_URL,
-  loadSnlMacroDb,
-  setSnlMacroDbCache,
   type DefaultMacroTemplateQueryOptions,
 } from './default-query'
+export type { SnlMacroTemplateQuery, SnlMacroTemplateQueryArgs } from '../snl-syntax-tree/query'
 
-export { fillLatexTemplate } from '../snl-syntax-tree/template'
+// === Rendering ===
+export { SnlSyntaxTreeView, type SnlSyntaxTreeViewProps } from '../components/SnlSyntaxTreeView'
 
-export { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
-
-export { defaultRenderHooks } from './hooks'
+// === Hooks & customization ===
+export { defaultRenderHooks, defaultHighlightStrategy, defaultRenderers } from './hooks'
 export type {
   SnlRenderHooks,
   SnlHoverEvent,
   SnlMacroInfo,
   SnlResolvedSource,
   SnlTooltipState,
+  SnlHighlightStrategy,
+  SnlHighlightSet,
+  SnlRendererRegistry,
+  SnlBlockRenderer,
+  SnlBlockRendererProps,
 } from './hooks'
 
-export { serializeSnlSyntaxTree } from './serialize'
-
-export { tryParseSnlSyntaxTree, parseSnlSyntaxTree, SnlSyntaxTreeParseError } from './parse'
-
-export { SnlSyntaxTreeEditor } from '../components/SnlSyntaxTreeEditor/SnlSyntaxTreeEditor'
-
-// 输出后端（typst / latex / markdown / text）——Phase 2.5+ 前为占位实现
+// === Output backends (Typst / LaTeX / Markdown / text) ===
 export {
   toTypst,
   buildTypstPreamble,
@@ -61,3 +63,9 @@ export {
   toText,
 } from '../snl-output'
 export type { TypstOutputOptions, LatexOutputOptions } from '../snl-output'
+
+// === Advanced / low-level (kept for downstream consumers) ===
+export { fillLatexTemplate } from '../snl-syntax-tree/template'
+
+// === Optional demo editor (not part of the core library) ===
+export { SnlSyntaxTreeEditor } from '../components/SnlSyntaxTreeEditor/SnlSyntaxTreeEditor'

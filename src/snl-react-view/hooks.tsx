@@ -197,6 +197,11 @@ export const defaultRenderers: SnlRendererRegistry = {
   centered: CenteredRenderer,
 }
 
+/**
+ * Customization surface for {@link SnlSyntaxTreeView}. Every field is optional
+ * and merged over {@link defaultRenderHooks}; provide any subset to override
+ * tooltip, hover, description, highlight, or block-render behavior.
+ */
 export interface SnlRenderHooks {
   /** Called on hover start / move. Default: schedule tooltip display. */
   onHover?: (event: SnlHoverEvent) => void

@@ -6,6 +6,7 @@
  * default is 'math' (fallback to fvar/bvar/binder heuristics).
  */
 
+/** Common fields shared by all node modes. */
 export interface SnlSyntaxTreeBase {
   /** Macro name — key into SnlMacroDb. */
   name: string
@@ -17,20 +18,24 @@ export interface SnlSyntaxTreeBase {
   children: SnlSyntaxTree[]
 }
 
+/** A node rendered as math (KaTeX). */
 export interface SnlSyntaxTreeMathNode extends SnlSyntaxTreeBase {
   mode: 'math'
 }
 
+/** A node rendered as text (React `<span>` wrapping children). */
 export interface SnlSyntaxTreeTextNode extends SnlSyntaxTreeBase {
   mode: 'text'
 }
 
+/** A node rendered as a block element via a registered block renderer. */
 export interface SnlSyntaxTreeBlockNode extends SnlSyntaxTreeBase {
   mode: 'block'
   /** Which block renderer to invoke — matches katex_react.react_renderer_key. */
   block_kind: 'list' | 'table' | 'centered' | 'custom'
 }
 
+/** Discriminated union of node modes (forward-looking; parser emits the flat form). */
 export type SnlSyntaxTree =
   | SnlSyntaxTreeMathNode
   | SnlSyntaxTreeTextNode

@@ -205,6 +205,11 @@ function useSnlSyntaxTreeRender(
   return { loading, error, result }
 }
 
+/**
+ * Renders an (annotated) {@link SnlSyntaxTree} to KaTeX-in-React with hover
+ * interactions. Dispatches by the root macro's `katex_react.mode`
+ * (math / text / block). All interaction is customizable via `hooks`.
+ */
 export function SnlSyntaxTreeView({
   tree,
   query,

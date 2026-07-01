@@ -16,6 +16,7 @@ interface Token {
   position: number
 }
 
+/** Error thrown by {@link parseSnlSyntaxTree} on malformed input; carries the 0-based `position`. */
 export class SnlSyntaxTreeParseError extends Error {
   public readonly position: number
 
@@ -155,6 +156,10 @@ class Parser {
   }
 }
 
+/**
+ * Parse SNL source (`name(child1,child2(…))`) into a {@link SnlSyntaxTree}.
+ * @throws {SnlSyntaxTreeParseError} on malformed input.
+ */
 export function parseSnlSyntaxTree(input: string): SnlSyntaxTree {
   const tokens = tokenize(input)
   const parser = new Parser(tokens)
