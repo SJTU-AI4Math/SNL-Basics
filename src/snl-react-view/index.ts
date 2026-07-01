@@ -9,6 +9,7 @@
 
 // === Core types ===
 export type { SnlMacro, SnlMacroDb, SnlMacroSource } from '../snl-macro/types'
+export { bundledMacroDb, bundledSampleMacroDb } from '../snl-macro/bundled-db'
 export type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 export { createSnlSyntaxTreeNode, isSnlSyntaxTree } from '../snl-syntax-tree/types'
 export type {
