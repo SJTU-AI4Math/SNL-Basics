@@ -1,7 +1,7 @@
-import type { OperatorTree } from './types'
+import type { SnlSyntaxTree } from './types'
 
 /** 编译期 annotate 写入的绑定实例 id；KaTeX \\htmlData 键 bindRef 会变成属性 data-bindRef，读 DOM 时需兼容 dataset.bindref / data-bind-ref */
-export function getBindRef(node: OperatorTree): string | undefined {
+export function getBindRef(node: SnlSyntaxTree): string | undefined {
   if (!node.mdata || typeof node.mdata !== 'object') {
     return undefined
   }

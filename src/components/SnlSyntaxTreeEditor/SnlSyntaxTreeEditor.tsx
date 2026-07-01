@@ -1,30 +1,30 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getEffectiveStyle } from '../../snl-syntax-tree/effective-style'
-import type { TemplateDb } from '../../snl-syntax-tree/template-db'
-import type { OperatorTree } from '../../snl-syntax-tree/types'
+import type { SnlMacroDb } from '../../snl-syntax-tree/template-db'
+import type { SnlSyntaxTree } from '../../snl-syntax-tree/types'
 
-interface OperatorTreeEditorProps {
-  value: OperatorTree
-  onChange: (next: OperatorTree) => void
-  templateDb?: TemplateDb
+interface SnlSyntaxTreeEditorProps {
+  value: SnlSyntaxTree
+  onChange: (next: SnlSyntaxTree) => void
+  templateDb?: SnlMacroDb
   nodeIndex?: number
 }
 
 function updateChildAt(
-  children: OperatorTree[],
+  children: SnlSyntaxTree[],
   index: number,
-  updater: (child: OperatorTree) => OperatorTree,
-): OperatorTree[] {
+  updater: (child: SnlSyntaxTree) => SnlSyntaxTree,
+): SnlSyntaxTree[] {
   return children.map((child, i) => (i === index ? updater(child) : child))
 }
 
-export function OperatorTreeEditor({
+export function SnlSyntaxTreeEditor({
   value,
   onChange,
   templateDb,
   nodeIndex = 1,
-}: OperatorTreeEditorProps) {
-  const updateNode = (patch: Partial<OperatorTree>) => {
+}: SnlSyntaxTreeEditorProps) {
+  const updateNode = (patch: Partial<SnlSyntaxTree>) => {
     onChange({ ...value, ...patch })
   }
 
@@ -278,7 +278,7 @@ export function OperatorTreeEditor({
       <div className="tree-children">
         {value.children.map((child, index) => (
           <div key={`child-${index}`} className="tree-child-item">
-            <OperatorTreeEditor
+            <SnlSyntaxTreeEditor
               value={child}
               templateDb={templateDb}
               nodeIndex={index + 1}

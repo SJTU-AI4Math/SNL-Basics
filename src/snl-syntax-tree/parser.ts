@@ -1,5 +1,5 @@
 import { annotateBindings } from './annotate-bind'
-import { createOperatorNode, type OperatorTree } from './types'
+import { createSnlSyntaxTreeNode, type SnlSyntaxTree } from './types'
 
 type TokenType =
   | 'IDENT'
@@ -70,12 +70,12 @@ export function parseStyleMeta(raw: string): {
   return { style, kind, mdata: cleaned }
 }
 
-export class OperatorTreeParseError extends Error {
+export class SnlSyntaxTreeParseError extends Error {
   public readonly position: number
 
   constructor(message: string, position: number) {
     super(`${message} at position ${position}`)
-    this.name = 'OperatorTreeParseError'
+    this.name = 'SnlSyntaxTreeParseError'
     this.position = position
   }
 }
@@ -144,7 +144,7 @@ function tokenize(input: string): Token[] {
       continue
     }
 
-    throw new OperatorTreeParseError(`Unexpected character "${ch}"`, i)
+    throw new SnlSyntaxTreeParseError(`Unexpected character "${ch}"`, i)
   }
 
   tokens.push({ type: 'EOF', value: '', position: input.length })
@@ -159,16 +159,16 @@ class Parser {
     this.tokens = tokens
   }
 
-  parse(): OperatorTree {
+  parse(): SnlSyntaxTree {
     const tree = this.parseNode()
     this.expect('EOF')
     return tree
   }
 
-  private parseNode(): OperatorTree {
+  private parseNode(): SnlSyntaxTree {
     // 语法入口：IDENT 后可跟 [style] 与 (children)。
     const ident = this.expect('IDENT')
-    const node = createOperatorNode(ident.value)
+    const node = createSnlSyntaxTreeNode(ident.value)
 
     if (this.peek().type === 'LBRACK') {
       this.consume('LBRACK')
@@ -195,10 +195,10 @@ class Parser {
     while (this.peek().type !== 'RBRACK') {
       const token = this.peek()
       if (token.type === 'EOF') {
-        throw new OperatorTreeParseError('Unterminated style bracket', token.position)
+        throw new SnlSyntaxTreeParseError('Unterminated style bracket', token.position)
       }
       if (token.type === 'LBRACK') {
-        throw new OperatorTreeParseError('Nested "[" is not allowed in style', token.position)
+        throw new SnlSyntaxTreeParseError('Nested "[" is not allowed in style', token.position)
       }
       this.cursor += 1
       parts.push(token.value)
@@ -206,16 +206,16 @@ class Parser {
     return parts.join('').trim()
   }
 
-  private parseNodeList(): OperatorTree[] {
+  private parseNodeList(): SnlSyntaxTree[] {
     if (this.peek().type === 'RPAREN') {
       return []
     }
 
-    const children: OperatorTree[] = [this.parseNode()]
+    const children: SnlSyntaxTree[] = [this.parseNode()]
     while (this.peek().type === 'COMMA') {
       this.consume('COMMA')
       if (this.peek().type === 'RPAREN') {
-        throw new OperatorTreeParseError('Trailing comma is not allowed', this.peek().position)
+        throw new SnlSyntaxTreeParseError('Trailing comma is not allowed', this.peek().position)
       }
       children.push(this.parseNode())
     }
@@ -225,7 +225,7 @@ class Parser {
   private expect(type: TokenType): Token {
     const token = this.peek()
     if (token.type !== type) {
-      throw new OperatorTreeParseError(`Expected ${type} but got ${token.type}`, token.position)
+      throw new SnlSyntaxTreeParseError(`Expected ${type} but got ${token.type}`, token.position)
     }
     this.cursor += 1
     return token
@@ -240,7 +240,7 @@ class Parser {
   }
 }
 
-export function parseOperatorTree(input: string): OperatorTree {
+export function parseSnlSyntaxTree(input: string): SnlSyntaxTree {
   const tokens = tokenize(input)
   const parser = new Parser(tokens)
   const tree = parser.parse()

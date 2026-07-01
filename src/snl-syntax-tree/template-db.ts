@@ -1,13 +1,13 @@
-export interface TemplateRecord {
+export interface SnlMacroTemplateRecord {
   latex: string
   childCount: number
   kind: string
   description: string
 }
 
-export interface OperatorRecord {
+export interface SnlMacroDbEntry {
   description: string
-  styles: Record<string, TemplateRecord>
+  styles: Record<string, SnlMacroTemplateRecord>
 }
 
-export type TemplateDb = Record<string, OperatorRecord>
+export type SnlMacroDb = Record<string, SnlMacroDbEntry>

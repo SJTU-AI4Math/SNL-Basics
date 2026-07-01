@@ -1,4 +1,4 @@
-/* 算子树 KaTeX 视图：与 OperatorTreeKaTeXView 配套；使用前请同时引入 katex/dist/katex.min.css */
+/* SNL 语法树 KaTeX 视图：与 SnlSyntaxTreeView 配套；使用前请同时引入 katex/dist/katex.min.css */
 
 .katex-error {
   color: #b42318;
@@ -26,66 +26,66 @@
   border-radius: 2px;
 }
 
-.katex-html [data-kind='contantSubtree'] {
+.katex-html [data-kind='constantSubtree'] {
   display: inline-block;
   vertical-align: baseline;
   border-radius: 2px;
 }
 
-.katex-html .katex-single-hover.katex-hovered {
+.katex-html .snl-single-hover.snl-hovered {
   background: rgba(147, 197, 253, 0.18);
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
 }
 
-.katex-html [data-kind='constSymbol'].katex-op-skin-hover,
-.katex-html [data-kind='constSymbol'].katex-op-skin-hover .mord,
-.katex-html [data-kind='constSymbol'].katex-op-skin-hover .mpunct,
-.katex-html [data-kind='constSymbol'].katex-op-skin-hover .mrel {
+.katex-html [data-kind='constSymbol'].snl-op-skin-hover,
+.katex-html [data-kind='constSymbol'].snl-op-skin-hover .mord,
+.katex-html [data-kind='constSymbol'].snl-op-skin-hover .mpunct,
+.katex-html [data-kind='constSymbol'].snl-op-skin-hover .mrel {
   color: var(--katex-hover-blue) !important;
 }
 
-.katex-html [data-kind='constFence'].katex-op-skin-hover > .minner > .mopen:first-child,
-.katex-html [data-kind='constFence'].katex-op-skin-hover > .minner > .mclose:last-child {
+.katex-html [data-kind='constFence'].snl-op-skin-hover > .minner > .mopen:first-child,
+.katex-html [data-kind='constFence'].snl-op-skin-hover > .minner > .mclose:last-child {
   color: var(--katex-hover-blue) !important;
 }
 
-.katex-html .katex-single-hover.katex-hovered[data-kind='fvar'],
-.katex-html .katex-single-hover.katex-hovered[data-kind='binder'] {
+.katex-html .snl-single-hover.snl-hovered[data-kind='fvar'],
+.katex-html .snl-single-hover.snl-hovered[data-kind='binder'] {
   color: var(--katex-hover-blue) !important;
 }
 
-.katex-html .katex-single-hover.katex-hovered > [data-kind='const']:has(.mfrac) {
+.katex-html .snl-single-hover.snl-hovered > [data-kind='const']:has(.mfrac) {
   color: #000 !important;
 }
-.katex-html .katex-single-hover.katex-hovered > [data-kind='const']:has(.mfrac) .frac-line,
-.katex-html .katex-single-hover.katex-hovered > [data-kind='const']:has(.mfrac) .frac-line::before,
-.katex-html .katex-single-hover.katex-hovered > [data-kind='const']:has(.mfrac) .frac-line::after {
+.katex-html .snl-single-hover.snl-hovered > [data-kind='const']:has(.mfrac) .frac-line,
+.katex-html .snl-single-hover.snl-hovered > [data-kind='const']:has(.mfrac) .frac-line::before,
+.katex-html .snl-single-hover.snl-hovered > [data-kind='const']:has(.mfrac) .frac-line::after {
   border-color: var(--katex-hover-blue) !important;
 }
 
-.katex-html [data-kind='bvar'].katex-hovered.katex-bvar-scope {
+.katex-html [data-kind='bvar'].snl-hovered.snl-bvar-scope {
   color: var(--katex-hover-blue) !important;
 }
 
-.katex-html [data-kind='binder'].katex-hovered.katex-binder-decl {
+.katex-html [data-kind='binder'].snl-hovered.snl-binder-decl {
   color: #dc2626 !important;
 }
 
-.katex-html [data-kind='bvar'].katex-hovered.katex-bvar-scope.katex-single-hover,
-.katex-html [data-kind='binder'].katex-hovered.katex-binder-decl.katex-single-hover {
+.katex-html [data-kind='bvar'].snl-hovered.snl-bvar-scope.snl-single-hover,
+.katex-html [data-kind='binder'].snl-hovered.snl-binder-decl.snl-single-hover {
   background: rgba(147, 197, 253, 0.18);
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
 }
 
-.katex-html [data-kind='bvar'].katex-hovered.katex-bvar-scope.katex-single-hover {
+.katex-html [data-kind='bvar'].snl-hovered.snl-bvar-scope.snl-single-hover {
   color: var(--katex-hover-blue) !important;
 }
 
-.katex-html [data-kind='binder'].katex-hovered.katex-binder-decl.katex-single-hover {
+.katex-html [data-kind='binder'].snl-hovered.snl-binder-decl.snl-single-hover {
   color: #dc2626 !important;
 }
 
-.katex-hover-tooltip {
+.snl-hover-tooltip {
   position: fixed;
   max-width: 360px;
   padding: 8px 10px;
@@ -101,25 +101,25 @@
   z-index: 40;
 }
 
-.katex-hover-tooltip.visible {
+.snl-hover-tooltip.visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-.katex-hover-tooltip .tooltip-title {
+.snl-hover-tooltip .tooltip-title {
   font-weight: 600;
   font-size: 12px;
   margin-bottom: 4px;
 }
 
-.katex-hover-tooltip .tooltip-kind {
+.snl-hover-tooltip .tooltip-kind {
   font-size: 11px;
   color: #475467;
   margin-bottom: 4px;
 }
 
-.katex-hover-tooltip .tooltip-loading,
-.katex-hover-tooltip .tooltip-desc {
+.snl-hover-tooltip .tooltip-loading,
+.snl-hover-tooltip .tooltip-desc {
   font-size: 12px;
   line-height: 1.35;
   color: #344054;

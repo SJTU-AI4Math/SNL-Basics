@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState, type KeyboardEventHandler } from 'react'
 import {
-  createDefaultTemplateQuery,
-  loadTemplateDb,
-  OperatorTreeEditor,
-  OperatorTreeKaTeXView,
-  parseOperatorTree,
-  serializeOperatorTree,
-  tryParseOperatorTree,
-  type OperatorTree,
-  type TemplateDb,
+  createDefaultMacroTemplateQuery,
+  loadSnlMacroDb,
+  SnlSyntaxTreeEditor,
+  SnlSyntaxTreeView,
+  parseSnlSyntaxTree,
+  serializeSnlSyntaxTree,
+  tryParseSnlSyntaxTree,
+  type SnlSyntaxTree,
+  type SnlMacroDb,
 } from './snl-react-view'
 
 const INITIAL_INPUT =
@@ -17,7 +17,7 @@ const INITIAL_INPUT =
 const MAX_UNDO_CHECKPOINTS = 10
 
 // 用简洁文本方式展示树形层级，方便肉眼检查 parser/编辑器结果。
-function toTreeDiagram(node: OperatorTree, depth = 0): string {
+function toTreeDiagram(node: SnlSyntaxTree, depth = 0): string {
   const prefix = `${'  '.repeat(depth)}- `
   const line = `${prefix}${node.name}${node.style ? ` [${node.style}]` : ''}`
   if (node.children.length === 0) {
@@ -26,7 +26,7 @@ function toTreeDiagram(node: OperatorTree, depth = 0): string {
   return `${line}\n${node.children.map((child) => toTreeDiagram(child, depth + 1)).join('\n')}`
 }
 
-function cloneTree(node: OperatorTree): OperatorTree {
+function cloneTree(node: SnlSyntaxTree): SnlSyntaxTree {
   return {
     name: node.name,
     style: node.style,
@@ -36,7 +36,7 @@ function cloneTree(node: OperatorTree): OperatorTree {
   }
 }
 
-function buildMatchSignature(node: OperatorTree, db: TemplateDb): string {
+function buildMatchSignature(node: SnlSyntaxTree, db: SnlMacroDb): string {
   const nameMatched = Boolean(db[node.name])
   const styleMatched = Boolean(node.style && db[node.name]?.styles?.[node.style])
   const current = `${Number(nameMatched)}${Number(styleMatched)}`
@@ -48,23 +48,23 @@ function buildMatchSignature(node: OperatorTree, db: TemplateDb): string {
 
 export default function App() {
   const [expression, setExpression] = useState(INITIAL_INPUT)
-  const [tree, setTree] = useState<OperatorTree>(() => parseOperatorTree(INITIAL_INPUT))
+  const [tree, setTree] = useState<SnlSyntaxTree>(() => parseSnlSyntaxTree(INITIAL_INPUT))
   const [parseError, setParseError] = useState<string | null>(null)
   const [latexSource, setLatexSource] = useState('')
-  const [templateDb, setTemplateDb] = useState<TemplateDb>({})
-  const [, setUndoStack] = useState<OperatorTree[]>([])
-  const query = useMemo(() => createDefaultTemplateQuery(), [])
-  const treeString = useMemo(() => serializeOperatorTree(tree), [tree])
+  const [templateDb, setTemplateDb] = useState<SnlMacroDb>({})
+  const [, setUndoStack] = useState<SnlSyntaxTree[]>([])
+  const query = useMemo(() => createDefaultMacroTemplateQuery(), [])
+  const treeString = useMemo(() => serializeSnlSyntaxTree(tree), [tree])
   const treeDiagram = useMemo(() => toTreeDiagram(tree), [tree])
 
   useEffect(() => {
-    void loadTemplateDb()
+    void loadSnlMacroDb()
       .then((db) => setTemplateDb(db))
       .catch(() => setTemplateDb({}))
   }, [])
 
   const parseFromInput = () => {
-    const result = tryParseOperatorTree(expression)
+    const result = tryParseSnlSyntaxTree(expression)
     if (result.ok) {
       setParseError(null)
       setTree(result.tree)
@@ -74,7 +74,7 @@ export default function App() {
     }
   }
 
-  const handleTreeChange = (next: OperatorTree) => {
+  const handleTreeChange = (next: SnlSyntaxTree) => {
     const prevSignature = buildMatchSignature(tree, templateDb)
     const nextSignature = buildMatchSignature(next, templateDb)
 
@@ -112,7 +112,7 @@ export default function App() {
 
   return (
     <div className="page" onKeyDownCapture={handleKeyDownCapture}>
-      <h1>OperatorTree 全量 Demo</h1>
+      <h1>SnlSyntaxTree 全量 Demo</h1>
       <div className="section">
         <h2>1) Parser 输入</h2>
         <p>
@@ -135,13 +135,13 @@ export default function App() {
 
       <div className="grid">
         <div className="section">
-          <h2>2) OperatorTree 编辑器</h2>
-          <OperatorTreeEditor value={tree} onChange={handleTreeChange} templateDb={templateDb} />
+          <h2>2) SnlSyntaxTree 编辑器</h2>
+          <SnlSyntaxTreeEditor value={tree} onChange={handleTreeChange} templateDb={templateDb} />
         </div>
 
         <div className="section">
           <h2>3) KaTeX 渲染结果</h2>
-          <OperatorTreeKaTeXView
+          <SnlSyntaxTreeView
             tree={tree}
             query={query}
             templateDb={templateDb}

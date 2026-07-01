@@ -1,11 +1,11 @@
-import type { OperatorTree } from './types'
+import type { SnlSyntaxTree } from './types'
 
 /** 编译期为量词子树分配 bindRef，按变量名把 bvar 与引入处配对（不依赖 de Bruijn level） */
-export function annotateBindings(root: OperatorTree): void {
+export function annotateBindings(root: SnlSyntaxTree): void {
   let id = 0
   const nextRef = () => `b${++id}`
 
-  function walk(node: OperatorTree, stack: Array<{ name: string; ref: string }>): void {
+  function walk(node: SnlSyntaxTree, stack: Array<{ name: string; ref: string }>): void {
     if (node.name === 'FOL.forall' || node.name === 'FOL.exists') {
       const ref = nextRef()
       const base = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}

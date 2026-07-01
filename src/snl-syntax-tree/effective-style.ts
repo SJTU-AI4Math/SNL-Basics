@@ -1,8 +1,8 @@
-import type { TemplateDb } from './template-db'
-import type { OperatorTree } from './types'
+import type { SnlMacroDb } from './template-db'
+import type { SnlSyntaxTree } from './types'
 
-/** 方括号为空时：选第一个 childCount 与当前节点子节点个数一致的 style，否则取该算子第一个 style */
-export function getEffectiveStyle(node: OperatorTree, db: TemplateDb): string {
+/** 方括号为空时：选第一个 childCount 与当前节点子节点个数一致的 style，否则取该 SNL 宏第一个 style */
+export function getEffectiveStyle(node: SnlSyntaxTree, db: SnlMacroDb): string {
   if (node.style?.trim()) {
     return node.style
   }

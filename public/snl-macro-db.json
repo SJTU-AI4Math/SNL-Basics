@@ -3,13 +3,13 @@
     "description": "DivRing 上的除法运算，通常表示一个元素除以另一个元素。",
     "styles": {
       "frac": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{\\frac{@CHILD1@}{@CHILD2@}}}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{\\frac{@CHILD1@}{@CHILD2@}}}",
         "childCount": 2,
         "kind": "const",
         "description": "分数线形式渲染除法。"
       },
       "inline-div": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\div} @CHILD2@}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\div} @CHILD2@}",
         "childCount": 2,
         "kind": "const",
         "description": "行内 \\div 符号渲染除法。"
@@ -20,7 +20,7 @@
     "description": "加法运算，组合两个输入得到它们的和。",
     "styles": {
       "infix": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{+} @CHILD2@}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{+} @CHILD2@}",
         "childCount": 2,
         "kind": "const",
         "description": "中缀加号形式渲染。"
@@ -31,7 +31,7 @@
     "description": "减法运算，计算两个输入的差。",
     "styles": {
       "infix": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{-} @CHILD2@}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{-} @CHILD2@}",
         "childCount": 2,
         "kind": "const",
         "description": "中缀减号形式渲染。"
@@ -42,13 +42,13 @@
     "description": "乘法运算，计算两个输入的积。",
     "styles": {
       "infix": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\cdot} @CHILD2@}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\cdot} @CHILD2@}",
         "childCount": 2,
         "kind": "const",
         "description": "以 \\cdot 作为乘号渲染。"
       },
       "implicit": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{}@CHILD2@}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{@CHILD1@\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{}@CHILD2@}",
         "childCount": 2,
         "kind": "const",
         "description": "省略乘号的隐式相乘渲染。"
@@ -59,7 +59,7 @@
     "description": "幂运算，表示底数的指数次方。",
     "styles": {
       "sup": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{{@CHILD1@}^{@CHILD2@}}}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{{@CHILD1@}^{@CHILD2@}}}",
         "childCount": 2,
         "kind": "const",
         "description": "上标形式渲染幂。"
@@ -70,13 +70,13 @@
     "description": "一阶逻辑全称量词。binder：∀ x, body；binder-typed：∀ (x : T), body。",
     "styles": {
       "binder": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\forall}\\, @CHILD1@\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{,}\\, @CHILD2@}}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\forall}\\, @CHILD1@\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{,}\\, @CHILD2@}}",
         "childCount": 2,
         "kind": "binder",
         "description": "∀ x, body。引入处 x[binder]，体内 x[bvar]；编译期按名绑定。"
       },
       "binder-typed": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\forall}\\left(@CHILD1@ : @CHILD2@\\right)\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{,}\\, @CHILD3@}}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\forall}\\left(@CHILD1@ : @CHILD2@\\right)\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{,}\\, @CHILD3@}}",
         "childCount": 3,
         "kind": "binder",
         "description": "∀ (x : T), body（类型标注）。"
@@ -87,13 +87,13 @@
     "description": "一阶逻辑存在量词。binder：∃ x, body；binder-typed：∃ (x : T), body。",
     "styles": {
       "binder": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\exists}\\, @CHILD1@\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{,}\\, @CHILD2@}}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\exists}\\, @CHILD1@\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{,}\\, @CHILD2@}}",
         "childCount": 2,
         "kind": "binder",
         "description": "∃ x, body。"
       },
       "binder-typed": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\exists}\\left(@CHILD1@ : @CHILD2@\\right)\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{,}\\, @CHILD3@}}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\exists}\\left(@CHILD1@ : @CHILD2@\\right)\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{,}\\, @CHILD3@}}",
         "childCount": 3,
         "kind": "binder",
         "description": "∃ (x : T), body。"
@@ -104,7 +104,7 @@
     "description": "函数/谓词应用：单列算子，子项为函子与参数。",
     "styles": {
       "apply": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=const}{@CHILD1@}\\htmlData{name=@NAME@,style=@STYLE@,kind=constFence}{\\left(@CHILD2@\\right)}}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=const}{@CHILD1@}\\htmlData{name=@NAME@,style=@STYLE@,kind=constFence}{\\left(@CHILD2@\\right)}}",
         "childCount": 2,
         "kind": "const",
         "description": "f(t) 形式，左子为函子，右子为参数。"
@@ -115,7 +115,7 @@
     "description": "括号分组：单列算子，子项为被包裹的公式。",
     "styles": {
       "round": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constFence}{\\left(@CHILD1@\\right)}}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constFence}{\\left(@CHILD1@\\right)}}",
         "childCount": 1,
         "kind": "const",
         "description": "\\left( \\cdots \\right)。"
@@ -126,7 +126,7 @@
     "description": "一阶逻辑蕴含（实质蕴涵）。",
     "styles": {
       "infix": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\rightarrow} @CHILD2@}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\rightarrow} @CHILD2@}",
         "childCount": 2,
         "kind": "const",
         "description": "中缀 \\rightarrow。"
@@ -137,7 +137,7 @@
     "description": "一阶逻辑合取。",
     "styles": {
       "infix": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\land} @CHILD2@}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\land} @CHILD2@}",
         "childCount": 2,
         "kind": "const",
         "description": "中缀 \\land。"
@@ -148,7 +148,7 @@
     "description": "一阶逻辑析取。",
     "styles": {
       "infix": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\lor} @CHILD2@}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\lor} @CHILD2@}",
         "childCount": 2,
         "kind": "const",
         "description": "中缀 \\lor。"
@@ -159,7 +159,7 @@
     "description": "一阶逻辑否定。",
     "styles": {
       "prefix": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\neg} @CHILD1@}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{\\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{\\neg} @CHILD1@}",
         "childCount": 1,
         "kind": "const",
         "description": "前缀 \\neg。"
@@ -170,7 +170,7 @@
     "description": "一阶逻辑等词（相等）。",
     "styles": {
       "infix": {
-        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=contantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{=} @CHILD2@}",
+        "latex": "\\htmlData{name=@NAME@,style=@STYLE@,kind=constantSubtree}{@CHILD1@ \\htmlData{name=@NAME@,style=@STYLE@,kind=constSymbol}{=} @CHILD2@}",
         "childCount": 2,
         "kind": "const",
         "description": "中缀等号。"

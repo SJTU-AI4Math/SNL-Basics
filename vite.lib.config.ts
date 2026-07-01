@@ -14,7 +14,7 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: resolve(root, 'src/operator-katex/index.ts'),
+      entry: resolve(root, 'src/snl-react-view/index.ts'),
       fileName: 'index',
       formats: ['es'],
     },

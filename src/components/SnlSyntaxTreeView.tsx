@@ -7,23 +7,23 @@ import {
 } from 'react'
 import katex from 'katex'
 import type { KatexOptions } from 'katex'
-import type { KaTeXTemplateQuery } from '../snl-syntax-tree/query'
-import type { TemplateDb } from '../snl-syntax-tree/template-db'
+import type { SnlMacroTemplateQuery } from '../snl-syntax-tree/query'
+import type { SnlMacroDb } from '../snl-syntax-tree/template-db'
 import { bindRefAttrFragment, getBindRef, readBindRefFromDom } from '../snl-syntax-tree/binding'
 import { getEffectiveStyle } from '../snl-syntax-tree/effective-style'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { fvarAppliedHeadLatex } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
-import type { OperatorTree } from '../snl-syntax-tree/types'
+import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 
-/** 仅当 el 到 root 的路径上（不含 root）不出现另一层 contantSubtree 时，该 constSymbol 才属于本层算子皮（不染色子树内嵌算子） */
+/** 仅当 el 到 root 的路径上（不含 root）不出现另一层 constantSubtree 时，该 constSymbol 才属于本层算子皮（不染色子树内嵌算子） */
 function isDirectConstSymbolUnderContantSubtreeRoot(el: HTMLElement, root: HTMLElement): boolean {
   if (!root.contains(el)) {
     return false
   }
   let cur: HTMLElement | null = el.parentElement
   while (cur !== null && cur !== root) {
-    if (cur.dataset.kind === 'contantSubtree') {
+    if (cur.dataset.kind === 'constantSubtree') {
       return false
     }
     cur = cur.parentElement
@@ -39,7 +39,7 @@ function collectDirectConstSymbols(root: HTMLElement): HTMLElement[] {
     if (!root.contains(bs)) {
       continue
     }
-    const closestCt = bs.closest<HTMLElement>('[data-kind="contantSubtree"]')
+    const closestCt = bs.closest<HTMLElement>('[data-kind="constantSubtree"]')
     if (closestCt !== root) {
       continue
     }
@@ -78,7 +78,7 @@ function findBinderScopeAncestor(
   return null
 }
 
-/** 自指针处向上找高亮根：优先级 变量叶子（binder/bvar/fvar）> contantSubtree > const/constSymbol/constFence；一趟收集，避免三趟重复上溯 */
+/** 自指针处向上找高亮根：优先级 变量叶子（binder/bvar/fvar）> constantSubtree > const/constSymbol/constFence；一趟收集，避免三趟重复上溯 */
 const HOVER_LEAF_KINDS = new Set(['bvar', 'binder', 'fvar'])
 
 function findMinimalHoverRoot(start: HTMLElement, container: HTMLElement): HTMLElement {
@@ -92,7 +92,7 @@ function findMinimalHoverRoot(start: HTMLElement, container: HTMLElement): HTMLE
       if (HOVER_LEAF_KINDS.has(k) && !leaf) {
         leaf = cur
       }
-      if (k === 'contantSubtree' && !subtree) {
+      if (k === 'constantSubtree' && !subtree) {
         subtree = cur
       }
       if ((k === 'const' || k === 'constSymbol' || k === 'constFence') && !constEl) {
@@ -109,10 +109,10 @@ interface RenderResult {
   html: string
 }
 
-interface OperatorTreeKaTeXViewProps {
-  tree: OperatorTree
-  query: KaTeXTemplateQuery
-  templateDb: TemplateDb
+interface SnlSyntaxTreeViewProps {
+  tree: SnlSyntaxTree
+  query: SnlMacroTemplateQuery
+  templateDb: SnlMacroDb
   katexOptions?: KatexOptions
   onResolved?: (latexSource: string) => void
 }
@@ -134,10 +134,10 @@ interface TooltipState {
 }
 
 async function resolveNodeLatex(
-  node: OperatorTree,
-  query: KaTeXTemplateQuery,
+  node: SnlSyntaxTree,
+  query: SnlMacroTemplateQuery,
   cache: Map<string, string>,
-  templateDb: TemplateDb,
+  templateDb: SnlMacroDb,
 ): Promise<string> {
   const effectiveStyle = getEffectiveStyle(node, templateDb)
   const hasDbTemplate = Boolean(
@@ -192,10 +192,10 @@ async function resolveNodeLatex(
   return fillLatexTemplate(template, { ...childValues, ...nodeValues })
 }
 
-function useOperatorTreeRender(
-  tree: OperatorTree,
-  query: KaTeXTemplateQuery,
-  templateDb: TemplateDb,
+function useSnlSyntaxTreeRender(
+  tree: SnlSyntaxTree,
+  query: SnlMacroTemplateQuery,
+  templateDb: SnlMacroDb,
   katexOptions?: KatexOptions,
 ) {
   const [result, setResult] = useState<RenderResult | null>(null)
@@ -243,14 +243,14 @@ function useOperatorTreeRender(
   return { loading, error, result }
 }
 
-export function OperatorTreeKaTeXView({
+export function SnlSyntaxTreeView({
   tree,
   query,
   templateDb,
   katexOptions,
   onResolved,
-}: OperatorTreeKaTeXViewProps) {
-  const { loading, error, result } = useOperatorTreeRender(tree, query, templateDb, katexOptions)
+}: SnlSyntaxTreeViewProps) {
+  const { loading, error, result } = useSnlSyntaxTreeRender(tree, query, templateDb, katexOptions)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
   const prefetchTimerRef = useRef<number | null>(null)
@@ -418,11 +418,11 @@ export function OperatorTreeKaTeXView({
   const clearHoverMarks = () => {
     hoverMarkedElsRef.current.forEach((el) => {
       el.classList.remove(
-        'katex-hovered',
-        'katex-bvar-scope',
-        'katex-binder-decl',
-        'katex-single-hover',
-        'katex-op-skin-hover',
+        'snl-hovered',
+        'snl-bvar-scope',
+        'snl-binder-decl',
+        'snl-single-hover',
+        'snl-op-skin-hover',
       )
     })
     hoverMarkedElsRef.current = []
@@ -459,24 +459,24 @@ export function OperatorTreeKaTeXView({
         }
       }
       for (const el of bvars) {
-        el.classList.add('katex-hovered', 'katex-bvar-scope')
+        el.classList.add('snl-hovered', 'snl-bvar-scope')
         touched.add(el)
       }
       for (const el of binders) {
-        el.classList.add('katex-hovered', 'katex-binder-decl')
+        el.classList.add('snl-hovered', 'snl-binder-decl')
         touched.add(el)
       }
       // 仅当前指针下的那一处带「框」；同作用域其它仅字色（见 style.css）
       if (touched.has(target)) {
-        target.classList.add('katex-single-hover')
+        target.classList.add('snl-single-hover')
       }
     } else {
       const root = findMinimalHoverRoot(target, container)
-      root.classList.add('katex-hovered', 'katex-single-hover')
+      root.classList.add('snl-hovered', 'snl-single-hover')
       touched.add(root)
-      if (root.dataset.kind === 'contantSubtree') {
+      if (root.dataset.kind === 'constantSubtree') {
         for (const g of collectDirectConstSymbols(root)) {
-          g.classList.add('katex-hovered', 'katex-op-skin-hover')
+          g.classList.add('snl-hovered', 'snl-op-skin-hover')
           touched.add(g)
         }
       }
@@ -539,7 +539,7 @@ export function OperatorTreeKaTeXView({
       {tooltip && (
         <div
           ref={tooltipElRef}
-          className={`katex-hover-tooltip ${tooltip.visible ? 'visible' : ''}`}
+          className={`snl-hover-tooltip ${tooltip.visible ? 'visible' : ''}`}
           style={{ left: tooltip.x, top: tooltip.y }}
         >
           <div className="tooltip-title">{tooltip.name}[{tooltip.style}]</div>

@@ -1,8 +1,8 @@
 {
-  "name": "@fulcrum-smarterm/operator-katex",
+  "name": "@snl-basics/react",
   "private": true,
   "version": "0.1.0",
-  "description": "Operator tree → KaTeX rendering with htmlData hover (Fulcrum Smarterm)",
+  "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
   "type": "module",
   "exports": {
     ".": {
@@ -11,7 +11,7 @@
       "default": "./dist-lib/index.js"
     },
     "./style.css": "./dist-lib/style.css",
-    "./katex-template-db.json": "./dist-lib/katex-template-db.json"
+    "./snl-macro-db.json": "./dist-lib/snl-macro-db.json"
   },
   "types": "./dist-lib/index.d.ts",
   "files": [

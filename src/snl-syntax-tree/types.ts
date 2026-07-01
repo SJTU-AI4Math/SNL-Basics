@@ -1,15 +1,15 @@
-export interface OperatorTree {
+export interface SnlSyntaxTree {
   name: string
   style: string
   kind: string
   mdata: unknown
-  children: OperatorTree[]
+  children: SnlSyntaxTree[]
 }
 
-export function createOperatorNode(
+export function createSnlSyntaxTreeNode(
   name: string,
-  options?: Partial<Pick<OperatorTree, 'style' | 'kind' | 'mdata' | 'children'>>,
-): OperatorTree {
+  options?: Partial<Pick<SnlSyntaxTree, 'style' | 'kind' | 'mdata' | 'children'>>,
+): SnlSyntaxTree {
   return {
     name,
     style: options?.style ?? '',
@@ -19,12 +19,12 @@ export function createOperatorNode(
   }
 }
 
-export function isOperatorTree(value: unknown): value is OperatorTree {
+export function isSnlSyntaxTree(value: unknown): value is SnlSyntaxTree {
   if (!value || typeof value !== 'object') {
     return false
   }
 
-  const node = value as Partial<OperatorTree>
+  const node = value as Partial<SnlSyntaxTree>
   return (
     typeof node.name === 'string' &&
     typeof node.style === 'string' &&

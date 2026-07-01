@@ -1,9 +1,9 @@
-import type { OperatorTree } from './types'
+import type { SnlSyntaxTree } from './types'
 
-export interface KaTeXTemplateQueryArgs {
+export interface SnlMacroTemplateQueryArgs {
   name: string
   style: string
-  node: OperatorTree
+  node: SnlSyntaxTree
 }
 
-export type KaTeXTemplateQuery = (args: KaTeXTemplateQueryArgs) => Promise<string>
+export type SnlMacroTemplateQuery = (args: SnlMacroTemplateQueryArgs) => Promise<string>
