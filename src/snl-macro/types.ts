@@ -6,6 +6,16 @@
  * macros MAY share the same source entry (e.g. Add.add.infix and
  * Add.add.implicit both refer to the "addition" entry).
  */
+/**
+ * Source-of-truth binding for a macro. Resolver order: `entries[0..]` first
+ * valid, else `urls[0]`, else null. SNL-Basics doesn't interpret entry ids —
+ * consumers resolve them via {@link SnlRenderHooks.resolveSource}.
+ */
+export interface SnlMacroSource {
+  entries: string[] // opaque entry ids (SNL-Basics doesn't interpret; consumer resolves via hook)
+  urls: string[] // fallback URLs (wikipedia, mathlib docs, etc.)
+}
+
 export interface SnlMacro {
   /** Globally unique name, e.g. "Add.add.infix" / "FOL.forall" / "pmatrix" */
   name: string
@@ -13,10 +23,7 @@ export interface SnlMacro {
   description: string
 
   /** Source-of-truth binding. Resolver: entries[0..] first valid, else urls[0], else null. */
-  source: {
-    entries: string[]    // opaque entry ids (SNL-Basics doesn't interpret; consumer resolves via hook)
-    urls: string[]       // fallback URLs (wikipedia, mathlib docs, etc.)
-  }
+  source: SnlMacroSource
 
   /** Typst output strategies. */
   typst: {

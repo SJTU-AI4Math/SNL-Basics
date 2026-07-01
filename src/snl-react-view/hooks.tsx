@@ -1,5 +1,5 @@
 import type { FC, ReactElement } from 'react'
-import type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroDb, SnlMacroSource } from '../snl-macro/types'
 // NOTE: the runtime tree produced by the parser is the flat SnlSyntaxTree from
 // snl-syntax-tree/types (no `mode` discriminant yet). We type hook payloads
 // against it so consumers receive exactly what the view has. The forward-looking
@@ -203,20 +203,37 @@ export const defaultRenderers: SnlRendererRegistry = {
  * tooltip, hover, description, highlight, or block-render behavior.
  */
 export interface SnlRenderHooks {
-  /** Called on hover start / move. Default: schedule tooltip display. */
+  /**
+   * Fire-and-forget — NOT awaited. Called on hover start / move for consumer
+   * side effects (logging, host messaging). The view's internal hover state
+   * machine runs regardless. Default: undefined.
+   */
   onHover?: (event: SnlHoverEvent) => void
-  /** Called when the pointer leaves the render container. Default: undefined. */
+  /**
+   * Fire-and-forget — NOT awaited. Called when the pointer leaves the render
+   * container. Default: undefined.
+   */
   onLeave?: () => void
 
-  /** Async description resolver. Default: read macroDb[name].description. */
+  /**
+   * Async — awaited after hover starts (with a short debounce). Fine to hit
+   * a network / disk cache; the view keeps `loading: true` in the tooltip
+   * state until it resolves. Default: read macroDb[name].description.
+   */
   resolveMacroInfo?: (name: string, macro: SnlMacro | undefined) => Promise<SnlMacroInfo>
 
-  /** Resolve source binding to a URL / display label. Default: return null. */
-  resolveSource?: (source: SnlMacro['source']) => SnlResolvedSource | null
+  /**
+   * Sync — called during render on every hover to enrich the tooltip payload.
+   * Return null when no source is resolvable. If you need async lookup, cache
+   * results in a React state / memo before construction and read synchronously
+   * here. Default: return null.
+   */
+  resolveSource?: (source: SnlMacroSource) => SnlResolvedSource | null
 
   /**
-   * Render the tooltip. Default: SNL-Basics's built-in tooltip DOM.
-   * Return null to suppress tooltip entirely.
+   * Sync React render — called during render, must be pure (no side effects).
+   * Default: SNL-Basics's built-in tooltip DOM. Return null to suppress the
+   * tooltip entirely.
    */
   renderTooltip?: (state: SnlTooltipState) => ReactElement | null
 

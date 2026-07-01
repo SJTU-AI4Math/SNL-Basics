@@ -20,7 +20,7 @@ function leaf(name: string, kind = 'fvar'): SnlSyntaxTree {
 }
 
 function renderTree(tree: SnlSyntaxTree) {
-  return render(<SnlSyntaxTreeView tree={tree} query={query} templateDb={db} />)
+  return render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
 }
 
 afterEach(cleanup)

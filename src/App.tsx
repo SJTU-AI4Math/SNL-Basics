@@ -142,7 +142,7 @@ export default function App() {
           <SnlSyntaxTreeView
             tree={tree}
             query={query}
-            templateDb={templateDb}
+            macroDb={templateDb}
             katexOptions={{ displayMode: true, trust: true }}
             onResolved={setLatexSource}
           />

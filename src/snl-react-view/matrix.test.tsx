@@ -30,7 +30,7 @@ describe('variadic pmatrix / matrix.row', () => {
       <SnlSyntaxTreeView
         tree={tree}
         query={query}
-        templateDb={db}
+        macroDb={db}
       />,
     )
     await waitFor(() => {
@@ -50,7 +50,7 @@ describe('variadic pmatrix / matrix.row', () => {
       <SnlSyntaxTreeView
         tree={tree}
         query={query}
-        templateDb={db}
+        macroDb={db}
         onResolved={(l) => {
           latex = l
         }}

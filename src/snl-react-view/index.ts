@@ -8,7 +8,7 @@
  */
 
 // === Core types ===
-export type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
+export type { SnlMacro, SnlMacroDb, SnlMacroSource } from '../snl-macro/types'
 export type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 export { createSnlSyntaxTreeNode, isSnlSyntaxTree } from '../snl-syntax-tree/types'
 export type {

@@ -38,7 +38,7 @@ export interface SnlSyntaxTreeViewProps {
   /** Template query — resolves a macro name to its KaTeX template string. */
   query: SnlMacroTemplateQuery
   /** The macro DB, used for mode dispatch and metadata. */
-  templateDb: SnlMacroDb
+  macroDb: SnlMacroDb
   /** KaTeX options forwarded to `katex.renderToString`. */
   katexOptions?: KatexOptions
   /** Called with the resolved LaTeX source (math root only). */
@@ -54,12 +54,12 @@ async function resolveNodeLatex(
   node: SnlSyntaxTree,
   query: SnlMacroTemplateQuery,
   cache: Map<string, string>,
-  templateDb: SnlMacroDb,
+  macroDb: SnlMacroDb,
 ): Promise<string> {
-  const hasDbTemplate = Boolean(node.name && templateDb[node.name]?.katex_react?.template)
+  const hasDbTemplate = Boolean(node.name && macroDb[node.name]?.katex_react?.template)
 
   const childLatexList = await Promise.all(
-    node.children.map((child) => resolveNodeLatex(child, query, cache, templateDb)),
+    node.children.map((child) => resolveNodeLatex(child, query, cache, macroDb)),
   )
 
   // 裸名应用且无 DB 模板（如 op(x,y,FOL.and(x,y))）：\\operatorname{op}(…)，子式逗号分隔，整段 htmlData
@@ -96,7 +96,7 @@ async function resolveNodeLatex(
   const bind_ref_attr = bindRefAttrFragment(ref)
   // Variadic macros fill @CHILDREN@ with children joined by their configured
   // separator (default ", ") — see fillLatexTemplate.
-  const variadicJoin = (node.name ? templateDb[node.name]?.katex_react?.variadic_join : undefined) ?? ', '
+  const variadicJoin = (node.name ? macroDb[node.name]?.katex_react?.variadic_join : undefined) ?? ', '
   const children_joined = childLatexList.join(variadicJoin)
   const nodeValues = {
     name: node.name,
@@ -121,12 +121,12 @@ function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): 'math' | 'text' | 'block
 function MathSpan({
   node,
   query,
-  templateDb,
+  macroDb,
   katexOptions,
 }: {
   node: SnlSyntaxTree
   query: SnlMacroTemplateQuery
-  templateDb: SnlMacroDb
+  macroDb: SnlMacroDb
   katexOptions?: KatexOptions
 }): ReactElement {
   const [html, setHtml] = useState('')
@@ -134,7 +134,7 @@ function MathSpan({
     let cancelled = false
     void (async () => {
       try {
-        const latex = await resolveNodeLatex(node, query, new Map<string, string>(), templateDb)
+        const latex = await resolveNodeLatex(node, query, new Map<string, string>(), macroDb)
         const out = katex.renderToString(latex, {
           throwOnError: false,
           ...HTMLDATA_KATEX_DEFAULTS,
@@ -148,14 +148,14 @@ function MathSpan({
     return () => {
       cancelled = true
     }
-  }, [node, query, templateDb, katexOptions])
+  }, [node, query, macroDb, katexOptions])
   return <span className="snl-math-span" dangerouslySetInnerHTML={{ __html: html }} />
 }
 
 function useSnlSyntaxTreeRender(
   tree: SnlSyntaxTree,
   query: SnlMacroTemplateQuery,
-  templateDb: SnlMacroDb,
+  macroDb: SnlMacroDb,
   katexOptions: KatexOptions | undefined,
   enabled: boolean,
 ) {
@@ -180,7 +180,7 @@ function useSnlSyntaxTreeRender(
       setError(null)
       try {
         // 先递归算出最终 LaTeX，再统一交给 KaTeX 生成 HTML。
-        const latex = await resolveNodeLatex(tree, query, cache, templateDb)
+        const latex = await resolveNodeLatex(tree, query, cache, macroDb)
         const html = katex.renderToString(latex, {
           throwOnError: false,
           ...HTMLDATA_KATEX_DEFAULTS,
@@ -206,7 +206,7 @@ function useSnlSyntaxTreeRender(
     return () => {
       cancelled = true
     }
-  }, [cache, enabled, katexOptions, query, templateDb, tree])
+  }, [cache, enabled, katexOptions, query, macroDb, tree])
 
   return { loading, error, result }
 }
@@ -219,17 +219,17 @@ function useSnlSyntaxTreeRender(
 export function SnlSyntaxTreeView({
   tree,
   query,
-  templateDb,
+  macroDb,
   katexOptions,
   onResolved,
   hooks,
 }: SnlSyntaxTreeViewProps) {
   const mergedHooks = useMemo(() => ({ ...defaultRenderHooks, ...hooks }), [hooks])
-  const isMathRoot = nodeMode(tree, templateDb) === 'math'
+  const isMathRoot = nodeMode(tree, macroDb) === 'math'
   const { loading, error, result } = useSnlSyntaxTreeRender(
     tree,
     query,
-    templateDb,
+    macroDb,
     katexOptions,
     isMathRoot,
   )
@@ -296,7 +296,7 @@ export function SnlSyntaxTreeView({
     bindingHint: string,
   ) => {
     await new Promise((resolve) => window.setTimeout(resolve, 120))
-    const macro = templateDb[name]
+    const macro = macroDb[name]
     const base = await mergedHooks.resolveMacroInfo!(name, macro)
     let description = base.description
 
@@ -371,7 +371,7 @@ export function SnlSyntaxTreeView({
       return
     }
 
-    const macro = templateDb[name]
+    const macro = macroDb[name]
     const source: SnlResolvedSource | null = macro
       ? (mergedHooks.resolveSource?.(macro.source) ?? null)
       : null
@@ -495,12 +495,12 @@ export function SnlSyntaxTreeView({
   // Mode-aware React dispatch (used for non-math roots and for children of
   // text/block nodes). Math nodes render as inline KaTeX via <MathSpan/>.
   const renderNode = (node: SnlSyntaxTree): ReactElement => {
-    const mode = nodeMode(node, templateDb)
+    const mode = nodeMode(node, macroDb)
     if (mode === 'block') {
-      const key = templateDb[node.name]?.katex_react?.react_renderer_key
+      const key = macroDb[node.name]?.katex_react?.react_renderer_key
       const Renderer = key ? mergedHooks.renderers?.[key] : undefined
       if (Renderer) {
-        return <Renderer node={node} macroDb={templateDb} renderChild={renderNode} />
+        return <Renderer node={node} macroDb={macroDb} renderChild={renderNode} />
       }
       return (
         <div className="snl-block">
@@ -520,7 +520,7 @@ export function SnlSyntaxTreeView({
       )
     }
     return (
-      <MathSpan node={node} query={query} templateDb={templateDb} katexOptions={katexOptions} />
+      <MathSpan node={node} query={query} macroDb={macroDb} katexOptions={katexOptions} />
     )
   }
 
