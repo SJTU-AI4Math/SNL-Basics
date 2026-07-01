@@ -14,113 +14,33 @@ import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bva
 import { fvarAppliedHeadLatex } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { findBinderScopeAncestor, findMinimalHoverRoot } from '../snl-react-view/hover-dom'
 import {
   defaultRenderHooks,
+  type SnlHighlightSet,
   type SnlRenderHooks,
   type SnlResolvedSource,
   type SnlTooltipState,
 } from '../snl-react-view/hooks'
-
-/** 仅当 el 到 root 的路径上（不含 root）不出现另一层 constantSubtree 时，该 constSymbol 才属于本层算子皮（不染色子树内嵌算子） */
-function isDirectConstSymbolUnderContantSubtreeRoot(el: HTMLElement, root: HTMLElement): boolean {
-  if (!root.contains(el)) {
-    return false
-  }
-  let cur: HTMLElement | null = el.parentElement
-  while (cur !== null && cur !== root) {
-    if (cur.dataset.kind === 'constantSubtree') {
-      return false
-    }
-    cur = cur.parentElement
-  }
-  return cur === root
-}
-
-function collectDirectConstSymbols(root: HTMLElement): HTMLElement[] {
-  const out = new Set<HTMLElement>()
-
-  // 量词：∀ / ∃ 与 binder–body 间逗号在 KaTeX 里是 binderScope 的直接子 constSymbol（与体内 implies 等子树并列）
-  for (const bs of root.querySelectorAll<HTMLElement>('[data-kind="binderScope"]')) {
-    if (!root.contains(bs)) {
-      continue
-    }
-    const closestCt = bs.closest<HTMLElement>('[data-kind="constantSubtree"]')
-    if (closestCt !== root) {
-      continue
-    }
-    for (const child of bs.children) {
-      if (child instanceof HTMLElement && child.dataset.kind === 'constSymbol') {
-        out.add(child)
-      }
-    }
-  }
-
-  for (const el of root.querySelectorAll<HTMLElement>(
-    '[data-kind="constSymbol"],[data-kind="constFence"]',
-  )) {
-    if (out.has(el)) {
-      continue
-    }
-    if (isDirectConstSymbolUnderContantSubtreeRoot(el, root)) {
-      out.add(el)
-    }
-  }
-  return [...out]
-}
-
-function findBinderScopeAncestor(
-  start: HTMLElement,
-  container: HTMLElement,
-  bindRef: string,
-): HTMLElement | null {
-  let el: HTMLElement | null = start
-  while (el && container.contains(el)) {
-    if (el.dataset.kind === 'binderScope' && readBindRefFromDom(el) === bindRef) {
-      return el
-    }
-    el = el.parentElement
-  }
-  return null
-}
-
-/** 自指针处向上找高亮根：优先级 变量叶子（binder/bvar/fvar）> constantSubtree > const/constSymbol/constFence；一趟收集，避免三趟重复上溯 */
-const HOVER_LEAF_KINDS = new Set(['bvar', 'binder', 'fvar'])
-
-function findMinimalHoverRoot(start: HTMLElement, container: HTMLElement): HTMLElement {
-  let leaf: HTMLElement | null = null
-  let subtree: HTMLElement | null = null
-  let constEl: HTMLElement | null = null
-  let cur: HTMLElement | null = start
-  while (cur && container.contains(cur)) {
-    if (cur.hasAttribute('data-name')) {
-      const k = cur.dataset.kind ?? ''
-      if (HOVER_LEAF_KINDS.has(k) && !leaf) {
-        leaf = cur
-      }
-      if (k === 'constantSubtree' && !subtree) {
-        subtree = cur
-      }
-      if ((k === 'const' || k === 'constSymbol' || k === 'constFence') && !constEl) {
-        constEl = cur
-      }
-    }
-    cur = cur.parentElement
-  }
-  return leaf ?? subtree ?? constEl ?? start
-}
 
 interface RenderResult {
   latex: string
   html: string
 }
 
-interface SnlSyntaxTreeViewProps {
+/** Props for {@link SnlSyntaxTreeView}. */
+export interface SnlSyntaxTreeViewProps {
+  /** The (annotated) syntax tree to render. */
   tree: SnlSyntaxTree
+  /** Template query — resolves a macro name to its KaTeX template string. */
   query: SnlMacroTemplateQuery
+  /** The macro DB, used for mode dispatch and metadata. */
   templateDb: SnlMacroDb
+  /** KaTeX options forwarded to `katex.renderToString`. */
   katexOptions?: KatexOptions
+  /** Called with the resolved LaTeX source (math root only). */
   onResolved?: (latexSource: string) => void
-  /** Override tooltip / hover / description behavior. Merged over defaults. */
+  /** Override tooltip / hover / description / renderer behavior. Merged over defaults. */
   hooks?: SnlRenderHooks
 }
 
@@ -424,61 +344,36 @@ export function SnlSyntaxTreeView({
     hoverMarkedElsRef.current = []
   }
 
+  const applyHighlightSet = (set: SnlHighlightSet) => {
+    const touched = new Set<HTMLElement>()
+    for (const el of set.hovered) {
+      el.classList.add('snl-hovered')
+      touched.add(el)
+    }
+    if (set.singleHover) {
+      set.singleHover.classList.add('snl-single-hover')
+      touched.add(set.singleHover)
+    }
+    for (const el of set.bvarScope) {
+      el.classList.add('snl-bvar-scope')
+      touched.add(el)
+    }
+    for (const el of set.binderDecl) {
+      el.classList.add('snl-binder-decl')
+      touched.add(el)
+    }
+    for (const el of set.opSkinHover) {
+      el.classList.add('snl-op-skin-hover')
+      touched.add(el)
+    }
+    hoverMarkedElsRef.current = [...touched]
+  }
+
   const applyHoverHighlight = (target: HTMLElement, container: HTMLElement) => {
     clearHoverMarks()
-    const kind = target.dataset.kind ?? ''
-    const bindRef = readBindRefFromDom(target)
-
-    const touched = new Set<HTMLElement>()
-
-    if ((kind === 'bvar' || kind === 'binder') && bindRef) {
-      const entry = bvarScopeIndexRef.current.get(bindRef)
-      let bvars: HTMLElement[]
-      let binders: HTMLElement[]
-      if (entry) {
-        bvars = entry.bvars
-        binders = entry.binders
-      } else {
-        const scopeRoot = Array.from(
-          container.querySelectorAll<HTMLElement>('[data-kind="binderScope"]'),
-        ).find((el) => readBindRefFromDom(el) === bindRef)
-        if (!scopeRoot) {
-          bvars = []
-          binders = []
-        } else {
-          bvars = Array.from(scopeRoot.querySelectorAll<HTMLElement>('[data-kind="bvar"]')).filter(
-            (el) => readBindRefFromDom(el) === bindRef,
-          )
-          binders = Array.from(scopeRoot.querySelectorAll<HTMLElement>('[data-kind="binder"]')).filter(
-            (el) => readBindRefFromDom(el) === bindRef,
-          )
-        }
-      }
-      for (const el of bvars) {
-        el.classList.add('snl-hovered', 'snl-bvar-scope')
-        touched.add(el)
-      }
-      for (const el of binders) {
-        el.classList.add('snl-hovered', 'snl-binder-decl')
-        touched.add(el)
-      }
-      // 仅当前指针下的那一处带「框」；同作用域其它仅字色（见 style.css）
-      if (touched.has(target)) {
-        target.classList.add('snl-single-hover')
-      }
-    } else {
-      const root = findMinimalHoverRoot(target, container)
-      root.classList.add('snl-hovered', 'snl-single-hover')
-      touched.add(root)
-      if (root.dataset.kind === 'constantSubtree') {
-        for (const g of collectDirectConstSymbols(root)) {
-          g.classList.add('snl-hovered', 'snl-op-skin-hover')
-          touched.add(g)
-        }
-      }
-    }
-
-    hoverMarkedElsRef.current = [...touched]
+    const strategy = mergedHooks.highlightStrategy ?? defaultRenderHooks.highlightStrategy!
+    const set = strategy.computeHighlightSet(target, container, bvarScopeIndexRef.current)
+    applyHighlightSet(set)
   }
 
   const handleKaTeXMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {

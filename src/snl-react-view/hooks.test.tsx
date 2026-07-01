@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { isValidElement } from 'react'
-import { defaultRenderHooks } from './hooks'
+import { defaultRenderHooks, defaultHighlightStrategy, defaultRenderers } from './hooks'
 import type { SnlMacro } from '../snl-macro/types'
 import type { SnlTooltipState } from './hooks'
 
@@ -51,5 +51,17 @@ describe('defaultRenderHooks', () => {
   it('onHover / onLeave are undefined by default (opt-in interception)', () => {
     expect(defaultRenderHooks.onHover).toBeUndefined()
     expect(defaultRenderHooks.onLeave).toBeUndefined()
+  })
+
+  it('exposes defaultHighlightStrategy with a computeHighlightSet function', () => {
+    expect(defaultRenderHooks.highlightStrategy).toBe(defaultHighlightStrategy)
+    expect(typeof defaultHighlightStrategy.computeHighlightSet).toBe('function')
+  })
+
+  it('exposes the built-in renderers registry (list / table / centered)', () => {
+    expect(defaultRenderHooks.renderers).toBe(defaultRenderers)
+    expect(typeof defaultRenderers.list).toBe('function')
+    expect(typeof defaultRenderers.table).toBe('function')
+    expect(typeof defaultRenderers.centered).toBe('function')
   })
 })
