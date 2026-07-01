@@ -1,4 +1,4 @@
-import type { OperatorTree } from '../operator-tree/types'
+import type { OperatorTree } from '../snl-syntax-tree/types'
 
 /** 将树还原为 Parser 可读的文本（name[style](children…)） */
 export function serializeOperatorTree(node: OperatorTree): string {

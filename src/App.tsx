@@ -9,7 +9,7 @@ import {
   tryParseOperatorTree,
   type OperatorTree,
   type TemplateDb,
-} from './operator-katex'
+} from './snl-react-view'
 
 const INITIAL_INPUT =
   'FOL.forall(x[binder],FOL.implies(FOL.app(P,x),FOL.paren(FOL.or(y,FOL.app(Q,x)))))'

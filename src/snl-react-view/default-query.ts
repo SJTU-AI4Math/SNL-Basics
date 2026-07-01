@@ -1,7 +1,7 @@
-import { bindRefAttrFragment, getBindRef } from '../operator-tree/binding'
-import { escapeLatexText } from '../operator-tree/latex-escape'
-import type { KaTeXTemplateQuery } from '../operator-tree/query'
-import type { TemplateDb } from '../operator-tree/template-db'
+import { bindRefAttrFragment, getBindRef } from '../snl-syntax-tree/binding'
+import { escapeLatexText } from '../snl-syntax-tree/latex-escape'
+import type { KaTeXTemplateQuery } from '../snl-syntax-tree/query'
+import type { TemplateDb } from '../snl-syntax-tree/template-db'
 
 let dbCache: TemplateDb | null = null
 let dbCacheUrl: string | null = null

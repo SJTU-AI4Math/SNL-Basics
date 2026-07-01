@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getEffectiveStyle } from '../../operator-tree/effective-style'
-import type { TemplateDb } from '../../operator-tree/template-db'
-import type { OperatorTree } from '../../operator-tree/types'
+import { getEffectiveStyle } from '../../snl-syntax-tree/effective-style'
+import type { TemplateDb } from '../../snl-syntax-tree/template-db'
+import type { OperatorTree } from '../../snl-syntax-tree/types'
 
 interface OperatorTreeEditorProps {
   value: OperatorTree

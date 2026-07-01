@@ -7,14 +7,14 @@ import {
 } from 'react'
 import katex from 'katex'
 import type { KatexOptions } from 'katex'
-import type { KaTeXTemplateQuery } from '../operator-tree/query'
-import type { TemplateDb } from '../operator-tree/template-db'
-import { bindRefAttrFragment, getBindRef, readBindRefFromDom } from '../operator-tree/binding'
-import { getEffectiveStyle } from '../operator-tree/effective-style'
-import { buildBvarScopeIndex, type BvarScopeEntry } from '../operator-tree/bvar-scope-index'
-import { fvarAppliedHeadLatex } from '../operator-tree/latex-escape'
-import { fillLatexTemplate } from '../operator-tree/template'
-import type { OperatorTree } from '../operator-tree/types'
+import type { KaTeXTemplateQuery } from '../snl-syntax-tree/query'
+import type { TemplateDb } from '../snl-syntax-tree/template-db'
+import { bindRefAttrFragment, getBindRef, readBindRefFromDom } from '../snl-syntax-tree/binding'
+import { getEffectiveStyle } from '../snl-syntax-tree/effective-style'
+import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
+import { fvarAppliedHeadLatex } from '../snl-syntax-tree/latex-escape'
+import { fillLatexTemplate } from '../snl-syntax-tree/template'
+import type { OperatorTree } from '../snl-syntax-tree/types'
 
 /** 仅当 el 到 root 的路径上（不含 root）不出现另一层 contantSubtree 时，该 constSymbol 才属于本层算子皮（不染色子树内嵌算子） */
 function isDirectConstSymbolUnderContantSubtreeRoot(el: HTMLElement, root: HTMLElement): boolean {

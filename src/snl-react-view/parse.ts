@@ -1,5 +1,5 @@
-import { OperatorTreeParseError, parseOperatorTree } from '../operator-tree/parser'
-import type { OperatorTree } from '../operator-tree/types'
+import { OperatorTreeParseError, parseOperatorTree } from '../snl-syntax-tree/parser'
+import type { OperatorTree } from '../snl-syntax-tree/types'
 
 /** 解析失败时返回 { ok: false, ... }，不抛异常 */
 export function tryParseOperatorTree(
@@ -15,4 +15,4 @@ export function tryParseOperatorTree(
   }
 }
 
-export { OperatorTreeParseError, parseOperatorTree, parseStyleMeta } from '../operator-tree/parser'
+export { OperatorTreeParseError, parseOperatorTree, parseStyleMeta } from '../snl-syntax-tree/parser'
