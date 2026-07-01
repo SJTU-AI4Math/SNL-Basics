@@ -1,6 +1,5 @@
 export interface SnlSyntaxTree {
   name: string
-  style: string
   kind: string
   mdata: unknown
   children: SnlSyntaxTree[]
@@ -8,11 +7,10 @@ export interface SnlSyntaxTree {
 
 export function createSnlSyntaxTreeNode(
   name: string,
-  options?: Partial<Pick<SnlSyntaxTree, 'style' | 'kind' | 'mdata' | 'children'>>,
+  options?: Partial<Pick<SnlSyntaxTree, 'kind' | 'mdata' | 'children'>>,
 ): SnlSyntaxTree {
   return {
     name,
-    style: options?.style ?? '',
     kind: options?.kind ?? '',
     mdata: options?.mdata ?? null,
     children: options?.children ?? [],
@@ -27,7 +25,6 @@ export function isSnlSyntaxTree(value: unknown): value is SnlSyntaxTree {
   const node = value as Partial<SnlSyntaxTree>
   return (
     typeof node.name === 'string' &&
-    typeof node.style === 'string' &&
     typeof node.kind === 'string' &&
     Array.isArray(node.children)
   )

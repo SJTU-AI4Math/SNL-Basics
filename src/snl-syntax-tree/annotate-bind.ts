@@ -1,12 +1,22 @@
 import type { SnlSyntaxTree } from './types'
 
+/** 量词宏（原 FOL.forall / FOL.exists，v1 后带点缀后缀如 FOL.forall.binder） */
+function isBinderName(name: string): boolean {
+  return (
+    name === 'FOL.forall' ||
+    name === 'FOL.exists' ||
+    name.startsWith('FOL.forall.') ||
+    name.startsWith('FOL.exists.')
+  )
+}
+
 /** 编译期为量词子树分配 bindRef，按变量名把 bvar 与引入处配对（不依赖 de Bruijn level） */
 export function annotateBindings(root: SnlSyntaxTree): void {
   let id = 0
   const nextRef = () => `b${++id}`
 
   function walk(node: SnlSyntaxTree, stack: Array<{ name: string; ref: string }>): void {
-    if (node.name === 'FOL.forall' || node.name === 'FOL.exists') {
+    if (isBinderName(node.name)) {
       const ref = nextRef()
       const base = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
       node.mdata = { ...base, bindRef: ref }
@@ -15,6 +25,8 @@ export function annotateBindings(root: SnlSyntaxTree): void {
         const v = ch[0]
         const vb = v.mdata && typeof v.mdata === 'object' ? v.mdata : {}
         v.mdata = { ...vb, bindRef: ref }
+        // 首个子节点是绑定变量的引入处：显式标记为 binder（原先靠 [binder] 标注）
+        v.kind = 'binder'
       }
       if (ch.length === 2) {
         walk(ch[0], stack)
@@ -38,8 +50,8 @@ export function annotateBindings(root: SnlSyntaxTree): void {
       return
     }
 
-    // 无 [bvar] 标注的裸名叶子：在父语境中按名字查找 binder，有则 bvar，否则 fvar。
-    if (node.children.length === 0 && !node.style && !node.kind) {
+    // 无标注的裸名叶子：在父语境中按名字查找 binder，有则 bvar，否则 fvar。
+    if (node.children.length === 0 && !node.kind) {
       const frame = [...stack].reverse().find((f) => f.name === node.name)
       const base = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
       if (frame) {

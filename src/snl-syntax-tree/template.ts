@@ -7,17 +7,21 @@ export function fillLatexTemplate(
     return value === undefined ? '' : String(value)
   })
 
-  // 兼容数据库模板格式：@CHILD1@、@CHILD2@
+  // 兼容数据库模板格式：@CHILD0@、@CHILD1@（0-indexed，与 TS 数组下标对齐），以及变参 @CHILDREN@
   return byBraces.replace(/@([A-Z0-9_]+)@/g, (_, key: string) => {
     const normalized = key.toLowerCase()
-    // CHILD1 -> child0，CHILD2 -> child1
+    // 变参：@CHILDREN@ -> values.children_joined（无则空串）
+    if (normalized === 'children') {
+      const joined = values['children_joined']
+      return joined === undefined ? '' : String(joined)
+    }
+    // CHILD0 -> child0，CHILD1 -> child1（直接对齐）
     const childMatch = /^child(\d+)$/.exec(normalized)
     if (!childMatch) {
       const value = values[normalized]
       return value === undefined ? '' : String(value)
     }
-    const index = Number(childMatch[1]) - 1
-    const value = values[`child${index}`]
+    const value = values[`child${Number(childMatch[1])}`]
     return value === undefined ? '' : String(value)
   })
 }

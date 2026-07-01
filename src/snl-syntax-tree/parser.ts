@@ -5,8 +5,6 @@ type TokenType =
   | 'IDENT'
   | 'NUMBER'
   | 'EQ'
-  | 'LBRACK'
-  | 'RBRACK'
   | 'LPAREN'
   | 'RPAREN'
   | 'COMMA'
@@ -16,58 +14,6 @@ interface Token {
   type: TokenType
   value: string
   position: number
-}
-
-/** 解析方括号内文本（如 binder）；bvar 由 annotateBindings 按父语境推断，一般不必手写 */
-export function parseStyleMeta(raw: string): {
-  style: string
-  kind: string
-  mdata: Record<string, unknown> | null
-} {
-  const segments = raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-  if (segments.length === 0) {
-    return { style: '', kind: '', mdata: null }
-  }
-
-  const first = segments[0]
-  let style: string
-  let kvStart: number
-  if (first.includes('=')) {
-    style = ''
-    kvStart = 0
-  } else {
-    style = first
-    kvStart = 1
-  }
-
-  const mdata: Record<string, unknown> = {}
-  let explicitKind = ''
-  for (let i = kvStart; i < segments.length; i += 1) {
-    const seg = segments[i]
-    const eq = seg.indexOf('=')
-    if (eq === -1) {
-      continue
-    }
-    const k = seg.slice(0, eq).trim()
-    const v = seg.slice(eq + 1).trim()
-    if (k === 'kind') {
-      explicitKind = v
-    }
-  }
-
-  let kind = explicitKind
-  if (!kind && style === 'binder') {
-    kind = 'binder'
-  }
-  if (!kind && style === 'bvar') {
-    kind = 'bvar'
-  }
-
-  const cleaned = Object.keys(mdata).length > 0 ? mdata : null
-  return { style, kind, mdata: cleaned }
 }
 
 export class SnlSyntaxTreeParseError extends Error {
@@ -95,23 +41,19 @@ function tokenize(input: string): Token[] {
     if (/[A-Za-z_]/.test(ch)) {
       const start = i
       i += 1
-      // 支持 Lean 风格命名，例如 DivRing.div
-      while (i < input.length && /[A-Za-z0-9_.]/.test(input[i])) {
+      // 支持 Lean 风格命名 + 点缀后缀（原 style），如 DivRing.div.inline-div
+      while (i < input.length && /[A-Za-z0-9_.-]/.test(input[i])) {
         i += 1
       }
       tokens.push({ type: 'IDENT', value: input.slice(start, i), position: start })
       continue
     }
 
-    if (ch === '[') {
-      tokens.push({ type: 'LBRACK', value: ch, position: i })
-      i += 1
-      continue
-    }
-    if (ch === ']') {
-      tokens.push({ type: 'RBRACK', value: ch, position: i })
-      i += 1
-      continue
+    if (ch === '[' || ch === ']') {
+      throw new SnlSyntaxTreeParseError(
+        `'[' is no longer allowed (style syntax removed in v1). Use dotted suffix: "foo.bar(x)" instead of "foo[bar](x)".`,
+        i,
+      )
     }
     if (ch === '(') {
       tokens.push({ type: 'LPAREN', value: ch, position: i })
@@ -166,19 +108,9 @@ class Parser {
   }
 
   private parseNode(): SnlSyntaxTree {
-    // 语法入口：IDENT 后可跟 [style] 与 (children)。
+    // 语法入口：IDENT（含点缀后缀）后可跟 (children)。方括号 [style] 语法已废弃。
     const ident = this.expect('IDENT')
     const node = createSnlSyntaxTreeNode(ident.value)
-
-    if (this.peek().type === 'LBRACK') {
-      this.consume('LBRACK')
-      const rawStyle = this.parseStyleText()
-      this.expect('RBRACK')
-      const meta = parseStyleMeta(rawStyle)
-      node.style = meta.style
-      node.kind = meta.kind
-      node.mdata = meta.mdata
-    }
 
     if (this.peek().type === 'LPAREN') {
       this.consume('LPAREN')
@@ -187,23 +119,6 @@ class Parser {
     }
 
     return node
-  }
-
-  private parseStyleText(): string {
-    // 方括号内如 binder、bvar 或留空，拼接为原始串再交给 parseStyleMeta。
-    const parts: string[] = []
-    while (this.peek().type !== 'RBRACK') {
-      const token = this.peek()
-      if (token.type === 'EOF') {
-        throw new SnlSyntaxTreeParseError('Unterminated style bracket', token.position)
-      }
-      if (token.type === 'LBRACK') {
-        throw new SnlSyntaxTreeParseError('Nested "[" is not allowed in style', token.position)
-      }
-      this.cursor += 1
-      parts.push(token.value)
-    }
-    return parts.join('').trim()
   }
 
   private parseNodeList(): SnlSyntaxTree[] {

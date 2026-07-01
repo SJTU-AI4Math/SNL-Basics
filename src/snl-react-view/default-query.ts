@@ -1,7 +1,7 @@
 import { bindRefAttrFragment, getBindRef } from '../snl-syntax-tree/binding'
 import { escapeLatexText } from '../snl-syntax-tree/latex-escape'
 import type { SnlMacroTemplateQuery } from '../snl-syntax-tree/query'
-import type { SnlMacroDb } from '../snl-syntax-tree/template-db'
+import type { SnlMacroDb } from '../snl-macro/types'
 
 let dbCache: SnlMacroDb | null = null
 let dbCacheUrl: string | null = null
@@ -56,27 +56,19 @@ export async function loadSnlMacroDb(url: string = DEFAULT_SNL_MACRO_DB_URL): Pr
 }
 
 function buildQueryBody(db: SnlMacroDb): SnlMacroTemplateQuery {
-  return async ({ name, style, node }) => {
-    const byName = db[name]
-    const template = style && byName?.styles?.[style]?.latex
+  return async ({ name, node }) => {
+    const template = db[name]?.katex_react?.template
     if (template) {
       return template
     }
-    if (style === 'app' && node.children.length === 1) {
-      const sym =
-        /^[A-Za-z]+$/.test(name) && name.length === 1
-          ? name
-          : `\\mathrm{${escapeLatexText(name)}}`
-      return `\\htmlData{name=@NAME@,style=@STYLE@,kind=const}{\\htmlData{name=@NAME@,style=@STYLE@,kind=@KIND@}{${sym}}\\left(@CHILD1@\\right)}`
-    }
     const br = bindRefAttrFragment(getBindRef(node))
     if (node.kind === 'bvar') {
-      return `\\htmlData{name=@NAME@,style=@STYLE@,kind=bvar${br}}{${fallbackLatexSymbol(name)}}`
+      return `\\htmlData{name=@NAME@,kind=bvar${br}}{${fallbackLatexSymbol(name)}}`
     }
     if (node.kind === 'binder') {
-      return `\\htmlData{name=@NAME@,style=@STYLE@,kind=binder${br}}{${fallbackLatexSymbol(name)}}`
+      return `\\htmlData{name=@NAME@,kind=binder${br}}{${fallbackLatexSymbol(name)}}`
     }
-    return `\\htmlData{name=@NAME@,style=@STYLE@,kind=fvar}{${fallbackLatexSymbol(name)}}`
+    return `\\htmlData{name=@NAME@,kind=fvar}{${fallbackLatexSymbol(name)}}`
   }
 }
 

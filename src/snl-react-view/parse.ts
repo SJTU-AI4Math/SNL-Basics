@@ -15,4 +15,4 @@ export function tryParseSnlSyntaxTree(
   }
 }
 
-export { SnlSyntaxTreeParseError, parseSnlSyntaxTree, parseStyleMeta } from '../snl-syntax-tree/parser'
+export { SnlSyntaxTreeParseError, parseSnlSyntaxTree } from '../snl-syntax-tree/parser'

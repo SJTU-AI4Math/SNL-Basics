@@ -2,7 +2,6 @@ import type { SnlSyntaxTree } from './types'
 
 export interface SnlMacroTemplateQueryArgs {
   name: string
-  style: string
   node: SnlSyntaxTree
 }
 

@@ -12,14 +12,14 @@ import {
 } from './snl-react-view'
 
 const INITIAL_INPUT =
-  'FOL.forall(x[binder],FOL.implies(FOL.app(P,x),FOL.paren(FOL.or(y,FOL.app(Q,x)))))'
+  'FOL.forall.binder(x,FOL.implies.infix(FOL.app.apply(P,x),FOL.paren.round(FOL.or.infix(y,FOL.app.apply(Q,x)))))'
 
 const MAX_UNDO_CHECKPOINTS = 10
 
 // 用简洁文本方式展示树形层级，方便肉眼检查 parser/编辑器结果。
 function toTreeDiagram(node: SnlSyntaxTree, depth = 0): string {
   const prefix = `${'  '.repeat(depth)}- `
-  const line = `${prefix}${node.name}${node.style ? ` [${node.style}]` : ''}`
+  const line = `${prefix}${node.name}`
   if (node.children.length === 0) {
     return line
   }
@@ -29,7 +29,6 @@ function toTreeDiagram(node: SnlSyntaxTree, depth = 0): string {
 function cloneTree(node: SnlSyntaxTree): SnlSyntaxTree {
   return {
     name: node.name,
-    style: node.style,
     kind: node.kind,
     mdata: node.mdata,
     children: node.children.map((child) => cloneTree(child)),
@@ -38,8 +37,7 @@ function cloneTree(node: SnlSyntaxTree): SnlSyntaxTree {
 
 function buildMatchSignature(node: SnlSyntaxTree, db: SnlMacroDb): string {
   const nameMatched = Boolean(db[node.name])
-  const styleMatched = Boolean(node.style && db[node.name]?.styles?.[node.style])
-  const current = `${Number(nameMatched)}${Number(styleMatched)}`
+  const current = `${Number(nameMatched)}`
   if (node.children.length === 0) {
     return current
   }
@@ -116,9 +114,9 @@ export default function App() {
       <div className="section">
         <h2>1) Parser 输入</h2>
         <p>
-          语法：name（可选 [style]）(child1,child2(…))；无 style 时省略方括号。量词处 binder 须写
-          <code>[binder]</code>；裸名叶子是否在作用域内由编译期推断为 bvar / fvar，无需写
-          <code>[bvar]</code>。例如 FOL.forall(x[binder],…)、DivRing.div[frac](a,b)
+          语法：name（含点缀后缀，如 DivRing.div.frac）(child1,child2(…))。方括号 [style]
+          语法已废弃：请把 style 写成点缀后缀，例如 FOL.forall.binder(x,…)、DivRing.div.frac(a,b)。
+          量词首个子节点即绑定变量；裸名叶子是否在作用域内由编译期推断为 bvar / fvar。
         </p>
         <div className="row">
           <input

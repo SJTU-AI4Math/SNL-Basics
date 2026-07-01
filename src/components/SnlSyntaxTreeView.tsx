@@ -8,9 +8,8 @@ import {
 import katex from 'katex'
 import type { KatexOptions } from 'katex'
 import type { SnlMacroTemplateQuery } from '../snl-syntax-tree/query'
-import type { SnlMacroDb } from '../snl-syntax-tree/template-db'
+import type { SnlMacroDb } from '../snl-macro/types'
 import { bindRefAttrFragment, getBindRef, readBindRefFromDom } from '../snl-syntax-tree/binding'
-import { getEffectiveStyle } from '../snl-syntax-tree/effective-style'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { fvarAppliedHeadLatex } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
@@ -124,7 +123,6 @@ interface TooltipState {
   loading: boolean
   interactionKey: string
   name: string
-  style: string
   kind: string
   /** bvar：已找到 binder；fvar：无 bindRef 或未匹配引入 */
   variableRole: 'bvar' | 'fvar' | 'none'
@@ -139,10 +137,7 @@ async function resolveNodeLatex(
   cache: Map<string, string>,
   templateDb: SnlMacroDb,
 ): Promise<string> {
-  const effectiveStyle = getEffectiveStyle(node, templateDb)
-  const hasDbTemplate = Boolean(
-    node.name && templateDb[node.name]?.styles?.[effectiveStyle]?.latex,
-  )
+  const hasDbTemplate = Boolean(node.name && templateDb[node.name]?.katex_react?.template)
 
   const childLatexList = await Promise.all(
     node.children.map((child) => resolveNodeLatex(child, query, cache, templateDb)),
@@ -156,10 +151,9 @@ async function resolveNodeLatex(
     const argList = childLatexList.join(',')
     return fillLatexTemplate(
       // 仅包住 \\operatorname{…}，括号与参数在外，避免整段应用共一个 span 悬停时子式一起变蓝
-      '\\htmlData{name=@NAME@,style=@STYLE@,kind=fvar@BIND_REF_ATTR@}{@OP_PART@}(@ARG_LIST@)',
+      '\\htmlData{name=@NAME@,kind=fvar@BIND_REF_ATTR@}{@OP_PART@}(@ARG_LIST@)',
       {
         name: node.name,
-        style: effectiveStyle,
         kind: 'fvar',
         bind_ref: ref ?? '',
         bind_ref_attr,
@@ -169,10 +163,10 @@ async function resolveNodeLatex(
     )
   }
 
-  const key = `${node.name}::${effectiveStyle}::${node.kind}`
+  const key = `${node.name}::${node.kind}`
   let template = cache.get(key)
   if (!template) {
-    template = await query({ name: node.name, style: effectiveStyle, node })
+    template = await query({ name: node.name, node })
     cache.set(key, template)
   }
 
@@ -183,7 +177,6 @@ async function resolveNodeLatex(
   const bind_ref_attr = bindRefAttrFragment(ref)
   const nodeValues = {
     name: node.name,
-    style: effectiveStyle,
     kind: node.kind,
     bind_ref: ref ?? '',
     bind_ref_attr,
@@ -300,15 +293,13 @@ export function SnlSyntaxTreeView({
 
   const fetchDescriptions = async (
     name: string,
-    style: string,
     variableRole: 'bvar' | 'fvar' | 'none',
     bindingHint: string,
   ) => {
     await new Promise((resolve) => window.setTimeout(resolve, 120))
-    const operatorRecord = templateDb[name]
-    const styleRecord = operatorRecord?.styles?.[style]
-    let operatorDescription = operatorRecord?.description ?? '未找到算子说明'
-    let styleDescription = styleRecord?.description ?? '未找到 style 说明'
+    const macroRecord = templateDb[name]
+    let operatorDescription = macroRecord?.description ?? '未找到宏说明'
+    let styleDescription = ''
 
     if (variableRole === 'fvar') {
       operatorDescription = '自由变量（无编译期 bindRef，或与量词引入不匹配）'
@@ -330,7 +321,6 @@ export function SnlSyntaxTreeView({
     y: number,
   ) => {
     const name = target.dataset.name ?? ''
-    const style = target.dataset.style ?? ''
     const kind = target.dataset.kind ?? ''
     const bindRef = readBindRefFromDom(target)
 
@@ -343,8 +333,7 @@ export function SnlSyntaxTreeView({
         if (binderEl) {
           variableRole = 'bvar'
           const bName = binderEl.dataset.name ?? ''
-          const bStyle = binderEl.dataset.style ?? ''
-          bindingHint = `绑定变量：bindRef=${bindRef}，对应量词 binder「${bName}[${bStyle}]」。`
+          bindingHint = `绑定变量：bindRef=${bindRef}，对应量词 binder「${bName}」。`
         } else {
           variableRole = 'fvar'
           bindingHint = `标注为 bvar（bindRef=${bindRef}），但未找到带 binderScope 的祖先。`
@@ -367,7 +356,7 @@ export function SnlSyntaxTreeView({
       bindingHint = '自由变量 occurrence。'
     }
 
-    const key = `${name}|${style}|${kind}|${bindRef}`
+    const key = `${name}|${kind}|${bindRef}`
 
     if (hoverKey === key) {
       if (tooltipElRef.current) {
@@ -386,7 +375,6 @@ export function SnlSyntaxTreeView({
       loading: true,
       interactionKey: key,
       name,
-      style,
       kind,
       variableRole,
       bindingHint,
@@ -395,7 +383,7 @@ export function SnlSyntaxTreeView({
     })
 
     prefetchTimerRef.current = window.setTimeout(() => {
-      void fetchDescriptions(name, style, variableRole, bindingHint).then((desc) => {
+      void fetchDescriptions(name, variableRole, bindingHint).then((desc) => {
         setTooltip((prev) => {
           if (!prev || prev.interactionKey !== key) {
             return prev
@@ -542,7 +530,7 @@ export function SnlSyntaxTreeView({
           className={`snl-hover-tooltip ${tooltip.visible ? 'visible' : ''}`}
           style={{ left: tooltip.x, top: tooltip.y }}
         >
-          <div className="tooltip-title">{tooltip.name}[{tooltip.style}]</div>
+          <div className="tooltip-title">{tooltip.name}</div>
           <div className="tooltip-kind">
             kind: {tooltip.kind || '(none)'}
             {tooltip.variableRole !== 'none' ? ` · ${tooltip.variableRole}` : ''}

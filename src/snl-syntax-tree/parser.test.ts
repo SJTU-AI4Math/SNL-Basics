@@ -3,9 +3,8 @@ import { SnlSyntaxTreeParseError, parseSnlSyntaxTree } from './parser'
 
 describe('parseSnlSyntaxTree', () => {
   it('parses nested expression', () => {
-    const tree = parseSnlSyntaxTree('a[b](c,d(e))')
-    expect(tree.name).toBe('a')
-    expect(tree.style).toBe('b')
+    const tree = parseSnlSyntaxTree('a.b(c,d(e))')
+    expect(tree.name).toBe('a.b')
     expect(tree.children).toHaveLength(2)
     expect(tree.children[0].name).toBe('c')
     expect(tree.children[1].name).toBe('d')
@@ -13,61 +12,66 @@ describe('parseSnlSyntaxTree', () => {
   })
 
   it('supports empty children list', () => {
-    const tree = parseSnlSyntaxTree('x[y]()')
-    expect(tree.name).toBe('x')
-    expect(tree.style).toBe('y')
+    const tree = parseSnlSyntaxTree('x.y()')
+    expect(tree.name).toBe('x.y')
     expect(tree.children).toEqual([])
   })
 
   it('throws with bad syntax', () => {
-    expect(() => parseSnlSyntaxTree('a[b](c,)')).toThrow(SnlSyntaxTreeParseError)
-    expect(() => parseSnlSyntaxTree('a[b')).toThrow(SnlSyntaxTreeParseError)
+    expect(() => parseSnlSyntaxTree('a.b(c,)')).toThrow(SnlSyntaxTreeParseError)
+    expect(() => parseSnlSyntaxTree('a.b(c')).toThrow(SnlSyntaxTreeParseError)
   })
 
-  it('allows omitting empty brackets: name(args) without []', () => {
-    const tree = parseSnlSyntaxTree('FOL.forall(x[binder],y)')
-    expect(tree.name).toBe('FOL.forall')
-    expect(tree.style).toBe('')
+  it('rejects the removed [style] bracket syntax', () => {
+    expect(() => parseSnlSyntaxTree('foo[bar](x)')).toThrow(SnlSyntaxTreeParseError)
+    expect(() => parseSnlSyntaxTree('foo[bar](x)')).toThrow(/no longer allowed/)
+  })
+
+  it('parses a dotted multi-suffix name', () => {
+    const tree = parseSnlSyntaxTree('foo.bar.baz(x, y)')
+    expect(tree.name).toBe('foo.bar.baz')
     expect(tree.children).toHaveLength(2)
   })
 
-  it('supports dotted lean-like name', () => {
-    const tree = parseSnlSyntaxTree('DivRing.div[frac](a,b)')
-    expect(tree.name).toBe('DivRing.div')
-    expect(tree.style).toBe('frac')
+  it('supports dotted lean-like name with style suffix', () => {
+    const tree = parseSnlSyntaxTree('DivRing.div.frac(a,b)')
+    expect(tree.name).toBe('DivRing.div.frac')
     expect(tree.children).toHaveLength(2)
   })
 
-  it('parses style metadata and annotates bindRef', () => {
-    const tree = parseSnlSyntaxTree('FOL.forall[binder](x[binder],y)')
-    expect(tree.name).toBe('FOL.forall')
-    expect(tree.style).toBe('binder')
-    expect(tree.kind).toBe('binder')
+  it('supports dashed suffix in name', () => {
+    const tree = parseSnlSyntaxTree('DivRing.div.inline-div(a,b)')
+    expect(tree.name).toBe('DivRing.div.inline-div')
+    expect(tree.children).toHaveLength(2)
+  })
+
+  it('marks the quantifier binding variable and annotates bindRef', () => {
+    const tree = parseSnlSyntaxTree('FOL.forall.binder(x,y)')
+    expect(tree.name).toBe('FOL.forall.binder')
     expect(tree.mdata).toMatchObject({ bindRef: 'b1' })
     expect(tree.children[0].name).toBe('x')
-    expect(tree.children[0].style).toBe('binder')
     expect(tree.children[0].kind).toBe('binder')
     expect(tree.children[0].mdata).toMatchObject({ bindRef: 'b1' })
   })
 
   it('infers bvar/fvar for bare leaves from binder stack', () => {
-    const tree = parseSnlSyntaxTree('FOL.forall(x[binder],y)')
+    const tree = parseSnlSyntaxTree('FOL.forall.binder(x,y)')
     expect(tree.children[1].kind).toBe('fvar')
     expect(tree.children[1].name).toBe('y')
 
-    const t2 = parseSnlSyntaxTree('FOL.forall(x[binder],x)')
+    const t2 = parseSnlSyntaxTree('FOL.forall.binder(x,x)')
     expect(t2.children[1].kind).toBe('bvar')
     expect(t2.children[1].mdata).toMatchObject({ bindRef: 'b1' })
   })
 
-  it('infers bound/free variables in nested FOL example without [bvar]', () => {
+  it('infers bound/free variables in nested FOL example', () => {
     const input =
-      'FOL.forall(x[binder],FOL.implies(FOL.app(P,x),FOL.paren(FOL.or(y,FOL.app(Q,x)))))'
+      'FOL.forall.binder(x,FOL.implies.infix(FOL.app.apply(P,x),FOL.paren.round(FOL.or.infix(y,FOL.app.apply(Q,x)))))'
     const tree = parseSnlSyntaxTree(input)
 
     const implies = tree.children[1]
     const app1 = implies.children[0]
-    expect(app1.name).toBe('FOL.app')
+    expect(app1.name).toBe('FOL.app.apply')
     expect(app1.children[0].kind).toBe('fvar')
     expect(app1.children[0].name).toBe('P')
     expect(app1.children[1].kind).toBe('bvar')
@@ -75,10 +79,10 @@ describe('parseSnlSyntaxTree', () => {
 
     const paren = implies.children[1]
     const orNode = paren.children[0]
-    expect(orNode.name).toBe('FOL.or')
+    expect(orNode.name).toBe('FOL.or.infix')
     expect(orNode.children[0].kind).toBe('fvar')
     expect(orNode.children[0].name).toBe('y')
-    expect(orNode.children[1].name).toBe('FOL.app')
+    expect(orNode.children[1].name).toBe('FOL.app.apply')
     expect(orNode.children[1].children[0].kind).toBe('fvar')
     expect(orNode.children[1].children[1].kind).toBe('bvar')
   })
