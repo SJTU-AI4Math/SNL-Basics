@@ -31,7 +31,6 @@ describe('variadic pmatrix / matrix.row', () => {
         tree={tree}
         query={query}
         templateDb={db}
-        katexOptions={{ trust: true }}
       />,
     )
     await waitFor(() => {

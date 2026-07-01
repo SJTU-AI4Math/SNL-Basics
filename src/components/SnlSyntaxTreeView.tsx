@@ -17,6 +17,7 @@ import { fvarAppliedHeadLatex } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { findBinderScopeAncestor, findMinimalHoverRoot } from '../snl-react-view/hover-dom'
+import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
 import {
   defaultRenderHooks,
   type SnlHighlightSet,
@@ -134,7 +135,11 @@ function MathSpan({
     void (async () => {
       try {
         const latex = await resolveNodeLatex(node, query, new Map<string, string>(), templateDb)
-        const out = katex.renderToString(latex, { throwOnError: false, ...katexOptions })
+        const out = katex.renderToString(latex, {
+          throwOnError: false,
+          ...HTMLDATA_KATEX_DEFAULTS,
+          ...katexOptions,
+        })
         if (!cancelled) setHtml(out)
       } catch {
         if (!cancelled) setHtml('')
@@ -178,6 +183,7 @@ function useSnlSyntaxTreeRender(
         const latex = await resolveNodeLatex(tree, query, cache, templateDb)
         const html = katex.renderToString(latex, {
           throwOnError: false,
+          ...HTMLDATA_KATEX_DEFAULTS,
           ...katexOptions,
         })
         if (!cancelled && reqIdRef.current === reqId) {
