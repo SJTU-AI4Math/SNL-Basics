@@ -50,3 +50,14 @@ export { serializeSnlSyntaxTree } from './serialize'
 export { tryParseSnlSyntaxTree, parseSnlSyntaxTree, SnlSyntaxTreeParseError } from './parse'
 
 export { SnlSyntaxTreeEditor } from '../components/SnlSyntaxTreeEditor/SnlSyntaxTreeEditor'
+
+// 输出后端（typst / latex / markdown / text）——Phase 2.5+ 前为占位实现
+export {
+  toTypst,
+  buildTypstPreamble,
+  toLatex,
+  buildLatexPreamble,
+  toMarkdown,
+  toText,
+} from '../snl-output'
+export type { TypstOutputOptions, LatexOutputOptions } from '../snl-output'
