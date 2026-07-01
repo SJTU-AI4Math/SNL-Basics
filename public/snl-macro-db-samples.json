@@ -1,0 +1,92 @@
+{
+  "sample.list": {
+    "name": "sample.list",
+    "description": "Sample block macro: renders variadic children as an unordered list (<ul><li>…). Merge this file into your macro DB to enable the built-in list renderer.",
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "typst": {
+      "built_in": "",
+      "synthesis": {
+        "output_type": "text",
+        "macro": ""
+      }
+    },
+    "latex": {
+      "built_in": "",
+      "synthesis": {
+        "output_type": "text",
+        "macro": ""
+      }
+    },
+    "markdown": "",
+    "text": "",
+    "katex_react": {
+      "arity": "variadic",
+      "mode": "block",
+      "template": "",
+      "react_renderer_key": "list"
+    }
+  },
+  "sample.table": {
+    "name": "sample.table",
+    "description": "Sample block macro: renders variadic row children as a table. If the first child's kind is 'table-header' it becomes the <thead>, otherwise all rows render as body rows.",
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "typst": {
+      "built_in": "",
+      "synthesis": {
+        "output_type": "text",
+        "macro": ""
+      }
+    },
+    "latex": {
+      "built_in": "",
+      "synthesis": {
+        "output_type": "text",
+        "macro": ""
+      }
+    },
+    "markdown": "",
+    "text": "",
+    "katex_react": {
+      "arity": "variadic",
+      "mode": "block",
+      "template": "",
+      "react_renderer_key": "table"
+    }
+  },
+  "sample.centered": {
+    "name": "sample.centered",
+    "description": "Sample block macro: renders variadic children horizontally centered in a block container.",
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "typst": {
+      "built_in": "",
+      "synthesis": {
+        "output_type": "text",
+        "macro": ""
+      }
+    },
+    "latex": {
+      "built_in": "",
+      "synthesis": {
+        "output_type": "text",
+        "macro": ""
+      }
+    },
+    "markdown": "",
+    "text": "",
+    "katex_react": {
+      "arity": "variadic",
+      "mode": "block",
+      "template": "",
+      "react_renderer_key": "centered"
+    }
+  }
+}

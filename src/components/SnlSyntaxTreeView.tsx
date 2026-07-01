@@ -1,9 +1,11 @@
 import {
+  Fragment,
   useEffect,
   useMemo,
   useRef,
   useState,
   type MouseEventHandler,
+  type ReactElement,
 } from 'react'
 import katex from 'katex'
 import type { KatexOptions } from 'katex'
@@ -101,11 +103,51 @@ async function resolveNodeLatex(
   return fillLatexTemplate(template, { ...childValues, ...nodeValues })
 }
 
+/** Resolve a node's render mode from its macro (default 'math' when unknown). */
+function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): 'math' | 'text' | 'block' {
+  return db[node.name]?.katex_react?.mode ?? 'math'
+}
+
+/**
+ * Renders a single math subtree as an inline KaTeX span. Used for math leaves
+ * embedded inside text/block trees (the whole-tree math path stays innerHTML).
+ */
+function MathSpan({
+  node,
+  query,
+  templateDb,
+  katexOptions,
+}: {
+  node: SnlSyntaxTree
+  query: SnlMacroTemplateQuery
+  templateDb: SnlMacroDb
+  katexOptions?: KatexOptions
+}): ReactElement {
+  const [html, setHtml] = useState('')
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const latex = await resolveNodeLatex(node, query, new Map<string, string>(), templateDb)
+        const out = katex.renderToString(latex, { throwOnError: false, ...katexOptions })
+        if (!cancelled) setHtml(out)
+      } catch {
+        if (!cancelled) setHtml('')
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [node, query, templateDb, katexOptions])
+  return <span className="snl-math-span" dangerouslySetInnerHTML={{ __html: html }} />
+}
+
 function useSnlSyntaxTreeRender(
   tree: SnlSyntaxTree,
   query: SnlMacroTemplateQuery,
   templateDb: SnlMacroDb,
-  katexOptions?: KatexOptions,
+  katexOptions: KatexOptions | undefined,
+  enabled: boolean,
 ) {
   const [result, setResult] = useState<RenderResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -114,6 +156,12 @@ function useSnlSyntaxTreeRender(
   const cache = useMemo(() => new Map<string, string>(), [query])
 
   useEffect(() => {
+    if (!enabled) {
+      setResult(null)
+      setError(null)
+      setLoading(false)
+      return
+    }
     let cancelled = false
     const reqId = ++reqIdRef.current
 
@@ -147,7 +195,7 @@ function useSnlSyntaxTreeRender(
     return () => {
       cancelled = true
     }
-  }, [cache, katexOptions, query, templateDb, tree])
+  }, [cache, enabled, katexOptions, query, templateDb, tree])
 
   return { loading, error, result }
 }
@@ -161,7 +209,14 @@ export function SnlSyntaxTreeView({
   hooks,
 }: SnlSyntaxTreeViewProps) {
   const mergedHooks = useMemo(() => ({ ...defaultRenderHooks, ...hooks }), [hooks])
-  const { loading, error, result } = useSnlSyntaxTreeRender(tree, query, templateDb, katexOptions)
+  const isMathRoot = nodeMode(tree, templateDb) === 'math'
+  const { loading, error, result } = useSnlSyntaxTreeRender(
+    tree,
+    query,
+    templateDb,
+    katexOptions,
+    isMathRoot,
+  )
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
   const prefetchTimerRef = useRef<number | null>(null)
@@ -196,6 +251,17 @@ export function SnlSyntaxTreeView({
     el.innerHTML = result.html
     bvarScopeIndexRef.current = buildBvarScopeIndex(el)
   }, [result])
+
+  // Non-math roots render as a React tree; rebuild the bvar-scope index from the
+  // mounted DOM (best-effort — MathSpan leaves settle async, and the highlight
+  // strategy falls back to a live DOM query when an entry is missing).
+  useEffect(() => {
+    if (isMathRoot) return
+    const el = containerRef.current
+    if (!el) return
+    lastHtmlRef.current = null
+    bvarScopeIndexRef.current = buildBvarScopeIndex(el)
+  }, [isMathRoot, tree])
 
   const clearHoverTimers = () => {
     if (prefetchTimerRef.current) {
@@ -410,14 +476,48 @@ export function SnlSyntaxTreeView({
     mergedHooks.onLeave?.()
   }
 
-  if (loading) {
-    return <div className="katex-panel">Loading KaTeX ...</div>
+  // Mode-aware React dispatch (used for non-math roots and for children of
+  // text/block nodes). Math nodes render as inline KaTeX via <MathSpan/>.
+  const renderNode = (node: SnlSyntaxTree): ReactElement => {
+    const mode = nodeMode(node, templateDb)
+    if (mode === 'block') {
+      const key = templateDb[node.name]?.katex_react?.react_renderer_key
+      const Renderer = key ? mergedHooks.renderers?.[key] : undefined
+      if (Renderer) {
+        return <Renderer node={node} macroDb={templateDb} renderChild={renderNode} />
+      }
+      return (
+        <div className="snl-block">
+          {node.children.map((child, index) => (
+            <Fragment key={index}>{renderNode(child)}</Fragment>
+          ))}
+        </div>
+      )
+    }
+    if (mode === 'text') {
+      return (
+        <span className="snl-text">
+          {node.children.map((child, index) => (
+            <Fragment key={index}>{renderNode(child)}</Fragment>
+          ))}
+        </span>
+      )
+    }
+    return (
+      <MathSpan node={node} query={query} templateDb={templateDb} katexOptions={katexOptions} />
+    )
   }
-  if (error) {
-    return <div className="katex-panel katex-error">{error}</div>
-  }
-  if (!result) {
-    return <div className="katex-panel">无可渲染结果</div>
+
+  if (isMathRoot) {
+    if (loading) {
+      return <div className="katex-panel">Loading KaTeX ...</div>
+    }
+    if (error) {
+      return <div className="katex-panel katex-error">{error}</div>
+    }
+    if (!result) {
+      return <div className="katex-panel">无可渲染结果</div>
+    }
   }
 
   return (
@@ -427,7 +527,9 @@ export function SnlSyntaxTreeView({
         className="katex-html"
         onMouseMove={handleKaTeXMouseMove}
         onMouseLeave={handleKaTeXMouseLeave}
-      />
+      >
+        {isMathRoot ? null : renderNode(tree)}
+      </div>
       {tooltip ? mergedHooks.renderTooltip?.(tooltip) ?? null : null}
     </div>
   )

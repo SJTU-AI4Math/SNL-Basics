@@ -85,6 +85,25 @@
   color: #dc2626 !important;
 }
 
+/* Block renderers (list / table / centered) — see block-renderers.tsx */
+.snl-block {
+  margin: 0.5em 0;
+}
+.snl-block-list {
+  padding-left: 2em;
+}
+.snl-block-table {
+  border-collapse: collapse;
+}
+.snl-block-table th,
+.snl-block-table td {
+  padding: 0.2em 0.5em;
+  border: 1px solid #ccc;
+}
+.snl-block-centered {
+  text-align: center;
+}
+
 .snl-hover-tooltip {
   position: fixed;
   max-width: 360px;
