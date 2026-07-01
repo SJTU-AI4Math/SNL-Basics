@@ -520,5 +520,35 @@
       "mode": "math",
       "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{@CHILD0@ \\htmlData{name=@NAME@,kind=constSymbol}{=} @CHILD1@}"
     }
+  },
+  "pmatrix": {
+    "name": "pmatrix",
+    "description": "Parenthesized matrix. Children are row macros (matrix.row(...)).",
+    "source": { "entries": [], "urls": ["https://en.wikipedia.org/wiki/Matrix_(mathematics)"] },
+    "typst": { "built_in": "", "synthesis": { "output_type": "formula", "macro": "" } },
+    "latex": { "built_in": "", "synthesis": { "output_type": "formula", "macro": "" } },
+    "markdown": "",
+    "text": "",
+    "katex_react": {
+      "arity": "variadic",
+      "mode": "math",
+      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\begin{pmatrix}@CHILDREN@\\end{pmatrix}}",
+      "variadic_join": " \\\\ "
+    }
+  },
+  "matrix.row": {
+    "name": "matrix.row",
+    "description": "A single row inside a matrix macro. Children are cells.",
+    "source": { "entries": [], "urls": [] },
+    "typst": { "built_in": "", "synthesis": { "output_type": "formula", "macro": "" } },
+    "latex": { "built_in": "", "synthesis": { "output_type": "formula", "macro": "" } },
+    "markdown": "",
+    "text": "",
+    "katex_react": {
+      "arity": "variadic",
+      "mode": "math",
+      "template": "@CHILDREN@",
+      "variadic_join": " & "
+    }
   }
 }

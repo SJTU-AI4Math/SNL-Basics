@@ -93,11 +93,16 @@ async function resolveNodeLatex(
   )
   const ref = getBindRef(node)
   const bind_ref_attr = bindRefAttrFragment(ref)
+  // Variadic macros fill @CHILDREN@ with children joined by their configured
+  // separator (default ", ") — see fillLatexTemplate.
+  const variadicJoin = (node.name ? templateDb[node.name]?.katex_react?.variadic_join : undefined) ?? ', '
+  const children_joined = childLatexList.join(variadicJoin)
   const nodeValues = {
     name: node.name,
     kind: node.kind,
     bind_ref: ref ?? '',
     bind_ref_attr,
+    children_joined,
   }
 
   return fillLatexTemplate(template, { ...childValues, ...nodeValues })
