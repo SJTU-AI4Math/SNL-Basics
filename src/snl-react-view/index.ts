@@ -36,6 +36,15 @@ export { fillLatexTemplate } from '../snl-syntax-tree/template'
 
 export { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
 
+export { defaultRenderHooks } from './hooks'
+export type {
+  SnlRenderHooks,
+  SnlHoverEvent,
+  SnlMacroInfo,
+  SnlResolvedSource,
+  SnlTooltipState,
+} from './hooks'
+
 export { serializeSnlSyntaxTree } from './serialize'
 
 export { tryParseSnlSyntaxTree, parseSnlSyntaxTree, SnlSyntaxTreeParseError } from './parse'

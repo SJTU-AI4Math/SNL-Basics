@@ -14,6 +14,12 @@ import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bva
 import { fvarAppliedHeadLatex } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import {
+  defaultRenderHooks,
+  type SnlRenderHooks,
+  type SnlResolvedSource,
+  type SnlTooltipState,
+} from '../snl-react-view/hooks'
 
 /** 仅当 el 到 root 的路径上（不含 root）不出现另一层 constantSubtree 时，该 constSymbol 才属于本层算子皮（不染色子树内嵌算子） */
 function isDirectConstSymbolUnderContantSubtreeRoot(el: HTMLElement, root: HTMLElement): boolean {
@@ -114,22 +120,12 @@ interface SnlSyntaxTreeViewProps {
   templateDb: SnlMacroDb
   katexOptions?: KatexOptions
   onResolved?: (latexSource: string) => void
+  /** Override tooltip / hover / description behavior. Merged over defaults. */
+  hooks?: SnlRenderHooks
 }
 
-interface TooltipState {
-  visible: boolean
-  x: number
-  y: number
-  loading: boolean
-  interactionKey: string
-  name: string
-  kind: string
-  /** bvar：已找到 binder；fvar：无 bindRef 或未匹配引入 */
-  variableRole: 'bvar' | 'fvar' | 'none'
-  bindingHint: string
-  operatorDescription: string
-  styleDescription: string
-}
+/** Internal tooltip state = public SnlTooltipState + interaction key for staleness checks. */
+type TooltipState = SnlTooltipState & { interactionKey: string }
 
 async function resolveNodeLatex(
   node: SnlSyntaxTree,
@@ -242,13 +238,14 @@ export function SnlSyntaxTreeView({
   templateDb,
   katexOptions,
   onResolved,
+  hooks,
 }: SnlSyntaxTreeViewProps) {
+  const mergedHooks = useMemo(() => ({ ...defaultRenderHooks, ...hooks }), [hooks])
   const { loading, error, result } = useSnlSyntaxTreeRender(tree, query, templateDb, katexOptions)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
   const prefetchTimerRef = useRef<number | null>(null)
   const showTimerRef = useRef<number | null>(null)
-  const tooltipElRef = useRef<HTMLDivElement | null>(null)
   const hoverMarkedElsRef = useRef<HTMLElement[]>([])
   const containerRef = useRef<HTMLDivElement | null>(null)
   const lastHtmlRef = useRef<string | null>(null)
@@ -291,27 +288,23 @@ export function SnlSyntaxTreeView({
     }
   }
 
-  const fetchDescriptions = async (
+  const resolveInfo = async (
     name: string,
     variableRole: 'bvar' | 'fvar' | 'none',
     bindingHint: string,
   ) => {
     await new Promise((resolve) => window.setTimeout(resolve, 120))
-    const macroRecord = templateDb[name]
-    let operatorDescription = macroRecord?.description ?? '未找到宏说明'
-    let styleDescription = ''
+    const macro = templateDb[name]
+    const base = await mergedHooks.resolveMacroInfo!(name, macro)
+    let description = base.description
 
     if (variableRole === 'fvar') {
-      operatorDescription = '自由变量（无编译期 bindRef，或与量词引入不匹配）'
-      styleDescription = bindingHint || styleDescription
+      description = '自由变量（无编译期 bindRef，或与量词引入不匹配）'
     } else if (variableRole === 'bvar') {
-      operatorDescription = `${operatorDescription}\n\n${bindingHint}`.trim()
+      description = `${description}\n\n${bindingHint}`.trim()
     }
 
-    return {
-      operatorDescription,
-      styleDescription,
-    }
+    return { description, extra: base.extra }
   }
 
   const activateHoverTarget = (
@@ -358,13 +351,28 @@ export function SnlSyntaxTreeView({
 
     const key = `${name}|${kind}|${bindRef}`
 
+    // 消费者拦截钩子：在内部状态机之外额外通知
+    mergedHooks.onHover?.({
+      name,
+      kind,
+      node: { name, kind, mdata: bindRef ? { bindRef } : null, children: [] },
+      bindingHint,
+      variableRole,
+      target,
+      clientX: x,
+      clientY: y,
+    })
+
     if (hoverKey === key) {
-      if (tooltipElRef.current) {
-        tooltipElRef.current.style.left = `${x}px`
-        tooltipElRef.current.style.top = `${y}px`
-      }
+      // 同一元素内移动：仅更新位置（不重新解析说明）
+      setTooltip((prev) => (prev && prev.interactionKey === key ? { ...prev, x, y } : prev))
       return
     }
+
+    const macro = templateDb[name]
+    const source: SnlResolvedSource | null = macro
+      ? (mergedHooks.resolveSource?.(macro.source) ?? null)
+      : null
 
     setHoverKey(key)
     clearHoverTimers()
@@ -378,17 +386,17 @@ export function SnlSyntaxTreeView({
       kind,
       variableRole,
       bindingHint,
-      operatorDescription: '',
-      styleDescription: '',
+      info: null,
+      source,
     })
 
     prefetchTimerRef.current = window.setTimeout(() => {
-      void fetchDescriptions(name, variableRole, bindingHint).then((desc) => {
+      void resolveInfo(name, variableRole, bindingHint).then((info) => {
         setTooltip((prev) => {
           if (!prev || prev.interactionKey !== key) {
             return prev
           }
-          return { ...prev, loading: false, ...desc }
+          return { ...prev, loading: false, info }
         })
       })
     }, 500)
@@ -504,6 +512,7 @@ export function SnlSyntaxTreeView({
     setHoverKey('')
     clearHoverTimers()
     setTooltip((prev) => (prev ? { ...prev, visible: false } : null))
+    mergedHooks.onLeave?.()
   }
 
   if (loading) {
@@ -524,27 +533,7 @@ export function SnlSyntaxTreeView({
         onMouseMove={handleKaTeXMouseMove}
         onMouseLeave={handleKaTeXMouseLeave}
       />
-      {tooltip && (
-        <div
-          ref={tooltipElRef}
-          className={`snl-hover-tooltip ${tooltip.visible ? 'visible' : ''}`}
-          style={{ left: tooltip.x, top: tooltip.y }}
-        >
-          <div className="tooltip-title">{tooltip.name}</div>
-          <div className="tooltip-kind">
-            kind: {tooltip.kind || '(none)'}
-            {tooltip.variableRole !== 'none' ? ` · ${tooltip.variableRole}` : ''}
-          </div>
-          {tooltip.loading ? (
-            <div className="tooltip-loading">加载说明中...</div>
-          ) : (
-            <>
-              <div className="tooltip-desc">{tooltip.operatorDescription}</div>
-              <div className="tooltip-desc">{tooltip.styleDescription}</div>
-            </>
-          )}
-        </div>
-      )}
+      {tooltip ? mergedHooks.renderTooltip?.(tooltip) ?? null : null}
     </div>
   )
 }
