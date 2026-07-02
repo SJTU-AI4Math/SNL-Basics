@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, test } from 'vitest'
 import { SnlSyntaxTreeParseError, parseSnlSyntaxTree } from './parser'
 
 describe('parseSnlSyntaxTree', () => {
@@ -39,10 +39,14 @@ describe('parseSnlSyntaxTree', () => {
     expect(tree.children).toHaveLength(2)
   })
 
-  it('supports dashed suffix in name', () => {
-    const tree = parseSnlSyntaxTree('DivRing.div.inline-div(a,b)')
-    expect(tree.name).toBe('DivRing.div.inline-div')
+  it('supports camelCase style suffix in name', () => {
+    const tree = parseSnlSyntaxTree('DivRing.div.inlineDiv(a,b)')
+    expect(tree.name).toBe('DivRing.div.inlineDiv')
     expect(tree.children).toHaveLength(2)
+  })
+
+  test('parser rejects hyphen in macro name', () => {
+    expect(() => parseSnlSyntaxTree('foo-bar(x)')).toThrow(SnlSyntaxTreeParseError)
   })
 
   it('marks the quantifier binding variable and annotates bindRef', () => {

@@ -144,6 +144,13 @@ export default defineConfig({
 This is standard for any library exporting React components — not SNL-specific —
 but the workaround is easy to miss.
 
+## Macro naming conventions
+
+Macro names must match `[A-Za-z0-9_.]+` — no hyphens, no other punctuation.
+Dashes break KaTeX's `\htmlData` tokenizer (it treats `-` as binary minus and
+mangles the attribute value). Use camelCase for compound style suffixes:
+`Add.add.infix`, `DivRing.div.inlineDiv`, `FOL.forall.binderTyped`.
+
 ## Concepts
 
 - **Macro** — a named renderer with five output strategies (`typst`, `latex`,

@@ -28,8 +28,8 @@
       "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=@KIND@}{\\frac{@CHILD0@}{@CHILD1@}}}"
     }
   },
-  "DivRing.div.inline-div": {
-    "name": "DivRing.div.inline-div",
+  "DivRing.div.inlineDiv": {
+    "name": "DivRing.div.inlineDiv",
     "description": "DivRing 上的除法运算，通常表示一个元素除以另一个元素。 — 行内 \\div 符号渲染除法。",
     "source": {
       "entries": [],
@@ -204,7 +204,7 @@
   },
   "FOL.forall.binder": {
     "name": "FOL.forall.binder",
-    "description": "一阶逻辑全称量词。binder：∀ x, body；binder-typed：∀ (x : T), body。 — ∀ x, body。引入处 x[binder]，体内 x[bvar]；编译期按名绑定。",
+    "description": "一阶逻辑全称量词。binder：∀ x, body；binderTyped：∀ (x : T), body。 — ∀ x, body。引入处 x[binder]，体内 x[bvar]；编译期按名绑定。",
     "source": {
       "entries": [],
       "urls": []
@@ -231,9 +231,9 @@
       "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,kind=constSymbol}{\\forall}\\, @CHILD0@\\htmlData{name=@NAME@,kind=constSymbol}{,}\\, @CHILD1@}}"
     }
   },
-  "FOL.forall.binder-typed": {
-    "name": "FOL.forall.binder-typed",
-    "description": "一阶逻辑全称量词。binder：∀ x, body；binder-typed：∀ (x : T), body。 — ∀ (x : T), body（类型标注）。",
+  "FOL.forall.binderTyped": {
+    "name": "FOL.forall.binderTyped",
+    "description": "一阶逻辑全称量词。binder：∀ x, body；binderTyped：∀ (x : T), body。 — ∀ (x : T), body（类型标注）。",
     "source": {
       "entries": [],
       "urls": []
@@ -262,7 +262,7 @@
   },
   "FOL.exists.binder": {
     "name": "FOL.exists.binder",
-    "description": "一阶逻辑存在量词。binder：∃ x, body；binder-typed：∃ (x : T), body。 — ∃ x, body。",
+    "description": "一阶逻辑存在量词。binder：∃ x, body；binderTyped：∃ (x : T), body。 — ∃ x, body。",
     "source": {
       "entries": [],
       "urls": []
@@ -289,9 +289,9 @@
       "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,kind=constSymbol}{\\exists}\\, @CHILD0@\\htmlData{name=@NAME@,kind=constSymbol}{,}\\, @CHILD1@}}"
     }
   },
-  "FOL.exists.binder-typed": {
-    "name": "FOL.exists.binder-typed",
-    "description": "一阶逻辑存在量词。binder：∃ x, body；binder-typed：∃ (x : T), body。 — ∃ (x : T), body。",
+  "FOL.exists.binderTyped": {
+    "name": "FOL.exists.binderTyped",
+    "description": "一阶逻辑存在量词。binder：∃ x, body；binderTyped：∃ (x : T), body。 — ∃ (x : T), body。",
     "source": {
       "entries": [],
       "urls": []

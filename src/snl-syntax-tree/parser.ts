@@ -42,8 +42,9 @@ function tokenize(input: string): Token[] {
     if (/[A-Za-z_]/.test(ch)) {
       const start = i
       i += 1
-      // 支持 Lean 风格命名 + 点缀后缀（原 style），如 DivRing.div.inline-div
-      while (i < input.length && /[A-Za-z0-9_.-]/.test(input[i])) {
+      // 支持 Lean 风格命名 + 点缀后缀（原 style），如 DivRing.div.inlineDiv。
+      // 不允许连字符：KaTeX 的 \htmlData 会把 '-' 当作二元减号，破坏属性值。
+      while (i < input.length && /[A-Za-z0-9_.]/.test(input[i])) {
         i += 1
       }
       tokens.push({ type: 'IDENT', value: input.slice(start, i), position: start })
