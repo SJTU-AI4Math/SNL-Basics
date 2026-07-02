@@ -10,10 +10,6 @@
 }
 
 .katex-html {
-  --snl-c-const:            #374151;
-  --snl-c-binder:           #dc2626;
-  --snl-c-bvar:             #0369a1;
-  --snl-c-fvar:             #059669;
   --snl-c-hover-accent:     #f59e0b;
   --snl-c-hover-bg:         rgba(245, 158, 11, 0.10);
   padding: 8px;
@@ -23,20 +19,10 @@
   overflow-x: auto;
 }
 
-/* Per-kind base colors. A subtree's own kind sets its text color; nested
-   subtrees carry their own kind color, so hover can revert to these. */
-.katex-html [data-kind='const'] {
-  color: var(--snl-c-const);
-}
-.katex-html [data-kind='binder'] {
-  color: var(--snl-c-binder);
-}
-.katex-html [data-kind='bvar'] {
-  color: var(--snl-c-bvar);
-}
-.katex-html [data-kind='fvar'] {
-  color: var(--snl-c-fvar);
-}
+/* Per-kind colors (base text + hover treatment) and the binding-scope highlight
+   rules are generated from the resolved KindPalette and injected inline by
+   SnlSyntaxTreeView (see kind-palette.ts::paletteToCss). This stylesheet only
+   carries structural rules that don't depend on palette values. */
 
 .katex-html [data-kind='bvar'],
 .katex-html [data-kind='fvar'],
@@ -60,31 +46,11 @@
 }
 
 /* Hover model: the element directly under the pointer gets `.snl-single-hover`.
-   The hover color must apply to the hovered subtree's OWN direct text only —
-   nested subtrees keep their kind's color. We drop `!important` (so it no longer
-   dominates via inheritance) and explicitly `revert` the color on any nested
-   `[data-kind]`, letting each nested subtree fall back to its per-kind rule. */
-.katex-html .snl-single-hover {
-  color: var(--snl-c-hover-accent);
-  background: var(--snl-c-hover-bg);
-  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35);
-  border-radius: 2px;
-}
-
-/* Nested subtrees escape the hover accent and keep their own kind color. */
+   Its per-kind color / border / background come from the injected palette CSS.
+   Nested subtrees must escape the hover accent and keep their own kind color,
+   so we explicitly `revert` the color on any nested `[data-kind]`. */
 .katex-html .snl-single-hover [data-kind] {
   color: revert;
-}
-
-/* Binding-scope highlight spans siblings (not just nested ancestors), so it
-   stays class-driven rather than relying on subtree colour inheritance. */
-.katex-html [data-kind='bvar'].snl-bvar-scope {
-  color: var(--snl-c-hover-accent) !important;
-}
-
-.katex-html [data-kind='binder'].snl-binder-decl,
-.katex-html [data-kind='binder'].snl-binder-decl.snl-single-hover {
-  color: var(--snl-c-binder) !important;
 }
 
 /* Block renderers (list / table / centered) — see block-renderers.tsx */

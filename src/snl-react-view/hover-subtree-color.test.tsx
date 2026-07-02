@@ -6,6 +6,7 @@ import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
 import { createMacroTemplateQueryFromDb } from './default-query'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
+import { paletteToCss, DEFAULT_KIND_PALETTE } from './kind-palette'
 import mainDbJson from '../../public/snl-macro-db.json'
 import type { SnlMacroDb } from '../snl-macro/types'
 
@@ -44,22 +45,21 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
     expect(addEl.querySelector('[data-kind="fvar"]')).not.toBeNull()
   })
 
-  it('stylesheet: hover accent has no !important and nested kinds revert', () => {
-    // `!important` on the hover color must be gone (it dominated via inheritance).
-    const hoverBlock = css.match(/\.katex-html \.snl-single-hover\s*\{[^}]*\}/g) ?? []
-    const colorBlock = hoverBlock.find((b) => /color:/.test(b))
-    expect(colorBlock).toBeTruthy()
-    expect(colorBlock!).toContain('var(--snl-c-hover-accent)')
-    expect(colorBlock!).not.toMatch(/color:[^;]*!important/)
-
-    // Nested subtrees escape the hover color via `revert`.
+  it('stylesheet: nested kinds revert; per-kind hover color is palette-driven (not static)', () => {
+    // Nested subtrees escape the hover color via `revert` (FIX 4 kept).
     expect(css).toMatch(/\.katex-html \.snl-single-hover \[data-kind\]\s*\{\s*color:\s*revert;?\s*\}/)
+    // The per-kind hover color moved out of the static stylesheet into injected
+    // palette CSS — style.css must no longer hardcode the accent on hover.
+    expect(css).not.toMatch(/\.snl-single-hover\s*\{[^}]*color:\s*var\(--snl-c-hover-accent\)/)
   })
 
-  it('stylesheet: per-kind base colors exist and legacy hover-blue is gone', () => {
-    for (const kind of ['const', 'binder', 'bvar', 'fvar']) {
-      expect(css).toContain(`.katex-html [data-kind='${kind}']`)
+  it('paletteToCss: per-kind base colors for the 5 defaults; no bracket-syntax fossils', () => {
+    const generated = paletteToCss(DEFAULT_KIND_PALETTE)
+    for (const kind of ['rule', 'const', 'binder', 'bvar', 'fvar']) {
+      expect(generated).toContain(`.katex-html [data-kind="${kind}"]`)
     }
+    expect(generated).not.toContain('constSymbol')
+    expect(generated).not.toContain('constantSubtree')
     expect(css).not.toContain('hover-blue')
   })
 })

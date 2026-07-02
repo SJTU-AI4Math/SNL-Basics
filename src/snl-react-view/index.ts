@@ -42,6 +42,14 @@ export { SnlSyntaxTreeView, type SnlSyntaxTreeViewProps } from '../components/Sn
 // === Hooks & customization ===
 export { defaultRenderHooks, defaultHighlightStrategy, defaultRenderers } from './hooks'
 export { HTMLDATA_KATEX_DEFAULTS } from './katex-defaults'
+export {
+  DEFAULT_KIND_PALETTE,
+  alpha,
+  paletteToCss,
+  assertSafeKindName,
+  type KindColoring,
+  type KindPalette,
+} from './kind-palette'
 export type {
   SnlRenderHooks,
   SnlHoverEvent,

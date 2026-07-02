@@ -21,7 +21,7 @@ describe('auto-wrap \\htmlData', () => {
       expect(container.querySelector('[data-name="Add.add.infix"]')).not.toBeNull()
     })
 
-    const html = container.innerHTML
+    const html = container.querySelector('.katex-html')!.innerHTML
     // No placeholder / metadata leaks in the rendered DOM.
     expect(html).not.toContain('@NAME@')
     expect(html).not.toContain('@CHILD')

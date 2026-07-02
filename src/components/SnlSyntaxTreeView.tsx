@@ -19,6 +19,11 @@ import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { findBinderScopeAncestor, findMinimalHoverRoot } from '../snl-react-view/hover-dom'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
 import {
+  DEFAULT_KIND_PALETTE,
+  paletteToCss,
+  type KindPalette,
+} from '../snl-react-view/kind-palette'
+import {
   defaultRenderHooks,
   type SnlHighlightSet,
   type SnlRenderHooks,
@@ -120,6 +125,12 @@ export interface SnlSyntaxTreeViewProps {
   macroDb: SnlMacroDb
   /** KaTeX options forwarded to `katex.renderToString`. */
   katexOptions?: KatexOptions
+  /**
+   * Kind → color registry. Merged over {@link DEFAULT_KIND_PALETTE} (consumer
+   * entries win, defaults fill the rest). Drives per-kind text/hover colors via
+   * an inline `<style>` the view injects.
+   */
+  kindPalette?: KindPalette
   /** Called with the resolved LaTeX source (formula root only). */
   onResolved?: (latexSource: string) => void
   /** Override tooltip / hover / description / renderer behavior. Merged over defaults. */
@@ -241,10 +252,15 @@ export function SnlSyntaxTreeView({
   query,
   macroDb,
   katexOptions,
+  kindPalette,
   onResolved,
   hooks,
 }: SnlSyntaxTreeViewProps) {
   const mergedHooks = useMemo(() => ({ ...defaultRenderHooks, ...hooks }), [hooks])
+  const paletteCss = useMemo(
+    () => paletteToCss({ ...DEFAULT_KIND_PALETTE, ...kindPalette }),
+    [kindPalette],
+  )
   const isFormulaRoot = nodeMode(tree, macroDb) === 'formula'
   const { loading, error, result } = useSnlSyntaxTreeRender(
     tree,
@@ -558,6 +574,7 @@ export function SnlSyntaxTreeView({
 
   return (
     <div className="katex-panel">
+      <style dangerouslySetInnerHTML={{ __html: paletteCss }} />
       <div
         ref={containerRef}
         className="katex-html"
