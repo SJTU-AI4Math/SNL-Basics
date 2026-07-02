@@ -451,23 +451,13 @@ export function SnlSyntaxTreeView({
 
   const clearHoverMarks = () => {
     hoverMarkedElsRef.current.forEach((el) => {
-      el.classList.remove(
-        'snl-hovered',
-        'snl-bvar-scope',
-        'snl-binder-decl',
-        'snl-single-hover',
-        'snl-op-skin-hover',
-      )
+      el.classList.remove('snl-bvar-scope', 'snl-binder-decl', 'snl-single-hover')
     })
     hoverMarkedElsRef.current = []
   }
 
   const applyHighlightSet = (set: SnlHighlightSet) => {
     const touched = new Set<HTMLElement>()
-    for (const el of set.hovered) {
-      el.classList.add('snl-hovered')
-      touched.add(el)
-    }
     if (set.singleHover) {
       set.singleHover.classList.add('snl-single-hover')
       touched.add(set.singleHover)
@@ -478,10 +468,6 @@ export function SnlSyntaxTreeView({
     }
     for (const el of set.binderDecl) {
       el.classList.add('snl-binder-decl')
-      touched.add(el)
-    }
-    for (const el of set.opSkinHover) {
-      el.classList.add('snl-op-skin-hover')
       touched.add(el)
     }
     hoverMarkedElsRef.current = [...touched]

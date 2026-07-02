@@ -59,21 +59,15 @@ export interface SnlTooltipState {
  *
  * `singleHover` is the element directly under the pointer (the minimal hover
  * root); CSS colors all TEXT inside it via inheritance, so nested subtrees no
- * longer need their own bulk-highlight classes. `hovered` / `opSkinHover`
- * remain in the type for custom strategies but the default strategy leaves them
- * empty (subtree-scoped colour inheritance replaces them).
+ * longer need their own bulk-highlight classes.
  */
 export interface SnlHighlightSet {
-  /** Legacy bulk set — unused by the default strategy (kept for custom strategies). */
-  hovered: HTMLElement[]
   /** Gets `.snl-single-hover` — the one element directly under the pointer. */
   singleHover: HTMLElement | null
   /** Gets `.snl-bvar-scope` — bound-variable occurrences in scope. */
   bvarScope: HTMLElement[]
   /** Gets `.snl-binder-decl` — binder declaration sites. */
   binderDecl: HTMLElement[]
-  /** Legacy operator-skin set — unused by the default strategy (kept for custom strategies). */
-  opSkinHover: HTMLElement[]
 }
 
 /**
@@ -146,7 +140,7 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
       }
     }
 
-    return { hovered: [], singleHover, bvarScope, binderDecl, opSkinHover: [] }
+    return { singleHover, bvarScope, binderDecl }
   },
 }
 
