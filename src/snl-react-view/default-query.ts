@@ -1,4 +1,3 @@
-import { bindRefAttrFragment, getBindRef } from '../snl-syntax-tree/binding'
 import { escapeLatexText } from '../snl-syntax-tree/latex-escape'
 import type { SnlMacroTemplateQuery } from '../snl-syntax-tree/query'
 import type { SnlMacroDb } from '../snl-macro/types'
@@ -56,19 +55,15 @@ export async function loadSnlMacroDb(url: string = DEFAULT_SNL_MACRO_DB_URL): Pr
 }
 
 function buildQueryBody(db: SnlMacroDb): SnlMacroTemplateQuery {
-  return async ({ name, node }) => {
+  return async ({ name }) => {
     const template = db[name]?.katex_react?.template
     if (template) {
       return template
     }
-    const br = bindRefAttrFragment(getBindRef(node))
-    if (node.kind === 'bvar') {
-      return `\\htmlData{name=@NAME@,kind=bvar${br}}{${fallbackLatexSymbol(name)}}`
-    }
-    if (node.kind === 'binder') {
-      return `\\htmlData{name=@NAME@,kind=binder${br}}{${fallbackLatexSymbol(name)}}`
-    }
-    return `\\htmlData{name=@NAME@,kind=fvar}{${fallbackLatexSymbol(name)}}`
+    // No DB template → bare symbol. The view layer auto-wraps the result in
+    // \htmlData with the node's kind (bvar / binder / fvar, set by annotation)
+    // and bindRef, so no metadata is written here.
+    return fallbackLatexSymbol(name)
   }
 }
 

@@ -11,7 +11,7 @@ import katex from 'katex'
 import type { KatexOptions } from 'katex'
 import type { SnlMacroTemplateQuery } from '../snl-syntax-tree/query'
 import type { SnlMacroDb } from '../snl-macro/types'
-import { bindRefAttrFragment, getBindRef, readBindRefFromDom } from '../snl-syntax-tree/binding'
+import { getBindRef, readBindRefFromDom } from '../snl-syntax-tree/binding'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { fvarAppliedHeadLatex } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
@@ -29,6 +29,84 @@ import {
 interface RenderResult {
   latex: string
   html: string
+}
+
+/**
+ * Reject `\htmlData` attribute values that would break KaTeX's tokenizer or
+ * escape the attribute string. Post-migration these never trigger, but this is
+ * defense-in-depth against malformed macro names / kinds / bindRefs.
+ */
+function sanitizeHtmlDataAttr(value: string): string {
+  if (/[,{}#\\]/.test(value)) {
+    throw new Error(
+      `invalid \\htmlData attribute value (must not contain , { } # \\): ${JSON.stringify(value)}`,
+    )
+  }
+  // eslint-disable-next-line no-control-regex
+  if (/[\u0000-\u001f\u007f]/.test(value)) {
+    throw new Error(`invalid \\htmlData attribute value (control char): ${JSON.stringify(value)}`)
+  }
+  return value
+}
+
+/**
+ * Auto-wrap a rendered node's latex in a single `\htmlData{name,kind[,bindRef]}`.
+ * This is the sole place metadata enters the KaTeX output — templates never
+ * write `\htmlData` themselves.
+ */
+function wrapHtmlData(node: SnlSyntaxTree, inner: string, kindOverride?: string): string {
+  const name = sanitizeHtmlDataAttr(node.name)
+  const kind = sanitizeHtmlDataAttr((kindOverride ?? node.kind ?? '') || 'default')
+  const ref = getBindRef(node)
+  const bindRefFragment = ref ? `,bindRef=${sanitizeHtmlDataAttr(ref)}` : ''
+  return `\\htmlData{name=${name},kind=${kind}${bindRefFragment}}{${inner}}`
+}
+
+async function resolveNodeLatex(
+  node: SnlSyntaxTree,
+  query: SnlMacroTemplateQuery,
+  cache: Map<string, string>,
+  macroDb: SnlMacroDb,
+): Promise<string> {
+  const hasDbTemplate = Boolean(node.name && macroDb[node.name]?.katex_react?.template)
+
+  const childLatexList = await Promise.all(
+    node.children.map((child) => resolveNodeLatex(child, query, cache, macroDb)),
+  )
+
+  // 裸名应用且无 DB 模板（如 op(x,y,FOL.and(x,y))）：\operatorname{op}(…)，子式逗号分隔。
+  // 仅 \operatorname 头部 + 括号 + 参数；元数据由外层 auto-wrap 统一补上。
+  if (node.children.length > 0 && !hasDbTemplate && !node.name.includes('.')) {
+    const opPart = fvarAppliedHeadLatex(node.name)
+    const argList = childLatexList.join(',')
+    return wrapHtmlData(node, `${opPart}(${argList})`, 'fvar')
+  }
+
+  const key = `${node.name}::${node.kind}`
+  let template = cache.get(key)
+  if (!template) {
+    template = await query({ name: node.name, node })
+    cache.set(key, template)
+  }
+
+  const childValues = Object.fromEntries(
+    childLatexList.map((latex, index) => [`child${index}`, latex]),
+  )
+  // Variadic macros fill `#*` with children joined by their configured
+  // separator (default ", ") — see fillLatexTemplate.
+  const variadicJoin =
+    (node.name ? macroDb[node.name]?.katex_react?.variadic_join : undefined) ?? ', '
+  const children_joined = childLatexList.join(variadicJoin)
+
+  const filled = fillLatexTemplate(template, { ...childValues, children_joined })
+  // A pure pass-through variadic helper (template === '#*', e.g. matrix.row)
+  // emits top-level alignment tokens (`&` / `\\`) that must stay ungrouped for
+  // the enclosing environment (\begin{pmatrix}…). Wrapping it in \htmlData
+  // would nest those tokens inside a group and break the matrix; skip the wrap.
+  if (template.trim() === '#*') {
+    return filled
+  }
+  return wrapHtmlData(node, filled)
 }
 
 /** Props for {@link SnlSyntaxTreeView}. */
@@ -49,65 +127,6 @@ export interface SnlSyntaxTreeViewProps {
 
 /** Internal tooltip state = public SnlTooltipState + interaction key for staleness checks. */
 type TooltipState = SnlTooltipState & { interactionKey: string }
-
-async function resolveNodeLatex(
-  node: SnlSyntaxTree,
-  query: SnlMacroTemplateQuery,
-  cache: Map<string, string>,
-  macroDb: SnlMacroDb,
-): Promise<string> {
-  const hasDbTemplate = Boolean(node.name && macroDb[node.name]?.katex_react?.template)
-
-  const childLatexList = await Promise.all(
-    node.children.map((child) => resolveNodeLatex(child, query, cache, macroDb)),
-  )
-
-  // 裸名应用且无 DB 模板（如 op(x,y,FOL.and(x,y))）：\\operatorname{op}(…)，子式逗号分隔，整段 htmlData
-  if (node.children.length > 0 && !hasDbTemplate && !node.name.includes('.')) {
-    const ref = getBindRef(node)
-    const bind_ref_attr = bindRefAttrFragment(ref)
-    const opPart = fvarAppliedHeadLatex(node.name)
-    const argList = childLatexList.join(',')
-    return fillLatexTemplate(
-      // 仅包住 \\operatorname{…}，括号与参数在外，避免整段应用共一个 span 悬停时子式一起变蓝
-      '\\htmlData{name=@NAME@,kind=fvar@BIND_REF_ATTR@}{@OP_PART@}(@ARG_LIST@)',
-      {
-        name: node.name,
-        kind: 'fvar',
-        bind_ref: ref ?? '',
-        bind_ref_attr,
-        op_part: opPart,
-        arg_list: argList,
-      },
-    )
-  }
-
-  const key = `${node.name}::${node.kind}`
-  let template = cache.get(key)
-  if (!template) {
-    template = await query({ name: node.name, node })
-    cache.set(key, template)
-  }
-
-  const childValues = Object.fromEntries(
-    childLatexList.map((latex, index) => [`child${index}`, latex]),
-  )
-  const ref = getBindRef(node)
-  const bind_ref_attr = bindRefAttrFragment(ref)
-  // Variadic macros fill @CHILDREN@ with children joined by their configured
-  // separator (default ", ") — see fillLatexTemplate.
-  const variadicJoin = (node.name ? macroDb[node.name]?.katex_react?.variadic_join : undefined) ?? ', '
-  const children_joined = childLatexList.join(variadicJoin)
-  const nodeValues = {
-    name: node.name,
-    kind: node.kind,
-    bind_ref: ref ?? '',
-    bind_ref_attr,
-    children_joined,
-  }
-
-  return fillLatexTemplate(template, { ...childValues, ...nodeValues })
-}
 
 /** Resolve a node's render mode from its macro (default 'math' when unknown). */
 function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): 'math' | 'text' | 'block' {

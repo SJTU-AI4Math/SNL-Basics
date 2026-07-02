@@ -20,6 +20,10 @@ export function annotateBindings(root: SnlSyntaxTree): void {
       const ref = nextRef()
       const base = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
       node.mdata = { ...base, bindRef: ref }
+      // The quantifier node itself is the binding scope: mark its kind so the
+      // view-layer auto-wrap emits data-kind="binderScope" (+ data-bindRef),
+      // which bvar-scope indexing and highlighting rely on.
+      node.kind = 'binderScope'
       const ch = node.children
       if (ch.length >= 1) {
         const v = ch[0]
