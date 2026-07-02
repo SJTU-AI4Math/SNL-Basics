@@ -7,7 +7,6 @@ import type { SnlMacro, SnlMacroDb, SnlMacroSource } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import type { BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { readBindRefFromDom } from '../snl-syntax-tree/binding'
-import { collectDirectConstSymbols, findMinimalHoverRoot } from './hover-dom'
 import { CenteredRenderer, ListRenderer, TableRenderer } from './block-renderers'
 
 export type { SnlMacroDb }
@@ -55,14 +54,17 @@ export interface SnlTooltipState {
 /**
  * The set of DOM elements a hover interaction should decorate. The view applies
  * one CSS class per bucket, uniformly:
- *   hovered → `.snl-hovered`, singleHover → `.snl-single-hover`,
- *   bvarScope → `.snl-bvar-scope`, binderDecl → `.snl-binder-decl`,
- *   opSkinHover → `.snl-op-skin-hover`.
- * An element may appear in several buckets (e.g. a bound variable is in both
- * `hovered` and `bvarScope`).
+ *   singleHover → `.snl-single-hover`, bvarScope → `.snl-bvar-scope`,
+ *   binderDecl → `.snl-binder-decl`.
+ *
+ * `singleHover` is the element directly under the pointer (the minimal hover
+ * root); CSS colors all TEXT inside it via inheritance, so nested subtrees no
+ * longer need their own bulk-highlight classes. `hovered` / `opSkinHover`
+ * remain in the type for custom strategies but the default strategy leaves them
+ * empty (subtree-scoped colour inheritance replaces them).
  */
 export interface SnlHighlightSet {
-  /** Gets `.snl-hovered`. */
+  /** Legacy bulk set — unused by the default strategy (kept for custom strategies). */
   hovered: HTMLElement[]
   /** Gets `.snl-single-hover` — the one element directly under the pointer. */
   singleHover: HTMLElement | null
@@ -70,7 +72,7 @@ export interface SnlHighlightSet {
   bvarScope: HTMLElement[]
   /** Gets `.snl-binder-decl` — binder declaration sites. */
   binderDecl: HTMLElement[]
-  /** Gets `.snl-op-skin-hover` — operator-skin symbols of a constant subtree. */
+  /** Legacy operator-skin set — unused by the default strategy (kept for custom strategies). */
   opSkinHover: HTMLElement[]
 }
 
@@ -95,20 +97,23 @@ export interface SnlHighlightStrategy {
 }
 
 /**
- * Default highlight policy — reproduces Phase 1/2 behavior exactly:
- * bvar/binder hovers highlight the whole binding scope; constant-subtree hovers
- * additionally light up the operator skin symbols.
+ * Default highlight policy. Colour is scoped by subtree:
+ * `singleHover` (the element under the pointer) gets `.snl-single-hover`, and
+ * CSS turns all TEXT inside it a highlight colour via inheritance — a deeper
+ * subtree wins when it becomes the pointer target. Binder/bvar hovers also
+ * light up the whole binding scope (`.snl-bvar-scope` / `.snl-binder-decl`),
+ * the one interaction that spans siblings rather than nested ancestors.
  */
 export const defaultHighlightStrategy: SnlHighlightStrategy = {
   computeHighlightSet(target, container, bvarScopeIndex) {
     const kind = target.dataset.kind ?? ''
     const bindRef = readBindRefFromDom(target)
 
-    const hovered: HTMLElement[] = []
     const bvarScope: HTMLElement[] = []
     const binderDecl: HTMLElement[] = []
-    const opSkinHover: HTMLElement[] = []
-    let singleHover: HTMLElement | null = null
+    // The pointer target IS the minimal hover root (resolved by the view); its
+    // text colours via inheritance, so no bulk `hovered` set is needed.
+    const singleHover: HTMLElement | null = target
 
     if ((kind === 'bvar' || kind === 'binder') && bindRef) {
       const entry = bvarScopeIndex.get(bindRef)
@@ -133,34 +138,15 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
           ).filter((el) => readBindRefFromDom(el) === bindRef)
         }
       }
-      const touched = new Set<HTMLElement>()
       for (const el of bvars) {
-        hovered.push(el)
         bvarScope.push(el)
-        touched.add(el)
       }
       for (const el of binders) {
-        hovered.push(el)
         binderDecl.push(el)
-        touched.add(el)
-      }
-      // 仅当前指针下的那一处带「框」；同作用域其它仅字色（见 style.css）
-      if (touched.has(target)) {
-        singleHover = target
-      }
-    } else {
-      const root = findMinimalHoverRoot(target, container)
-      hovered.push(root)
-      singleHover = root
-      if (root.dataset.kind === 'constantSubtree') {
-        for (const g of collectDirectConstSymbols(root)) {
-          hovered.push(g)
-          opSkinHover.push(g)
-        }
       }
     }
 
-    return { hovered, singleHover, bvarScope, binderDecl, opSkinHover }
+    return { hovered: [], singleHover, bvarScope, binderDecl, opSkinHover: [] }
   },
 }
 

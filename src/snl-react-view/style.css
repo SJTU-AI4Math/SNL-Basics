@@ -26,62 +26,31 @@
   border-radius: 2px;
 }
 
-.katex-html [data-kind='constantSubtree'] {
+.katex-html .snl-single-hover {
   display: inline-block;
   vertical-align: baseline;
   border-radius: 2px;
 }
 
-.katex-html .snl-single-hover.snl-hovered {
+/* Hover model: the element directly under the pointer gets `.snl-single-hover`.
+   CSS colours ALL text inside it via inheritance, so a whole subtree lights up;
+   moving onto a deeper subtree makes THAT the single-hover and it wins. Only
+   one `.snl-single-hover` exists at a time (the view clears marks each move). */
+.katex-html .snl-single-hover {
+  color: var(--katex-hover-blue) !important;
   background: rgba(147, 197, 253, 0.18);
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+  border-radius: 2px;
 }
 
-.katex-html [data-kind='constSymbol'].snl-op-skin-hover,
-.katex-html [data-kind='constSymbol'].snl-op-skin-hover .mord,
-.katex-html [data-kind='constSymbol'].snl-op-skin-hover .mpunct,
-.katex-html [data-kind='constSymbol'].snl-op-skin-hover .mrel {
+/* Binding-scope highlight spans siblings (not just nested ancestors), so it
+   stays class-driven rather than relying on subtree colour inheritance. */
+.katex-html [data-kind='bvar'].snl-bvar-scope {
   color: var(--katex-hover-blue) !important;
 }
 
-.katex-html [data-kind='constFence'].snl-op-skin-hover > .minner > .mopen:first-child,
-.katex-html [data-kind='constFence'].snl-op-skin-hover > .minner > .mclose:last-child {
-  color: var(--katex-hover-blue) !important;
-}
-
-.katex-html .snl-single-hover.snl-hovered[data-kind='fvar'],
-.katex-html .snl-single-hover.snl-hovered[data-kind='binder'] {
-  color: var(--katex-hover-blue) !important;
-}
-
-.katex-html .snl-single-hover.snl-hovered > [data-kind='const']:has(.mfrac) {
-  color: #000 !important;
-}
-.katex-html .snl-single-hover.snl-hovered > [data-kind='const']:has(.mfrac) .frac-line,
-.katex-html .snl-single-hover.snl-hovered > [data-kind='const']:has(.mfrac) .frac-line::before,
-.katex-html .snl-single-hover.snl-hovered > [data-kind='const']:has(.mfrac) .frac-line::after {
-  border-color: var(--katex-hover-blue) !important;
-}
-
-.katex-html [data-kind='bvar'].snl-hovered.snl-bvar-scope {
-  color: var(--katex-hover-blue) !important;
-}
-
-.katex-html [data-kind='binder'].snl-hovered.snl-binder-decl {
-  color: #dc2626 !important;
-}
-
-.katex-html [data-kind='bvar'].snl-hovered.snl-bvar-scope.snl-single-hover,
-.katex-html [data-kind='binder'].snl-hovered.snl-binder-decl.snl-single-hover {
-  background: rgba(147, 197, 253, 0.18);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
-}
-
-.katex-html [data-kind='bvar'].snl-hovered.snl-bvar-scope.snl-single-hover {
-  color: var(--katex-hover-blue) !important;
-}
-
-.katex-html [data-kind='binder'].snl-hovered.snl-binder-decl.snl-single-hover {
+.katex-html [data-kind='binder'].snl-binder-decl,
+.katex-html [data-kind='binder'].snl-binder-decl.snl-single-hover {
   color: #dc2626 !important;
 }
 
