@@ -40,3 +40,33 @@ source-tree renames are performed with `git mv` to preserve per-file history.
 - The typo `contantSubtree` → `constantSubtree` is fixed globally in Phase 1
   (Commit 3). This `MIGRATION.md` intentionally records the old spelling for
   historical reference.
+
+## Template DSL v1 → v2 (2026-07-02)
+
+The macro-DB template syntax changed from the `@…@` placeholder DSL with
+hand-written `\htmlData` wrappers to LaTeX-native macro-argument syntax with
+automatic wrapping.
+
+**v1 (removed):**
+
+- `@CHILD0@` / `@CHILD1@` / … — fixed-arity children
+- `@CHILDREN@` — variadic children
+- `@NAME@` / `@KIND@` / `@BIND_REF@` / `@BIND_REF_ATTR@` — node metadata
+- Templates hand-wrote their own `\htmlData{name=@NAME@,kind=…}{…}` wrappers
+  (often double-wrapped: an outer `constantSubtree` + an inner kind wrapper).
+
+**v2 (current):**
+
+- `#0` / `#1` / … — 0-indexed children
+- `#*` — variadic children (joined by `variadic_join`)
+- `\#` — literal `#`
+- Node metadata (`name`, `kind`, `bindRef`) is **no longer** written in
+  templates. The view layer auto-wraps every rendered node in a single
+  `\htmlData{name=<macro>,kind=<node.kind>[,bindRef=<ref>]}{…}`.
+
+Run `npm run migrate-db-v2` (`scripts/migrate-macro-db-v2.mjs`, `--dry-run`
+supported) to transform a v1 DB: it strips **all** `\htmlData` wrappers with a
+balanced-brace parser and rewrites `@CHILDn@ → #n` / `@CHILDREN@ → #*`.
+
+This is a schema break — the migrated DB is not compatible with library
+versions `< 0.3.0`.

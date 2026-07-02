@@ -25,7 +25,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=@KIND@}{\\frac{@CHILD0@}{@CHILD1@}}}"
+      "template": "\\frac{#0}{#1}"
     }
   },
   "DivRing.div.inlineDiv": {
@@ -54,7 +54,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{@CHILD0@ \\htmlData{name=@NAME@,kind=constSymbol}{\\div} @CHILD1@}"
+      "template": "#0 \\div #1"
     }
   },
   "Add.add.infix": {
@@ -83,7 +83,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{@CHILD0@ \\htmlData{name=@NAME@,kind=constSymbol}{+} @CHILD1@}"
+      "template": "#0 + #1"
     }
   },
   "Sub.sub.infix": {
@@ -112,7 +112,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{@CHILD0@ \\htmlData{name=@NAME@,kind=constSymbol}{-} @CHILD1@}"
+      "template": "#0 - #1"
     }
   },
   "Mul.mul.infix": {
@@ -141,7 +141,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{@CHILD0@ \\htmlData{name=@NAME@,kind=constSymbol}{\\cdot} @CHILD1@}"
+      "template": "#0 \\cdot #1"
     }
   },
   "Mul.mul.implicit": {
@@ -170,7 +170,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{@CHILD0@\\htmlData{name=@NAME@,kind=constSymbol}{}@CHILD1@}"
+      "template": "#0#1"
     }
   },
   "Pow.pow.sup": {
@@ -199,7 +199,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=@KIND@}{{@CHILD0@}^{@CHILD1@}}}"
+      "template": "{#0}^{#1}"
     }
   },
   "FOL.forall.binder": {
@@ -228,7 +228,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,kind=constSymbol}{\\forall}\\, @CHILD0@\\htmlData{name=@NAME@,kind=constSymbol}{,}\\, @CHILD1@}}"
+      "template": "\\forall\\, #0,\\, #1"
     }
   },
   "FOL.forall.binderTyped": {
@@ -257,7 +257,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,kind=constSymbol}{\\forall}\\left(@CHILD0@ : @CHILD1@\\right)\\htmlData{name=@NAME@,kind=constSymbol}{,}\\, @CHILD2@}}"
+      "template": "\\forall\\left(#0 : #1\\right),\\, #2"
     }
   },
   "FOL.exists.binder": {
@@ -286,7 +286,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,kind=constSymbol}{\\exists}\\, @CHILD0@\\htmlData{name=@NAME@,kind=constSymbol}{,}\\, @CHILD1@}}"
+      "template": "\\exists\\, #0,\\, #1"
     }
   },
   "FOL.exists.binderTyped": {
@@ -315,7 +315,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=binderScope@BIND_REF_ATTR@}{\\htmlData{name=@NAME@,kind=constSymbol}{\\exists}\\left(@CHILD0@ : @CHILD1@\\right)\\htmlData{name=@NAME@,kind=constSymbol}{,}\\, @CHILD2@}}"
+      "template": "\\exists\\left(#0 : #1\\right),\\, #2"
     }
   },
   "FOL.app.apply": {
@@ -344,7 +344,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=const}{@CHILD0@}\\htmlData{name=@NAME@,kind=constFence}{\\left(@CHILD1@\\right)}}"
+      "template": "#0\\left(#1\\right)"
     }
   },
   "FOL.paren.round": {
@@ -373,7 +373,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=constFence}{\\left(@CHILD0@\\right)}}"
+      "template": "\\left(#0\\right)"
     }
   },
   "FOL.implies.infix": {
@@ -402,7 +402,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{@CHILD0@ \\htmlData{name=@NAME@,kind=constSymbol}{\\rightarrow} @CHILD1@}"
+      "template": "#0 \\rightarrow #1"
     }
   },
   "FOL.and.infix": {
@@ -431,7 +431,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{@CHILD0@ \\htmlData{name=@NAME@,kind=constSymbol}{\\land} @CHILD1@}"
+      "template": "#0 \\land #1"
     }
   },
   "FOL.or.infix": {
@@ -460,7 +460,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{@CHILD0@ \\htmlData{name=@NAME@,kind=constSymbol}{\\lor} @CHILD1@}"
+      "template": "#0 \\lor #1"
     }
   },
   "FOL.not.prefix": {
@@ -489,7 +489,7 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\htmlData{name=@NAME@,kind=constSymbol}{\\neg} @CHILD0@}"
+      "template": "\\neg #0"
     }
   },
   "FOL.eq.infix": {
@@ -518,36 +518,68 @@
     "katex_react": {
       "arity": "fixed",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{@CHILD0@ \\htmlData{name=@NAME@,kind=constSymbol}{=} @CHILD1@}"
+      "template": "#0 = #1"
     }
   },
   "pmatrix": {
     "name": "pmatrix",
     "description": "Parenthesized matrix. Children are row macros (matrix.row(...)).",
-    "source": { "entries": [], "urls": ["https://en.wikipedia.org/wiki/Matrix_(mathematics)"] },
-    "typst": { "built_in": "", "synthesis": { "output_type": "formula", "macro": "" } },
-    "latex": { "built_in": "", "synthesis": { "output_type": "formula", "macro": "" } },
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://en.wikipedia.org/wiki/Matrix_(mathematics)"
+      ]
+    },
+    "typst": {
+      "built_in": "",
+      "synthesis": {
+        "output_type": "formula",
+        "macro": ""
+      }
+    },
+    "latex": {
+      "built_in": "",
+      "synthesis": {
+        "output_type": "formula",
+        "macro": ""
+      }
+    },
     "markdown": "",
     "text": "",
     "katex_react": {
       "arity": "variadic",
       "mode": "math",
-      "template": "\\htmlData{name=@NAME@,kind=constantSubtree}{\\begin{pmatrix}@CHILDREN@\\end{pmatrix}}",
+      "template": "\\begin{pmatrix}#*\\end{pmatrix}",
       "variadic_join": " \\\\ "
     }
   },
   "matrix.row": {
     "name": "matrix.row",
     "description": "A single row inside a matrix macro. Children are cells.",
-    "source": { "entries": [], "urls": [] },
-    "typst": { "built_in": "", "synthesis": { "output_type": "formula", "macro": "" } },
-    "latex": { "built_in": "", "synthesis": { "output_type": "formula", "macro": "" } },
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "typst": {
+      "built_in": "",
+      "synthesis": {
+        "output_type": "formula",
+        "macro": ""
+      }
+    },
+    "latex": {
+      "built_in": "",
+      "synthesis": {
+        "output_type": "formula",
+        "macro": ""
+      }
+    },
     "markdown": "",
     "text": "",
     "katex_react": {
       "arity": "variadic",
       "mode": "math",
-      "template": "@CHILDREN@",
+      "template": "#*",
       "variadic_join": " & "
     }
   }

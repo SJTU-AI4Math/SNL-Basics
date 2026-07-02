@@ -163,9 +163,22 @@ mangles the attribute value). Use camelCase for compound style suffixes:
   own `renderTooltip`, `onHover` / `onLeave`, `resolveMacroInfo`, `resolveSource`,
   `highlightStrategy`, or `renderers`. Anything you omit falls back to
   `defaultRenderHooks`.
-- **Arity & placeholders** — fixed-arity macros use `@CHILD0@`, `@CHILD1@`, …;
-  variadic macros use `@CHILDREN@` joined by `variadic_join` (e.g. `pmatrix` /
-  `matrix.row`).
+- **Arity & placeholders** — fixed-arity macros use `#0`, `#1`, …; variadic
+  macros use `#*` joined by `variadic_join` (e.g. `pmatrix` / `matrix.row`).
+  See [Template DSL](#template-dsl).
+
+### Template DSL
+
+Templates use LaTeX-native macro-argument syntax:
+
+- `#0` / `#1` / … — 0-indexed children (fixed-arity macros)
+- `#*` — all children joined (variadic macros, `variadic_join` sep)
+- `\#` — literal `#` (renders as `#` in KaTeX)
+
+`\htmlData` is added automatically by the view layer — do not write it
+yourself in templates. Every node is wrapped in
+`\htmlData{name=<macro>,kind=<node.kind>}{...}` so hover interactions
+work with zero boilerplate.
 
 ## Customization examples
 
