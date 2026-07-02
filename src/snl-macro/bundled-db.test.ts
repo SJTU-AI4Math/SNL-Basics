@@ -10,7 +10,7 @@ test('bundledMacroDb has expected macros', () => {
   expect(bundledMacroDb['pmatrix']).toBeDefined()
 })
 test('bundledMacroDb macros carry only render fields (no output backends)', () => {
-  const macro = bundledMacroDb['Add.add.infix'] as Record<string, unknown>
+  const macro = bundledMacroDb['Add.add.infix'] as unknown as Record<string, unknown>
   expect(macro.typst).toBeUndefined()
   expect(macro.latex).toBeUndefined()
   expect(macro.markdown).toBeUndefined()
