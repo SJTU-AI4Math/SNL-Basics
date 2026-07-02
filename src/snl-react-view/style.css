@@ -10,12 +10,40 @@
 }
 
 .katex-html {
-  --katex-hover-blue: #0000ff;
+  --snl-c-const:            #374151;
+  --snl-c-const-symbol:     #1f2937;
+  --snl-c-constant-subtree: #6b7280;
+  --snl-c-binder:           #dc2626;
+  --snl-c-bvar:             #0369a1;
+  --snl-c-fvar:             #059669;
+  --snl-c-hover-accent:     #f59e0b;
+  --snl-c-hover-bg:         rgba(245, 158, 11, 0.10);
   padding: 8px;
   background: #fcfcfd;
   border: 1px solid #e4e7ec;
   border-radius: 8px;
   overflow-x: auto;
+}
+
+/* Per-kind base colors. A subtree's own kind sets its text color; nested
+   subtrees carry their own kind color, so hover can revert to these. */
+.katex-html [data-kind='const'] {
+  color: var(--snl-c-const);
+}
+.katex-html [data-kind='constSymbol'] {
+  color: var(--snl-c-const-symbol);
+}
+.katex-html [data-kind='constantSubtree'] {
+  color: var(--snl-c-constant-subtree);
+}
+.katex-html [data-kind='binder'] {
+  color: var(--snl-c-binder);
+}
+.katex-html [data-kind='bvar'] {
+  color: var(--snl-c-bvar);
+}
+.katex-html [data-kind='fvar'] {
+  color: var(--snl-c-fvar);
 }
 
 .katex-html [data-kind='bvar'],
@@ -40,25 +68,31 @@
 }
 
 /* Hover model: the element directly under the pointer gets `.snl-single-hover`.
-   CSS colours ALL text inside it via inheritance, so a whole subtree lights up;
-   moving onto a deeper subtree makes THAT the single-hover and it wins. Only
-   one `.snl-single-hover` exists at a time (the view clears marks each move). */
+   The hover color must apply to the hovered subtree's OWN direct text only —
+   nested subtrees keep their kind's color. We drop `!important` (so it no longer
+   dominates via inheritance) and explicitly `revert` the color on any nested
+   `[data-kind]`, letting each nested subtree fall back to its per-kind rule. */
 .katex-html .snl-single-hover {
-  color: var(--katex-hover-blue) !important;
-  background: rgba(147, 197, 253, 0.18);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+  color: var(--snl-c-hover-accent);
+  background: var(--snl-c-hover-bg);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35);
   border-radius: 2px;
+}
+
+/* Nested subtrees escape the hover accent and keep their own kind color. */
+.katex-html .snl-single-hover [data-kind] {
+  color: revert;
 }
 
 /* Binding-scope highlight spans siblings (not just nested ancestors), so it
    stays class-driven rather than relying on subtree colour inheritance. */
 .katex-html [data-kind='bvar'].snl-bvar-scope {
-  color: var(--katex-hover-blue) !important;
+  color: var(--snl-c-hover-accent) !important;
 }
 
 .katex-html [data-kind='binder'].snl-binder-decl,
 .katex-html [data-kind='binder'].snl-binder-decl.snl-single-hover {
-  color: #dc2626 !important;
+  color: var(--snl-c-binder) !important;
 }
 
 /* Block renderers (list / table / centered) — see block-renderers.tsx */
