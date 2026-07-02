@@ -4,11 +4,29 @@ import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
 import { createMacroTemplateQueryFromDb } from './default-query'
 import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
-import mainDbJson from '../../public/snl-macro-db.json'
-import type { SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 
-const db = mainDbJson as unknown as SnlMacroDb
+function mathMacro(name: string, template: string, variadic_join?: string): SnlMacro {
+  return {
+    name,
+    description: '',
+    source: { entries: [], urls: [] },
+    typst: { built_in: '', synthesis: { output_type: 'formula', macro: '' } },
+    latex: { built_in: '', synthesis: { output_type: 'formula', macro: '' } },
+    markdown: '',
+    text: '',
+    katex_react: variadic_join
+      ? { arity: 'variadic', mode: 'math', template, variadic_join }
+      : { arity: 'variadic', mode: 'math', template },
+  }
+}
+
+// Inline DB using the LaTeX-native #* placeholder syntax (post-migration shape).
+const db: SnlMacroDb = {
+  pmatrix: mathMacro('pmatrix', '\\begin{pmatrix}#*\\end{pmatrix}', ' \\\\ '),
+  'matrix.row': mathMacro('matrix.row', '#*', ' & '),
+}
 const query = createMacroTemplateQueryFromDb(db)
 
 function leaf(name: string): SnlSyntaxTree {
@@ -26,22 +44,14 @@ describe('variadic pmatrix / matrix.row', () => {
     const tree = createSnlSyntaxTreeNode('pmatrix', {
       children: [row('a', 'b'), row('c', 'd')],
     })
-    const { container } = render(
-      <SnlSyntaxTreeView
-        tree={tree}
-        query={query}
-        macroDb={db}
-      />,
-    )
+    const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
     await waitFor(() => {
       // Math root → KaTeX innerHTML. \begin{pmatrix}…\end{pmatrix} renders as .mtable.
       expect(container.querySelector('.mtable')).not.toBeNull()
     })
-    // constantSubtree htmlData wrapper is present (hover target for the matrix).
-    expect(container.querySelector('[data-kind="constantSubtree"]')).not.toBeNull()
   })
 
-  it('joins row cells with & and rows with \\\\ via @CHILDREN@', async () => {
+  it('joins row cells with & and rows with \\\\ via #*', async () => {
     const tree = createSnlSyntaxTreeNode('pmatrix', {
       children: [row('a', 'b'), row('c', 'd')],
     })

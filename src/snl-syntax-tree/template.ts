@@ -1,34 +1,38 @@
 /**
- * Fill a KaTeX template string. Supported placeholders:
- *   `{{ key }}` — value by key; `@CHILD0@`/`@CHILD1@`/… — 0-indexed children;
- *   `@CHILDREN@` — variadic children (`values.children_joined`);
- *   `@NAME@`/`@KIND@`/`@BIND_REF@`/`@BIND_REF_ATTR@` — node metadata.
- * Unknown placeholders resolve to the empty string.
+ * Fill a KaTeX template with substituted child slots.
+ *
+ * Placeholders (LaTeX-native syntax):
+ *   #0 / #1 / ... / #99    → values.child0 / values.child1 / ...
+ *   #*                     → values.children_joined (variadic macros)
+ *   \#                     → literal `#` character (renders as `\#` in KaTeX, which
+ *                            KaTeX renders as `#`)
+ *
+ * Node metadata (name, kind, bindings) is NO LONGER exposed as template
+ * placeholders — every rendered node is auto-wrapped in
+ * `\htmlData{name=<macro>,kind=<node.kind>}{...}` by the view layer.
  */
 export function fillLatexTemplate(
   template: string,
   values: Record<string, string | number | undefined>,
 ): string {
-  const byBraces = template.replace(/\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g, (_, key: string) => {
-    const value = values[key]
+  // Sentinel that cannot clash with LaTeX/KaTeX or user content (control chars).
+  const ESCAPED_HASH = '\u0001ESCAPED_HASH\u0001'
+
+  // Pass 1: protect template-level `\#` so it survives the #N/#* passes.
+  let out = template.replace(/\\#/g, ESCAPED_HASH)
+
+  // Pass 2: `#0`..`#99` → values.child0..child99 (missing → empty string).
+  out = out.replace(/#(\d{1,2})/g, (_, digits: string) => {
+    const value = values[`child${Number(digits)}`]
     return value === undefined ? '' : String(value)
   })
 
-  // 兼容数据库模板格式：@CHILD0@、@CHILD1@（0-indexed，与 TS 数组下标对齐），以及变参 @CHILDREN@
-  return byBraces.replace(/@([A-Z0-9_]+)@/g, (_, key: string) => {
-    const normalized = key.toLowerCase()
-    // 变参：@CHILDREN@ -> values.children_joined（无则空串）
-    if (normalized === 'children') {
-      const joined = values['children_joined']
-      return joined === undefined ? '' : String(joined)
-    }
-    // CHILD0 -> child0，CHILD1 -> child1（直接对齐）
-    const childMatch = /^child(\d+)$/.exec(normalized)
-    if (!childMatch) {
-      const value = values[normalized]
-      return value === undefined ? '' : String(value)
-    }
-    const value = values[`child${Number(childMatch[1])}`]
-    return value === undefined ? '' : String(value)
+  // Pass 3: `#*` → values.children_joined (variadic; missing → empty string).
+  out = out.replace(/#\*/g, () => {
+    const joined = values['children_joined']
+    return joined === undefined ? '' : String(joined)
   })
+
+  // Pass 4: restore `\#` so KaTeX renders a literal `#`.
+  return out.split(ESCAPED_HASH).join('\\#')
 }

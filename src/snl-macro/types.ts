@@ -44,7 +44,7 @@ export interface SnlMacro {
   }
 
   /** Markdown output — direct string substitution, no native macro system. */
-  markdown: string                                   // e.g. "@CHILD0@ + @CHILD1@" or "@CHILDREN@"
+  markdown: string                                   // e.g. "#0 + #1" or "#*"
 
   /** Plain text output — for search / degraded display. */
   text: string
@@ -56,22 +56,23 @@ export interface SnlMacro {
 
     /** Semantic mode — dispatches to a renderer family. */
     mode: 'math' | 'text' | 'block'
-    // math:  render to a latex string, feed to katex.renderToString, wrap in \htmlData
+    // math:  render to a latex string, feed to katex.renderToString; the view
+    //        layer auto-wraps the result in \htmlData{name,kind,bindRef}
     // text:  render to a React <span>, children may be math or text or block
     // block: render to a React block element (<div>/<ul>/<table>)
 
     /**
-     * KaTeX template string for math mode. Placeholders:
-     *   @CHILD0@ / @CHILD1@ / ...    fixed-arity children by index
-     *   @CHILDREN@                    variadic children joined by variadic_join
-     *   @NAME@                        macro name (for \htmlData attrs)
-     *   @KIND@                        semantic kind (e.g. "const" / "constSymbol" / "constantSubtree")
-     *   @BIND_REF@ / @BIND_REF_ATTR@  binding metadata for bvar/binder
+     * KaTeX template string for math mode (LaTeX-native placeholders):
+     *   #0 / #1 / ...    fixed-arity children by index
+     *   #*               variadic children joined by variadic_join
+     *   \#               literal `#` character
+     * Node metadata (name / kind / bindings) is NOT written here — the view
+     * layer auto-wraps every node in \htmlData{name=<macro>,kind=<node.kind>}.
      * Ignored for mode !== 'math' unless react_renderer_key is unset.
      */
     template: string
 
-    /** For arity === 'variadic': separator between children in @CHILDREN@. Default ", ". */
+    /** For arity === 'variadic': separator between children in `#*`. Default ", ". */
     variadic_join?: string
 
     /**
