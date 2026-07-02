@@ -10,7 +10,7 @@
 export interface SnlSyntaxTreeBase {
   /** Macro name — key into SnlMacroDb. */
   name: string
-  /** Semantic kind: 'const' | 'constSymbol' | 'constantSubtree' | 'binder' | 'bvar' | 'fvar' | ... */
+  /** Semantic kind: 'rule' | 'const' | 'binder' | 'bvar' | 'fvar' | ... */
   kind: string
   /** Meta data (bindRef etc). */
   mdata: unknown

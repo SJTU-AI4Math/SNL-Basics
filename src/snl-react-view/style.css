@@ -11,8 +11,6 @@
 
 .katex-html {
   --snl-c-const:            #374151;
-  --snl-c-const-symbol:     #1f2937;
-  --snl-c-constant-subtree: #6b7280;
   --snl-c-binder:           #dc2626;
   --snl-c-bvar:             #0369a1;
   --snl-c-fvar:             #059669;
@@ -29,12 +27,6 @@
    subtrees carry their own kind color, so hover can revert to these. */
 .katex-html [data-kind='const'] {
   color: var(--snl-c-const);
-}
-.katex-html [data-kind='constSymbol'] {
-  color: var(--snl-c-const-symbol);
-}
-.katex-html [data-kind='constantSubtree'] {
-  color: var(--snl-c-constant-subtree);
 }
 .katex-html [data-kind='binder'] {
   color: var(--snl-c-binder);

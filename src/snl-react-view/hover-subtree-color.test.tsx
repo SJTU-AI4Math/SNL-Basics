@@ -57,7 +57,7 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
   })
 
   it('stylesheet: per-kind base colors exist and legacy hover-blue is gone', () => {
-    for (const kind of ['const', 'constSymbol', 'constantSubtree', 'binder', 'bvar', 'fvar']) {
+    for (const kind of ['const', 'binder', 'bvar', 'fvar']) {
       expect(css).toContain(`.katex-html [data-kind='${kind}']`)
     }
     expect(css).not.toContain('hover-blue')
