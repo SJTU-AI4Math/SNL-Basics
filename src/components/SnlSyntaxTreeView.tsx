@@ -164,6 +164,15 @@ function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): 'formula' | 'text' | 'bl
 }
 
 /**
+ * Resolve a node's KaTeX display mode from its macro (default 'inline').
+ * Only the ROOT node of an independent KaTeX render counts — nested formula
+ * nodes' `display` values are ignored within a single render call.
+ */
+function nodeDisplay(node: SnlSyntaxTree, db: SnlMacroDb): 'inline' | 'block' {
+  return db[node.name]?.katex_react?.display ?? 'inline'
+}
+
+/**
  * Renders a single formula subtree as an inline KaTeX span. Used for formula leaves
  * embedded inside text/block trees (the whole-tree formula path stays innerHTML).
  */
@@ -187,6 +196,7 @@ function MathSpan({
         const out = katex.renderToString(latex, {
           throwOnError: false,
           ...HTMLDATA_KATEX_DEFAULTS,
+          displayMode: nodeDisplay(node, macroDb) === 'block',
           ...katexOptions,
         })
         if (!cancelled) setHtml(out)
@@ -233,6 +243,7 @@ function useSnlSyntaxTreeRender(
         const html = katex.renderToString(latex, {
           throwOnError: false,
           ...HTMLDATA_KATEX_DEFAULTS,
+          displayMode: nodeDisplay(tree, macroDb) === 'block',
           ...katexOptions,
         })
         if (!cancelled && reqIdRef.current === reqId) {

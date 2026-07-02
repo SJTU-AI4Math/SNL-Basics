@@ -40,5 +40,20 @@
       "template": "",
       "react_renderer_key": "centered"
     }
+  },
+  "sample.displayFrac": {
+    "name": "sample.displayFrac",
+    "description": "Displayed fraction (bigger, centered).",
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "katex_react": {
+      "arity": "fixed",
+      "mode": "formula",
+      "display": "block",
+      "template": "\\frac{#0}{#1}",
+      "kind": "const"
+    }
   }
 }

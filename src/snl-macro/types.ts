@@ -55,6 +55,16 @@ export interface SnlMacro {
     kind?: string
 
     /**
+     * When mode === 'formula': controls KaTeX's displayMode for the ROOT
+     * node's render. Nested formula nodes' `display` values are ignored;
+     * the outermost formula root decides for the whole subtree.
+     *   'inline' (default) — mid-sentence math; \sum sub/sup at side
+     *   'block'            — displayed math; \sum sub/sup above/below, centered
+     * Ignored for mode !== 'formula'.
+     */
+    display?: 'inline' | 'block'
+
+    /**
      * KaTeX template string for formula mode (LaTeX-native placeholders):
      *   #0 / #1 / ...    fixed-arity children by index
      *   #*               variadic children joined by variadic_join
