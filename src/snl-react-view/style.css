@@ -32,6 +32,13 @@
   border-radius: 2px;
 }
 
+/* Missing template argument slot (`fillLatexTemplate` emits
+   \htmlClass{snlMissingArg}{\square_{N}} for an unfilled #N / #*). Muted grey,
+   no border — a visible placeholder that keeps the preview from red-erroring. */
+.katex-html .snlMissingArg {
+  color: #d1d5db;
+}
+
 /* Hover model: the element directly under the pointer gets `.snl-single-hover`.
    CSS colours ALL text inside it via inheritance, so a whole subtree lights up;
    moving onto a deeper subtree makes THAT the single-hover and it wins. Only

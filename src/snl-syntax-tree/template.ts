@@ -11,6 +11,18 @@
  * placeholders — every rendered node is auto-wrapped in
  * `\htmlData{name=<macro>,kind=<node.kind>}{...}` by the view layer.
  */
+/**
+ * A missing child slot renders as a muted, boxed, numbered placeholder instead
+ * of an empty string. This keeps braces balanced (KaTeX with throwOnError:false
+ * would otherwise paint the whole source red on an empty `{}` group) and gives
+ * consumers a `.snlMissingArg` hook to style. `\square` is a single KaTeX-safe
+ * glyph, so the expansion is never `` or ` ` alone.
+ */
+function missingArgPlaceholder(index?: number): string {
+  const glyph = index === undefined ? '\\square' : `\\square_{${index}}`
+  return `\\htmlClass{snlMissingArg}{${glyph}}`
+}
+
 export function fillLatexTemplate(
   template: string,
   values: Record<string, string | number | undefined>,
@@ -21,16 +33,22 @@ export function fillLatexTemplate(
   // Pass 1: protect template-level `\#` so it survives the #N/#* passes.
   let out = template.replace(/\\#/g, ESCAPED_HASH)
 
-  // Pass 2: `#0`..`#99` → values.child0..child99 (missing → empty string).
+  // Pass 2: `#0`..`#99` → values.child0..child99. A missing slot emits a
+  // visible, brace-balanced placeholder (`\htmlClass{snlMissingArg}{\square_{N}}`)
+  // rather than an empty string. Empty `{}` groups or unbalanced braces make
+  // KaTeX (throwOnError:false) render the whole source as red error text, which
+  // is exactly the preview bug this guards against during intermediate typing.
   out = out.replace(/#(\d{1,2})/g, (_, digits: string) => {
-    const value = values[`child${Number(digits)}`]
-    return value === undefined ? '' : String(value)
+    const index = Number(digits)
+    const value = values[`child${index}`]
+    return value === undefined ? missingArgPlaceholder(index) : String(value)
   })
 
-  // Pass 3: `#*` → values.children_joined (variadic; missing → empty string).
+  // Pass 3: `#*` → values.children_joined (variadic). A missing joined value
+  // emits the same visible placeholder (unindexed) instead of collapsing to ``.
   out = out.replace(/#\*/g, () => {
     const joined = values['children_joined']
-    return joined === undefined ? '' : String(joined)
+    return joined === undefined ? missingArgPlaceholder() : String(joined)
   })
 
   // Pass 4: restore `\#` so KaTeX renders a literal `#`.
