@@ -39,6 +39,22 @@ export interface SnlMacro {
     // block: render to a React block element (<div>/<ul>/<table>)
 
     /**
+     * Semantic kind for the *whole macro invocation* — surfaces as
+     * `data-kind` on the rendered element and drives the hover palette
+     * (see kind-palette.ts). Common values from the 5 Lean-Expr defaults:
+     *   'rule'   — meta-mathematical rule symbols (∀, ∃, `:`, `def`, apply,
+     *              implies, paren, …)
+     *   'const'  — mathematical constants (add, mul, and, or, …)
+     *   'binder' — binding sites (rare at the macro level; usually set by
+     *              annotate-bind on the first child of a quantifier)
+     * Omit to let annotate-bind's heuristics decide (quantifiers → 'rule',
+     * bare leaves → 'bvar'/'fvar'; structural wrappers → '' = 'default'
+     * neutral-grey frame). Authors can also introduce custom kind names
+     * (they just need a matching palette entry to be colored).
+     */
+    kind?: string
+
+    /**
      * KaTeX template string for formula mode (LaTeX-native placeholders):
      *   #0 / #1 / ...    fixed-arity children by index
      *   #*               variadic children joined by variadic_join

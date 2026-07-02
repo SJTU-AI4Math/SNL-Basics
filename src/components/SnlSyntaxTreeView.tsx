@@ -58,10 +58,28 @@ function sanitizeHtmlDataAttr(value: string): string {
  * Auto-wrap a rendered node's latex in a single `\htmlData{name,kind[,bindRef]}`.
  * This is the sole place metadata enters the KaTeX output — templates never
  * write `\htmlData` themselves.
+ *
+ * Kind resolution order (first non-empty wins):
+ *   1. `kindOverride` — the caller forcing a specific kind (e.g. bare-fvar
+ *      application path emits 'fvar')
+ *   2. `node.kind` — set by annotate-bind (quantifiers, bvar/fvar leaves,
+ *      binder heads) or by the parser
+ *   3. `macroDb[node.name].katex_react.kind` — declared by the macro author
+ *      in the DB (rule / const / …); this is how implies / apply / and / or
+ *      etc. get their palette color without touching the parser
+ *   4. '' → 'default' — falls through to the neutral-grey hover frame
  */
-function wrapHtmlData(node: SnlSyntaxTree, inner: string, kindOverride?: string): string {
+function wrapHtmlData(
+  node: SnlSyntaxTree,
+  inner: string,
+  macroDb: SnlMacroDb,
+  kindOverride?: string,
+): string {
   const name = sanitizeHtmlDataAttr(node.name)
-  const kind = sanitizeHtmlDataAttr((kindOverride ?? node.kind ?? '') || 'default')
+  const dbKind = node.name ? macroDb[node.name]?.katex_react?.kind : undefined
+  const kind = sanitizeHtmlDataAttr(
+    (kindOverride ?? node.kind ?? dbKind ?? '') || 'default',
+  )
   const ref = getBindRef(node)
   const bindRefFragment = ref ? `,bindRef=${sanitizeHtmlDataAttr(ref)}` : ''
   const scopeFragment = node.scope ? `,scope=${sanitizeHtmlDataAttr(node.scope)}` : ''
@@ -85,7 +103,7 @@ async function resolveNodeLatex(
   if (node.children.length > 0 && !hasDbTemplate && !node.name.includes('.')) {
     const opPart = fvarAppliedHeadLatex(node.name)
     const argList = childLatexList.join(',')
-    return wrapHtmlData(node, `${opPart}(${argList})`, 'fvar')
+    return wrapHtmlData(node, `${opPart}(${argList})`, macroDb, 'fvar')
   }
 
   const key = `${node.name}::${node.kind}`
@@ -112,7 +130,7 @@ async function resolveNodeLatex(
   if (template.trim() === '#*') {
     return filled
   }
-  return wrapHtmlData(node, filled)
+  return wrapHtmlData(node, filled, macroDb)
 }
 
 /** Props for {@link SnlSyntaxTreeView}. */
