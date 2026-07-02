@@ -53,9 +53,8 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
     // palette CSS — style.css must no longer hardcode the accent on hover.
     expect(css).not.toMatch(/\.snl-single-hover\s*\{[^}]*color:\s*var\(--snl-c-hover-accent\)/)
     // Every hovered element (kind-in-palette or not) gets a visible default
-    // frame — needed for structural wrappers with `data-kind="default"` like
-    // FOL.implies.infix, which are not in the palette.
-    expect(css).toMatch(/\.katex-html \.snl-single-hover\s*\{[^}]*border:\s*1px solid/)
+    // frame — drawn with box-shadow so the layout doesn't reflow on hover.
+    expect(css).toMatch(/\.katex-html \.snl-single-hover\s*\{[^}]*box-shadow:\s*0 0 0 1px/)
   })
 
   it('paletteToCss: per-kind hover rules for the 5 defaults; no bracket-syntax fossils; no base color', () => {

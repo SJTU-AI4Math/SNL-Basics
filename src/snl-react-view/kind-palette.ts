@@ -100,12 +100,15 @@ export function assertSafeKindName(name: string): void {
 export function paletteToCss(palette: KindPalette): string {
   const blocks = Object.entries(palette).map(([k, c]) => {
     assertSafeKindName(k)
+    // NOTE: the "border" is drawn with `box-shadow`, not the CSS `border`
+    // property, so hovering never reflows the surrounding math layout.
+    // `box-shadow` + `background-color` are paint-only and don't change the
+    // element's box size — everything around the hovered subtree stays still.
     return `.katex-html .snl-single-hover[data-kind="${k}"] {
   color: ${c.stroke};
-  border: 1px solid ${c.background};
   background: ${alpha(c.background, 0.5)};
+  box-shadow: 0 0 0 1px ${c.background};
   border-radius: 5px;
-  padding: 0 2px;
 }`
   })
 

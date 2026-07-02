@@ -46,19 +46,23 @@
 }
 
 /* Hover model: the element directly under the pointer gets `.snl-single-hover`.
-   Kinds present in the palette get their color / border / background from the
-   injected palette CSS (kind-palette.ts::paletteToCss). Kinds NOT in the
-   palette (e.g. structural wrappers where annotate-bind didn't set a kind, so
-   the view emits `data-kind="default"`) still need a visible hover frame — so
-   we give every `.snl-single-hover` a neutral-grey default treatment here.
-   Palette selectors are more specific (they include `[data-kind="X"]`) so
-   they win for known kinds. */
+   Kinds present in the palette get their color / border-shadow / background
+   from the injected palette CSS (kind-palette.ts::paletteToCss). Kinds NOT
+   in the palette (e.g. structural wrappers where annotate-bind didn't set
+   a kind, so the view emits `data-kind="default"`) still need a visible
+   hover frame — so we give every `.snl-single-hover` a neutral-grey default
+   treatment here. Palette selectors are more specific (they include
+   `[data-kind="X"]`) so they win for known kinds.
+
+   The "border" is drawn with `box-shadow`, NOT the CSS `border` property,
+   so hovering never reflows the surrounding layout. `box-shadow` and
+   `background-color` are paint-only — they don't change the element's box
+   size, so the math around a hovered subtree stays perfectly still. */
 .katex-html .snl-single-hover {
   color: #374151;
-  border: 1px solid #d1d5db;
   background: rgba(209, 213, 219, 0.5);
+  box-shadow: 0 0 0 1px #d1d5db;
   border-radius: 5px;
-  padding: 0 2px;
 }
 
 /* Nested subtrees inside a hovered element must keep their ORIGINAL
