@@ -46,11 +46,30 @@
 }
 
 /* Hover model: the element directly under the pointer gets `.snl-single-hover`.
-   Its per-kind color / border / background come from the injected palette CSS.
-   Nested subtrees must escape the hover accent and keep their own kind color,
-   so we explicitly `revert` the color on any nested `[data-kind]`. */
+   Kinds present in the palette get their color / border / background from the
+   injected palette CSS (kind-palette.ts::paletteToCss). Kinds NOT in the
+   palette (e.g. structural wrappers where annotate-bind didn't set a kind, so
+   the view emits `data-kind="default"`) still need a visible hover frame — so
+   we give every `.snl-single-hover` a neutral-grey default treatment here.
+   Palette selectors are more specific (they include `[data-kind="X"]`) so
+   they win for known kinds. */
+.katex-html .snl-single-hover {
+  color: #374151;
+  border: 1px solid #d1d5db;
+  background: rgba(209, 213, 219, 0.5);
+  border-radius: 5px;
+  padding: 0 2px;
+}
+
+/* Nested subtrees inside a hovered element must keep their ORIGINAL
+   (un-hovered) color — which is the KaTeX/UA default, since we no longer
+   set a base color per kind. `color: initial` forces the UA initial value
+   (canvastext / black) and cannot be pierced by the parent's inherited
+   hover color. Kept per-`[data-kind]` so plain text inside the hover
+   frame still takes the frame's color (e.g. the `Im` and `(` `)` in
+   `Im(#0)` change color, but the wrapped subtree at `#0` doesn't). */
 .katex-html .snl-single-hover [data-kind] {
-  color: revert;
+  color: initial;
 }
 
 /* Block renderers (list / table / centered) — see block-renderers.tsx */

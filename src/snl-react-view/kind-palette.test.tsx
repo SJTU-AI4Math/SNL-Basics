@@ -36,10 +36,12 @@ describe('alpha', () => {
 })
 
 describe('paletteToCss', () => {
-  it('emits each kind stroke color as base + hover treatment', () => {
+  it('emits per-kind hover treatment (no base color; text stays original until hovered)', () => {
     const css = paletteToCss(DEFAULT_KIND_PALETTE)
     for (const [kind, coloring] of Object.entries(DEFAULT_KIND_PALETTE)) {
-      expect(css).toContain(`.katex-html [data-kind="${kind}"] { color: ${coloring.stroke}; }`)
+      // No base color rule — un-hovered text keeps its native color.
+      expect(css).not.toContain(`.katex-html [data-kind="${kind}"] { color: ${coloring.stroke}; }`)
+      // Hover treatment still emitted, and includes the kind's stroke + background.
       expect(css).toContain(`.katex-html .snl-single-hover[data-kind="${kind}"]`)
       expect(css).toContain(`border: 1px solid ${coloring.background};`)
     }
@@ -53,9 +55,13 @@ describe('paletteToCss', () => {
   it('lets a consumer palette override defaults while defaults fill the rest', () => {
     const merged: KindPalette = { ...DEFAULT_KIND_PALETTE, const: { stroke: '#123456', background: '#abcdef' } }
     const css = paletteToCss(merged)
-    expect(css).toContain('.katex-html [data-kind="const"] { color: #123456; }')
-    // A default kind is still present.
-    expect(css).toContain('.katex-html [data-kind="rule"] { color: #009C27; }')
+    // Overridden `const` shows up in its hover rule.
+    expect(css).toContain('.katex-html .snl-single-hover[data-kind="const"]')
+    expect(css).toContain('color: #123456;')
+    expect(css).toContain('border: 1px solid #abcdef;')
+    // A default kind (rule) is still present in its hover rule.
+    expect(css).toContain('.katex-html .snl-single-hover[data-kind="rule"]')
+    expect(css).toContain('color: #009C27;')
   })
 
   it('throws on an unsafe kind name (CSS-injection guard)', () => {

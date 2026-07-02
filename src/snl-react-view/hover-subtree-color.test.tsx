@@ -45,18 +45,25 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
     expect(addEl.querySelector('[data-kind="fvar"]')).not.toBeNull()
   })
 
-  it('stylesheet: nested kinds revert; per-kind hover color is palette-driven (not static)', () => {
-    // Nested subtrees escape the hover color via `revert` (FIX 4 kept).
-    expect(css).toMatch(/\.katex-html \.snl-single-hover \[data-kind\]\s*\{\s*color:\s*revert;?\s*\}/)
+  it('stylesheet: nested kinds keep original color; hover accent is palette-driven (not static)', () => {
+    // Nested subtrees inside the hovered element restore their ORIGINAL
+    // (un-hovered, black) color — via `color: initial` (was `revert` in R3).
+    expect(css).toMatch(/\.katex-html \.snl-single-hover \[data-kind\]\s*\{\s*color:\s*initial;?\s*\}/)
     // The per-kind hover color moved out of the static stylesheet into injected
     // palette CSS — style.css must no longer hardcode the accent on hover.
     expect(css).not.toMatch(/\.snl-single-hover\s*\{[^}]*color:\s*var\(--snl-c-hover-accent\)/)
+    // Every hovered element (kind-in-palette or not) gets a visible default
+    // frame — needed for structural wrappers with `data-kind="default"` like
+    // FOL.implies.infix, which are not in the palette.
+    expect(css).toMatch(/\.katex-html \.snl-single-hover\s*\{[^}]*border:\s*1px solid/)
   })
 
-  it('paletteToCss: per-kind base colors for the 5 defaults; no bracket-syntax fossils', () => {
+  it('paletteToCss: per-kind hover rules for the 5 defaults; no bracket-syntax fossils; no base color', () => {
     const generated = paletteToCss(DEFAULT_KIND_PALETTE)
     for (const kind of ['rule', 'const', 'binder', 'bvar', 'fvar']) {
-      expect(generated).toContain(`.katex-html [data-kind="${kind}"]`)
+      expect(generated).toContain(`.katex-html .snl-single-hover[data-kind="${kind}"]`)
+      // No base color rule — un-hovered text keeps its native color (see #1 spec).
+      expect(generated).not.toContain(`.katex-html [data-kind="${kind}"] { color:`)
     }
     expect(generated).not.toContain('constSymbol')
     expect(generated).not.toContain('constantSubtree')

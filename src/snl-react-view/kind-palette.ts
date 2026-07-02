@@ -88,18 +88,19 @@ export function assertSafeKindName(name: string): void {
 
 /**
  * Generate the per-kind CSS from a resolved palette. Emits, for each kind:
- * a base text color and a `.snl-single-hover` treatment (kind stroke text,
- * background-colored border, background @ 50% alpha, rounded). Additionally
- * emits the binding-scope highlight rules (`.snl-bvar-scope` / `.snl-binder-decl`)
- * from the `bvar` / `binder` entries when present.
+ * a `.snl-single-hover` treatment (kind stroke text, background-colored
+ * border, background @ 50% alpha, rounded). Base (un-hovered) text color
+ * is NOT changed — the tree keeps its native (usually black) color until
+ * hovered. Additionally emits the binding-scope highlight rules
+ * (`.snl-bvar-scope` / `.snl-binder-decl`) from the `bvar` / `binder`
+ * entries when present.
  *
  * Throws if any kind name is unsafe for a CSS selector.
  */
 export function paletteToCss(palette: KindPalette): string {
   const blocks = Object.entries(palette).map(([k, c]) => {
     assertSafeKindName(k)
-    return `.katex-html [data-kind="${k}"] { color: ${c.stroke}; }
-.katex-html .snl-single-hover[data-kind="${k}"] {
+    return `.katex-html .snl-single-hover[data-kind="${k}"] {
   color: ${c.stroke};
   border: 1px solid ${c.background};
   background: ${alpha(c.background, 0.5)};
