@@ -30,6 +30,7 @@ function cloneTree(node: SnlSyntaxTree): SnlSyntaxTree {
   return {
     name: node.name,
     kind: node.kind,
+    scope: node.scope,
     mdata: node.mdata,
     children: node.children.map((child) => cloneTree(child)),
   }

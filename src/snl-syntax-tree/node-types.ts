@@ -12,6 +12,8 @@ export interface SnlSyntaxTreeBase {
   name: string
   /** Semantic kind: 'rule' | 'const' | 'binder' | 'bvar' | 'fvar' | ... */
   kind: string
+  /** Structural scope marker (e.g. 'binder'), emitted as `data-scope`. */
+  scope?: string
   /** Meta data (bindRef etc). */
   mdata: unknown
   /** Children — semantics depends on mode + macro.arity. */

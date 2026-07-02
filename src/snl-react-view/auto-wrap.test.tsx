@@ -32,14 +32,14 @@ describe('auto-wrap \\htmlData', () => {
     expect(container.querySelector('[data-name="b"]')).not.toBeNull()
   })
 
-  it('emits binderScope + bindRef for a quantifier (bvar-scope highlighting)', async () => {
+  it('emits data-scope="binder" + bindRef for a quantifier (bvar-scope highlighting)', async () => {
     const tree = parseSnlSyntaxTree('FOL.forall.binder(x,x)')
     const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
 
     await waitFor(() => {
-      expect(container.querySelector('[data-kind="binderScope"]')).not.toBeNull()
+      expect(container.querySelector('[data-scope="binder"]')).not.toBeNull()
     })
-    const scope = container.querySelector<HTMLElement>('[data-kind="binderScope"]')!
+    const scope = container.querySelector<HTMLElement>('[data-scope="binder"]')!
     expect(scope.dataset.bindref ?? scope.getAttribute('data-bindRef')).toBeTruthy()
     // A bound-variable occurrence carrying the same bindRef exists inside scope.
     expect(scope.querySelector('[data-kind="bvar"]')).not.toBeNull()

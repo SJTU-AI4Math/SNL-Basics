@@ -124,7 +124,7 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
         binders = entry.binders
       } else {
         const scopeRoot = Array.from(
-          container.querySelectorAll<HTMLElement>('[data-kind="binderScope"]'),
+          container.querySelectorAll<HTMLElement>('[data-scope="binder"]'),
         ).find((el) => readBindRefFromDom(el) === bindRef)
         if (!scopeRoot) {
           bvars = []

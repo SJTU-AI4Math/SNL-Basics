@@ -59,7 +59,8 @@ function wrapHtmlData(node: SnlSyntaxTree, inner: string, kindOverride?: string)
   const kind = sanitizeHtmlDataAttr((kindOverride ?? node.kind ?? '') || 'default')
   const ref = getBindRef(node)
   const bindRefFragment = ref ? `,bindRef=${sanitizeHtmlDataAttr(ref)}` : ''
-  return `\\htmlData{name=${name},kind=${kind}${bindRefFragment}}{${inner}}`
+  const scopeFragment = node.scope ? `,scope=${sanitizeHtmlDataAttr(node.scope)}` : ''
+  return `\\htmlData{name=${name},kind=${kind}${scopeFragment}${bindRefFragment}}{${inner}}`
 }
 
 async function resolveNodeLatex(
@@ -350,7 +351,7 @@ export function SnlSyntaxTreeView({
           bindingHint = `绑定变量：bindRef=${bindRef}，对应量词 binder「${bName}」。`
         } else {
           variableRole = 'fvar'
-          bindingHint = `标注为 bvar（bindRef=${bindRef}），但未找到带 binderScope 的祖先。`
+          bindingHint = `标注为 bvar（bindRef=${bindRef}），但未找到带 data-scope="binder" 的祖先。`
         }
       } else {
         variableRole = 'fvar'
@@ -363,7 +364,7 @@ export function SnlSyntaxTreeView({
         bindingHint = `binder 引入处 bindRef=${bindRef}（作用域内同 ref 的 bvar 为使用处）。`
       } else {
         variableRole = 'fvar'
-        bindingHint = `binder 但未找到 binderScope（bindRef=${bindRef}）。`
+        bindingHint = `binder 但未找到 binder scope（bindRef=${bindRef}）。`
       }
     } else if (kind === 'fvar') {
       variableRole = 'fvar'

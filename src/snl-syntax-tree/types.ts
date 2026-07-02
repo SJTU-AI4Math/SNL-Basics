@@ -9,6 +9,11 @@ export interface SnlSyntaxTree {
   name: string
   /** Semantic kind (rule / const / binder / bvar / fvar / …). */
   kind: string
+  /**
+   * Structural scope marker (out of the kind namespace). annotate-bind sets
+   * `scope = 'binder'` on quantifier nodes; the view emits `data-scope` from it.
+   */
+  scope?: string
   /** Meta data (e.g. `{ bindRef }`) written by binding annotation. */
   mdata: unknown
   /** Child nodes. */

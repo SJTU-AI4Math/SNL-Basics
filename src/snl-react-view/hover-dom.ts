@@ -8,7 +8,7 @@ import { readBindRefFromDom } from '../snl-syntax-tree/binding'
 
 /**
  * Walk up from `start` to find the nearest binder-scope ancestor (a quantifier node marked
- * data-kind="binderScope" by annotate-bind) carrying the given `bindRef`.
+ * data-scope="binder" by annotate-bind) carrying the given `bindRef`.
  * @internal
  */
 export function findBinderScopeAncestor(
@@ -18,7 +18,7 @@ export function findBinderScopeAncestor(
 ): HTMLElement | null {
   let el: HTMLElement | null = start
   while (el && container.contains(el)) {
-    if (el.dataset.kind === 'binderScope' && readBindRefFromDom(el) === bindRef) {
+    if (el.dataset.scope === 'binder' && readBindRefFromDom(el) === bindRef) {
       return el
     }
     el = el.parentElement
