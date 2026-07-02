@@ -13,8 +13,9 @@
   --snl-c-hover-accent:     #f59e0b;
   --snl-c-hover-bg:         rgba(245, 158, 11, 0.10);
   padding: 8px;
-  background: #fcfcfd;
-  border: 1px solid #e4e7ec;
+  background: var(--vscode-editor-background, #fcfcfd);
+  color: var(--vscode-editor-foreground, #111);
+  border: 1px solid var(--vscode-panel-border, var(--vscode-contrastBorder, #e4e7ec));
   border-radius: 8px;
   overflow-x: auto;
 }
@@ -42,7 +43,7 @@
    \htmlClass{snlMissingArg}{\square_{N}} for an unfilled #N / #*). Muted grey,
    no border — a visible placeholder that keeps the preview from red-erroring. */
 .katex-html .snlMissingArg {
-  color: #d1d5db;
+  color: var(--vscode-input-placeholderForeground, #d1d5db);
 }
 
 /* Hover model: the element directly under the pointer gets `.snl-single-hover`.
@@ -89,7 +90,7 @@
 .snl-block-table th,
 .snl-block-table td {
   padding: 0.2em 0.5em;
-  border: 1px solid #ccc;
+  border: 1px solid var(--vscode-panel-border, #ccc);
 }
 .snl-block-centered {
   text-align: center;
@@ -99,11 +100,11 @@
   position: fixed;
   max-width: 360px;
   padding: 8px 10px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--vscode-editorHoverWidget-border, #d0d5dd);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.96);
-  color: #111827;
-  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.12);
+  background: var(--vscode-editorHoverWidget-background, rgba(255, 255, 255, 0.96));
+  color: var(--vscode-editorHoverWidget-foreground, #111827);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
   opacity: 0;
   transform: translateY(4px);
   transition: opacity 180ms ease, transform 180ms ease;
@@ -124,7 +125,7 @@
 
 .snl-hover-tooltip .tooltip-kind {
   font-size: 11px;
-  color: #475467;
+  color: var(--vscode-descriptionForeground, #475467);
   margin-bottom: 4px;
 }
 
