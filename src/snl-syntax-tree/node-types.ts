@@ -3,7 +3,7 @@
  *
  * The parser produces nodes with `mode` derived from the referenced
  * macro's `katex_react.mode` field. If no macro is found in the DB, the
- * default is 'math' (fallback to fvar/bvar/binder heuristics).
+ * default is 'formula' (fallback to fvar/bvar/binder heuristics).
  */
 
 /** Common fields shared by all node modes. */
@@ -18,9 +18,9 @@ export interface SnlSyntaxTreeBase {
   children: SnlSyntaxTree[]
 }
 
-/** A node rendered as math (KaTeX). */
-export interface SnlSyntaxTreeMathNode extends SnlSyntaxTreeBase {
-  mode: 'math'
+/** A node rendered as a formula (KaTeX). */
+export interface SnlSyntaxTreeFormulaNode extends SnlSyntaxTreeBase {
+  mode: 'formula'
 }
 
 /** A node rendered as text (React `<span>` wrapping children). */
@@ -37,6 +37,6 @@ export interface SnlSyntaxTreeBlockNode extends SnlSyntaxTreeBase {
 
 /** Discriminated union of node modes (forward-looking; parser emits the flat form). */
 export type SnlSyntaxTree =
-  | SnlSyntaxTreeMathNode
+  | SnlSyntaxTreeFormulaNode
   | SnlSyntaxTreeTextNode
   | SnlSyntaxTreeBlockNode

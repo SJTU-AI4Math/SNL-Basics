@@ -1,8 +1,11 @@
 # SNL-Basics
 
 Structured Natural Language (SNL) base library — parse a macro DSL into syntax
-trees and render them to KaTeX-in-React with hover interactions, plus
-Typst / LaTeX / Markdown / plain-text output backends.
+trees and render them to KaTeX-in-React with hover interactions.
+
+Output backends (Typst / LaTeX / Markdown / plain text) are **consumer-side
+concerns** and live in downstream extensions (e.g. SNL-Doc-Extension), not in
+this render-only library.
 
 Design goals: **simple, clear interfaces · highly modular · deeply customizable.**
 Every interaction (tooltip, hover highlight, source resolution, block rendering)
@@ -153,12 +156,13 @@ mangles the attribute value). Use camelCase for compound style suffixes:
 
 ## Concepts
 
-- **Macro** — a named renderer with five output strategies (`typst`, `latex`,
-  `markdown`, `text`, `katex_react`). Fields and semantics live in
-  [`src/snl-macro/types.ts`](src/snl-macro/types.ts).
+- **Macro** — a named renderer carrying only render fields (`name`,
+  `description`, `source`, `katex_react`). Consumer-owned output strategies
+  (`typst` / `latex` / `markdown` / `text`) live downstream. Fields and
+  semantics live in [`src/snl-macro/types.ts`](src/snl-macro/types.ts).
 - **Syntax tree** — the parsed representation (`{ name, kind, mdata, children }`).
   At render time each node is dispatched by its macro's `katex_react.mode`:
-  `math` (KaTeX), `text` (`<span>`), or `block` (a registered block renderer).
+  `formula` (KaTeX), `text` (`<span>`), or `block` (a registered block renderer).
 - **Hooks** — every interaction is customizable via `SnlRenderHooks`: supply your
   own `renderTooltip`, `onHover` / `onLeave`, `resolveMacroInfo`, `resolveSource`,
   `highlightStrategy`, or `renderers`. Anything you omit falls back to
@@ -285,13 +289,11 @@ your DB to try the built-in renderers.
 
 ## Output backends
 
-```ts
-import { toLatex, buildLatexPreamble, toTypst, toMarkdown, toText } from '@snl-basics/react'
-```
-
-`toLatex` / `toTypst` / `toMarkdown` / `toText` convert a tree to the respective
-format (Typst/LaTeX also expose `build*Preamble` for collected `built_in`
-declarations). These are currently stubs pending Phase 2.5+.
+Output backends (Typst / LaTeX / Markdown / plain text) are **consumer-side
+concerns** and are no longer part of this library (removed in 0.4.0). A `SnlMacro`
+now carries only render fields (`name`, `description`, `source`, `katex_react`).
+Downstream extensions that need to emit those formats own their own extended
+macro shape and conversion code (see SNL-Doc-Extension).
 
 ## API reference
 

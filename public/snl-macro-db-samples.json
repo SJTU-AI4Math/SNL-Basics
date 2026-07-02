@@ -6,22 +6,6 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "text",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "text",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "variadic",
       "mode": "block",
@@ -36,22 +20,6 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "text",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "text",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "variadic",
       "mode": "block",
@@ -66,22 +34,6 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "text",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "text",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "variadic",
       "mode": "block",

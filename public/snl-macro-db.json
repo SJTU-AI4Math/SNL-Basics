@@ -6,25 +6,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "\\frac{#0}{#1}"
     }
   },
@@ -35,25 +19,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "#0 \\div #1"
     }
   },
@@ -64,25 +32,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "#0 + #1"
     }
   },
@@ -93,25 +45,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "#0 - #1"
     }
   },
@@ -122,25 +58,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "#0 \\cdot #1"
     }
   },
@@ -151,25 +71,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "#0#1"
     }
   },
@@ -180,25 +84,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "{#0}^{#1}"
     }
   },
@@ -209,25 +97,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "\\forall\\, #0,\\, #1"
     }
   },
@@ -238,25 +110,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "\\forall\\left(#0 : #1\\right),\\, #2"
     }
   },
@@ -267,25 +123,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "\\exists\\, #0,\\, #1"
     }
   },
@@ -296,25 +136,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "\\exists\\left(#0 : #1\\right),\\, #2"
     }
   },
@@ -325,25 +149,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "#0\\left(#1\\right)"
     }
   },
@@ -354,25 +162,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "\\left(#0\\right)"
     }
   },
@@ -383,25 +175,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "#0 \\rightarrow #1"
     }
   },
@@ -412,25 +188,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "#0 \\land #1"
     }
   },
@@ -441,25 +201,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "#0 \\lor #1"
     }
   },
@@ -470,25 +214,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "\\neg #0"
     }
   },
@@ -499,25 +227,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "fixed",
-      "mode": "math",
+      "mode": "formula",
       "template": "#0 = #1"
     }
   },
@@ -530,25 +242,9 @@
         "https://en.wikipedia.org/wiki/Matrix_(mathematics)"
       ]
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "variadic",
-      "mode": "math",
+      "mode": "formula",
       "template": "\\begin{pmatrix}#*\\end{pmatrix}",
       "variadic_join": " \\\\ "
     }
@@ -560,25 +256,9 @@
       "entries": [],
       "urls": []
     },
-    "typst": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "latex": {
-      "built_in": "",
-      "synthesis": {
-        "output_type": "formula",
-        "macro": ""
-      }
-    },
-    "markdown": "",
-    "text": "",
     "katex_react": {
       "arity": "variadic",
-      "mode": "math",
+      "mode": "formula",
       "template": "#*",
       "variadic_join": " & "
     }

@@ -2,9 +2,10 @@
  * SnlMacro v1 — the single source of truth for a macro. See Plan.md and
  * Phase 2 spec for design rationale.
  *
- * A macro is a globally-unique named renderer + output strategies. Multiple
- * macros MAY share the same source entry (e.g. Add.add.infix and
- * Add.add.implicit both refer to the "addition" entry).
+ * A macro is a globally-unique named renderer. Multiple macros MAY share the
+ * same source entry (e.g. Add.add.infix and Add.add.implicit both refer to the
+ * "addition" entry). Consumer-owned output backends (Typst / LaTeX / Markdown /
+ * plain text) live in downstream extensions, not in this render-only library.
  */
 /**
  * Source-of-truth binding for a macro. Resolver order: `entries[0..]` first
@@ -25,50 +26,26 @@ export interface SnlMacro {
   /** Source-of-truth binding. Resolver: entries[0..] first valid, else urls[0], else null. */
   source: SnlMacroSource
 
-  /** Typst output strategies. */
-  typst: {
-    built_in: string                                 // e.g. "#let mymacro(a, b) = a + b" — pasted into preamble
-    synthesis: {
-      output_type: 'formula' | 'text'
-      macro: string                                  // string-substitution template (same DSL as latex.synthesis)
-    }
-  }
-
-  /** LaTeX output strategies. */
-  latex: {
-    built_in: string                                 // e.g. "\\newcommand{\\mymacro}[2]{...}"
-    synthesis: {
-      output_type: 'formula' | 'text'
-      macro: string
-    }
-  }
-
-  /** Markdown output — direct string substitution, no native macro system. */
-  markdown: string                                   // e.g. "#0 + #1" or "#*"
-
-  /** Plain text output — for search / degraded display. */
-  text: string
-
   /** KaTeX-in-React output — the core render path. */
   katex_react: {
     /** Argument shape: fixed count vs. variadic. */
     arity: 'fixed' | 'variadic'
 
     /** Semantic mode — dispatches to a renderer family. */
-    mode: 'math' | 'text' | 'block'
-    // math:  render to a latex string, feed to katex.renderToString; the view
+    mode: 'formula' | 'text' | 'block'
+    // formula: render to a latex string, feed to katex.renderToString; the view
     //        layer auto-wraps the result in \htmlData{name,kind,bindRef}
-    // text:  render to a React <span>, children may be math or text or block
+    // text:  render to a React <span>, children may be formula or text or block
     // block: render to a React block element (<div>/<ul>/<table>)
 
     /**
-     * KaTeX template string for math mode (LaTeX-native placeholders):
+     * KaTeX template string for formula mode (LaTeX-native placeholders):
      *   #0 / #1 / ...    fixed-arity children by index
      *   #*               variadic children joined by variadic_join
      *   \#               literal `#` character
      * Node metadata (name / kind / bindings) is NOT written here — the view
      * layer auto-wraps every node in \htmlData{name=<macro>,kind=<node.kind>}.
-     * Ignored for mode !== 'math' unless react_renderer_key is unset.
+     * Ignored for mode !== 'formula' unless react_renderer_key is unset.
      */
     template: string
 
@@ -81,7 +58,7 @@ export interface SnlMacro {
      *   "list"     variadic → <ul><li>{child}</li></ul>
      *   "table"    variadic → <table> with header row detection
      *   "centered" variadic → <div style="text-align:center">
-     * Undefined = fall through to template + katex.renderToString (math mode).
+     * Undefined = fall through to template + katex.renderToString (formula mode).
      */
     react_renderer_key?: string
   }

@@ -8,11 +8,7 @@ const macro: SnlMacro = {
   name: 'Add.add.infix',
   description: '加法运算',
   source: { entries: [], urls: [] },
-  typst: { built_in: '', synthesis: { output_type: 'formula', macro: '' } },
-  latex: { built_in: '', synthesis: { output_type: 'formula', macro: '' } },
-  markdown: '',
-  text: '',
-  katex_react: { arity: 'fixed', mode: 'math', template: '' },
+  katex_react: { arity: 'fixed', mode: 'formula', template: '' },
 }
 
 describe('defaultRenderHooks', () => {

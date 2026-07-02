@@ -1,7 +1,7 @@
 export type {
   SnlSyntaxTree,
   SnlSyntaxTreeBase,
-  SnlSyntaxTreeMathNode,
+  SnlSyntaxTreeFormulaNode,
   SnlSyntaxTreeTextNode,
   SnlSyntaxTreeBlockNode,
 } from './node-types'

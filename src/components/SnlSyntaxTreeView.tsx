@@ -119,7 +119,7 @@ export interface SnlSyntaxTreeViewProps {
   macroDb: SnlMacroDb
   /** KaTeX options forwarded to `katex.renderToString`. */
   katexOptions?: KatexOptions
-  /** Called with the resolved LaTeX source (math root only). */
+  /** Called with the resolved LaTeX source (formula root only). */
   onResolved?: (latexSource: string) => void
   /** Override tooltip / hover / description / renderer behavior. Merged over defaults. */
   hooks?: SnlRenderHooks
@@ -128,14 +128,14 @@ export interface SnlSyntaxTreeViewProps {
 /** Internal tooltip state = public SnlTooltipState + interaction key for staleness checks. */
 type TooltipState = SnlTooltipState & { interactionKey: string }
 
-/** Resolve a node's render mode from its macro (default 'math' when unknown). */
-function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): 'math' | 'text' | 'block' {
-  return db[node.name]?.katex_react?.mode ?? 'math'
+/** Resolve a node's render mode from its macro (default 'formula' when unknown). */
+function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): 'formula' | 'text' | 'block' {
+  return db[node.name]?.katex_react?.mode ?? 'formula'
 }
 
 /**
- * Renders a single math subtree as an inline KaTeX span. Used for math leaves
- * embedded inside text/block trees (the whole-tree math path stays innerHTML).
+ * Renders a single formula subtree as an inline KaTeX span. Used for formula leaves
+ * embedded inside text/block trees (the whole-tree formula path stays innerHTML).
  */
 function MathSpan({
   node,
@@ -233,7 +233,7 @@ function useSnlSyntaxTreeRender(
 /**
  * Renders an (annotated) {@link SnlSyntaxTree} to KaTeX-in-React with hover
  * interactions. Dispatches by the root macro's `katex_react.mode`
- * (math / text / block). All interaction is customizable via `hooks`.
+ * (formula / text / block). All interaction is customizable via `hooks`.
  */
 export function SnlSyntaxTreeView({
   tree,
@@ -244,13 +244,13 @@ export function SnlSyntaxTreeView({
   hooks,
 }: SnlSyntaxTreeViewProps) {
   const mergedHooks = useMemo(() => ({ ...defaultRenderHooks, ...hooks }), [hooks])
-  const isMathRoot = nodeMode(tree, macroDb) === 'math'
+  const isFormulaRoot = nodeMode(tree, macroDb) === 'formula'
   const { loading, error, result } = useSnlSyntaxTreeRender(
     tree,
     query,
     macroDb,
     katexOptions,
-    isMathRoot,
+    isFormulaRoot,
   )
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
@@ -287,16 +287,16 @@ export function SnlSyntaxTreeView({
     bvarScopeIndexRef.current = buildBvarScopeIndex(el)
   }, [result])
 
-  // Non-math roots render as a React tree; rebuild the bvar-scope index from the
+  // Non-formula roots render as a React tree; rebuild the bvar-scope index from the
   // mounted DOM (best-effort — MathSpan leaves settle async, and the highlight
   // strategy falls back to a live DOM query when an entry is missing).
   useEffect(() => {
-    if (isMathRoot) return
+    if (isFormulaRoot) return
     const el = containerRef.current
     if (!el) return
     lastHtmlRef.current = null
     bvarScopeIndexRef.current = buildBvarScopeIndex(el)
-  }, [isMathRoot, tree])
+  }, [isFormulaRoot, tree])
 
   const clearHoverTimers = () => {
     if (prefetchTimerRef.current) {
@@ -511,8 +511,8 @@ export function SnlSyntaxTreeView({
     mergedHooks.onLeave?.()
   }
 
-  // Mode-aware React dispatch (used for non-math roots and for children of
-  // text/block nodes). Math nodes render as inline KaTeX via <MathSpan/>.
+  // Mode-aware React dispatch (used for non-formula roots and for children of
+  // text/block nodes). Formula nodes render as inline KaTeX via <MathSpan/>.
   const renderNode = (node: SnlSyntaxTree): ReactElement => {
     const mode = nodeMode(node, macroDb)
     if (mode === 'block') {
@@ -543,7 +543,7 @@ export function SnlSyntaxTreeView({
     )
   }
 
-  if (isMathRoot) {
+  if (isFormulaRoot) {
     if (loading) {
       return <div className="katex-panel">Loading KaTeX ...</div>
     }
@@ -563,7 +563,7 @@ export function SnlSyntaxTreeView({
         onMouseMove={handleKaTeXMouseMove}
         onMouseLeave={handleKaTeXMouseLeave}
       >
-        {isMathRoot ? null : renderNode(tree)}
+        {isFormulaRoot ? null : renderNode(tree)}
       </div>
       {tooltip ? mergedHooks.renderTooltip?.(tooltip) ?? null : null}
     </div>

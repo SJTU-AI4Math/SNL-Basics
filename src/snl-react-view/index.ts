@@ -2,7 +2,7 @@
  * `@snl-basics/react` — Structured Natural Language (SNL) base library.
  *
  * Parse a macro DSL to syntax trees and render them to KaTeX-in-React with hover
- * interactions, plus Typst / LaTeX / Markdown / plain-text output backends.
+ * interactions.
  *
  * Styles: `import '@snl-basics/react/style.css'` and `import 'katex/dist/katex.min.css'`.
  */
@@ -14,7 +14,7 @@ export type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 export { createSnlSyntaxTreeNode, isSnlSyntaxTree } from '../snl-syntax-tree/types'
 export type {
   SnlSyntaxTreeBase,
-  SnlSyntaxTreeMathNode,
+  SnlSyntaxTreeFormulaNode,
   SnlSyntaxTreeTextNode,
   SnlSyntaxTreeBlockNode,
 } from '../snl-syntax-tree/node-types'
@@ -54,17 +54,6 @@ export type {
   SnlBlockRenderer,
   SnlBlockRendererProps,
 } from './hooks'
-
-// === Output backends (Typst / LaTeX / Markdown / text) ===
-export {
-  toTypst,
-  buildTypstPreamble,
-  toLatex,
-  buildLatexPreamble,
-  toMarkdown,
-  toText,
-} from '../snl-output'
-export type { TypstOutputOptions, LatexOutputOptions } from '../snl-output'
 
 // === Advanced / low-level (kept for downstream consumers) ===
 export { fillLatexTemplate } from '../snl-syntax-tree/template'
