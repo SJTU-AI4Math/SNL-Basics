@@ -25,7 +25,7 @@ export interface SnlMacroSource {
  * spec input.
  */
 export interface SnlMacroStyle {
-  /** LaTeX-native template. See fillLatexTemplate for placeholders (#0/#1/#*/\#). */
+  /** LaTeX-native template. See fillLatexTemplate for placeholders: #0, #1, #* (variadic), \# (literal). */
   template: string
   /** For arity === 'variadic': separator between children in `#*`. Default ", ". */
   variadic_join?: string
