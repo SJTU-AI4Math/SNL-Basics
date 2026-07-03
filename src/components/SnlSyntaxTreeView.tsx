@@ -215,10 +215,104 @@ function nodeDisplay(node: SnlSyntaxTree, db: SnlMacroDb): 'inline' | 'block' {
   }
 }
 
-/**
- * Renders a single formula subtree as an inline KaTeX span. Used for formula leaves
- * embedded inside text/block trees (the whole-tree formula path stays innerHTML).
+/** Renders a `mode === 'text'` node by walking its style's template and
+ * splicing in child React elements at `#N` / `#*` slots. Literal text
+ * (including CJK / punctuation / spaces) is preserved verbatim. `\#` becomes
+ * a literal `#`. Missing slots render as a muted `.snlMissingArg` span so
+ * the user sees exactly where an argument would go — mirroring the KaTeX-side
+ * `missingArgPlaceholder` treatment in template.ts.
+ *
+ * Historical bug (pre-2026-07-03): the text branch ignored the template
+ * entirely and just concatenated child renders, so a macro like
+ * `Eq.eq[prose]` with template `#0 与 #1 相等` came out looking like just
+ * "a b" — the literal 与 / 相等 characters and the argument ordering were
+ * both lost. Only formula children (which render themselves) or argument
+ * placeholders (which are self-contained) showed up.
  */
+function renderTextTemplate(
+  node: SnlSyntaxTree,
+  style: SnlMacroStyle | undefined,
+  renderChild: (child: SnlSyntaxTree) => ReactElement,
+): ReactElement[] {
+  const template = style?.template ?? ''
+  const ESCAPED_HASH = '\u0001ESCAPED_HASH\u0001'
+
+  // Protect template-level `\#` so it survives the #N / #* passes below.
+  const protectedTemplate = template.replace(/\\#/g, ESCAPED_HASH)
+
+  const out: ReactElement[] = []
+  const missingSlot = (index: number, keyPrefix: string): ReactElement => (
+    <span key={keyPrefix} className="snlMissingArg" data-arg-index={index}>
+      {`□${index}`}
+    </span>
+  )
+
+  const pushLiteral = (text: string, keyPrefix: string): void => {
+    if (!text) return
+    const restored = text.split(ESCAPED_HASH).join('#')
+    out.push(<Fragment key={keyPrefix}>{restored}</Fragment>)
+  }
+
+  // Single-pass tokenizer: consume literals up to the next `#N` / `#*`, splice
+  // the child render, then continue. This is the React-tree analogue of
+  // fillLatexTemplate — we can't do string replace because children are
+  // ReactElements, not strings.
+  const slotRe = /#(?:(\d{1,2})|\*)/g
+  let lastIndex = 0
+  let slotSeq = 0
+  let m: RegExpExecArray | null
+  while ((m = slotRe.exec(protectedTemplate)) !== null) {
+    if (m.index > lastIndex) {
+      pushLiteral(protectedTemplate.slice(lastIndex, m.index), `lit-${slotSeq}`)
+    }
+    if (m[1] !== undefined) {
+      const index = Number(m[1])
+      const child = node.children[index]
+      out.push(
+        child ? (
+          <Fragment key={`c-${slotSeq}`}>{renderChild(child)}</Fragment>
+        ) : (
+          missingSlot(index, `miss-${slotSeq}`)
+        ),
+      )
+    } else {
+      // #* → variadic: render every child in order, joined by variadic_join.
+      const join = style?.variadic_join ?? ''
+      const children = node.children
+      if (children.length === 0) {
+        out.push(
+          <span
+            key={`miss-star-${slotSeq}`}
+            className="snlMissingArg"
+            data-arg-variadic="1"
+          >
+            □
+          </span>,
+        )
+      } else {
+        for (let i = 0; i < children.length; i++) {
+          out.push(
+            <Fragment key={`cv-${slotSeq}-${i}`}>
+              {renderChild(children[i])}
+            </Fragment>,
+          )
+          if (join && i < children.length - 1) {
+            pushLiteral(join, `join-${slotSeq}-${i}`)
+          }
+        }
+      }
+    }
+    slotSeq += 1
+    lastIndex = slotRe.lastIndex
+  }
+  if (lastIndex < protectedTemplate.length) {
+    pushLiteral(protectedTemplate.slice(lastIndex), `lit-tail`)
+  }
+
+  return out
+}
+
+
 function MathSpan({
   node,
   query,
@@ -606,11 +700,23 @@ export function SnlSyntaxTreeView({
       )
     }
     if (mode === 'text') {
+      // The template's literal text and `#N` / `#*` slots BOTH matter for text
+      // macros ("a 与 b 相等" needs both the literal 与/相等 chars and the
+      // #0/#1 child slots). Prior versions dropped the template entirely and
+      // just concatenated children, which turned every text-style macro into
+      // a naked child stream (only argument placeholders / formula children
+      // rendered at all). `react_renderer_key` still takes precedence, matching
+      // the block-mode dispatch.
+      const macro = macroDb[node.name]
+      const style = macro ? resolveStyle(node, macro) : undefined
+      const key = style?.react_renderer_key
+      const Renderer = key ? mergedHooks.renderers?.[key] : undefined
+      if (Renderer) {
+        return <Renderer node={node} macroDb={macroDb} renderChild={renderNode} />
+      }
       return (
         <span className="snl-text">
-          {node.children.map((child, index) => (
-            <Fragment key={index}>{renderNode(child)}</Fragment>
-          ))}
+          {renderTextTemplate(node, style, renderNode)}
         </span>
       )
     }
