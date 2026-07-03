@@ -1,11 +1,17 @@
 // @vitest-environment jsdom
 //
-// Regression: pre-2026-07-03 the text-mode render branch dropped the style
-// template entirely and just concatenated children, so a text-style macro
-// like `Eq.eq[prose]` with template `#0 与 #1 相等` would show up as just
-// "a b" — the literal 与 / 相等 chars were lost, and only formula children
-// or self-contained placeholders rendered. Fix: text branch walks the
-// template, splices `#N` at each slot, keeps literals verbatim.
+// Regression tests for the text-mode render pipeline.
+//
+// Pre-2026-07-03: the text branch dropped the style template entirely and
+// just concatenated children, so `Eq.eq[prose]` with template
+// `#0 与 #1 相等` came out as just "a b" — the literal 与 / 相等 chars and
+// the #0 / #1 ordering were both lost.
+//
+// Current pipeline: text-mode nodes go through the same KaTeX pipeline as
+// formula ones. The whole subtree's LaTeX is wrapped in `\text{...}`, and
+// formula children get `$...$` wrapped around them so KaTeX switches back to
+// math mode. Literal text (including CJK — via KaTeX's `.cjk_fallback`) is
+// preserved verbatim.
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
@@ -48,6 +54,11 @@ const query = createMacroTemplateQueryFromDb(db)
 
 afterEach(cleanup)
 
+/** Grab the text content of the KaTeX-rendered root panel. */
+function katexText(container: HTMLElement): string {
+  return container.querySelector('.katex-html')?.textContent ?? ''
+}
+
 describe('text-mode template splicing (regression)', () => {
   it('splices #0 / #1 into the template and keeps literal 与 / 相等', async () => {
     const tree = createSnlSyntaxTreeNode('Eq.eq', {
@@ -58,10 +69,7 @@ describe('text-mode template splicing (regression)', () => {
       <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
     )
     await waitFor(() => {
-      const text = container.querySelector('.snl-text')
-      expect(text).not.toBeNull()
-      // Whole text content must include the literal characters AND both children.
-      const raw = text!.textContent ?? ''
+      const raw = katexText(container)
       expect(raw).toContain('a')
       expect(raw).toContain('b')
       expect(raw).toContain('与')
@@ -78,8 +86,7 @@ describe('text-mode template splicing (regression)', () => {
       <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
     )
     await waitFor(() => {
-      const raw = container.querySelector('.snl-text')?.textContent ?? ''
-      // #0 substituted BEFORE 与; #1 substituted AFTER.
+      const raw = katexText(container)
       const iLhs = raw.indexOf('lhs')
       const iYu = raw.indexOf('与')
       const iRhs = raw.indexOf('rhs')
@@ -100,8 +107,9 @@ describe('text-mode template splicing (regression)', () => {
       <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
     )
     await waitFor(() => {
-      // Missing child slot renders as an .snlMissingArg span.
-      expect(container.querySelector('.snlMissingArg')).not.toBeNull()
+      // Missing #1 renders as `[1]` inside .snlMissingArg (text-mode variant).
+      const missing = container.querySelector('.snlMissingArg')
+      expect(missing).not.toBeNull()
     })
   })
 
@@ -113,14 +121,55 @@ describe('text-mode template splicing (regression)', () => {
       <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
     )
     await waitFor(() => {
-      const raw = container.querySelector('.snl-text')?.textContent ?? ''
-      expect(raw.startsWith('所有人：')).toBe(true)
-      // Children render (each Alice / Bob / Cara appears) and the variadic
-      // join literal 、 appears between them.
+      const raw = katexText(container)
+      expect(raw).toContain('所有人：')
       expect(raw).toContain('Alice')
       expect(raw).toContain('Bob')
       expect(raw).toContain('Cara')
+      // 、 separator lands between children (2 separators for 3 children).
       expect(raw.split('、').length).toBeGreaterThanOrEqual(3)
+    })
+  })
+
+  it('formula root emits raw LaTeX (no \\text{...} wrapping)', async () => {
+    // Sanity-check: formula-mode roots still render as pure math, no \text.
+    const tree = createSnlSyntaxTreeNode('Eq.eq', {
+      children: [leaf('a'), leaf('b')],
+    })
+    // no style override → styles[0] = infix (formula)
+    let latex = ''
+    render(
+      <SnlSyntaxTreeView
+        tree={tree}
+        query={query}
+        macroDb={db}
+        onResolved={(l) => (latex = l)}
+      />,
+    )
+    await waitFor(() => {
+      expect(latex).toContain('=')
+      expect(latex.startsWith('\\text{')).toBe(false)
+    })
+  })
+
+  it('text root wraps its whole latex in \\text{...}', async () => {
+    const tree = createSnlSyntaxTreeNode('Eq.eq', {
+      children: [leaf('a'), leaf('b')],
+    })
+    tree.style = 'prose'
+    let latex = ''
+    render(
+      <SnlSyntaxTreeView
+        tree={tree}
+        query={query}
+        macroDb={db}
+        onResolved={(l) => (latex = l)}
+      />,
+    )
+    await waitFor(() => {
+      expect(latex.startsWith('\\text{')).toBe(true)
+      expect(latex).toContain('与')
+      expect(latex).toContain('相等')
     })
   })
 })
