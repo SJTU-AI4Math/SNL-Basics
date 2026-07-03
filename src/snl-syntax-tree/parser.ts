@@ -7,6 +7,8 @@ type TokenType =
   | 'EQ'
   | 'LPAREN'
   | 'RPAREN'
+  | 'LBRACKET'
+  | 'RBRACKET'
   | 'COMMA'
   | 'EOF'
 
@@ -51,11 +53,15 @@ function tokenize(input: string): Token[] {
       continue
     }
 
-    if (ch === '[' || ch === ']') {
-      throw new SnlSyntaxTreeParseError(
-        `'[' is no longer allowed (style syntax removed in v1). Use dotted suffix: "foo.bar(x)" instead of "foo[bar](x)".`,
-        i,
-      )
+    if (ch === '[') {
+      tokens.push({ type: 'LBRACKET', value: ch, position: i })
+      i += 1
+      continue
+    }
+    if (ch === ']') {
+      tokens.push({ type: 'RBRACKET', value: ch, position: i })
+      i += 1
+      continue
     }
     if (ch === '(') {
       tokens.push({ type: 'LPAREN', value: ch, position: i })
@@ -110,9 +116,18 @@ class Parser {
   }
 
   private parseNode(): SnlSyntaxTree {
-    // 语法入口：IDENT（含点缀后缀）后可跟 (children)。方括号 [style] 语法已废弃。
+    // 语法入口：IDENT（含点缀后缀）后可跟可选的 [style] 方括号，再跟可选的 (children)。
+    // node := IDENT ('[' IDENT ']')? ('(' args ')')?
     const ident = this.expect('IDENT')
     const node = createSnlSyntaxTreeNode(ident.value)
+
+    if (this.peek().type === 'LBRACKET') {
+      this.consume('LBRACKET')
+      // 方括号内必须是单个 IDENT（style tag），不能为空。
+      const styleTok = this.expect('IDENT')
+      node.style = styleTok.value
+      this.expect('RBRACKET')
+    }
 
     if (this.peek().type === 'LPAREN') {
       this.consume('LPAREN')
@@ -158,7 +173,8 @@ class Parser {
 }
 
 /**
- * Parse SNL source (`name(child1,child2(…))`) into a {@link SnlSyntaxTree}.
+ * Parse SNL source (`name[style]?(child1,child2(…))`) into a {@link SnlSyntaxTree}.
+ * The optional `[style]` bracket carries a style-tag override (see SnlMacro.styles).
  * @throws {SnlSyntaxTreeParseError} on malformed input.
  */
 export function parseSnlSyntaxTree(input: string): SnlSyntaxTree {

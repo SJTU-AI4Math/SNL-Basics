@@ -10,6 +10,8 @@
 export interface SnlSyntaxTreeBase {
   /** Macro name — key into SnlMacroDb. */
   name: string
+  /** Style-tag override from the parser's `[style]` bracket; picks `SnlMacro.styles[tag]`. */
+  style?: string
   /** Semantic kind: 'rule' | 'const' | 'binder' | 'bvar' | 'fvar' | ... */
   kind: string
   /** Structural scope marker (e.g. 'binder'), emitted as `data-scope`. */

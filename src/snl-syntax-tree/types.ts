@@ -7,6 +7,12 @@
 export interface SnlSyntaxTree {
   /** Macro name — key into `SnlMacroDb`. */
   name: string
+  /**
+   * Style-tag override from the parser's `[style]` bracket, e.g. `foo[bar]` sets
+   * `style = 'bar'`. Undefined when no bracket — the view falls back to the
+   * macro's `defaultStyle`. Picks an entry in `SnlMacro.styles`.
+   */
+  style?: string
   /** Semantic kind (rule / const / binder / bvar / fvar / …). */
   kind: string
   /**

@@ -22,9 +22,42 @@ describe('parseSnlSyntaxTree', () => {
     expect(() => parseSnlSyntaxTree('a.b(c')).toThrow(SnlSyntaxTreeParseError)
   })
 
-  it('rejects the removed [style] bracket syntax', () => {
-    expect(() => parseSnlSyntaxTree('foo[bar](x)')).toThrow(SnlSyntaxTreeParseError)
-    expect(() => parseSnlSyntaxTree('foo[bar](x)')).toThrow(/no longer allowed/)
+  it('parses a [style] bracket without args → sets node.style', () => {
+    const tree = parseSnlSyntaxTree('foo[bar]')
+    expect(tree.name).toBe('foo')
+    expect(tree.style).toBe('bar')
+    expect(tree.children).toEqual([])
+  })
+
+  it('parses a [style] bracket with args', () => {
+    const tree = parseSnlSyntaxTree('foo[bar](x, y)')
+    expect(tree.name).toBe('foo')
+    expect(tree.style).toBe('bar')
+    expect(tree.children).toHaveLength(2)
+    expect(tree.children[0].name).toBe('x')
+    expect(tree.children[1].name).toBe('y')
+  })
+
+  it('leaves node.style undefined when no bracket is present', () => {
+    const tree = parseSnlSyntaxTree('foo(x)')
+    expect(tree.name).toBe('foo')
+    expect(tree.style).toBeUndefined()
+  })
+
+  it('rejects an empty style bracket foo[]', () => {
+    expect(() => parseSnlSyntaxTree('foo[]')).toThrow(SnlSyntaxTreeParseError)
+  })
+
+  it('rejects a double style bracket foo[a][b]', () => {
+    expect(() => parseSnlSyntaxTree('foo[a][b]')).toThrow(SnlSyntaxTreeParseError)
+  })
+
+  it('rejects an unclosed style bracket foo[a', () => {
+    expect(() => parseSnlSyntaxTree('foo[a')).toThrow(SnlSyntaxTreeParseError)
+  })
+
+  it('rejects a bracket with no macro name [a](x)', () => {
+    expect(() => parseSnlSyntaxTree('[a](x)')).toThrow(SnlSyntaxTreeParseError)
   })
 
   it('parses a dotted multi-suffix name', () => {
