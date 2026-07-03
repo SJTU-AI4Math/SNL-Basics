@@ -27,6 +27,7 @@
     "migrate-db-v1": "node scripts/migrate-macro-db-v1.mjs",
     "migrate-db-v2": "node scripts/migrate-macro-db-v2.mjs",
     "migrate-db-v3": "node scripts/migrate-macro-db-v3.mjs",
+    "migrate-db-v4": "node scripts/migrate-macro-db-v4.mjs",
     "prepublishOnly": "npm run build:lib"
   },
   "peerDependencies": {
