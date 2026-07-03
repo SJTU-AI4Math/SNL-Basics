@@ -6,11 +6,14 @@
       "entries": [],
       "urls": []
     },
-    "katex_react": {
-      "arity": "variadic",
-      "mode": "block",
-      "template": "",
-      "react_renderer_key": "list"
+    "arity": "variadic",
+    "mode": "block",
+    "defaultStyle": "default",
+    "styles": {
+      "default": {
+        "template": "",
+        "react_renderer_key": "list"
+      }
     }
   },
   "sample.table": {
@@ -20,11 +23,14 @@
       "entries": [],
       "urls": []
     },
-    "katex_react": {
-      "arity": "variadic",
-      "mode": "block",
-      "template": "",
-      "react_renderer_key": "table"
+    "arity": "variadic",
+    "mode": "block",
+    "defaultStyle": "default",
+    "styles": {
+      "default": {
+        "template": "",
+        "react_renderer_key": "table"
+      }
     }
   },
   "sample.centered": {
@@ -34,11 +40,14 @@
       "entries": [],
       "urls": []
     },
-    "katex_react": {
-      "arity": "variadic",
-      "mode": "block",
-      "template": "",
-      "react_renderer_key": "centered"
+    "arity": "variadic",
+    "mode": "block",
+    "defaultStyle": "default",
+    "styles": {
+      "default": {
+        "template": "",
+        "react_renderer_key": "centered"
+      }
     }
   },
   "sample.displayFrac": {
@@ -48,12 +57,15 @@
       "entries": [],
       "urls": []
     },
-    "katex_react": {
-      "arity": "fixed",
-      "mode": "formula",
-      "display": "block",
-      "template": "\\frac{#0}{#1}",
-      "kind": "const"
+    "kind": "const",
+    "arity": "fixed",
+    "mode": "formula",
+    "display": "block",
+    "defaultStyle": "default",
+    "styles": {
+      "default": {
+        "template": "\\frac{#0}{#1}"
+      }
     }
   }
 }

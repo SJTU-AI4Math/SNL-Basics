@@ -10,7 +10,7 @@ import {
 import katex from 'katex'
 import type { KatexOptions } from 'katex'
 import type { SnlMacroTemplateQuery } from '../snl-syntax-tree/query'
-import type { SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroDb, SnlMacroStyle } from '../snl-macro/types'
 import { getBindRef, readBindRefFromDom } from '../snl-syntax-tree/binding'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { fvarAppliedHeadLatex } from '../snl-syntax-tree/latex-escape'
@@ -55,19 +55,37 @@ function sanitizeHtmlDataAttr(value: string): string {
 }
 
 /**
- * Auto-wrap a rendered node's latex in a single `\htmlData{name,kind[,bindRef]}`.
+ * Resolve which {@link SnlMacroStyle} to render a node with. The tag comes from
+ * the parser's `[style]` bracket (`node.style`), falling back to the macro's
+ * `defaultStyle`. Throws if the resolved tag isn't a key in `macro.styles`.
+ */
+function resolveStyle(node: SnlSyntaxTree, macro: SnlMacro): SnlMacroStyle {
+  const tag = node.style ?? macro.defaultStyle
+  const style = macro.styles[tag]
+  if (!style) {
+    throw new Error(
+      `unknown style "${tag}" for macro "${macro.name}" ` +
+        `(available: ${Object.keys(macro.styles).join(', ') || '(none)'})`,
+    )
+  }
+  return style
+}
+
+/**
+ * Auto-wrap a rendered node's latex in a single `\htmlData{name,kind[,style][,bindRef]}`.
  * This is the sole place metadata enters the KaTeX output — templates never
  * write `\htmlData` themselves.
  *
- * Kind resolution order (first non-empty wins):
+ * Kind resolution order (first defined wins), with a literal `'fvar'` fallback:
  *   1. `kindOverride` — the caller forcing a specific kind (e.g. bare-fvar
  *      application path emits 'fvar')
  *   2. `node.kind` — set by annotate-bind (quantifiers, bvar/fvar leaves,
  *      binder heads) or by the parser
- *   3. `macroDb[node.name].katex_react.kind` — declared by the macro author
- *      in the DB (rule / const / …); this is how implies / apply / and / or
- *      etc. get their palette color without touching the parser
- *   4. '' → 'default' — falls through to the neutral-grey hover frame
+ *   3. `macroDb[node.name].kind` — declared by the macro author in the DB
+ *      (rule / const / …); this is how implies / apply / and / or etc. get
+ *      their palette color without touching the parser
+ *   4. 'fvar' — un-classified nodes render as free variables (no more grey
+ *      'default' frame)
  */
 function wrapHtmlData(
   node: SnlSyntaxTree,
@@ -76,14 +94,17 @@ function wrapHtmlData(
   kindOverride?: string,
 ): string {
   const name = sanitizeHtmlDataAttr(node.name)
-  const dbKind = node.name ? macroDb[node.name]?.katex_react?.kind : undefined
+  const dbKind = node.name ? macroDb[node.name]?.kind : undefined
   const kind = sanitizeHtmlDataAttr(
-    (kindOverride ?? node.kind ?? dbKind ?? '') || 'default',
+    (kindOverride ?? node.kind ?? dbKind ?? '') || 'fvar',
   )
   const ref = getBindRef(node)
   const bindRefFragment = ref ? `,bindRef=${sanitizeHtmlDataAttr(ref)}` : ''
   const scopeFragment = node.scope ? `,scope=${sanitizeHtmlDataAttr(node.scope)}` : ''
-  return `\\htmlData{name=${name},kind=${kind}${scopeFragment}${bindRefFragment}}{${inner}}`
+  // Emit data-style only when a style was explicitly picked via `[style]`
+  // (helpful for debugging + CSS if consumers want it).
+  const styleFragment = node.style ? `,style=${sanitizeHtmlDataAttr(node.style)}` : ''
+  return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}}{${inner}}`
 }
 
 async function resolveNodeLatex(
@@ -92,7 +113,9 @@ async function resolveNodeLatex(
   cache: Map<string, string>,
   macroDb: SnlMacroDb,
 ): Promise<string> {
-  const hasDbTemplate = Boolean(node.name && macroDb[node.name]?.katex_react?.template)
+  const macro = node.name ? macroDb[node.name] : undefined
+  const style = macro ? resolveStyle(node, macro) : undefined
+  const hasDbTemplate = Boolean(style?.template)
 
   const childLatexList = await Promise.all(
     node.children.map((child) => resolveNodeLatex(child, query, cache, macroDb)),
@@ -106,7 +129,7 @@ async function resolveNodeLatex(
     return wrapHtmlData(node, `${opPart}(${argList})`, macroDb, 'fvar')
   }
 
-  const key = `${node.name}::${node.kind}`
+  const key = `${node.name}::${node.style ?? ''}::${node.kind}`
   let template = cache.get(key)
   if (!template) {
     template = await query({ name: node.name, node })
@@ -118,8 +141,7 @@ async function resolveNodeLatex(
   )
   // Variadic macros fill `#*` with children joined by their configured
   // separator (default ", ") — see fillLatexTemplate.
-  const variadicJoin =
-    (node.name ? macroDb[node.name]?.katex_react?.variadic_join : undefined) ?? ', '
+  const variadicJoin = style?.variadic_join ?? ', '
   const children_joined = childLatexList.join(variadicJoin)
 
   const filled = fillLatexTemplate(template, { ...childValues, children_joined })
@@ -160,7 +182,7 @@ type TooltipState = SnlTooltipState & { interactionKey: string }
 
 /** Resolve a node's render mode from its macro (default 'formula' when unknown). */
 function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): 'formula' | 'text' | 'block' {
-  return db[node.name]?.katex_react?.mode ?? 'formula'
+  return db[node.name]?.mode ?? 'formula'
 }
 
 /**
@@ -169,7 +191,7 @@ function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): 'formula' | 'text' | 'bl
  * nodes' `display` values are ignored within a single render call.
  */
 function nodeDisplay(node: SnlSyntaxTree, db: SnlMacroDb): 'inline' | 'block' {
-  return db[node.name]?.katex_react?.display ?? 'inline'
+  return db[node.name]?.display ?? 'inline'
 }
 
 /**
@@ -548,7 +570,8 @@ export function SnlSyntaxTreeView({
   const renderNode = (node: SnlSyntaxTree): ReactElement => {
     const mode = nodeMode(node, macroDb)
     if (mode === 'block') {
-      const key = macroDb[node.name]?.katex_react?.react_renderer_key
+      const macro = macroDb[node.name]
+      const key = macro ? resolveStyle(node, macro).react_renderer_key : undefined
       const Renderer = key ? mergedHooks.renderers?.[key] : undefined
       if (Renderer) {
         return <Renderer node={node} macroDb={macroDb} renderChild={renderNode} />

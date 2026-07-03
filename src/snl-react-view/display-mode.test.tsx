@@ -11,11 +11,12 @@ function fracMacro(name: string, display?: 'inline' | 'block'): SnlMacro {
     name,
     description: '',
     source: { entries: [], urls: [] },
-    katex_react: {
-      arity: 'fixed',
-      mode: 'formula',
-      template: '\\frac{#0}{#1}',
-      ...(display ? { display } : {}),
+    arity: 'fixed',
+    mode: 'formula',
+    ...(display ? { display } : {}),
+    defaultStyle: 'default',
+    styles: {
+      default: { template: '\\frac{#0}{#1}' },
     },
   }
 }
@@ -32,7 +33,7 @@ function leaf(name: string) {
 
 afterEach(cleanup)
 
-describe('katex_react.display → KaTeX displayMode', () => {
+describe('macro.display → KaTeX displayMode', () => {
   it('display "block" root renders in block mode (.katex-display)', async () => {
     const tree = createSnlSyntaxTreeNode('block.frac', {
       children: [leaf('a'), leaf('b')],

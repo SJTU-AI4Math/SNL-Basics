@@ -12,9 +12,12 @@ function mathMacro(name: string, template: string, variadic_join?: string): SnlM
     name,
     description: '',
     source: { entries: [], urls: [] },
-    katex_react: variadic_join
-      ? { arity: 'variadic', mode: 'formula', template, variadic_join }
-      : { arity: 'variadic', mode: 'formula', template },
+    arity: 'variadic',
+    mode: 'formula',
+    defaultStyle: 'default',
+    styles: {
+      default: variadic_join ? { template, variadic_join } : { template },
+    },
   }
 }
 

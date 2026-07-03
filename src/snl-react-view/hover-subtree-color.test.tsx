@@ -21,15 +21,15 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
   it('applies .snl-single-hover to the hovered subtree while nested subtrees keep their [data-kind]', async () => {
     // forall(x, add(x, mul(x, y))) — add wraps a nested mul subtree.
     const tree = parseSnlSyntaxTree(
-      'FOL.forall.binder(x, Add.add.infix(x, Mul.mul.infix(x, y)))',
+      'FOL.forall(x, Add.add(x, Mul.mul(x, y)))',
     )
     const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
 
     await waitFor(() => {
-      expect(container.querySelector('[data-name="Add.add.infix"]')).not.toBeNull()
+      expect(container.querySelector('[data-name="Add.add"]')).not.toBeNull()
     })
 
-    const addEl = container.querySelector<HTMLElement>('[data-name="Add.add.infix"]')!
+    const addEl = container.querySelector<HTMLElement>('[data-name="Add.add"]')!
     // Simulate the view marking the element under the pointer.
     addEl.classList.add('snl-single-hover')
     expect(addEl.classList.contains('snl-single-hover')).toBe(true)
@@ -40,7 +40,7 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
     // so they escape the hover accent and keep their kind color.
     const nestedKinds = addEl.querySelectorAll('[data-kind]')
     expect(nestedKinds.length).toBeGreaterThan(0)
-    expect(addEl.querySelector('[data-name="Mul.mul.infix"]')).not.toBeNull()
+    expect(addEl.querySelector('[data-name="Mul.mul"]')).not.toBeNull()
     expect(addEl.querySelector('[data-kind="bvar"]')).not.toBeNull()
     expect(addEl.querySelector('[data-kind="fvar"]')).not.toBeNull()
   })

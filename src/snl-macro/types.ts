@@ -17,8 +17,27 @@ export interface SnlMacroSource {
   urls: string[] // fallback URLs (wikipedia, mathlib docs, etc.)
 }
 
+/**
+ * A single render style for a macro. All styles of a macro MUST accept the same
+ * arity (that hard invariant lives on {@link SnlMacro.arity}); a style only
+ * varies the render *output*, never the child count. This is what makes
+ * switching styles (via the parser's `[style]` bracket) always safe without
+ * spec input.
+ */
+export interface SnlMacroStyle {
+  /** LaTeX-native template. See fillLatexTemplate for placeholders (#0/#1/#*/\#). */
+  template: string
+  /** For arity === 'variadic': separator between children in `#*`. Default ", ". */
+  variadic_join?: string
+  /**
+   * Block/text mode dispatch key — see hooks.tsx / block-renderers.tsx.
+   * Only applies when mode !== 'formula'.
+   */
+  react_renderer_key?: string
+}
+
 export interface SnlMacro {
-  /** Globally unique name, e.g. "Add.add.infix" / "FOL.forall" / "pmatrix" */
+  /** Globally unique name, e.g. "Add.add", "FOL.forall", "FOL.forall.typed" */
   name: string
   /** Human-readable description shown in tooltips / docs. */
   description: string
@@ -26,68 +45,42 @@ export interface SnlMacro {
   /** Source-of-truth binding. Resolver: entries[0..] first valid, else urls[0], else null. */
   source: SnlMacroSource
 
-  /** KaTeX-in-React output — the core render path. */
-  katex_react: {
-    /** Argument shape: fixed count vs. variadic. */
-    arity: 'fixed' | 'variadic'
+  /**
+   * Semantic kind (rule / const / bvar / binder / fvar / custom).
+   * If unset, nodes rendered for this macro get `data-kind="fvar"`.
+   * (There is no more `'default'` kind — un-classified = fvar.)
+   */
+  kind?: string
 
-    /** Semantic mode — dispatches to a renderer family. */
-    mode: 'formula' | 'text' | 'block'
-    // formula: render to a latex string, feed to katex.renderToString; the view
-    //        layer auto-wraps the result in \htmlData{name,kind,bindRef}
-    // text:  render to a React <span>, children may be formula or text or block
-    // block: render to a React block element (<div>/<ul>/<table>)
+  /**
+   * Argument shape: fixed count vs. variadic. All styles must accept the
+   * same arity — this is the hard invariant that makes style-switching
+   * always safe without spec input.
+   */
+  arity: 'fixed' | 'variadic'
 
-    /**
-     * Semantic kind for the *whole macro invocation* — surfaces as
-     * `data-kind` on the rendered element and drives the hover palette
-     * (see kind-palette.ts). Common values from the 5 Lean-Expr defaults:
-     *   'rule'   — meta-mathematical rule symbols (∀, ∃, `:`, `def`, apply,
-     *              implies, paren, …)
-     *   'const'  — mathematical constants (add, mul, and, or, …)
-     *   'binder' — binding sites (rare at the macro level; usually set by
-     *              annotate-bind on the first child of a quantifier)
-     * Omit to let annotate-bind's heuristics decide (quantifiers → 'rule',
-     * bare leaves → 'bvar'/'fvar'; structural wrappers → '' = 'default'
-     * neutral-grey frame). Authors can also introduce custom kind names
-     * (they just need a matching palette entry to be colored).
-     */
-    kind?: string
+  /** Semantic render mode. */
+  mode: 'formula' | 'text' | 'block'
 
-    /**
-     * When mode === 'formula': controls KaTeX's displayMode for the ROOT
-     * node's render. Nested formula nodes' `display` values are ignored;
-     * the outermost formula root decides for the whole subtree.
-     *   'inline' (default) — mid-sentence math; \sum sub/sup at side
-     *   'block'            — displayed math; \sum sub/sup above/below, centered
-     * Ignored for mode !== 'formula'.
-     */
-    display?: 'inline' | 'block'
+  /**
+   * When mode === 'formula': controls KaTeX's displayMode for the ROOT
+   * node's render. See R5. Ignored for mode !== 'formula'.
+   */
+  display?: 'inline' | 'block'
 
-    /**
-     * KaTeX template string for formula mode (LaTeX-native placeholders):
-     *   #0 / #1 / ...    fixed-arity children by index
-     *   #*               variadic children joined by variadic_join
-     *   \#               literal `#` character
-     * Node metadata (name / kind / bindings) is NOT written here — the view
-     * layer auto-wraps every node in \htmlData{name=<macro>,kind=<node.kind>}.
-     * Ignored for mode !== 'formula' unless react_renderer_key is unset.
-     */
-    template: string
+  /**
+   * The style tag to use when the SNL source does NOT specify `[style]`.
+   * Must be a key in `styles`. Required (every macro has a default).
+   */
+  defaultStyle: string
 
-    /** For arity === 'variadic': separator between children in `#*`. Default ", ". */
-    variadic_join?: string
-
-    /**
-     * Block/text mode dispatch key — looks up a React renderer in the
-     * registry (SnlRenderHooks.renderers or built-in fallback). Common keys:
-     *   "list"     variadic → <ul><li>{child}</li></ul>
-     *   "table"    variadic → <table> with header row detection
-     *   "centered" variadic → <div style="text-align:center">
-     * Undefined = fall through to template + katex.renderToString (formula mode).
-     */
-    react_renderer_key?: string
-  }
+  /**
+   * All render styles keyed by tag. In `foo[bar](x)`, `bar` picks
+   * `styles['bar']`. Without brackets, `styles[defaultStyle]` is used.
+   * Every macro has at least one style. Style tags are
+   * `[A-Za-z_][A-Za-z0-9_]*` (parser IDENT rules).
+   */
+  styles: Record<string, SnlMacroStyle>
 }
 
 /** The flat macro database: name → macro. */

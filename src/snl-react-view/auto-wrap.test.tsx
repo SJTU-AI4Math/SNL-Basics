@@ -13,12 +13,12 @@ const query = createMacroTemplateQueryFromDb(db)
 afterEach(cleanup)
 
 describe('auto-wrap \\htmlData', () => {
-  it('wraps every rendered node in data-name/data-kind (Add.add.infix)', async () => {
-    const tree = parseSnlSyntaxTree('Add.add.infix(a,b)')
+  it('wraps every rendered node in data-name/data-kind (Add.add)', async () => {
+    const tree = parseSnlSyntaxTree('Add.add(a,b)')
     const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
 
     await waitFor(() => {
-      expect(container.querySelector('[data-name="Add.add.infix"]')).not.toBeNull()
+      expect(container.querySelector('[data-name="Add.add"]')).not.toBeNull()
     })
 
     const html = container.querySelector('.katex-html')!.innerHTML
@@ -33,7 +33,7 @@ describe('auto-wrap \\htmlData', () => {
   })
 
   it('emits data-scope="binder" + bindRef for a quantifier (bvar-scope highlighting)', async () => {
-    const tree = parseSnlSyntaxTree('FOL.forall.binder(x,x)')
+    const tree = parseSnlSyntaxTree('FOL.forall(x,x)')
     const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
 
     await waitFor(() => {

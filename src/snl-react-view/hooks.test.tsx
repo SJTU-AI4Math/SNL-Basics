@@ -5,15 +5,19 @@ import type { SnlMacro } from '../snl-macro/types'
 import type { SnlTooltipState } from './hooks'
 
 const macro: SnlMacro = {
-  name: 'Add.add.infix',
+  name: 'Add.add',
   description: '加法运算',
   source: { entries: [], urls: [] },
-  katex_react: { arity: 'fixed', mode: 'formula', template: '' },
+  kind: 'const',
+  arity: 'fixed',
+  mode: 'formula',
+  defaultStyle: 'infix',
+  styles: { infix: { template: '#0 + #1' } },
 }
 
 describe('defaultRenderHooks', () => {
   it('resolveMacroInfo reads macro.description', async () => {
-    const info = await defaultRenderHooks.resolveMacroInfo!('Add.add.infix', macro)
+    const info = await defaultRenderHooks.resolveMacroInfo!('Add.add', macro)
     expect(info.description).toBe('加法运算')
   })
 
@@ -31,7 +35,7 @@ describe('defaultRenderHooks', () => {
       visible: true,
       x: 10,
       y: 20,
-      name: 'Add.add.infix',
+      name: 'Add.add',
       kind: 'const',
       variableRole: 'none',
       bindingHint: '',

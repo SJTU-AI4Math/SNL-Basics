@@ -49,11 +49,13 @@
 /* Hover model: the element directly under the pointer gets `.snl-single-hover`.
    Kinds present in the palette get their color / border-shadow / background
    from the injected palette CSS (kind-palette.ts::paletteToCss). Kinds NOT
-   in the palette (e.g. structural wrappers where annotate-bind didn't set
-   a kind, so the view emits `data-kind="default"`) still need a visible
-   hover frame — so we give every `.snl-single-hover` a neutral-grey default
-   treatment here. Palette selectors are more specific (they include
-   `[data-kind="X"]`) so they win for known kinds.
+   in the palette (e.g. a custom `data-kind` an author declared without a
+   matching palette entry) still need a visible hover frame — so we give every
+   `.snl-single-hover` a neutral-grey default treatment here. Palette selectors
+   are more specific (they include `[data-kind="X"]`) so they win for known
+   kinds. Un-classified nodes are now `data-kind="fvar"` (a palette kind), so
+   the grey frame is only a fallback for custom kinds — `data-kind="default"`
+   is never emitted anymore.
 
    The "border" is drawn with `box-shadow`, NOT the CSS `border` property,
    so hovering never reflows the surrounding layout. `box-shadow` and

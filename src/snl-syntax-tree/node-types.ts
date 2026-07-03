@@ -2,7 +2,7 @@
  * SNL syntax tree node types (v1). Discriminated union on `mode`.
  *
  * The parser produces nodes with `mode` derived from the referenced
- * macro's `katex_react.mode` field. If no macro is found in the DB, the
+ * macro's `mode` field. If no macro is found in the DB, the
  * default is 'formula' (fallback to fvar/bvar/binder heuristics).
  */
 
@@ -35,7 +35,7 @@ export interface SnlSyntaxTreeTextNode extends SnlSyntaxTreeBase {
 /** A node rendered as a block element via a registered block renderer. */
 export interface SnlSyntaxTreeBlockNode extends SnlSyntaxTreeBase {
   mode: 'block'
-  /** Which block renderer to invoke — matches katex_react.react_renderer_key. */
+  /** Which block renderer to invoke — matches the resolved style's react_renderer_key. */
   block_kind: 'list' | 'table' | 'centered' | 'custom'
 }
 

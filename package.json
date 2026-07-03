@@ -1,7 +1,7 @@
 {
   "name": "@snl-basics/react",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
   "type": "module",
   "exports": {

@@ -53,7 +53,7 @@ export function Demo() {
 
   // 2. Parse SNL source, then annotate binders/bound-variables for hover.
   const tree: SnlSyntaxTree = useMemo(() => {
-    const t = parseSnlSyntaxTree('FOL.forall.binder(x, FOL.eq.infix(x, x))')
+    const t = parseSnlSyntaxTree('FOL.forall(x, FOL.eq(x, x))')
     annotateBindings(t)
     return t
   }, [])
@@ -115,7 +115,7 @@ import 'katex/dist/katex.min.css'
 import '@snl-basics/react/style.css'
 
 const query = createMacroTemplateQueryFromDb(bundledMacroDb)
-const tree = parseSnlSyntaxTree('Add.add.infix(a, b)')
+const tree = parseSnlSyntaxTree('Add.add(a, b)')
 // <SnlSyntaxTreeView tree={tree} macroDb={bundledMacroDb} query={query} />
 ```
 
@@ -151,18 +151,68 @@ but the workaround is easy to miss.
 
 Macro names must match `[A-Za-z0-9_.]+` — no hyphens, no other punctuation.
 Dashes break KaTeX's `\htmlData` tokenizer (it treats `-` as binary minus and
-mangles the attribute value). Use camelCase for compound style suffixes:
-`Add.add.infix`, `DivRing.div.inlineDiv`, `FOL.forall.binderTyped`.
+mangles the attribute value). A dotted suffix is part of a macro's identity when
+it's a genuinely different macro (e.g. different arity): `FOL.forall` vs.
+`FOL.forall.typed` (2 vs. 3 children). Render *variations that keep the same
+arity* are **styles**, not separate macros — see below.
+
+## Styles & the `[style]` bracket
+
+A macro declares one or more render **styles** keyed by tag, plus a
+`defaultStyle`. All styles of a macro **must accept the same arity** — a style
+only varies the render output, never the child count. This is the invariant that
+makes switching styles always safe:
+
+```
+node := IDENT ('[' IDENT ']')? ('(' args ')')?
+```
+
+The optional `[style]` bracket picks a style; without it the macro's
+`defaultStyle` is used.
+
+```ts
+parseSnlSyntaxTree('FOL.implies(a, b)')          // default style → a \rightarrow b
+parseSnlSyntaxTree('FOL.implies[double](a, b)')  // 'double' style → a \Rightarrow b
+parseSnlSyntaxTree('Mul.mul(a, b)')              // default 'implicit' → ab
+parseSnlSyntaxTree('Mul.mul[infix](a, b)')       // 'infix' → a \cdot b
+```
+
+The picked tag is exposed on the node as `node.style` and (when explicit) is
+emitted as `data-style="<tag>"` on the rendered element. An unknown tag is a
+render error.
 
 ## Concepts
 
-- **Macro** — a named renderer carrying only render fields (`name`,
-  `description`, `source`, `katex_react`). Consumer-owned output strategies
-  (`typst` / `latex` / `markdown` / `text`) live downstream. Fields and
-  semantics live in [`src/snl-macro/types.ts`](src/snl-macro/types.ts).
-- **Syntax tree** — the parsed representation (`{ name, kind, mdata, children }`).
-  At render time each node is dispatched by its macro's `katex_react.mode`:
-  `formula` (KaTeX), `text` (`<span>`), or `block` (a registered block renderer).
+- **Macro** — a named renderer. Top-level fields are `name`, `description`,
+  `source`, optional `kind`, `arity`, `mode`, optional `display`, `defaultStyle`,
+  and a `styles` map. Consumer-owned output strategies (`typst` / `latex` /
+  `markdown` / `text`) live downstream. Fields and semantics live in
+  [`src/snl-macro/types.ts`](src/snl-macro/types.ts):
+
+  ```ts
+  const macro: SnlMacro = {
+    name: 'Mul.mul',
+    description: '…',
+    source: { entries: [], urls: [] },
+    kind: 'const',          // optional; unset → nodes render as data-kind="fvar"
+    arity: 'fixed',
+    mode: 'formula',
+    defaultStyle: 'implicit',
+    styles: {
+      implicit: { template: '#0#1' },
+      infix:    { template: '#0 \\cdot #1' },
+    },
+  }
+  ```
+
+- **Kind** — optional semantic tag surfaced as `data-kind` (drives the hover
+  palette: `rule` / `const` / `bvar` / `binder` / `fvar`). If a macro sets no
+  `kind` and annotation assigns none, the node defaults to **`fvar`** (there is
+  no more neutral-grey `default` kind).
+- **Syntax tree** — the parsed representation
+  (`{ name, style?, kind, mdata, children }`). At render time each node is
+  dispatched by its macro's `mode`: `formula` (KaTeX), `text` (`<span>`), or
+  `block` (a registered block renderer), and rendered with the resolved style.
 - **Hooks** — every interaction is customizable via `SnlRenderHooks`: supply your
   own `renderTooltip`, `onHover` / `onLeave`, `resolveMacroInfo`, `resolveSource`,
   `highlightStrategy`, or `renderers`. Anything you omit falls back to
@@ -181,8 +231,8 @@ Templates use LaTeX-native macro-argument syntax:
 
 `\htmlData` is added automatically by the view layer — do not write it
 yourself in templates. Every node is wrapped in
-`\htmlData{name=<macro>,kind=<node.kind>}{...}` so hover interactions
-work with zero boilerplate.
+`\htmlData{name=<macro>,kind=<node.kind>[,style=<tag>]}{...}` so hover
+interactions work with zero boilerplate.
 
 ## Customization examples
 
@@ -260,13 +310,15 @@ const hooks: SnlRenderHooks = {
 
 ### Custom block renderer
 
-Register a renderer keyed by the macro's `katex_react.react_renderer_key`. Spread
+Register a renderer keyed by the resolved style's `react_renderer_key`. Spread
 `defaultRenderers` to keep the built-in `list` / `table` / `centered` renderers:
 
 ```tsx
 import { defaultRenderers, type SnlBlockRenderer } from '@snl-basics/react'
 
-// Macro DB entry: { katex_react: { arity: 'variadic', mode: 'block', react_renderer_key: 'callout', template: '' } }
+// Macro DB entry:
+// { arity: 'variadic', mode: 'block', defaultStyle: 'default',
+//   styles: { default: { template: '', react_renderer_key: 'callout' } } }
 const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
   <aside className="callout">
     {node.children.map((child, i) => (
@@ -291,9 +343,10 @@ your DB to try the built-in renderers.
 
 Output backends (Typst / LaTeX / Markdown / plain text) are **consumer-side
 concerns** and are no longer part of this library (removed in 0.4.0). A `SnlMacro`
-now carries only render fields (`name`, `description`, `source`, `katex_react`).
-Downstream extensions that need to emit those formats own their own extended
-macro shape and conversion code (see SNL-Doc-Extension).
+now carries only render fields (`name`, `description`, `source`, `kind`, `arity`,
+`mode`, `display`, `defaultStyle`, `styles`). Downstream extensions that need to
+emit those formats own their own extended macro shape (with per-style backends)
+and conversion code (see SNL-Doc-Extension).
 
 ## API reference
 

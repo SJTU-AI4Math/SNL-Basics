@@ -162,7 +162,7 @@ export interface SnlBlockRendererProps {
 export type SnlBlockRenderer = FC<SnlBlockRendererProps>
 
 /**
- * Registry mapping a macro's `katex_react.react_renderer_key` to a block
+ * Registry mapping a macro style's `react_renderer_key` to a block
  * renderer. Consumers may add their own custom keys.
  */
 export type SnlRendererRegistry = Record<string, SnlBlockRenderer>

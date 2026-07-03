@@ -1,1 +1,1 @@
-export type { SnlMacro, SnlMacroDb } from './types'
+export type { SnlMacro, SnlMacroDb, SnlMacroStyle, SnlMacroSource } from './types'
