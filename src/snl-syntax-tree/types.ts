@@ -1,7 +1,7 @@
 /**
  * Runtime syntax-tree node shape produced by the parser. Flat and mode-agnostic:
- * `{ name, kind, mdata, children }`. Render mode is derived from the referenced
- * macro's `katex_react.mode` at render time (see the `node-types` union for the
+ * `{ name, kind, mdata, children }`. Render mode is derived from the resolved
+ * `SnlMacroStyle.mode` at render time (see the `node-types` union for the
  * forward-looking discriminated form).
  */
 export interface SnlSyntaxTree {
@@ -10,7 +10,7 @@ export interface SnlSyntaxTree {
   /**
    * Style-tag override from the parser's `[style]` bracket, e.g. `foo[bar]` sets
    * `style = 'bar'`. Undefined when no bracket — the view falls back to the
-   * macro's `defaultStyle`. Picks an entry in `SnlMacro.styles`.
+   * macro's first style (`SnlMacro.styles[0]`).
    */
   style?: string
   /** Semantic kind (rule / const / binder / bvar / fvar / …). */

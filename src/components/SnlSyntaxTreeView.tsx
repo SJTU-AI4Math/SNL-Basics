@@ -56,16 +56,21 @@ function sanitizeHtmlDataAttr(value: string): string {
 
 /**
  * Resolve which {@link SnlMacroStyle} to render a node with. The tag comes from
- * the parser's `[style]` bracket (`node.style`), falling back to the macro's
- * `defaultStyle`. Throws if the resolved tag isn't a key in `macro.styles`.
+ * the parser's `[style]` bracket (`node.style`); when missing, `styles[0]` is
+ * the implicit default. Throws if the resolved tag isn't in `macro.styles`.
  */
 function resolveStyle(node: SnlSyntaxTree, macro: SnlMacro): SnlMacroStyle {
-  const tag = node.style ?? macro.defaultStyle
-  const style = macro.styles[tag]
+  if (macro.styles.length === 0) {
+    throw new Error(`macro "${macro.name}" has no styles`)
+  }
+  if (node.style == null) {
+    return macro.styles[0]
+  }
+  const style = macro.styles.find((s) => s.tag === node.style)
   if (!style) {
     throw new Error(
-      `unknown style "${tag}" for macro "${macro.name}" ` +
-        `(available: ${Object.keys(macro.styles).join(', ') || '(none)'})`,
+      `unknown style "${node.style}" for macro "${macro.name}" ` +
+        `(available: ${macro.styles.map((s) => s.tag).join(', ') || '(none)'})`,
     )
   }
   return style
@@ -180,18 +185,34 @@ export interface SnlSyntaxTreeViewProps {
 /** Internal tooltip state = public SnlTooltipState + interaction key for staleness checks. */
 type TooltipState = SnlTooltipState & { interactionKey: string }
 
-/** Resolve a node's render mode from its macro (default 'formula' when unknown). */
+/**
+ * Resolve a node's render mode from its macro's resolved style.
+ * The mode lives per-style (v2/v5): different styles of the same macro can
+ * render as formula vs text/block. Defaults to 'formula' when unknown.
+ */
 function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): 'formula' | 'text' | 'block' {
-  return db[node.name]?.mode ?? 'formula'
+  const macro = db[node.name]
+  if (!macro) return 'formula'
+  try {
+    return resolveStyle(node, macro).mode
+  } catch {
+    return 'formula'
+  }
 }
 
 /**
- * Resolve a node's KaTeX display mode from its macro (default 'inline').
- * Only the ROOT node of an independent KaTeX render counts — nested formula
- * nodes' `display` values are ignored within a single render call.
+ * Resolve a node's KaTeX display mode from its macro's resolved style
+ * (default 'inline'). Only the ROOT node of an independent KaTeX render counts —
+ * nested formula nodes' `display` values are ignored within a single render call.
  */
 function nodeDisplay(node: SnlSyntaxTree, db: SnlMacroDb): 'inline' | 'block' {
-  return db[node.name]?.display ?? 'inline'
+  const macro = db[node.name]
+  if (!macro) return 'inline'
+  try {
+    return resolveStyle(node, macro).display ?? 'inline'
+  } catch {
+    return 'inline'
+  }
 }
 
 /**
@@ -295,7 +316,7 @@ function useSnlSyntaxTreeRender(
 
 /**
  * Renders an (annotated) {@link SnlSyntaxTree} to KaTeX-in-React with hover
- * interactions. Dispatches by the root macro's `katex_react.mode`
+ * interactions. Dispatches by the resolved style's `mode`
  * (formula / text / block). All interaction is customizable via `hooks`.
  */
 export function SnlSyntaxTreeView({

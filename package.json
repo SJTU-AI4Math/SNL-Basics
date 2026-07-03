@@ -1,7 +1,7 @@
 {
   "name": "@snl-basics/react",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
   "type": "module",
   "exports": {
@@ -28,6 +28,7 @@
     "migrate-db-v2": "node scripts/migrate-macro-db-v2.mjs",
     "migrate-db-v3": "node scripts/migrate-macro-db-v3.mjs",
     "migrate-db-v4": "node scripts/migrate-macro-db-v4.mjs",
+    "migrate-db-v5": "node scripts/migrate-macro-db-v5.mjs",
     "prepublishOnly": "npm run build:lib"
   },
   "peerDependencies": {

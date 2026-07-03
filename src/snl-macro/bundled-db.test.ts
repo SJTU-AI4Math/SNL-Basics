@@ -3,10 +3,12 @@ import { bundledMacroDb, bundledSampleMacroDb } from './bundled-db'
 
 test('bundledMacroDb has expected macros', () => {
   expect(bundledMacroDb['Add.add']).toBeDefined()
-  expect(bundledMacroDb['Add.add'].styles['infix'].template).toContain('#0')
-  expect(bundledMacroDb['Add.add'].styles['infix'].template).not.toContain('@CHILD')
-  expect(bundledMacroDb['Add.add'].styles['infix'].template).not.toContain('\\htmlData')
-  expect(bundledMacroDb['Add.add'].mode).toBe('formula')
+  const infix = bundledMacroDb['Add.add'].styles.find((s) => s.tag === 'infix')
+  expect(infix).toBeDefined()
+  expect(infix!.template).toContain('#0')
+  expect(infix!.template).not.toContain('@CHILD')
+  expect(infix!.template).not.toContain('\\htmlData')
+  expect(infix!.mode).toBe('formula')
   expect(bundledMacroDb['pmatrix']).toBeDefined()
 })
 test('bundledMacroDb macros carry only render fields (no output backends)', () => {
@@ -16,24 +18,32 @@ test('bundledMacroDb macros carry only render fields (no output backends)', () =
   expect(macro.markdown).toBeUndefined()
   expect(macro.text).toBeUndefined()
 })
-test('every macro has a defaultStyle that is a key in styles', () => {
+test('every macro has at least one style with a mode', () => {
   for (const macro of Object.values(bundledMacroDb)) {
-    expect(macro.styles[macro.defaultStyle]).toBeDefined()
+    expect(Array.isArray(macro.styles)).toBe(true)
+    expect(macro.styles.length).toBeGreaterThan(0)
+    for (const s of macro.styles) {
+      expect(typeof s.tag).toBe('string')
+      expect(['formula', 'text', 'block']).toContain(s.mode)
+    }
   }
 })
-test('no macro still uses the legacy mode value "math"', () => {
+test('no macro carries the legacy top-level mode/display/defaultStyle', () => {
   for (const macro of Object.values(bundledMacroDb)) {
-    expect(macro.mode).not.toBe('math')
+    const raw = macro as unknown as Record<string, unknown>
+    expect(raw.mode).toBeUndefined()
+    expect(raw.display).toBeUndefined()
+    expect(raw.defaultStyle).toBeUndefined()
+    expect(raw.katex_react).toBeUndefined()
   }
 })
-test('the katex_react nesting is gone (styles map replaces it)', () => {
-  const macro = bundledMacroDb['Mul.mul'] as unknown as Record<string, unknown>
-  expect(macro.katex_react).toBeUndefined()
-  expect(bundledMacroDb['Mul.mul'].defaultStyle).toBe('implicit')
-  expect(Object.keys(bundledMacroDb['Mul.mul'].styles).sort()).toEqual(['implicit', 'infix'])
+test('Mul.mul default (styles[0]) is implicit; infix follows', () => {
+  const styles = bundledMacroDb['Mul.mul'].styles
+  expect(styles.map((s) => s.tag)).toEqual(['implicit', 'infix'])
 })
-test('bundledSampleMacroDb has block samples', () => {
+test('bundledSampleMacroDb has block samples with per-style mode', () => {
   expect(bundledSampleMacroDb['sample.list']).toBeDefined()
-  expect(bundledSampleMacroDb['sample.list'].mode).toBe('block')
-  expect(bundledSampleMacroDb['sample.list'].styles['default'].react_renderer_key).toBe('list')
+  const def = bundledSampleMacroDb['sample.list'].styles[0]
+  expect(def.mode).toBe('block')
+  expect(def.react_renderer_key).toBe('list')
 })

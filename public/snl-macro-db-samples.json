@@ -7,14 +7,14 @@
       "urls": []
     },
     "arity": "variadic",
-    "mode": "block",
-    "defaultStyle": "default",
-    "styles": {
-      "default": {
+    "styles": [
+      {
+        "tag": "default",
+        "mode": "block",
         "template": "",
         "react_renderer_key": "list"
       }
-    }
+    ]
   },
   "sample.table": {
     "name": "sample.table",
@@ -24,14 +24,14 @@
       "urls": []
     },
     "arity": "variadic",
-    "mode": "block",
-    "defaultStyle": "default",
-    "styles": {
-      "default": {
+    "styles": [
+      {
+        "tag": "default",
+        "mode": "block",
         "template": "",
         "react_renderer_key": "table"
       }
-    }
+    ]
   },
   "sample.centered": {
     "name": "sample.centered",
@@ -41,14 +41,14 @@
       "urls": []
     },
     "arity": "variadic",
-    "mode": "block",
-    "defaultStyle": "default",
-    "styles": {
-      "default": {
+    "styles": [
+      {
+        "tag": "default",
+        "mode": "block",
         "template": "",
         "react_renderer_key": "centered"
       }
-    }
+    ]
   },
   "sample.displayFrac": {
     "name": "sample.displayFrac",
@@ -59,13 +59,13 @@
     },
     "kind": "const",
     "arity": "fixed",
-    "mode": "formula",
-    "display": "block",
-    "defaultStyle": "default",
-    "styles": {
-      "default": {
-        "template": "\\frac{#0}{#1}"
+    "styles": [
+      {
+        "tag": "default",
+        "mode": "formula",
+        "template": "\\frac{#0}{#1}",
+        "display": "block"
       }
-    }
+    ]
   }
 }

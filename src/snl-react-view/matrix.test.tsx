@@ -13,11 +13,11 @@ function mathMacro(name: string, template: string, variadic_join?: string): SnlM
     description: '',
     source: { entries: [], urls: [] },
     arity: 'variadic',
-    mode: 'formula',
-    defaultStyle: 'default',
-    styles: {
-      default: variadic_join ? { template, variadic_join } : { template },
-    },
+    styles: [
+      variadic_join
+        ? { tag: 'default', mode: 'formula', template, variadic_join }
+        : { tag: 'default', mode: 'formula', template },
+    ],
   }
 }
 

@@ -12,12 +12,14 @@ function fracMacro(name: string, display?: 'inline' | 'block'): SnlMacro {
     description: '',
     source: { entries: [], urls: [] },
     arity: 'fixed',
-    mode: 'formula',
-    ...(display ? { display } : {}),
-    defaultStyle: 'default',
-    styles: {
-      default: { template: '\\frac{#0}{#1}' },
-    },
+    styles: [
+      {
+        tag: 'default',
+        mode: 'formula',
+        ...(display ? { display } : {}),
+        template: '\\frac{#0}{#1}',
+      },
+    ],
   }
 }
 

@@ -57,11 +57,13 @@ export async function loadSnlMacroDb(url: string = DEFAULT_SNL_MACRO_DB_URL): Pr
 function buildQueryBody(db: SnlMacroDb): SnlMacroTemplateQuery {
   return async ({ name, node }) => {
     const macro = db[name]
-    if (macro) {
-      const tag = node.style ?? macro.defaultStyle
-      const template = macro.styles?.[tag]?.template
-      if (template) {
-        return template
+    if (macro && macro.styles.length > 0) {
+      const style =
+        node.style == null
+          ? macro.styles[0]
+          : macro.styles.find((s) => s.tag === node.style)
+      if (style?.template) {
+        return style.template
       }
     }
     // No DB template → bare symbol. The view layer auto-wraps the result in

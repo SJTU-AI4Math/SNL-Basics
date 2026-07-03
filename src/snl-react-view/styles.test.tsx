@@ -13,7 +13,7 @@ const query = createMacroTemplateQueryFromDb(db)
 afterEach(cleanup)
 
 describe('style dispatch via [style] bracket', () => {
-  it('uses defaultStyle (infix → \\rightarrow) when no bracket is given', async () => {
+  it('uses the first style (infix → \\rightarrow) when no bracket is given', async () => {
     const tree = parseSnlSyntaxTree('FOL.implies(a,b)')
     let latex = ''
     render(

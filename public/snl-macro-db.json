@@ -8,16 +8,18 @@
     },
     "kind": "const",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "frac",
-    "styles": {
-      "frac": {
+    "styles": [
+      {
+        "tag": "frac",
+        "mode": "formula",
         "template": "\\frac{#0}{#1}"
       },
-      "inlineDiv": {
+      {
+        "tag": "inlineDiv",
+        "mode": "formula",
         "template": "#0 \\div #1"
       }
-    }
+    ]
   },
   "Add.add": {
     "name": "Add.add",
@@ -28,13 +30,13 @@
     },
     "kind": "const",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "infix",
-    "styles": {
-      "infix": {
+    "styles": [
+      {
+        "tag": "infix",
+        "mode": "formula",
         "template": "#0 + #1"
       }
-    }
+    ]
   },
   "Sub.sub": {
     "name": "Sub.sub",
@@ -45,13 +47,13 @@
     },
     "kind": "const",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "infix",
-    "styles": {
-      "infix": {
+    "styles": [
+      {
+        "tag": "infix",
+        "mode": "formula",
         "template": "#0 - #1"
       }
-    }
+    ]
   },
   "Mul.mul": {
     "name": "Mul.mul",
@@ -62,16 +64,18 @@
     },
     "kind": "const",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "implicit",
-    "styles": {
-      "infix": {
-        "template": "#0 \\cdot #1"
-      },
-      "implicit": {
+    "styles": [
+      {
+        "tag": "implicit",
+        "mode": "formula",
         "template": "#0#1"
+      },
+      {
+        "tag": "infix",
+        "mode": "formula",
+        "template": "#0 \\cdot #1"
       }
-    }
+    ]
   },
   "Pow.pow": {
     "name": "Pow.pow",
@@ -82,13 +86,13 @@
     },
     "kind": "const",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "sup",
-    "styles": {
-      "sup": {
+    "styles": [
+      {
+        "tag": "sup",
+        "mode": "formula",
         "template": "{#0}^{#1}"
       }
-    }
+    ]
   },
   "FOL.forall": {
     "name": "FOL.forall",
@@ -99,13 +103,13 @@
     },
     "kind": "rule",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "binder",
-    "styles": {
-      "binder": {
+    "styles": [
+      {
+        "tag": "binder",
+        "mode": "formula",
         "template": "\\forall\\, #0,\\, #1"
       }
-    }
+    ]
   },
   "FOL.forall.typed": {
     "name": "FOL.forall.typed",
@@ -116,13 +120,13 @@
     },
     "kind": "rule",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "binder",
-    "styles": {
-      "binder": {
+    "styles": [
+      {
+        "tag": "binder",
+        "mode": "formula",
         "template": "\\forall\\left(#0 : #1\\right),\\, #2"
       }
-    }
+    ]
   },
   "FOL.exists": {
     "name": "FOL.exists",
@@ -133,13 +137,13 @@
     },
     "kind": "rule",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "binder",
-    "styles": {
-      "binder": {
+    "styles": [
+      {
+        "tag": "binder",
+        "mode": "formula",
         "template": "\\exists\\, #0,\\, #1"
       }
-    }
+    ]
   },
   "FOL.exists.typed": {
     "name": "FOL.exists.typed",
@@ -150,13 +154,13 @@
     },
     "kind": "rule",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "binder",
-    "styles": {
-      "binder": {
+    "styles": [
+      {
+        "tag": "binder",
+        "mode": "formula",
         "template": "\\exists\\left(#0 : #1\\right),\\, #2"
       }
-    }
+    ]
   },
   "FOL.app": {
     "name": "FOL.app",
@@ -167,13 +171,13 @@
     },
     "kind": "rule",
     "arity": "variadic",
-    "mode": "formula",
-    "defaultStyle": "apply",
-    "styles": {
-      "apply": {
+    "styles": [
+      {
+        "tag": "apply",
+        "mode": "formula",
         "template": "#0\\left(#1\\right)"
       }
-    }
+    ]
   },
   "FOL.paren": {
     "name": "FOL.paren",
@@ -184,13 +188,13 @@
     },
     "kind": "rule",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "round",
-    "styles": {
-      "round": {
+    "styles": [
+      {
+        "tag": "round",
+        "mode": "formula",
         "template": "\\left(#0\\right)"
       }
-    }
+    ]
   },
   "FOL.implies": {
     "name": "FOL.implies",
@@ -201,16 +205,18 @@
     },
     "kind": "rule",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "infix",
-    "styles": {
-      "infix": {
+    "styles": [
+      {
+        "tag": "infix",
+        "mode": "formula",
         "template": "#0 \\rightarrow #1"
       },
-      "double": {
+      {
+        "tag": "double",
+        "mode": "formula",
         "template": "#0 \\Rightarrow #1"
       }
-    }
+    ]
   },
   "FOL.and": {
     "name": "FOL.and",
@@ -221,13 +227,13 @@
     },
     "kind": "const",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "infix",
-    "styles": {
-      "infix": {
+    "styles": [
+      {
+        "tag": "infix",
+        "mode": "formula",
         "template": "#0 \\land #1"
       }
-    }
+    ]
   },
   "FOL.or": {
     "name": "FOL.or",
@@ -238,13 +244,13 @@
     },
     "kind": "const",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "infix",
-    "styles": {
-      "infix": {
+    "styles": [
+      {
+        "tag": "infix",
+        "mode": "formula",
         "template": "#0 \\lor #1"
       }
-    }
+    ]
   },
   "FOL.not": {
     "name": "FOL.not",
@@ -255,13 +261,13 @@
     },
     "kind": "const",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "prefix",
-    "styles": {
-      "prefix": {
+    "styles": [
+      {
+        "tag": "prefix",
+        "mode": "formula",
         "template": "\\neg #0"
       }
-    }
+    ]
   },
   "FOL.eq": {
     "name": "FOL.eq",
@@ -272,13 +278,13 @@
     },
     "kind": "rule",
     "arity": "fixed",
-    "mode": "formula",
-    "defaultStyle": "infix",
-    "styles": {
-      "infix": {
+    "styles": [
+      {
+        "tag": "infix",
+        "mode": "formula",
         "template": "#0 = #1"
       }
-    }
+    ]
   },
   "pmatrix": {
     "name": "pmatrix",
@@ -290,14 +296,14 @@
       ]
     },
     "arity": "variadic",
-    "mode": "formula",
-    "defaultStyle": "default",
-    "styles": {
-      "default": {
+    "styles": [
+      {
+        "tag": "default",
+        "mode": "formula",
         "template": "\\begin{pmatrix}#*\\end{pmatrix}",
         "variadic_join": " \\\\ "
       }
-    }
+    ]
   },
   "matrix.row": {
     "name": "matrix.row",
@@ -307,13 +313,13 @@
       "urls": []
     },
     "arity": "variadic",
-    "mode": "formula",
-    "defaultStyle": "default",
-    "styles": {
-      "default": {
+    "styles": [
+      {
+        "tag": "default",
+        "mode": "formula",
         "template": "#*",
         "variadic_join": " & "
       }
-    }
+    ]
   }
 }
