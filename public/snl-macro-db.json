@@ -7,19 +7,19 @@
       "urls": []
     },
     "kind": "const",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "frac",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "\\frac{#0}{#1}"
       },
       {
         "tag": "inlineDiv",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0 \\div #1"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "Add.add": {
     "name": "Add.add",
@@ -29,14 +29,14 @@
       "urls": []
     },
     "kind": "const",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "infix",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0 + #1"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "Sub.sub": {
     "name": "Sub.sub",
@@ -46,14 +46,14 @@
       "urls": []
     },
     "kind": "const",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "infix",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0 - #1"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "Mul.mul": {
     "name": "Mul.mul",
@@ -63,19 +63,19 @@
       "urls": []
     },
     "kind": "const",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "implicit",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0#1"
       },
       {
         "tag": "infix",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0 \\cdot #1"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "Pow.pow": {
     "name": "Pow.pow",
@@ -85,14 +85,14 @@
       "urls": []
     },
     "kind": "const",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "sup",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "{#0}^{#1}"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "FOL.forall": {
     "name": "FOL.forall",
@@ -102,14 +102,14 @@
       "urls": []
     },
     "kind": "rule",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "binder",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "\\forall\\, #0,\\, #1"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "FOL.forall.typed": {
     "name": "FOL.forall.typed",
@@ -119,14 +119,14 @@
       "urls": []
     },
     "kind": "rule",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "binder",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "\\forall\\left(#0 : #1\\right),\\, #2"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "FOL.exists": {
     "name": "FOL.exists",
@@ -136,14 +136,14 @@
       "urls": []
     },
     "kind": "rule",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "binder",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "\\exists\\, #0,\\, #1"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "FOL.exists.typed": {
     "name": "FOL.exists.typed",
@@ -153,14 +153,14 @@
       "urls": []
     },
     "kind": "rule",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "binder",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "\\exists\\left(#0 : #1\\right),\\, #2"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "FOL.app": {
     "name": "FOL.app",
@@ -170,14 +170,14 @@
       "urls": []
     },
     "kind": "rule",
-    "arity": "variadic",
     "styles": [
       {
         "tag": "apply",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0\\left(#1\\right)"
       }
-    ]
+    ],
+    "dynamic_arity": true
   },
   "FOL.paren": {
     "name": "FOL.paren",
@@ -187,14 +187,14 @@
       "urls": []
     },
     "kind": "rule",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "round",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "\\left(#0\\right)"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "FOL.implies": {
     "name": "FOL.implies",
@@ -204,19 +204,19 @@
       "urls": []
     },
     "kind": "rule",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "infix",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0 \\rightarrow #1"
       },
       {
         "tag": "double",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0 \\Rightarrow #1"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "FOL.and": {
     "name": "FOL.and",
@@ -226,14 +226,14 @@
       "urls": []
     },
     "kind": "const",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "infix",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0 \\land #1"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "FOL.or": {
     "name": "FOL.or",
@@ -243,14 +243,14 @@
       "urls": []
     },
     "kind": "const",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "infix",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0 \\lor #1"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "FOL.not": {
     "name": "FOL.not",
@@ -260,14 +260,14 @@
       "urls": []
     },
     "kind": "const",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "prefix",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "\\neg #0"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "FOL.eq": {
     "name": "FOL.eq",
@@ -277,14 +277,14 @@
       "urls": []
     },
     "kind": "rule",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "infix",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#0 = #1"
       }
-    ]
+    ],
+    "dynamic_arity": false
   },
   "pmatrix": {
     "name": "pmatrix",
@@ -295,15 +295,15 @@
         "https://en.wikipedia.org/wiki/Matrix_(mathematics)"
       ]
     },
-    "arity": "variadic",
     "styles": [
       {
         "tag": "default",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "\\begin{pmatrix}#*\\end{pmatrix}",
         "variadic_join": " \\\\ "
       }
-    ]
+    ],
+    "dynamic_arity": true
   },
   "matrix.row": {
     "name": "matrix.row",
@@ -312,14 +312,14 @@
       "entries": [],
       "urls": []
     },
-    "arity": "variadic",
     "styles": [
       {
         "tag": "default",
-        "mode": "formula",
+        "mode": "formula_inline",
         "template": "#*",
         "variadic_join": " & "
       }
-    ]
+    ],
+    "dynamic_arity": true
   }
 }

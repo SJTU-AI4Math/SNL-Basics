@@ -29,9 +29,9 @@ const eqDualMode: SnlMacro = {
   description: 'equality',
   source: { entries: [], urls: [] },
   kind: 'const',
-  arity: 'fixed',
+  dynamic_arity: false,
   styles: [
-    { tag: 'infix', mode: 'formula', template: '#0 = #1' },
+    { tag: 'infix', mode: 'formula_inline', template: '#0 = #1' },
     { tag: 'prose', mode: 'text', template: '#0 与 #1 相等' },
   ],
 }
@@ -40,7 +40,7 @@ const listAllPeople: SnlMacro = {
   name: 'ListPeople.all',
   description: 'list all people, comma-separated',
   source: { entries: [], urls: [] },
-  arity: 'variadic',
+  dynamic_arity: true,
   styles: [
     { tag: 'default', mode: 'text', template: '所有人：#*', variadic_join: '、' },
   ],

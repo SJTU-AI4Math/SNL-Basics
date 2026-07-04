@@ -133,19 +133,31 @@ function wrapHtmlData(
  */
 function wrapForParent(
   childLatex: string,
-  childMode: 'formula' | 'text' | 'block',
-  parentMode: 'formula' | 'text',
+  childMode: SnlMacroStyle['mode'],
+  parentMode: SnlMacroStyle['mode'],
 ): string {
-  if (parentMode === 'formula' && childMode === 'text') {
+  const childBucket = modeBucket(childMode)
+  const parentBucket = modeBucket(parentMode)
+  if (parentBucket === 'formula' && childBucket === 'text') {
     return `\\text{${childLatex}}`
   }
-  if (parentMode === 'text' && childMode === 'formula') {
+  if (parentBucket === 'text' && childBucket === 'formula') {
     return `$${childLatex}$`
   }
-  // Same mode (formula/formula or text/text), or child is block (best-effort
+  // Same bucket (formula/formula or text/text), or child is block (best-effort
   // — the caller should never hand block children to this branch, but if it
   // happens we just splice the raw string).
   return childLatex
+}
+
+/** Collapse the 4-value mode into the LaTeX-visible bucket used by
+ *  wrapForParent + resolveRootLatex. Both formula sub-modes behave
+ *  identically for splicing purposes — only the ROOT render decides
+ *  KaTeX displayMode. */
+function modeBucket(mode: SnlMacroStyle['mode']): 'formula' | 'text' | 'block' {
+  if (mode === 'block') return 'block'
+  if (mode === 'text') return 'text'
+  return 'formula'
 }
 
 async function resolveNodeLatex(
@@ -157,31 +169,25 @@ async function resolveNodeLatex(
   const macro = node.name ? macroDb[node.name] : undefined
   const style = macro ? resolveStyle(node, macro) : undefined
   const hasDbTemplate = Boolean(style?.template)
-  const selfMode = (style?.mode ?? 'formula') as 'formula' | 'text' | 'block'
-  // Block children have no meaningful LaTeX form (their renderer lives on the
-  // React side). We keep the recursion going so hover metadata stays
-  // consistent but effectively treat block subtrees as formula for LaTeX
-  // splicing purposes — the caller (React) never actually reads these bytes
-  // for a block child.
-  const selfLatexMode: 'formula' | 'text' =
-    selfMode === 'block' ? 'formula' : selfMode
+  const selfMode: SnlMacroStyle['mode'] = style?.mode ?? 'formula_inline'
+  const selfBucket = modeBucket(selfMode)
 
   // Recurse first (children generate their own LaTeX in their own mode).
   const childRawList = await Promise.all(
     node.children.map((child) => resolveNodeLatex(child, query, cache, macroDb)),
   )
 
-  // Then wrap each child for THIS node's LaTeX environment (selfLatexMode).
+  // Then wrap each child for THIS node's LaTeX environment.
   const wrappedChildren = childRawList.map((latex, index) => {
     const child = node.children[index]
     const childMacro = child?.name ? macroDb[child.name] : undefined
-    let cMode: 'formula' | 'text' | 'block' = 'formula'
+    let cMode: SnlMacroStyle['mode'] = 'formula_inline'
     try {
-      cMode = childMacro ? resolveStyle(child, childMacro).mode : 'formula'
+      cMode = childMacro ? resolveStyle(child, childMacro).mode : 'formula_inline'
     } catch {
-      cMode = 'formula'
+      cMode = 'formula_inline'
     }
-    return wrapForParent(latex, cMode, selfLatexMode)
+    return wrapForParent(latex, cMode, selfMode)
   })
 
   // 裸名应用且无 DB 模板（如 op(x,y,FOL.and(x,y))）：\operatorname{op}(…)，子式逗号分隔。
@@ -202,17 +208,21 @@ async function resolveNodeLatex(
   const childValues = Object.fromEntries(
     wrappedChildren.map((latex, index) => [`child${index}`, latex]),
   )
-  // Variadic macros fill `#*` with children joined by their configured
-  // separator (default ", " for formula, "" for text — text macros usually
-  // want no separator so authors can put punctuation in the template itself).
-  const defaultJoin = selfLatexMode === 'text' ? '' : ', '
+  // Dynamic-arity macros fill `#*` with children joined by their configured
+  // separator, optionally wrapped in `variadic_left` / `variadic_right`
+  // delimiters. Defaults: `', '` (formula) or `''` (text) for the join,
+  // empty for the delimiters. All three are ignored for fixed-arity macros.
+  const defaultJoin = selfBucket === 'text' ? '' : ', '
   const variadicJoin = style?.variadic_join ?? defaultJoin
-  const children_joined = wrappedChildren.join(variadicJoin)
+  const variadicLeft = style?.variadic_left ?? ''
+  const variadicRight = style?.variadic_right ?? ''
+  const children_joined =
+    variadicLeft + wrappedChildren.join(variadicJoin) + variadicRight
 
   const filled = fillLatexTemplate(
     template,
     { ...childValues, children_joined },
-    selfLatexMode,
+    selfBucket === 'block' ? 'formula' : selfBucket,
   )
   // A pure pass-through variadic helper (template === '#*', e.g. matrix.row)
   // emits top-level alignment tokens (`&` / `\\`) that must stay ungrouped for
@@ -236,12 +246,12 @@ async function resolveRootLatex(
 ): Promise<string> {
   const raw = await resolveNodeLatex(root, query, cache, macroDb)
   const macro = macroDb[root.name]
-  let rootMode: 'formula' | 'text' | 'block' = 'formula'
+  let rootMode: SnlMacroStyle['mode'] = 'formula_inline'
   if (macro) {
     try {
       rootMode = resolveStyle(root, macro).mode
     } catch {
-      rootMode = 'formula'
+      rootMode = 'formula_inline'
     }
   }
   return rootMode === 'text' ? `\\text{${raw}}` : raw
@@ -277,32 +287,29 @@ type TooltipState = SnlTooltipState & { interactionKey: string }
  * The mode lives per-style (v2/v5): different styles of the same macro can
  * render as formula vs text/block. Defaults to 'formula' when unknown.
  */
-function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): 'formula' | 'text' | 'block' {
+/**
+ * Resolve a node's render mode from its macro's resolved style.
+ * The mode lives per-style (v3): different styles of the same macro can
+ * render as formula/text/block. Defaults to 'formula_inline' when unknown.
+ */
+function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): SnlMacroStyle['mode'] {
   const macro = db[node.name]
-  if (!macro) return 'formula'
+  if (!macro) return 'formula_inline'
   try {
     return resolveStyle(node, macro).mode
   } catch {
-    return 'formula'
+    return 'formula_inline'
   }
 }
 
 /**
- * Resolve a node's KaTeX display mode from its macro's resolved style
- * (default 'inline'). Only the ROOT node of an independent KaTeX render counts —
- * nested formula nodes' `display` values are ignored within a single render call.
- * Text-mode nodes always render inline regardless of the `display` field.
+ * Resolve a node's KaTeX display mode. Only the ROOT node of an independent
+ * KaTeX render counts — nested formula nodes' `display` values are ignored
+ * within a single render call. In v3 the display axis is folded into the
+ * mode itself: `formula_display` → block, everything else → inline.
  */
 function nodeDisplay(node: SnlSyntaxTree, db: SnlMacroDb): 'inline' | 'block' {
-  const macro = db[node.name]
-  if (!macro) return 'inline'
-  try {
-    const style = resolveStyle(node, macro)
-    if (style.mode !== 'formula') return 'inline'
-    return style.display ?? 'inline'
-  } catch {
-    return 'inline'
-  }
+  return nodeMode(node, db) === 'formula_display' ? 'block' : 'inline'
 }
 
 function MathSpan({

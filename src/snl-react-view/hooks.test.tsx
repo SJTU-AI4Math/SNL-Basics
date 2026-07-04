@@ -9,8 +9,8 @@ const macro: SnlMacro = {
   description: '加法运算',
   source: { entries: [], urls: [] },
   kind: 'const',
-  arity: 'fixed',
-  styles: [{ tag: 'infix', mode: 'formula', template: '#0 + #1' }],
+  dynamic_arity: false,
+  styles: [{ tag: 'infix', mode: 'formula_inline', template: '#0 + #1' }],
 }
 
 describe('defaultRenderHooks', () => {

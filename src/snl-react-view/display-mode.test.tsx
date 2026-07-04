@@ -11,12 +11,11 @@ function fracMacro(name: string, display?: 'inline' | 'block'): SnlMacro {
     name,
     description: '',
     source: { entries: [], urls: [] },
-    arity: 'fixed',
+    dynamic_arity: false,
     styles: [
       {
         tag: 'default',
-        mode: 'formula',
-        ...(display ? { display } : {}),
+        mode: display === 'block' ? 'formula_display' : 'formula_inline',
         template: '\\frac{#0}{#1}',
       },
     ],

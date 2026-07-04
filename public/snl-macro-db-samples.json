@@ -6,7 +6,6 @@
       "entries": [],
       "urls": []
     },
-    "arity": "variadic",
     "styles": [
       {
         "tag": "default",
@@ -14,7 +13,8 @@
         "template": "",
         "react_renderer_key": "list"
       }
-    ]
+    ],
+    "dynamic_arity": true
   },
   "sample.table": {
     "name": "sample.table",
@@ -23,7 +23,6 @@
       "entries": [],
       "urls": []
     },
-    "arity": "variadic",
     "styles": [
       {
         "tag": "default",
@@ -31,7 +30,8 @@
         "template": "",
         "react_renderer_key": "table"
       }
-    ]
+    ],
+    "dynamic_arity": true
   },
   "sample.centered": {
     "name": "sample.centered",
@@ -40,7 +40,6 @@
       "entries": [],
       "urls": []
     },
-    "arity": "variadic",
     "styles": [
       {
         "tag": "default",
@@ -48,7 +47,8 @@
         "template": "",
         "react_renderer_key": "centered"
       }
-    ]
+    ],
+    "dynamic_arity": true
   },
   "sample.displayFrac": {
     "name": "sample.displayFrac",
@@ -58,14 +58,13 @@
       "urls": []
     },
     "kind": "const",
-    "arity": "fixed",
     "styles": [
       {
         "tag": "default",
-        "mode": "formula",
-        "template": "\\frac{#0}{#1}",
-        "display": "block"
+        "mode": "formula_display",
+        "template": "\\frac{#0}{#1}"
       }
-    ]
+    ],
+    "dynamic_arity": false
   }
 }

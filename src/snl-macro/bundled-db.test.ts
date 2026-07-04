@@ -8,7 +8,7 @@ test('bundledMacroDb has expected macros', () => {
   expect(infix!.template).toContain('#0')
   expect(infix!.template).not.toContain('@CHILD')
   expect(infix!.template).not.toContain('\\htmlData')
-  expect(infix!.mode).toBe('formula')
+  expect(infix!.mode).toBe('formula_inline')
   expect(bundledMacroDb['pmatrix']).toBeDefined()
 })
 test('bundledMacroDb macros carry only render fields (no output backends)', () => {
@@ -24,7 +24,7 @@ test('every macro has at least one style with a mode', () => {
     expect(macro.styles.length).toBeGreaterThan(0)
     for (const s of macro.styles) {
       expect(typeof s.tag).toBe('string')
-      expect(['formula', 'text', 'block']).toContain(s.mode)
+      expect(['formula_inline', 'formula_display', 'text', 'block']).toContain(s.mode)
     }
   }
 })

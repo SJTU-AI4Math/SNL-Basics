@@ -1,20 +1,28 @@
 /**
- * SnlMacro v2 — the single source of truth for a macro. See Plan.md and
- * Phase 2 spec for design rationale.
+ * SnlMacro v3 (v6 on-disk) — the single source of truth for a macro.
  *
  * A macro is a globally-unique named renderer. Multiple macros MAY share the
  * same source entry (e.g. Add.add.infix and Add.add.implicit both refer to the
  * "addition" entry). Consumer-owned output backends (Typst / LaTeX / Markdown /
  * plain text) live in downstream extensions, not in this render-only library.
  *
- * v2 (v5 on-disk) changes vs v1 (v4 on-disk):
- *  - `SnlMacro.styles` is now an **ordered array** of {@link SnlMacroStyle};
- *    `styles[0]` is the implicit default (no more separate `defaultStyle`).
- *  - `mode` and `display` moved from macro-level onto each style — different
- *    styles of the same macro can render as formula vs text/block (e.g.
- *    `Eq.eq[formula]` → "a = b" vs `Eq.eq[prose]` → "a 与 b 相等").
- *  - Style tag now lives on the style itself (`style.tag`) instead of being
- *    the map key.
+ * v3 (v6 on-disk) changes vs v2 (v5 on-disk):
+ *  - `SnlMacroStyle.mode` is flattened to 4 parallel values:
+ *    `'formula_inline' | 'formula_display' | 'text' | 'block'`.
+ *    The old `display` axis (only meaningful for the ROOT of a KaTeX render)
+ *    is folded into the formula mode itself — this removes a fake-orthogonal
+ *    axis that only had two visible states in the entire product.
+ *  - `SnlMacro.arity: 'fixed' | 'variadic'` is replaced by a boolean
+ *    `SnlMacro.dynamic_arity: boolean` (default false). "Variadic" was a
+ *    LaTeX-jargon word for what the user experiences as "argument count is
+ *    dynamic" — the name matches the checkbox in the editor.
+ *  - `SnlMacroStyle.variadic_join` is split into three: `variadic_left`,
+ *    `variadic_join`, `variadic_right` (all optional strings, default ''),
+ *    so a macro like `matrix.row` can spell out the surrounding delimiters
+ *    without embedding them awkwardly in the template.
+ *  - `SnlMacro.tags?: string[]` and `SnlMacroStyle.tags?: string[]` — free
+ *    text labels for search / bookkeeping. Backslashes are forbidden (they'd
+ *    interfere with any downstream LaTeX/text search).
  */
 /**
  * Source-of-truth binding for a macro. Resolver order: `entries[0..]` first
@@ -28,13 +36,13 @@ export interface SnlMacroSource {
 
 /**
  * A single render style of a macro. All styles of a macro MUST accept the same
- * arity (that hard invariant lives on {@link SnlMacro.arity}); a style only
- * varies the render *output*, never the child count. This is what makes
+ * arity (that hard invariant lives on {@link SnlMacro.dynamic_arity}); a style
+ * only varies the render *output*, never the child count. This is what makes
  * switching styles (via the parser's `[style]` bracket) always safe without
  * spec input.
  *
- * `mode` and `display` live per style so a single macro can carry a formula
- * style ("a = b") alongside a prose style ("a 与 b 相等").
+ * `mode` lives per style so a single macro can carry a formula style
+ * ("a = b") alongside a prose style ("a 与 b 相等").
  */
 export interface SnlMacroStyle {
   /**
@@ -42,22 +50,34 @@ export interface SnlMacroStyle {
    * (parser IDENT rules). Must be unique within a macro's `styles` array.
    */
   tag: string
-  /** Semantic render mode for this style. */
-  mode: 'formula' | 'text' | 'block'
   /**
-   * When `mode === 'formula'`: controls KaTeX's displayMode for the ROOT
-   * node's render. See R5. Ignored for `mode !== 'formula'`.
+   * Semantic render mode. Four flat parallel values (v3):
+   *   - `formula_inline`  — KaTeX inline math ($...$)
+   *   - `formula_display` — KaTeX display math ($$...$$)
+   *   - `text`            — KaTeX `\text{...}`; may host formulas via `$...$`
+   *   - `block`           — React-rendered block (list / table / centered / …)
    */
-  display?: 'inline' | 'block'
+  mode: 'formula_inline' | 'formula_display' | 'text' | 'block'
   /** LaTeX-native template. See fillLatexTemplate for placeholders: #0, #1, #* (variadic), \# (literal). */
   template: string
-  /** For arity === 'variadic': separator between children in `#*`. Default ", ". */
+  /**
+   * Delimiters + separator for `#*` in a dynamic-arity macro. Ignored when
+   * {@link SnlMacro.dynamic_arity} is false. Defaults: `''` / `', '` (formula)
+   * or `''` (text) / `''`. Rendered as `variadic_left + children.join(variadic_join) + variadic_right`.
+   */
+  variadic_left?: string
   variadic_join?: string
+  variadic_right?: string
   /**
    * Block/text mode dispatch key — see hooks.tsx / block-renderers.tsx.
-   * Only applies when mode !== 'formula'.
+   * Only applies when mode is 'block' or 'text'.
    */
   react_renderer_key?: string
+  /**
+   * Free-text labels attached to this style — used by downstream search
+   * indices. Backslashes are forbidden. Optional.
+   */
+  tags?: string[]
 }
 
 export interface SnlMacro {
@@ -77,11 +97,12 @@ export interface SnlMacro {
   kind?: string
 
   /**
-   * Argument shape: fixed count vs. variadic. All styles must accept the
-   * same arity — this is the hard invariant that makes style-switching
-   * always safe without spec input.
+   * True when the macro's child count is not fixed by its template — its
+   * default (styles[0]) template must contain `#*`. All styles must agree
+   * on this flag; it's a macro-level invariant so switching styles never
+   * changes the arity contract at the call site.
    */
-  arity: 'fixed' | 'variadic'
+  dynamic_arity: boolean
 
   /**
    * All render styles in order. `styles[0]` is the **implicit default** used
@@ -91,6 +112,12 @@ export interface SnlMacro {
    * (parser IDENT rules) and must be unique within this array.
    */
   styles: SnlMacroStyle[]
+
+  /**
+   * Free-text labels attached to the macro itself — used by downstream
+   * search indices. Backslashes are forbidden. Optional.
+   */
+  tags?: string[]
 }
 
 /** The flat macro database: name → macro. */
