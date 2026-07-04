@@ -1,23 +1,35 @@
-/* SNL 语法树 KaTeX 视图：与 SnlSyntaxTreeView 配套；使用前请同时引入 katex/dist/katex.min.css */
+/* SNL 语法树 KaTeX 视图：与 SnlSyntaxTreeView 配套；使用前请同时引入 katex/dist/katex.min.css
+ *
+ * Design note (2026-07-04 猫猫): this stylesheet must NOT paint the wrapping
+ * `.katex-panel` / `.katex-html` divs with borders / backgrounds / padding /
+ * min-height. Those are structural wrappers that host the palette CSS scoping
+ * and the hover event delegation — they must be visually invisible so a
+ * consumer that embeds an SNL preview inside a compact list row (macro
+ * package table, dashboard entry list, …) doesn't inherit some universal
+ * "framed panel" look. Any decorative frame belongs on the CALLER, applied
+ * to their own container.
+ *
+ * What lives here:
+ *   1. `.katex-html` CSS variables (needed by kind-palette.ts::paletteToCss).
+ *   2. Hover-model layout rules that require `.katex-html` as a scoping
+ *      selector (kind chips, single-hover frame, missing-arg placeholder,
+ *      nested-subtree color-preservation).
+ *   3. Block-renderer structural rules (list / table / centered).
+ *   4. Tooltip widget styling.
+ */
 
 .katex-error {
   color: #b42318;
   margin-top: 6px;
 }
 
-.katex-panel {
-  min-height: 120px;
-}
+/* `.katex-panel` intentionally has no visual styling — see file header.
+ * The class is kept as a stable hook so tests / consumers can select the
+ * outer wrapper without traversing anonymous divs. */
 
 .katex-html {
   --snl-c-hover-accent:     #f59e0b;
   --snl-c-hover-bg:         rgba(245, 158, 11, 0.10);
-  padding: 8px;
-  background: var(--vscode-editor-background, #fcfcfd);
-  color: var(--vscode-editor-foreground, #111);
-  border: 1px solid var(--vscode-panel-border, var(--vscode-contrastBorder, #e4e7ec));
-  border-radius: 8px;
-  overflow-x: auto;
 }
 
 /* Per-kind colors (base text + hover treatment) and the binding-scope highlight

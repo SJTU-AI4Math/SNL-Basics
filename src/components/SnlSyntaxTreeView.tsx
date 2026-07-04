@@ -100,8 +100,15 @@ function wrapHtmlData(
 ): string {
   const name = sanitizeHtmlDataAttr(node.name)
   const dbKind = node.name ? macroDb[node.name]?.kind : undefined
+  // Kind resolution priority: kindOverride > node.kind > macroDb kind > 'fvar'.
+  // NB: `??` is wrong here — `createSnlSyntaxTreeNode` defaults `kind: ''`
+  // (empty string is the canonical "not annotated" sentinel), and `??`
+  // treats '' as a value, which would pin every unannotated node to '' and
+  // hide the macro's declared kind from the palette (so changing a macro's
+  // `kind` field in a live editor would not update its preview color).
+  // `||` correctly falls through empty strings to `dbKind` / 'fvar'.
   const kind = sanitizeHtmlDataAttr(
-    (kindOverride ?? node.kind ?? dbKind ?? '') || 'fvar',
+    kindOverride || node.kind || dbKind || 'fvar',
   )
   const ref = getBindRef(node)
   const bindRefFragment = ref ? `,bindRef=${sanitizeHtmlDataAttr(ref)}` : ''
