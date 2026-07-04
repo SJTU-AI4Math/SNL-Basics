@@ -1,0 +1,131 @@
+import { describe, expect, it } from 'vitest'
+import { SnlSyntaxTreeParseError, parseSnlSyntaxTree } from './parser'
+
+// Coverage for the 2026-07-04-late delimited-name / `@` / bvar-fvar semantics.
+
+describe('delimited name forms', () => {
+  it('parses %text% as a text envMode node', () => {
+    const t = parseSnlSyntaxTree('%hello world%')
+    expect(t.name).toBe('hello world')
+    expect(t.envMode).toBe('text')
+    expect(t.children).toEqual([])
+  })
+
+  it('parses $latex$ as a formula_inline envMode node', () => {
+    const t = parseSnlSyntaxTree('$x + y$')
+    expect(t.name).toBe('x + y')
+    expect(t.envMode).toBe('formula_inline')
+  })
+
+  it('parses $$latex$$ as a formula_display envMode node', () => {
+    const t = parseSnlSyntaxTree('$$\\int_0^1 x\\,dx$$')
+    expect(t.name).toBe('\\int_0^1 x\\,dx')
+    expect(t.envMode).toBe('formula_display')
+  })
+
+  it('does NOT parse `$x$` inside `%…%` as a nested subtree', () => {
+    // The whole payload is the string; the inner $ is part of the name.
+    const t = parseSnlSyntaxTree('%foo $x$ bar%')
+    expect(t.name).toBe('foo $x$ bar')
+    expect(t.envMode).toBe('text')
+    expect(t.children).toEqual([])
+  })
+
+  it('accepts a style bracket and children on a delimited name', () => {
+    const t = parseSnlSyntaxTree('$f$[custom](x, y)')
+    expect(t.name).toBe('f')
+    expect(t.envMode).toBe('formula_inline')
+    expect(t.style).toBe('custom')
+    expect(t.children.map((c) => c.name)).toEqual(['x', 'y'])
+  })
+
+  it('rejects unclosed %', () => {
+    expect(() => parseSnlSyntaxTree('%hello')).toThrow(SnlSyntaxTreeParseError)
+  })
+  it('rejects unclosed $', () => {
+    expect(() => parseSnlSyntaxTree('$hello')).toThrow(SnlSyntaxTreeParseError)
+  })
+  it('rejects unclosed $$', () => {
+    expect(() => parseSnlSyntaxTree('$$hello')).toThrow(SnlSyntaxTreeParseError)
+  })
+})
+
+describe('@ binder prefix', () => {
+  it('marks the node as kind=binder', () => {
+    const t = parseSnlSyntaxTree('@foo')
+    expect(t.name).toBe('foo')
+    expect(t.kind).toBe('binder')
+  })
+
+  it('recursively marks every descendant as binder', () => {
+    const t = parseSnlSyntaxTree('@Tuple(a, b)')
+    expect(t.kind).toBe('binder')
+    expect(t.children[0].kind).toBe('binder')
+    expect(t.children[1].kind).toBe('binder')
+  })
+
+  it('composes with $…$ delimited name', () => {
+    const t = parseSnlSyntaxTree('@$x + y$(a)')
+    expect(t.name).toBe('x + y')
+    expect(t.envMode).toBe('formula_inline')
+    expect(t.kind).toBe('binder')
+    expect(t.children[0].name).toBe('a')
+    expect(t.children[0].kind).toBe('binder')
+  })
+
+  it('composes with %…% delimited name', () => {
+    const t = parseSnlSyntaxTree('@%my binder%(a)')
+    expect(t.name).toBe('my binder')
+    expect(t.envMode).toBe('text')
+    expect(t.kind).toBe('binder')
+    expect(t.children[0].kind).toBe('binder')
+  })
+})
+
+describe('binder scoping — @ contributes names to later siblings', () => {
+  it('scopes an @-marked child so a later delimited leaf becomes bvar', () => {
+    // FooScope(@x, $x$) — parser sees @x as a binder in the scope; the
+    // later $x$ sibling looks up "x" and resolves to bvar.
+    const t = parseSnlSyntaxTree('FooScope(@x, $x$)')
+    expect(t.children[0].kind).toBe('binder')
+    expect(t.children[1].name).toBe('x')
+    expect(t.children[1].kind).toBe('bvar')
+    // Later child should carry the fresh bindRef stamped by annotate-bind.
+    const bref = (t.children[1].mdata as { bindRef?: string } | null)?.bindRef
+    expect(typeof bref).toBe('string')
+    expect(bref?.length).toBeGreaterThan(0)
+  })
+
+  it('a complex @-delimited binder rarely matches — usually fvar', () => {
+    // The whole delim payload is the name. Complex payloads seldom match a
+    // later leaf, so those leaves default to fvar.
+    const t = parseSnlSyntaxTree('FooScope(@$x + y$, $x$)')
+    expect(t.children[1].name).toBe('x')
+    expect(t.children[1].kind).toBe('fvar')
+  })
+
+  it('@Tuple(a, b) contributes ALL of Tuple, a, b as active binders', () => {
+    const t = parseSnlSyntaxTree('FooScope(@Tuple(a, b), Body($a$, $b$, $c$))')
+    const body = t.children[1]
+    expect(body.children[0].name).toBe('a')
+    expect(body.children[0].kind).toBe('bvar')
+    expect(body.children[1].name).toBe('b')
+    expect(body.children[1].kind).toBe('bvar')
+    expect(body.children[2].name).toBe('c')
+    expect(body.children[2].kind).toBe('fvar')
+  })
+})
+
+describe('parseSnlSyntaxTree options.activeBinderIds', () => {
+  it('threads pre-existing binders through to bvar/fvar resolution', () => {
+    // Parsing a fragment: caller knows `x` is already in scope.
+    const t = parseSnlSyntaxTree('P($x$, $y$)', { activeBinderIds: ['x'] })
+    expect(t.children[0].kind).toBe('bvar')
+    expect(t.children[1].kind).toBe('fvar')
+  })
+
+  it('defaults to empty (context-free) when not provided', () => {
+    const t = parseSnlSyntaxTree('P($x$)')
+    expect(t.children[0].kind).toBe('fvar')
+  })
+})

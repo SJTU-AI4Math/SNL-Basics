@@ -1,6 +1,23 @@
 import { annotateBindings } from './annotate-bind'
 import { createSnlSyntaxTreeNode, type SnlSyntaxTree } from './types'
 
+// 2026-07-04-late 猫猫 spec 2 — Parser supports `%`, `$`, `$$`, `@` delimited
+// name-forms in addition to the plain identifier form.
+//
+//   %text%   → name = text between %s, envMode = 'text'
+//   $expr$   → name = LaTeX between $s, envMode = 'formula_inline'
+//   $$expr$$ → name = LaTeX between $$s, envMode = 'formula_display'
+//   @<name>  → node kind = 'binder' (recursively — the whole subtree, so all
+//              descendants are binders too). Compatible with any of the above:
+//              @foo, @$x + y$, @%my binder%. Bare `@` is equivalent to `@$`
+//              (parser reads the following identifier or delimited form).
+//
+// Delimiter contents are FLAT strings. `%foo $x$ bar%` produces one node whose
+// name is the literal string `foo $x$ bar` — the `$x$` inside is NOT a nested
+// SNL subtree. KaTeX will render the outer as `\text{...}` and it handles
+// nested `$…$` on its own. This matches 猫猫 spec: 「一个 delim 之间的内容
+// 一定只属于同一个 Macro 节点」.
+
 type TokenType =
   | 'IDENT'
   | 'NUMBER'
@@ -10,6 +27,10 @@ type TokenType =
   | 'LBRACKET'
   | 'RBRACKET'
   | 'COMMA'
+  | 'AT'
+  | 'PERCENT_DELIMITED'      // %…%
+  | 'DOLLAR_DELIMITED'       // $…$
+  | 'DOLLAR2_DELIMITED'      // $$…$$
   | 'EOF'
 
 interface Token {
@@ -29,6 +50,84 @@ export class SnlSyntaxTreeParseError extends Error {
   }
 }
 
+/** Options passed to {@link parseSnlSyntaxTree}. */
+export interface SnlSyntaxTreeParseOptions {
+  /**
+   * Binder names already in scope OUTSIDE this fragment — used by
+   * annotate-bind to decide bvar vs fvar for delimited-name leaves whose
+   * name matches an enclosing binder. Defaults to empty (context-free).
+   *
+   * Consumers that parse a subtree in isolation (e.g. an incremental editor
+   * re-parsing one node) should pass the enclosing tree's currently-active
+   * binder names here so the sub-parse resolves bvar/fvar correctly.
+   */
+  activeBinderIds?: string[]
+}
+
+/**
+ * Try to read `%…%`, `$…$`, or `$$…$$` starting at input[i]. Returns the
+ * matched token OR null (i unchanged). Advances `i` past the closing
+ * delimiter on success.
+ *
+ * The scanner is dumb about content: it copies characters verbatim until the
+ * matching closing delimiter, WITHOUT recursion or escape handling. That's
+ * per-spec — delim contents are flat strings.
+ *
+ * `$$…$$` MUST be attempted before `$…$` so `$$x$$` isn't misread as `$` + `$x$` + `$`.
+ */
+function tryReadDelimited(
+  input: string,
+  start: number,
+): { token: Token; next: number } | null {
+  const rest = input.length - start
+  // $$…$$
+  if (rest >= 4 && input[start] === '$' && input[start + 1] === '$') {
+    const close = input.indexOf('$$', start + 2)
+    if (close < 0) {
+      throw new SnlSyntaxTreeParseError('Unclosed $$ delimiter', start)
+    }
+    return {
+      token: {
+        type: 'DOLLAR2_DELIMITED',
+        value: input.slice(start + 2, close),
+        position: start,
+      },
+      next: close + 2,
+    }
+  }
+  // $…$
+  if (rest >= 2 && input[start] === '$') {
+    const close = input.indexOf('$', start + 1)
+    if (close < 0) {
+      throw new SnlSyntaxTreeParseError('Unclosed $ delimiter', start)
+    }
+    return {
+      token: {
+        type: 'DOLLAR_DELIMITED',
+        value: input.slice(start + 1, close),
+        position: start,
+      },
+      next: close + 1,
+    }
+  }
+  // %…%
+  if (rest >= 2 && input[start] === '%') {
+    const close = input.indexOf('%', start + 1)
+    if (close < 0) {
+      throw new SnlSyntaxTreeParseError('Unclosed % delimiter', start)
+    }
+    return {
+      token: {
+        type: 'PERCENT_DELIMITED',
+        value: input.slice(start + 1, close),
+        position: start,
+      },
+      next: close + 1,
+    }
+  }
+  return null
+}
+
 function tokenize(input: string): Token[] {
   const tokens: Token[] = []
   let i = 0
@@ -41,10 +140,28 @@ function tokenize(input: string): Token[] {
       continue
     }
 
-    if (/[A-Za-z_]/.test(ch)) {
+    // Delimited name forms — must be tried BEFORE the plain-identifier
+    // branch so `%foo%` isn't rejected as "unexpected character %".
+    if (ch === '%' || ch === '$') {
+      const delim = tryReadDelimited(input, i)
+      if (delim) {
+        tokens.push(delim.token)
+        i = delim.next
+        continue
+      }
+    }
+
+    if (ch === '@') {
+      tokens.push({ type: 'AT', value: ch, position: i })
+      i += 1
+      continue
+    }
+
+    if (/[A-Za-z_\\]/.test(ch)) {
       const start = i
       i += 1
       // 支持 Lean 风格命名 + 点缀后缀（原 style），如 DivRing.div.inlineDiv。
+      // 允许开头的反斜杠（`\i` / `\operatorname` 等 LaTeX 命令名 as leaf id）。
       // 不允许连字符：KaTeX 的 \htmlData 会把 '-' 当作二元减号，破坏属性值。
       while (i < input.length && /[A-Za-z0-9_.]/.test(input[i])) {
         i += 1
@@ -115,15 +232,49 @@ class Parser {
     return tree
   }
 
+  /**
+   * node := '@'? nameForm ('[' IDENT ']')? ('(' args ')')?
+   * nameForm := IDENT | PERCENT_DELIMITED | DOLLAR_DELIMITED | DOLLAR2_DELIMITED
+   *
+   * When `@` prefix is present, the returned node (and RECURSIVELY every
+   * descendant) has kind = 'binder'.
+   */
   private parseNode(): SnlSyntaxTree {
-    // 语法入口：IDENT（含点缀后缀）后可跟可选的 [style] 方括号，再跟可选的 (children)。
-    // node := IDENT ('[' IDENT ']')? ('(' args ')')?
-    const ident = this.expect('IDENT')
-    const node = createSnlSyntaxTreeNode(ident.value)
+    const isBinder = this.peek().type === 'AT'
+    if (isBinder) {
+      this.consume('AT')
+      // Bare `@` reads whatever comes next (identifier or delimited form).
+      // Both `@$expr$` and `@foo` are accepted; the delimited form determines
+      // the node's envMode as usual.
+    }
+
+    const nameTok = this.peek()
+    let node: SnlSyntaxTree
+    if (nameTok.type === 'IDENT') {
+      this.consume('IDENT')
+      node = createSnlSyntaxTreeNode(nameTok.value)
+    } else if (nameTok.type === 'PERCENT_DELIMITED') {
+      this.consume('PERCENT_DELIMITED')
+      node = createSnlSyntaxTreeNode(nameTok.value)
+      node.envMode = 'text'
+    } else if (nameTok.type === 'DOLLAR_DELIMITED') {
+      this.consume('DOLLAR_DELIMITED')
+      node = createSnlSyntaxTreeNode(nameTok.value)
+      node.envMode = 'formula_inline'
+    } else if (nameTok.type === 'DOLLAR2_DELIMITED') {
+      this.consume('DOLLAR2_DELIMITED')
+      node = createSnlSyntaxTreeNode(nameTok.value)
+      node.envMode = 'formula_display'
+    } else {
+      throw new SnlSyntaxTreeParseError(
+        `Expected macro name (IDENT or %…% / $…$ / $$…$$)` +
+          ` but got ${nameTok.type}`,
+        nameTok.position,
+      )
+    }
 
     if (this.peek().type === 'LBRACKET') {
       this.consume('LBRACKET')
-      // 方括号内必须是单个 IDENT（style tag），不能为空。
       const styleTok = this.expect('IDENT')
       node.style = styleTok.value
       this.expect('RBRACKET')
@@ -135,6 +286,10 @@ class Parser {
       this.expect('RPAREN')
     }
 
+    if (isBinder) {
+      // Recursively mark this node + all descendants as binders.
+      markBinderRecursive(node)
+    }
     return node
   }
 
@@ -172,15 +327,40 @@ class Parser {
   }
 }
 
+/** Mark the node and every descendant with kind='binder'. */
+function markBinderRecursive(node: SnlSyntaxTree): void {
+  node.kind = 'binder'
+  for (const child of node.children) {
+    markBinderRecursive(child)
+  }
+}
+
 /**
- * Parse SNL source (`name[style]?(child1,child2(…))`) into a {@link SnlSyntaxTree}.
- * The optional `[style]` bracket carries a style-tag override (see SnlMacro.styles).
+ * Parse SNL source into a {@link SnlSyntaxTree} and annotate binder scoping.
+ *
+ * Grammar (informal):
+ *   node   := '@'? nameForm ('[' IDENT ']')? ('(' args ')')?
+ *   nameForm := IDENT              — plain identifier (dotted allowed)
+ *             | '%' text '%'       — text envMode (payload is literal text)
+ *             | '$' latex '$'      — formula_inline envMode (payload is LaTeX)
+ *             | '$$' latex '$$'    — formula_display envMode (payload is LaTeX)
+ *   args   := node (',' node)*
+ *
+ * `@` prefix makes the node AND every descendant a binder (kind='binder').
+ *
+ * @param options.activeBinderIds — pre-existing binder names in scope, used
+ *   by annotate-bind for delimited-leaf bvar/fvar resolution when this input
+ *   is a fragment of a larger tree.
+ *
  * @throws {SnlSyntaxTreeParseError} on malformed input.
  */
-export function parseSnlSyntaxTree(input: string): SnlSyntaxTree {
+export function parseSnlSyntaxTree(
+  input: string,
+  options: SnlSyntaxTreeParseOptions = {},
+): SnlSyntaxTree {
   const tokens = tokenize(input)
   const parser = new Parser(tokens)
   const tree = parser.parse()
-  annotateBindings(tree)
+  annotateBindings(tree, options.activeBinderIds ?? [])
   return tree
 }

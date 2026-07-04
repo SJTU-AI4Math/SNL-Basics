@@ -14,7 +14,7 @@ import type { SnlMacro, SnlMacroDb, SnlMacroStyle } from '../snl-macro/types'
 import { getBindRef, readBindRefFromDom } from '../snl-syntax-tree/binding'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { tightenHoverBoxes } from '../snl-react-view/tighten-hover-boxes'
-import { fvarAppliedHeadLatex } from '../snl-syntax-tree/latex-escape'
+import { escapeLatexText } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { findBinderScopeAncestor, findMinimalHoverRoot } from '../snl-react-view/hover-dom'
@@ -39,13 +39,19 @@ interface RenderResult {
 
 /**
  * Reject `\htmlData` attribute values that would break KaTeX's tokenizer or
- * escape the attribute string. Post-migration these never trigger, but this is
- * defense-in-depth against malformed macro names / kinds / bindRefs.
+ * escape the attribute string. Post-migration these never trigger for regular
+ * db-driven names, but this is defense-in-depth against malformed macro
+ * names / kinds / bindRefs.
+ *
+ * NOTE: `\` (backslash) IS allowed — KaTeX-style command-name leaves like
+ * `\i` / `\alpha` need to appear verbatim in `data-name` so hover / tooltip
+ * tools can look them up. KaTeX preserves the backslash inside the attribute
+ * value without further interpretation.
  */
 function sanitizeHtmlDataAttr(value: string): string {
-  if (/[,{}#\\]/.test(value)) {
+  if (/[,{}#]/.test(value)) {
     throw new Error(
-      `invalid \\htmlData attribute value (must not contain , { } # \\): ${JSON.stringify(value)}`,
+      `invalid \\htmlData attribute value (must not contain , { } #): ${JSON.stringify(value)}`,
     )
   }
   // eslint-disable-next-line no-control-regex
@@ -170,7 +176,11 @@ async function resolveNodeLatex(
   const macro = node.name ? macroDb[node.name] : undefined
   const style = macro ? resolveStyle(node, macro) : undefined
   const hasDbTemplate = Boolean(style?.template)
-  const selfMode: SnlMacroStyle['mode'] = style?.mode ?? 'formula_inline'
+
+  // A node's rendering mode: env-mode override from delimited name > db style
+  // > default formula_inline.
+  const selfMode: SnlMacroStyle['mode'] =
+    node.envMode ?? style?.mode ?? 'formula_inline'
   const selfBucket = modeBucket(selfMode)
 
   // Recurse first (children generate their own LaTeX in their own mode).
@@ -183,20 +193,74 @@ async function resolveNodeLatex(
     const child = node.children[index]
     const childMacro = child?.name ? macroDb[child.name] : undefined
     let cMode: SnlMacroStyle['mode'] = 'formula_inline'
-    try {
-      cMode = childMacro ? resolveStyle(child, childMacro).mode : 'formula_inline'
-    } catch {
-      cMode = 'formula_inline'
+    if (child?.envMode) {
+      cMode = child.envMode
+    } else if (childMacro) {
+      try {
+        cMode = resolveStyle(child, childMacro).mode
+      } catch {
+        cMode = 'formula_inline'
+      }
     }
     return wrapForParent(latex, cMode, selfMode)
   })
 
-  // 裸名应用且无 DB 模板（如 op(x,y,FOL.and(x,y))）：\operatorname{op}(…)，子式逗号分隔。
-  // 仅 \operatorname 头部 + 括号 + 参数；元数据由外层 auto-wrap 统一补上。
-  if (node.children.length > 0 && !hasDbTemplate && !node.name.includes('.')) {
-    const opPart = fvarAppliedHeadLatex(node.name)
-    const argList = wrappedChildren.join(',')
-    return wrapHtmlData(node, `${opPart}(${argList})`, macroDb, 'fvar')
+  // --- Synthetic-macro path: node came from a delimited-name form ---
+  // The parser stamped envMode, so we render the payload directly (bypassing
+  // macroDb entirely). 猫猫 spec 2026-07-04-late 2 + Q4: "既然都写了 $$
+  // delimiter，就默认这里是个和 database 无关的临时东西."
+  //
+  // Payload semantics:
+  //   text mode → escape as \text{payload}. Children (unusual) get spliced
+  //     in as an operator-application `\text{name}(child0, child1, …)`
+  //     mirroring the fvar-application path — nobody should write children
+  //     under `%…%` but it's harmless when they do.
+  //   formula_inline / formula_display → payload IS raw LaTeX. If children
+  //     are present, append them in operator-application form.
+  //
+  // The result is auto-wrapped in \htmlData like any other node so hover /
+  // metadata still flow through.
+  if (node.envMode) {
+    let body: string
+    if (node.envMode === 'text') {
+      const head = `\\text{${escapeLatexText(node.name)}}`
+      body = wrappedChildren.length > 0
+        ? `${head}(${wrappedChildren.join(', ')})`
+        : head
+    } else {
+      // formula_inline / formula_display: payload is literal LaTeX.
+      body = wrappedChildren.length > 0
+        ? `${node.name}(${wrappedChildren.join(', ')})`
+        : node.name
+    }
+    return wrapHtmlData(node, body, macroDb)
+  }
+
+  // --- macroDb-miss fallback for plain-identifier names ---
+  // 猫猫 spec 2026-07-04-late Q7 (rewritten):
+  //   * `foo(a)`  where `foo` is NOT in db  → `foo(#0, …)` — bare LaTeX.
+  //   * `\foo(a)` where `\foo` is NOT in db → `\operatorname{foo}(#0, …)`.
+  //   * Leaf `\i`                           → `\mathrm{i}`.
+  // Applied form (children present) is handled here; the leaf fallback is
+  // done inside the query's default (fallbackLatexSymbol) path below —
+  // except for the backslash-leaf case, which needs its own head.
+  if (!hasDbTemplate) {
+    const bs = node.name.startsWith('\\')
+    if (node.children.length > 0) {
+      const stem = bs ? node.name.slice(1) : node.name
+      const head = bs
+        ? `\\operatorname{${escapeLatexText(stem)}}`
+        : node.name
+      const argList = wrappedChildren.join(', ')
+      return wrapHtmlData(node, `${head}(${argList})`, macroDb, 'fvar')
+    }
+    // Leaf with a `\stem` name → `\mathrm{stem}`. Non-backslash leaves fall
+    // through to the query below whose fallbackLatexSymbol already handles
+    // pure-alpha vs mixed names (`x` → `x`, `x1` → `\mathrm{x1}`).
+    if (bs) {
+      const stem = node.name.slice(1)
+      return wrapHtmlData(node, `\\mathrm{${escapeLatexText(stem)}}`, macroDb, 'fvar')
+    }
   }
 
   const key = `${node.name}::${node.style ?? ''}::${node.kind}`
@@ -256,16 +320,28 @@ async function resolveRootLatex(
   macroDb: SnlMacroDb,
 ): Promise<string> {
   const raw = await resolveNodeLatex(root, query, cache, macroDb)
-  const macro = macroDb[root.name]
+  // Root mode: envMode > db style > default. This is what decides whether
+  // to wrap the whole thing in \text{...} (for a root-level text env).
   let rootMode: SnlMacroStyle['mode'] = 'formula_inline'
-  if (macro) {
-    try {
-      rootMode = resolveStyle(root, macro).mode
-    } catch {
-      rootMode = 'formula_inline'
+  if (root.envMode) {
+    rootMode = root.envMode
+  } else {
+    const macro = macroDb[root.name]
+    if (macro) {
+      try {
+        rootMode = resolveStyle(root, macro).mode
+      } catch {
+        rootMode = 'formula_inline'
+      }
     }
   }
-  return rootMode === 'text' ? `\\text{${raw}}` : raw
+  // NOTE: the envMode path already emitted its own `\text{…}` head for the
+  // 'text' case (see resolveNodeLatex), so we don't double-wrap. Only the
+  // legacy db-driven text root path gets wrapped here.
+  if (rootMode === 'text' && !root.envMode) {
+    return `\\text{${raw}}`
+  }
+  return raw
 }
 
 /** Props for {@link SnlSyntaxTreeView}. */
@@ -304,6 +380,9 @@ type TooltipState = SnlTooltipState & { interactionKey: string }
  * render as formula/text/block. Defaults to 'formula_inline' when unknown.
  */
 function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): SnlMacroStyle['mode'] {
+  // envMode from a delimited-name form (`%…%`, `$…$`, `$$…$$`) always wins
+  // over the db lookup — that's the whole point of "temp macro" semantics.
+  if (node.envMode) return node.envMode
   const macro = db[node.name]
   if (!macro) return 'formula_inline'
   try {

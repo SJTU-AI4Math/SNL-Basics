@@ -13,6 +13,25 @@ export interface SnlSyntaxTree {
    * macro's first style (`SnlMacro.styles[0]`).
    */
   style?: string
+  /**
+   * Synthetic-macro environment mode set by the parser for delimited names:
+   *   `%…%` → `'text'`
+   *   `$…$` → `'formula_inline'`
+   *   `$$…$$` → `'formula_display'`
+   *
+   * When set, the render pipeline treats this node as a TEMPORARY macro:
+   *   - The `name` is a literal payload (LaTeX source or raw text) — NOT a
+   *     macroDb key.
+   *   - `text` → wrapped in `\text{escape(name)}`.
+   *   - `formula_inline` → emitted as raw LaTeX (`name` is expected to be
+   *     valid LaTeX; if it contains `$…$` KaTeX handles it normally).
+   *   - `formula_display` → same as formula_inline, but also forces
+   *     `katex.displayMode = true` at the root.
+   * When `envMode` is set the macroDb is NOT consulted for a template.
+   *
+   * Undefined for regular identifier-form nodes (the vast majority).
+   */
+  envMode?: 'formula_inline' | 'formula_display' | 'text'
   /** Semantic kind (rule / const / binder / bvar / fvar / …). */
   kind: string
   /**
