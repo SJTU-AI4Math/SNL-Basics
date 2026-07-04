@@ -13,7 +13,7 @@ describe('fillLatexTemplate', () => {
   })
 
   it('renders missing #* as a visible slot when children_joined is missing', () => {
-    expect(fillLatexTemplate('[#*]', {})).toBe('[\\htmlClass{snlMissingArg}{\\square}]')
+    expect(fillLatexTemplate('[#*]', {})).toBe('[\\mathord{\\htmlClass{snlMissingArg}{\\square}}]')
   })
 
   it('renders \\# as a literal \\# (KaTeX then renders `#`)', () => {
@@ -28,20 +28,20 @@ describe('fillLatexTemplate', () => {
   })
 
   it('renders out-of-range #N as a visible numbered slot, not empty', () => {
-    expect(fillLatexTemplate('#5', { child0: 'a' })).toBe('\\htmlClass{snlMissingArg}{\\square_{5}}')
+    expect(fillLatexTemplate('#5', { child0: 'a' })).toBe('\\mathord{\\htmlClass{snlMissingArg}{\\square_{5}}}')
   })
 
   it('renders a partially-typed \\frac{#0}{#1} with a visible slot for the missing arg', () => {
     // Intermediate typing state: only child0 provided. The missing #1 must be a
     // brace-balanced visible slot so KaTeX renders an <mfrac>, not red error text.
     expect(fillLatexTemplate('\\frac{#0}{#1}', { child0: 'a' })).toBe(
-      '\\frac{a}{\\htmlClass{snlMissingArg}{\\square_{1}}}',
+      '\\frac{a}{\\mathord{\\htmlClass{snlMissingArg}{\\square_{1}}}}',
     )
   })
 
   it('renders both frac slots when neither arg is provided (never empty {})', () => {
     expect(fillLatexTemplate('\\frac{#0}{#1}', {})).toBe(
-      '\\frac{\\htmlClass{snlMissingArg}{\\square_{0}}}{\\htmlClass{snlMissingArg}{\\square_{1}}}',
+      '\\frac{\\mathord{\\htmlClass{snlMissingArg}{\\square_{0}}}}{\\mathord{\\htmlClass{snlMissingArg}{\\square_{1}}}}',
     )
   })
 

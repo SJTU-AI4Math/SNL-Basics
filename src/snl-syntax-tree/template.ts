@@ -32,8 +32,16 @@ function missingArgPlaceholder(
     const label = index === undefined ? '?' : String(index)
     return `\\htmlClass{snlMissingArg}{[${label}]}`
   }
+  // Wrap in `\mathord{...}` so KaTeX's between-atoms spacing (\mspace) is
+  // emitted OUTSIDE the placeholder span, not inside its border. Without
+  // \mathord, `\htmlClass{snlMissingArg}{\square_{0}} + x` produces a span
+  // like `<enclosing snlMissingArg><mord>□</mord><mspace .22em/></enclosing>`,
+  // so the placeholder frame visibly extends past its content into empty
+  // right-side padding. `\mathord` promotes the wrapper to its own atom,
+  // moving the spacing to the outer level. (Same trick applied to the
+  // downstream `snlArgPlaceholder` used by the Create Macro preview.)
   const glyph = index === undefined ? '\\square' : `\\square_{${index}}`
-  return `\\htmlClass{snlMissingArg}{${glyph}}`
+  return `\\mathord{\\htmlClass{snlMissingArg}{${glyph}}}`
 }
 
 export function fillLatexTemplate(
