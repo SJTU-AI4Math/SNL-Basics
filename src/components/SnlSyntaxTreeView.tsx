@@ -13,6 +13,7 @@ import type { SnlMacroTemplateQuery } from '../snl-syntax-tree/query'
 import type { SnlMacro, SnlMacroDb, SnlMacroStyle } from '../snl-macro/types'
 import { getBindRef, readBindRefFromDom } from '../snl-syntax-tree/binding'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
+import { tightenHoverBoxes } from '../snl-react-view/tighten-hover-boxes'
 import { fvarAppliedHeadLatex } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
@@ -224,11 +225,21 @@ async function resolveNodeLatex(
     { ...childValues, children_joined },
     selfBucket === 'block' ? 'formula' : selfBucket,
   )
-  // A pure pass-through variadic helper (template === '#*', e.g. matrix.row)
-  // emits top-level alignment tokens (`&` / `\\`) that must stay ungrouped for
-  // the enclosing environment (\begin{pmatrix}…). Wrapping it in \htmlData
-  // would nest those tokens inside a group and break the matrix; skip the wrap.
-  if (template.trim() === '#*') {
+  // A pure pass-through variadic helper (template === '#*' AND no delimiters,
+  // e.g. matrix.row) emits top-level alignment tokens (`&` / `\\`) that must
+  // stay ungrouped for the enclosing environment (\begin{pmatrix}…). Wrapping
+  // it in \htmlData would nest those tokens inside a group and break the
+  // matrix; skip the wrap.
+  //
+  // When delimiters ARE present (variadic_left / variadic_right, e.g. a
+  // self-contained pmatrix macro), the emitted string already opens/closes
+  // its own environment, so wrapping is safe — and REQUIRED for hover
+  // feedback on the delimiters (猫猫 2026-07-04 bug 4).
+  if (
+    template.trim() === '#*' &&
+    !variadicLeft &&
+    !variadicRight
+  ) {
     return filled
   }
   return wrapHtmlData(node, filled, macroDb)
@@ -469,6 +480,7 @@ export function SnlSyntaxTreeView({
     if (lastHtmlRef.current === result.html) return
     lastHtmlRef.current = result.html
     el.innerHTML = result.html
+    tightenHoverBoxes(el)
     bvarScopeIndexRef.current = buildBvarScopeIndex(el)
   }, [result])
 
@@ -653,16 +665,40 @@ export function SnlSyntaxTreeView({
     const container = containerRef.current
     if (!container) return
 
-    const elements = document.elementsFromPoint(event.clientX, event.clientY)
-    const candidates = elements.filter(
-      (el): el is HTMLElement =>
-        el instanceof HTMLElement &&
-        el.hasAttribute('data-name') &&
-        container.contains(el),
-    )
-    const hit = candidates[0] ?? null
+    // elementsFromPoint returns every element painted at (x,y) in front-to-back
+    // order. In principle every DOM ancestor of the topmost hit is present, so
+    // filtering for data-name would grab the innermost SNL wrap.
+    //
+    // In practice, some KaTeX layout primitives (vlist, mspace, table cell
+    // strut) sit in their own stacking layers or don't paint at the pointer
+    // coordinate, so an ancestor `.enclosing[data-name]` occasionally does
+    // NOT appear in the elementsFromPoint list even though it's the correct
+    // hover target (case 猫猫 flagged 2026-07-04 for dynamic-arity delimiters
+    // and separators between children in a matrix template).
+    //
+    // Fix: take the topmost element regardless of data-name, then walk UP the
+    // DOM tree until we hit an ancestor carrying data-name. Falls back to
+    // clearing when no ancestor has one.
+    const topmost = document
+      .elementsFromPoint(event.clientX, event.clientY)
+      .find(
+        (el): el is HTMLElement =>
+          el instanceof HTMLElement && container.contains(el),
+      )
 
-    if (!hit) {
+    const hit = topmost
+      ? findMinimalHoverRoot(topmost, container)
+      : null
+    // findMinimalHoverRoot already skips partial-kind ancestors, but its
+    // fallback returns the raw `start` when nothing matches. Guard on both
+    // "has data-name" AND "not partial" so hovering into empty space above a
+    // partial node clears the highlight instead of latching onto it.
+    const hasName =
+      hit && hit.hasAttribute('data-name') && hit.dataset.kind !== 'partial'
+        ? hit
+        : null
+
+    if (!hasName) {
       clearHoverMarks()
       setHoverKey('')
       clearHoverTimers()
@@ -670,9 +706,8 @@ export function SnlSyntaxTreeView({
       return
     }
 
-    const semantic = findMinimalHoverRoot(hit, container)
-    applyHoverHighlight(semantic, container)
-    activateHoverTarget(semantic, container, event.clientX + 12, event.clientY + 12)
+    applyHoverHighlight(hasName, container)
+    activateHoverTarget(hasName, container, event.clientX + 12, event.clientY + 12)
   }
 
   const handleKaTeXMouseLeave = () => {

@@ -30,12 +30,18 @@ export function findBinderScopeAncestor(
  * From the pointer element, walk up to the minimal semantic hover root: the
  * first ancestor (inclusive) carrying a `data-name`. Post-bracket-syntax there
  * is a single kind per node, so no priority lookup is needed.
+ *
+ * `kind="partial"` nodes are TRANSPARENT for hover purposes — they represent
+ * subtrees that are not complete syntactic nodes (e.g. matrix rows / cells)
+ * and should not attract hover feedback themselves. Walk past them to find
+ * the nearest non-partial ancestor. (Fulcrum 2026-07-04.)
+ *
  * @internal
  */
 export function findMinimalHoverRoot(start: HTMLElement, container: HTMLElement): HTMLElement {
   let cur: HTMLElement | null = start
   while (cur && container.contains(cur)) {
-    if (cur.hasAttribute('data-name')) {
+    if (cur.hasAttribute('data-name') && cur.dataset.kind !== 'partial') {
       return cur
     }
     cur = cur.parentElement
