@@ -162,8 +162,12 @@ function tokenize(input: string): Token[] {
       i += 1
       // 支持 Lean 风格命名 + 点缀后缀（原 style），如 DivRing.div.inlineDiv。
       // 允许开头的反斜杠（`\i` / `\operatorname` 等 LaTeX 命令名 as leaf id）。
-      // 不允许连字符：KaTeX 的 \htmlData 会把 '-' 当作二元减号，破坏属性值。
-      while (i < input.length && /[A-Za-z0-9_.]/.test(input[i])) {
+      // 允许 `-` (hyphen) — 2026-07-04-late 猫猫 spec fix: macro names may
+      // contain hyphens. Earlier a defensive check rejected them for fear
+      // KaTeX would treat `-` as a math binary-minus inside \htmlData attr
+      // values, but empirical verification (see git log) shows KaTeX
+      // passes hyphens through verbatim.
+      while (i < input.length && /[A-Za-z0-9_.\-]/.test(input[i])) {
         i += 1
       }
       tokens.push({ type: 'IDENT', value: input.slice(start, i), position: start })
@@ -243,9 +247,10 @@ class Parser {
     const isBinder = this.peek().type === 'AT'
     if (isBinder) {
       this.consume('AT')
-      // Bare `@` reads whatever comes next (identifier or delimited form).
-      // Both `@$expr$` and `@foo` are accepted; the delimited form determines
-      // the node's envMode as usual.
+      // `@` adds the binder tag WITHOUT changing which name-form path is
+      // taken. `@f(x)` is `f(x)` with kind=binder (fallback path), and
+      // `@$expr$` is `$expr$` with kind=binder (envMode path). The bare
+      // `@` alone is a syntax error — a name-form must follow.
     }
 
     const nameTok = this.peek()

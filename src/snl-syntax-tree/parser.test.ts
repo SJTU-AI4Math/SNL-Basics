@@ -78,8 +78,11 @@ describe('parseSnlSyntaxTree', () => {
     expect(tree.children).toHaveLength(2)
   })
 
-  test('parser rejects hyphen in macro name', () => {
-    expect(() => parseSnlSyntaxTree('foo-bar(x)')).toThrow(SnlSyntaxTreeParseError)
+  test('parser accepts hyphen in macro name (2026-07-04-late spec)', () => {
+    const t = parseSnlSyntaxTree('foo-bar(x)')
+    expect(t.name).toBe('foo-bar')
+    expect(t.children).toHaveLength(1)
+    expect(t.children[0].name).toBe('x')
   })
 
   it('marks the quantifier binding variable and annotates bindRef', () => {

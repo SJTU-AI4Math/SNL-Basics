@@ -141,3 +141,33 @@ describe('macroDb-miss fallback for plain names', () => {
     })
   })
 })
+
+describe('@ binder kind survives the fallback path (2026-07-04-late 猫猫 fix)', () => {
+  it('@f(x) → \\htmlData carries kind=binder, NOT overridden to fvar', async () => {
+    // Before the fix, the fallback path forced kindOverride='fvar' when
+    // wrapping the emitted `f(x)` LaTeX, so a user's `@f(x)` (kind=binder)
+    // rendered with data-kind="fvar" — visually indistinguishable from
+    // `f(x)`. The fix drops the override so wrapHtmlData falls through to
+    // node.kind ('binder' in this case).
+    const t: SnlSyntaxTree = {
+      name: 'f',
+      kind: 'binder',
+      mdata: null,
+      children: [createSnlSyntaxTreeNode('x', { kind: 'binder' })],
+    }
+    const latex = await collectLatex(t, emptyDb)
+    // The outer wrap for `f` should carry kind=binder.
+    expect(latex).toMatch(/\\htmlData\{name=f,kind=binder/)
+  })
+
+  it('un-@ f(x) still renders with kind=fvar (default annotate-bind)', async () => {
+    const t: SnlSyntaxTree = {
+      name: 'f',
+      kind: 'fvar',
+      mdata: null,
+      children: [createSnlSyntaxTreeNode('x', { kind: 'fvar' })],
+    }
+    const latex = await collectLatex(t, emptyDb)
+    expect(latex).toMatch(/\\htmlData\{name=f,kind=fvar/)
+  })
+})

@@ -57,6 +57,22 @@ describe('@ binder prefix', () => {
     expect(t.kind).toBe('binder')
   })
 
+  it('is STRUCTURALLY identical to the un-@ form (2026-07-04-late 猫猫 fix)', () => {
+    // Only the `kind` field should differ between `f(x)` and `@f(x)` — the
+    // envMode / children / name shape must all match, so the render pipeline
+    // takes the same path and produces the same LaTeX (just tagged with a
+    // different kind in the \htmlData wrap).
+    const plain = parseSnlSyntaxTree('f(x)')
+    const bound = parseSnlSyntaxTree('@f(x)')
+    expect(bound.name).toBe(plain.name)
+    expect(bound.envMode).toBe(plain.envMode) // both undefined
+    expect(bound.children).toHaveLength(plain.children.length)
+    expect(bound.children[0].name).toBe(plain.children[0].name)
+    // kind is expected to differ:
+    expect(plain.kind).not.toBe('binder')
+    expect(bound.kind).toBe('binder')
+  })
+
   it('recursively marks every descendant as binder', () => {
     const t = parseSnlSyntaxTree('@Tuple(a, b)')
     expect(t.kind).toBe('binder')

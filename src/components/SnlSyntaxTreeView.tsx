@@ -244,6 +244,12 @@ async function resolveNodeLatex(
   // Applied form (children present) is handled here; the leaf fallback is
   // done inside the query's default (fallbackLatexSymbol) path below —
   // except for the backslash-leaf case, which needs its own head.
+  //
+  // Kind: we do NOT pass a `kindOverride` here — an @-marked binder should
+  // stay `kind='binder'` in the emitted \htmlData so palette / hover shows
+  // it correctly. wrapHtmlData's fallback chain naturally lands on the
+  // node's actual kind (binder / fvar / bvar / …), and the ultimate default
+  // is still 'fvar' for un-classified nodes.
   if (!hasDbTemplate) {
     const bs = node.name.startsWith('\\')
     if (node.children.length > 0) {
@@ -252,14 +258,14 @@ async function resolveNodeLatex(
         ? `\\operatorname{${escapeLatexText(stem)}}`
         : node.name
       const argList = wrappedChildren.join(', ')
-      return wrapHtmlData(node, `${head}(${argList})`, macroDb, 'fvar')
+      return wrapHtmlData(node, `${head}(${argList})`, macroDb)
     }
     // Leaf with a `\stem` name → `\mathrm{stem}`. Non-backslash leaves fall
     // through to the query below whose fallbackLatexSymbol already handles
     // pure-alpha vs mixed names (`x` → `x`, `x1` → `\mathrm{x1}`).
     if (bs) {
       const stem = node.name.slice(1)
-      return wrapHtmlData(node, `\\mathrm{${escapeLatexText(stem)}}`, macroDb, 'fvar')
+      return wrapHtmlData(node, `\\mathrm{${escapeLatexText(stem)}}`, macroDb)
     }
   }
 
