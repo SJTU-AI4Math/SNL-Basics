@@ -145,3 +145,48 @@ describe('parseSnlSyntaxTree options.activeBinderIds', () => {
     expect(t.children[0].kind).toBe('fvar')
   })
 })
+
+describe('deep-nested binder scoping (2026-07-04-late bug 1)', () => {
+  it('@T buried inside Type.judge(@T, ...) is visible to Type.judge\'s later siblings', () => {
+    // 猫猫 repro: def-hyp(hyp-list(Type.judge(@T,Type), ...), Set.union(A,B), ...)
+    // @T is nested 3 levels deep inside def-hyp's FIRST child. Later
+    // siblings of def-hyp (Set.union, ...) must still see T as a binder.
+    const t = parseSnlSyntaxTree(
+      'def-hyp(hyp-list(Type.judge(@T,Type)), Set.union(T))'
+    )
+    // Walk to the last leaf: def-hyp > Set.union > T
+    const setUnion = t.children[1]
+    expect(setUnion.name).toBe('Set.union')
+    expect(setUnion.children[0].name).toBe('T')
+    expect(setUnion.children[0].kind).toBe('bvar')
+  })
+
+  it('multiple deep @-binders at various depths all contribute to sibling scope', () => {
+    const t = parseSnlSyntaxTree(
+      'wrap(inner(@T, deeper(@A, @B)), use(T, A, B))'
+    )
+    const use = t.children[1]
+    expect(use.name).toBe('use')
+    expect(use.children[0].kind).toBe('bvar') // T
+    expect(use.children[1].kind).toBe('bvar') // A
+    expect(use.children[2].kind).toBe('bvar') // B
+  })
+})
+
+describe('bare-leaf kind fallback (2026-07-04-late bug 2)', () => {
+  it('unbound bare leaf leaves kind="" (not "fvar") so wrapHtmlData can fall through to dbKind', () => {
+    // `Type` in `Type.judge(@T, Type)` should NOT be stamped fvar by
+    // annotate-bind — it stays '' so the view later resolves it against
+    // macroDb['Type'].kind (typically 'rule').
+    const t = parseSnlSyntaxTree('Type.judge(@T, Type)')
+    expect(t.children[1].name).toBe('Type')
+    expect(t.children[1].kind).toBe('')
+  })
+
+  it('but delimited-leaf (envMode) still gets fvar when unbound', () => {
+    // envMode nodes bypass macroDb, so annotate-bind DOES stamp fvar for
+    // them (no db entry to fall through to).
+    const t = parseSnlSyntaxTree('$x$')
+    expect(t.kind).toBe('fvar')
+  })
+})

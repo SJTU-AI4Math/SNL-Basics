@@ -31,14 +31,19 @@ function isLegacyQuantifierName(name: string): boolean {
 }
 
 /**
- * Collect every binder-name contributed by a node's subtree — used by the
- * `@`-binder scoping path. For an `@`-marked subtree ALL descendants have
- * kind='binder' (parser stamps recursively), so we walk the whole subtree
- * gathering names. For a non-binder subtree this returns [].
+ * Collect every kind='binder' node in a subtree — including binders buried
+ * deep inside non-binder ancestors. This is intentionally aggressive: a
+ * `@T` at `def-hyp(hyp-list(Type.judge(@T, Type), …), …)` must be visible
+ * as a binder to `def-hyp`'s later siblings, even though the path from
+ * `@T` back up to `def-hyp` goes through non-binder nodes (Type.judge,
+ * hyp-list). 猫猫 spec (2026-07-04-late): "其他地方的这些字母... 向最近
+ * 的子树寻找同 id 的 binder 从而变成 bvar" — the scope of a binder is any
+ * position that comes LATER in DFS order, unbounded by its immediate
+ * container.
  */
 function collectBinderNames(node: SnlSyntaxTree): string[] {
-  if (node.kind !== 'binder') return []
-  const acc: string[] = [node.name]
+  const acc: string[] = []
+  if (node.kind === 'binder') acc.push(node.name)
   for (const child of node.children) {
     acc.push(...collectBinderNames(child))
   }
@@ -158,7 +163,19 @@ export function annotateBindings(
             node.mdata = Object.keys(base).length ? base : null
           }
         } else {
-          node.kind = 'fvar'
+          // NOT bound. Leave kind unset (empty string) so the view's
+          // wrapHtmlData chain sees the macro's DB-declared kind (e.g.
+          // Type → 'rule') instead of getting shadowed by 'fvar'. If
+          // there's no db entry at all, wrapHtmlData's final fallback is
+          // still 'fvar', so unbound identifiers without db entries keep
+          // rendering as free variables.
+          //
+          // The one exception is envMode leaves — those bypass the db
+          // (synthetic macros), so if the payload isn't bound we DO want
+          // to stamp fvar explicitly (there's no db entry to look up).
+          if (node.envMode) {
+            node.kind = 'fvar'
+          }
           node.mdata = Object.keys(base).length ? base : null
         }
       }
