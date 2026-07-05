@@ -14,7 +14,7 @@ import type { SnlMacro, SnlMacroDb, SnlMacroStyle } from '../snl-macro/types'
 import { getBindRef, readBindRefFromDom } from '../snl-syntax-tree/binding'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { tightenHoverBoxes } from '../snl-react-view/tighten-hover-boxes'
-import { escapeLatexText } from '../snl-syntax-tree/latex-escape'
+import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { findBinderScopeAncestor, findMinimalHoverRoot } from '../snl-react-view/hover-dom'
@@ -38,27 +38,28 @@ interface RenderResult {
 }
 
 /**
- * Reject `\htmlData` attribute values that would break KaTeX's tokenizer or
- * escape the attribute string. Post-migration these never trigger for regular
- * db-driven names, but this is defense-in-depth against malformed macro
- * names / kinds / bindRefs.
+ * Sanitize a value for use inside a `\htmlData{key=value,…}` attribute list.
  *
- * NOTE: `\` (backslash) IS allowed — KaTeX-style command-name leaves like
- * `\i` / `\alpha` need to appear verbatim in `data-name` so hover / tooltip
- * tools can look them up. KaTeX preserves the backslash inside the attribute
- * value without further interpretation.
+ * KaTeX's `\htmlData` uses `,` as an attr separator and `{` / `}` as brace
+ * delimiters, so those characters MUST NOT appear inside a value or KaTeX's
+ * tokenizer misparses the attribute list. `#` is a template-substitution
+ * marker in the surrounding LaTeX and would confuse downstream tools. All
+ * three get replaced with `_` — lossy but visible in the rendered
+ * `data-name="…"` attribute, which is purely metadata (hover / tooltip look
+ * up the macro by the ORIGINAL name via the tree, not the attr).
+ *
+ * Backslash IS allowed — KaTeX passes it through verbatim and downstream
+ * tools need to see e.g. `\operatorname` in data-name for hover matching.
+ *
+ * Control chars (ASCII 0..1f + del) are treated as fatal — those signal
+ * an upstream bug.
  */
 function sanitizeHtmlDataAttr(value: string): string {
-  if (/[,{}#]/.test(value)) {
-    throw new Error(
-      `invalid \\htmlData attribute value (must not contain , { } #): ${JSON.stringify(value)}`,
-    )
-  }
   // eslint-disable-next-line no-control-regex
   if (/[\u0000-\u001f\u007f]/.test(value)) {
     throw new Error(`invalid \\htmlData attribute value (control char): ${JSON.stringify(value)}`)
   }
-  return value
+  return value.replace(/[,{}#]/g, '_')
 }
 
 /**
@@ -210,29 +211,49 @@ async function resolveNodeLatex(
   // macroDb entirely). 猫猫 spec 2026-07-04-late 2 + Q4: "既然都写了 $$
   // delimiter，就默认这里是个和 database 无关的临时东西."
   //
-  // Payload semantics:
-  //   text mode → escape as \text{payload}. Children (unusual) get spliced
-  //     in as an operator-application `\text{name}(child0, child1, …)`
-  //     mirroring the fvar-application path — nobody should write children
-  //     under `%…%` but it's harmless when they do.
-  //   formula_inline / formula_display → payload IS raw LaTeX. If children
-  //     are present, append them in operator-application form.
+  // Payload semantics — the payload IS a mini-template with the same
+  // `#0` / `#1` / … / `#*` placeholder syntax as a regular macro template.
+  // If the template doesn't reference `#N`, the children ARE NOT rendered
+  // (they still exist in the tree — annotate-bind uses them for scoping —
+  // but they contribute no visible LaTeX).
+  //
+  // Examples (from 猫猫 spec):
+  //   `@$f$(x)`           → payload has no `#N` → renders "f", x invisible
+  //   `@$x + y$(a)`       → no `#N`             → renders "x + y", a invisible
+  //   `@$\operatorname{Im}(#0)$(x)` → `#0` → renders "Im(x)"
+  //   `%hello #0%(name)`  → `#0` → renders "hello name" as text
+  //
+  // Per-envMode splicing:
+  //   text mode  → escape the payload characters (they're literal text),
+  //                but preserve `#N` placeholders (they're template markers,
+  //                not literal `#` symbols the user wants displayed). Then
+  //                wrap in \text{…}.
+  //   formula    → payload IS raw LaTeX, `#N` substituted verbatim.
   //
   // The result is auto-wrapped in \htmlData like any other node so hover /
   // metadata still flow through.
   if (node.envMode) {
-    let body: string
-    if (node.envMode === 'text') {
-      const head = `\\text{${escapeLatexText(node.name)}}`
-      body = wrappedChildren.length > 0
-        ? `${head}(${wrappedChildren.join(', ')})`
-        : head
-    } else {
-      // formula_inline / formula_display: payload is literal LaTeX.
-      body = wrappedChildren.length > 0
-        ? `${node.name}(${wrappedChildren.join(', ')})`
-        : node.name
-    }
+    const isText = node.envMode === 'text'
+    // For text mode, escape everything BUT the `#N` template markers so
+    // KaTeX doesn't interpret `_` / `$` / etc. as math. For formula mode
+    // the payload IS LaTeX — no escaping.
+    const templateBody = isText ? escapeTextButPreservePlaceholders(node.name) : node.name
+    const childValues = Object.fromEntries(
+      wrappedChildren.map((latex, index) => [`child${index}`, latex]),
+    )
+    const defaultJoin = isText ? '' : ', '
+    const children_joined = wrappedChildren.join(defaultJoin)
+    // Use the same template-filling machinery as regular macros. Unused
+    // placeholders emit nothing; missing `#N` for a child index the
+    // template doesn't mention → child is silently dropped (that's the
+    // 猫猫-intended behavior, matching "宏是 $f$，这里面没参数，所以 x
+    // 是没有地方填的").
+    const filled = fillLatexTemplate(
+      templateBody,
+      { ...childValues, children_joined },
+      isText ? 'text' : 'formula',
+    )
+    const body = isText ? `\\text{${filled}}` : filled
     return wrapHtmlData(node, body, macroDb)
   }
 

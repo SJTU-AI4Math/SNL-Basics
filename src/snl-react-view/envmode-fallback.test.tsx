@@ -69,7 +69,10 @@ describe('envMode synthetic-macro path', () => {
     expect(latex).toContain('\\htmlData')
   })
 
-  it('envMode with children appends operator-application form', async () => {
+  it('envMode payload without #N drops children silently (per 猫猫 spec)', async () => {
+    // `@$f$(x)` — payload has no `#N`, so `x` is silently NOT rendered
+    // (though it stays in the tree for scoping). Result: just "f" (as
+    // raw LaTeX, wrapped in \htmlData).
     const t: SnlSyntaxTree = {
       name: 'f',
       envMode: 'formula_inline',
@@ -78,7 +81,43 @@ describe('envMode synthetic-macro path', () => {
       children: [createSnlSyntaxTreeNode('a', { kind: 'fvar' })],
     }
     const latex = await collectLatex(t, emptyDb)
-    expect(latex).toMatch(/f\(.*a.*\)/)
+    // The literal `a` should NOT appear in the output as a rendered atom.
+    // (The `a` variable name IS in the \htmlData wrap around any
+    // rendering — that's tree metadata, not visible LaTeX. So we check
+    // that the payload after the outer \htmlData opening brace is just
+    // 'f' — no application parens, no `a`.)
+    // Loose check: no `(` immediately after the payload.
+    expect(latex).not.toMatch(/\{f\(a\)\}/)
+    expect(latex).toMatch(/\{f\}/)
+  })
+
+  it('envMode payload WITH #0 splices child into that slot', async () => {
+    // `@$\operatorname{Im}(#0)$(x)` — payload has `#0`, so `x` gets
+    // inlined. Result: `\operatorname{Im}(x)`.
+    const t: SnlSyntaxTree = {
+      name: '\\operatorname{Im}(#0)',
+      envMode: 'formula_inline',
+      kind: '',
+      mdata: null,
+      children: [createSnlSyntaxTreeNode('x', { kind: 'fvar' })],
+    }
+    const latex = await collectLatex(t, emptyDb)
+    expect(latex).toContain('\\operatorname{Im}')
+    // The child `x` must be substituted inside the parens.
+    expect(latex).toMatch(/\\operatorname\{Im\}\(.*x.*\)/)
+  })
+
+  it('%text with #0% splices child', async () => {
+    const t: SnlSyntaxTree = {
+      name: 'hello #0',
+      envMode: 'text',
+      kind: '',
+      mdata: null,
+      children: [createSnlSyntaxTreeNode('name', { kind: 'fvar' })],
+    }
+    const latex = await collectLatex(t, emptyDb)
+    // Contains \text{hello …name…}
+    expect(latex).toMatch(/\\text\{hello /)
   })
 })
 
