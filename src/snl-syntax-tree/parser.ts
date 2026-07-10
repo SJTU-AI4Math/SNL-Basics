@@ -237,11 +237,18 @@ class Parser {
   }
 
   /**
-   * node := '@'? nameForm ('[' IDENT ']')? ('(' args ')')?
+   * node := '@'? nameForm ('@' IDENT)? ('[' IDENT ']')? ('(' args ')')?
    * nameForm := IDENT | PERCENT_DELIMITED | DOLLAR_DELIMITED | DOLLAR2_DELIMITED
    *
    * When `@` prefix is present, the returned node (and RECURSIVELY every
    * descendant) has kind = 'binder'.
+   *
+   * When a POSTFIX `@IDENT` is present (cat 2026-07-09 context-entry
+   * spec), it attaches `mdata.src` = that identifier — a cross-entry
+   * reference pointing at another entry id. `src` is a universal
+   * attribute on ref-like nodes; lookup / rendering / lint decide what
+   * to do with it based on the node's resolved kind (bvar → context
+   * entry decl lookup; anything else → reserved for future use).
    */
   private parseNode(): SnlSyntaxTree {
     const isBinder = this.peek().type === 'AT'
@@ -276,6 +283,19 @@ class Parser {
           ` but got ${nameTok.type}`,
         nameTok.position,
       )
+    }
+
+    // Postfix `@IDENT` = src (cross-entry reference). Distinguishable
+    // from a new-node `@ident` in an argument slot because arguments
+    // must be COMMA-separated: at this point in the grammar we've just
+    // consumed a nameForm and the next node boundary is `,` / `)` /
+    // `EOF` / `[` / `(`. An `AT` here can only be a src postfix.
+    if (this.peek().type === 'AT') {
+      this.consume('AT')
+      const srcTok = this.expect('IDENT')
+      const baseMdata =
+        node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
+      node.mdata = { ...(baseMdata as Record<string, unknown>), src: srcTok.value }
     }
 
     if (this.peek().type === 'LBRACKET') {

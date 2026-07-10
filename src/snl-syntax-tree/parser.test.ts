@@ -133,4 +133,57 @@ describe('parseSnlSyntaxTree', () => {
     expect(orNode.children[1].children[0].kind).toBe('')
     expect(orNode.children[1].children[1].kind).toBe('bvar')
   })
+
+  describe('src postfix (cat 2026-07-09 context-entry)', () => {
+    it('attaches mdata.src on a bare IDENT', () => {
+      const tree = parseSnlSyntaxTree('x@context-linalg-vars')
+      expect(tree.name).toBe('x')
+      expect((tree.mdata as { src?: string }).src).toBe('context-linalg-vars')
+    })
+
+    it('attaches src alongside [style]', () => {
+      const tree = parseSnlSyntaxTree('x@ctx[styled]')
+      expect(tree.name).toBe('x')
+      expect(tree.style).toBe('styled')
+      expect((tree.mdata as { src?: string }).src).toBe('ctx')
+    })
+
+    it('attaches src alongside (args)', () => {
+      const tree = parseSnlSyntaxTree('foo@src-entry(a, b)')
+      expect(tree.name).toBe('foo')
+      expect((tree.mdata as { src?: string }).src).toBe('src-entry')
+      expect(tree.children).toHaveLength(2)
+    })
+
+    it('carries src across `%…%` and `$…$` delim forms', () => {
+      const t1 = parseSnlSyntaxTree('%hello%@ctx')
+      expect(t1.envMode).toBe('text')
+      expect((t1.mdata as { src?: string }).src).toBe('ctx')
+
+      const t2 = parseSnlSyntaxTree('$x + y$@formula-ctx')
+      expect(t2.envMode).toBe('formula_inline')
+      expect((t2.mdata as { src?: string }).src).toBe('formula-ctx')
+    })
+
+    it('src does NOT change binder semantics on a bare @-prefixed decl', () => {
+      // `@x` = decl; adding `@ctx` after makes it a decl WITH src (a decl
+      // that documents which context entry it originally came from —
+      // reserved semantics; renderer just shows the badge).
+      const tree = parseSnlSyntaxTree('@x@ctx')
+      expect(tree.name).toBe('x')
+      expect(tree.kind).toBe('binder')
+      expect((tree.mdata as { src?: string }).src).toBe('ctx')
+    })
+
+    it('rejects postfix `@` with no identifier', () => {
+      expect(() => parseSnlSyntaxTree('x@')).toThrow(SnlSyntaxTreeParseError)
+    })
+
+    it('nested src inside an arg list', () => {
+      const tree = parseSnlSyntaxTree('outer(x@ctx, y)')
+      expect(tree.name).toBe('outer')
+      expect((tree.children[0].mdata as { src?: string }).src).toBe('ctx')
+      expect(tree.children[1].mdata as { src?: string } | null).not.toMatchObject({ src: expect.anything() })
+    })
+  })
 })

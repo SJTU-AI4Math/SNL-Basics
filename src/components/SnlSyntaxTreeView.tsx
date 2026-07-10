@@ -11,7 +11,7 @@ import katex from 'katex'
 import type { KatexOptions } from 'katex'
 import type { SnlMacroTemplateQuery } from '../snl-syntax-tree/query'
 import type { SnlMacro, SnlMacroDb, SnlMacroStyle } from '../snl-macro/types'
-import { getBindRef, readBindRefFromDom } from '../snl-syntax-tree/binding'
+import { getBindRef, getSrc, readBindRefFromDom } from '../snl-syntax-tree/binding'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { tightenHoverBoxes } from '../snl-react-view/tighten-hover-boxes'
 import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
@@ -120,11 +120,18 @@ function wrapHtmlData(
   )
   const ref = getBindRef(node)
   const bindRefFragment = ref ? `,bindRef=${sanitizeHtmlDataAttr(ref)}` : ''
+  // Cross-entry `src` postfix (cat 2026-07-09). Emitted whenever the
+  // parser attached one via `x@foo` — extension-side EntryRender wires
+  // hover / navigate / warn based on the resolved entry pool. `src` is
+  // pure metadata; no styling is applied here so the visual language
+  // stays a host-app concern.
+  const srcVal = getSrc(node)
+  const srcFragment = srcVal ? `,src=${sanitizeHtmlDataAttr(srcVal)}` : ''
   const scopeFragment = node.scope ? `,scope=${sanitizeHtmlDataAttr(node.scope)}` : ''
   // Emit data-style only when a style was explicitly picked via `[style]`
   // (helpful for debugging + CSS if consumers want it).
   const styleFragment = node.style ? `,style=${sanitizeHtmlDataAttr(node.style)}` : ''
-  return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}}{${inner}}`
+  return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}${srcFragment}}{${inner}}`
 }
 
 /**
