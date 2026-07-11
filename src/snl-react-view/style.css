@@ -102,17 +102,35 @@
    .snl-text opts into KaTeX_Main so plain prose matches the surrounding
    $..$ formulas. Falls back to the surrounding font when KaTeX fonts
    aren't loaded. */
-/* Match KaTeXs `.katex { font: normal 1.21em ...}` so React-managed
+/* Match KaTeX's `.katex { font: normal 1.21em ...}` so React-managed
    text renders at the same visual size as adjacent KaTeX math and
-   doesnt look shrunk. Cat 2026-07-10: 'text 字体偏小'. Compound
-   nesting protection: nested .snl-text stays at 1em relative to its
-   already-scaled parent. */
+   doesn't look shrunk. Cat 2026-07-10: 'text 字体偏小'.
+
+   TRICKY BIT: `.snl-text` can CONTAIN a KaTeX .katex island (formula
+   child of a text macro). If we blanket-inflate .snl-text to 1.21em,
+   the inner .katex — which ALSO applies `font: normal 1.21em` — ends
+   up at 1.21×1.21 = 1.46em (this was cats 2026-07-10 followup2
+   'formula 字体也一起变大了'). Two guards:
+     (1) apply the 1.21em only to the OWN text runs, not the KaTeX
+         descendants — done by explicitly resetting `.snl-text .katex`
+         back to 1em (KaTeX will still see the parent's 1.21em base
+         because font-size is inherited textually, but resetting the
+         .katex root cancels the compounding).
+     (2) nested .snl-text (text-in-text) stays at 1em so it doesn't
+         compound either.
+*/
 .snl-text {
   font: normal 1.21em KaTeX_Main, 'Times New Roman', serif;
   line-height: 1.2;
 }
 .snl-text .snl-text {
   font-size: 1em;
+}
+/* Cancel the compounding when a KaTeX island lives inside a .snl-text
+   parent. KaTeX itself resets on `.katex { font: normal 1.21em ... }`,
+   so we need to reset the ENCLOSING context back to 1em first. */
+.snl-text .snl-math-span {
+  font-size: calc(1em / 1.21);
 }
 .snl-missing-arg {
   opacity: 0.5;

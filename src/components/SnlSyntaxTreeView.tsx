@@ -462,7 +462,22 @@ function MathSpan({
   macroDb: SnlMacroDb
   katexOptions?: KatexOptions
 }): ReactElement {
-  const [html, setHtml] = useState('')
+  // Cat 2026-07-10 followup2 hover-instability fix: don't use
+  // React's `dangerouslySetInnerHTML` — passing a NEW `{__html}`
+  // object each render causes React to unconditionally re-assign
+  // `.innerHTML`, which tears down the KaTeX DOM subtree and
+  // silently drops the .snl-single-hover class that the hover
+  // machinery added on the last mousemove. Symptom: hover lit
+  // during motion but disappeared the moment the mouse stopped
+  // (parent state change → re-render → innerHTML rewrite → class
+  // gone; next mousemove re-applies).
+  //
+  // Fix: render an empty <span>, and manage innerHTML via a ref
+  // effect that ONLY writes when the rendered HTML actually
+  // changes. React never touches the subtree between writes, so
+  // hover marks survive across parent re-renders.
+  const spanRef = useRef<HTMLSpanElement | null>(null)
+  const currentHtmlRef = useRef<string>('')
   useEffect(() => {
     let cancelled = false
     void (async () => {
@@ -474,16 +489,21 @@ function MathSpan({
           displayMode: nodeDisplay(node, macroDb) === 'block',
           ...katexOptions,
         })
-        if (!cancelled) setHtml(out)
+        if (cancelled) return
+        const el = spanRef.current
+        if (el && currentHtmlRef.current !== out) {
+          currentHtmlRef.current = out
+          el.innerHTML = out
+        }
       } catch {
-        if (!cancelled) setHtml('')
+        /* leave last-good HTML in place — no destructive reset */
       }
     })()
     return () => {
       cancelled = true
     }
   }, [node, query, macroDb, katexOptions])
-  return <span className="snl-math-span" dangerouslySetInnerHTML={{ __html: html }} />
+  return <span className="snl-math-span" ref={spanRef} />
 }
 
 /**
