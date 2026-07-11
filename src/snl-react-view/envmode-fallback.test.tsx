@@ -38,7 +38,9 @@ function collectLatex(tree: SnlSyntaxTree, db: SnlMacroDb): Promise<string> {
 afterEach(cleanup)
 
 describe('envMode synthetic-macro path', () => {
-  it('%text% root renders as \\text{...} (no macroDb lookup)', async () => {
+  it('%text% root renders as native React text (no macroDb lookup)', async () => {
+    // Cat 2026-07-10 refactor: text roots via React TextRun, not KaTeX \\text{...}.
+    // onResolved is KaTeX-only, so assert on the DOM.
     const t: SnlSyntaxTree = {
       name: 'hello world',
       envMode: 'text',
@@ -46,13 +48,14 @@ describe('envMode synthetic-macro path', () => {
       mdata: null,
       children: [],
     }
-    const latex = await collectLatex(t, emptyDb)
-    // The root text env wraps its body once — the synthetic path emits
-    // `\text{hello world}`, and resolveRootLatex sees envMode is set so it
-    // does NOT wrap again.
-    expect(latex).toContain('\\text{hello world}')
-    // Should NOT be wrapped twice.
-    expect(latex).not.toContain('\\text{\\text{')
+    const { container } = render(
+      <SnlSyntaxTreeView tree={t} macroDb={emptyDb} query={emptyQuery} />,
+    )
+    await waitFor(() => {
+      const text = container.querySelector('.snl-text')
+      expect(text).not.toBeNull()
+      expect(text!.textContent).toBe('hello world')
+    })
   })
 
   it('$latex$ root renders payload as raw LaTeX', async () => {
@@ -115,9 +118,18 @@ describe('envMode synthetic-macro path', () => {
       mdata: null,
       children: [createSnlSyntaxTreeNode('name', { kind: 'fvar' })],
     }
-    const latex = await collectLatex(t, emptyDb)
-    // Contains \text{hello …name…}
-    expect(latex).toMatch(/\\text\{hello /)
+    const { container } = render(
+      <SnlSyntaxTreeView tree={t} macroDb={emptyDb} query={emptyQuery} />,
+    )
+    await waitFor(() => {
+      const root = container.querySelector('.snl-text')
+      expect(root).not.toBeNull()
+      expect(root!.textContent).toContain('hello ')
+      // The `name` child is a bare identifier → formula-mode → KaTeX
+      // renders it async. Assert on the presence of a MathSpan inside
+      // instead of chasing the KaTeX output timing.
+      expect(root!.querySelector('.snl-math-span')).not.toBeNull()
+    })
   })
 })
 

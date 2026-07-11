@@ -7,11 +7,13 @@
 // `#0 与 #1 相等` came out as just "a b" — the literal 与 / 相等 chars and
 // the #0 / #1 ordering were both lost.
 //
-// Current pipeline: text-mode nodes go through the same KaTeX pipeline as
-// formula ones. The whole subtree's LaTeX is wrapped in `\text{...}`, and
-// formula children get `$...$` wrapped around them so KaTeX switches back to
-// math mode. Literal text (including CJK — via KaTeX's `.cjk_fallback`) is
-// preserved verbatim.
+// 2026-07-03 → 2026-07-10: text nodes went through the KaTeX pipeline
+// wrapped in `\text{...}`.
+//
+// 2026-07-10 refactor (cat): text roots now render via React (TextRun),
+// so they can contain block macros. The subtree stays in native HTML
+// until it hits a formula child, at which point that child drops into
+// KaTeX via MathSpan. Missing-arg placeholder is now `.snl-missing-arg`.
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
@@ -54,8 +56,8 @@ const query = createMacroTemplateQueryFromDb(db)
 
 afterEach(cleanup)
 
-/** Grab the text content of the KaTeX-rendered root panel. */
-function katexText(container: HTMLElement): string {
+/** Grab the text content of the panel (works for React TextRun and KaTeX). */
+function panelText(container: HTMLElement): string {
   return container.querySelector('.katex-html')?.textContent ?? ''
 }
 
@@ -69,7 +71,7 @@ describe('text-mode template splicing (regression)', () => {
       <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
     )
     await waitFor(() => {
-      const raw = katexText(container)
+      const raw = panelText(container)
       expect(raw).toContain('a')
       expect(raw).toContain('b')
       expect(raw).toContain('与')
@@ -86,7 +88,7 @@ describe('text-mode template splicing (regression)', () => {
       <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
     )
     await waitFor(() => {
-      const raw = katexText(container)
+      const raw = panelText(container)
       const iLhs = raw.indexOf('lhs')
       const iYu = raw.indexOf('与')
       const iRhs = raw.indexOf('rhs')
@@ -98,7 +100,10 @@ describe('text-mode template splicing (regression)', () => {
     })
   })
 
-  it('shows a snlMissingArg placeholder when a #N slot has no child', async () => {
+  it('shows a snl-missing-arg placeholder when a #N slot has no child', async () => {
+    // Cat 2026-07-10: text-mode now renders via React TextRun instead
+    // of KaTeX \text{...}; missing #N slots become
+    // <span class="snl-missing-arg">[N]</span>.
     const tree = createSnlSyntaxTreeNode('Eq.eq', {
       children: [leaf('only')],
     })
@@ -107,9 +112,9 @@ describe('text-mode template splicing (regression)', () => {
       <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
     )
     await waitFor(() => {
-      // Missing #1 renders as `[1]` inside .snlMissingArg (text-mode variant).
-      const missing = container.querySelector('.snlMissingArg')
+      const missing = container.querySelector('.snl-missing-arg')
       expect(missing).not.toBeNull()
+      expect(missing!.textContent).toBe('[1]')
     })
   })
 
@@ -121,7 +126,7 @@ describe('text-mode template splicing (regression)', () => {
       <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
     )
     await waitFor(() => {
-      const raw = katexText(container)
+      const raw = panelText(container)
       expect(raw).toContain('所有人：')
       expect(raw).toContain('Alice')
       expect(raw).toContain('Bob')
@@ -152,24 +157,24 @@ describe('text-mode template splicing (regression)', () => {
     })
   })
 
-  it('text root wraps its whole latex in \\text{...}', async () => {
+  it('text root renders via React <span.snl-text> instead of KaTeX \\text{...} wrap', async () => {
+    // Cat 2026-07-10 refactor: text roots no longer hit the KaTeX
+    // \text{...} pipeline. Whole subtree is a React tree of TextRun
+    // spans; formula CHILDREN drop into MathSpan and block children
+    // into block renderers. onResolved is KaTeX-only so it won't
+    // fire — assert on the DOM.
     const tree = createSnlSyntaxTreeNode('Eq.eq', {
       children: [leaf('a'), leaf('b')],
     })
     tree.style = 'prose'
-    let latex = ''
-    render(
-      <SnlSyntaxTreeView
-        tree={tree}
-        query={query}
-        macroDb={db}
-        onResolved={(l) => (latex = l)}
-      />,
+    const { container } = render(
+      <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
     )
     await waitFor(() => {
-      expect(latex.startsWith('\\text{')).toBe(true)
-      expect(latex).toContain('与')
-      expect(latex).toContain('相等')
+      const text = container.querySelector('.snl-text')
+      expect(text).not.toBeNull()
+      expect(text!.textContent).toContain('与')
+      expect(text!.textContent).toContain('相等')
     })
   })
 })

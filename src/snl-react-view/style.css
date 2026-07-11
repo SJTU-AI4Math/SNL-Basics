@@ -95,6 +95,21 @@
 .snl-block {
   margin: 0.5em 0;
 }
+/* Cat 2026-07-10: text-mode nodes now render as native React spans
+   instead of KaTeX \text{...}. To keep the visual close to LaTeX
+   output the extension is expected to load katex.min.css (which
+   registers the KaTeX_Main / Computer Modern-lookalike font);
+   .snl-text opts into KaTeX_Main so plain prose matches the surrounding
+   $..$ formulas. Falls back to the surrounding font when KaTeX fonts
+   aren't loaded. */
+.snl-text {
+  font-family: KaTeX_Main, 'Times New Roman', serif;
+}
+.snl-missing-arg {
+  opacity: 0.5;
+  font-style: italic;
+  padding: 0 0.15em;
+}
 .snl-block-list {
   padding-left: 2em;
 }

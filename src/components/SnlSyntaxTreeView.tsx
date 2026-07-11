@@ -213,6 +213,20 @@ async function resolveNodeLatex(
     return wrapForParent(latex, cMode, selfMode)
   })
 
+  // --- Block descendant inside a formula ancestor is unsupported ---
+  // Cat 2026-07-10: text-mode roots now render via React (TextRun) so
+  // block-inside-text works. But once a formula ancestor exists we're
+  // committed to the KaTeX pipeline, and KaTeX has no way to embed a
+  // React `<ol>` mid-formula. Rather than silently rendering empty,
+  // emit a visible warning so the author sees what went wrong.
+  if (selfBucket === 'block') {
+    const body =
+      '\\text{\\color{red}\\{block macro `' +
+      escapeLatexText(node.name) +
+      '` cannot be used inside a formula\\}}'
+    return wrapHtmlData(node, body, macroDb)
+  }
+
   // --- Synthetic-macro path: node came from a delimited-name form ---
   // The parser stamped envMode, so we render the payload directly (bypassing
   // macroDb entirely). 猫猫 spec 2026-07-04-late 2 + Q4: "既然都写了 $$
@@ -321,7 +335,7 @@ async function resolveNodeLatex(
   const filled = fillLatexTemplate(
     template,
     { ...childValues, children_joined },
-    selfBucket === 'block' ? 'formula' : selfBucket,
+    selfBucket,
   )
   // A pure pass-through variadic helper (template === '#*' AND no delimiters,
   // e.g. matrix.row) emits top-level alignment tokens (`&` / `\\`) that must
@@ -471,6 +485,154 @@ function MathSpan({
   return <span className="snl-math-span" dangerouslySetInnerHTML={{ __html: html }} />
 }
 
+/**
+ * TextRun — renders a text-mode node (leaf or macro) as native HTML,
+ * with formula children escaping into KaTeX and block children into
+ * block renderers. Cat 2026-07-10: replaces the old "wrap the whole
+ * text subtree in \text{...}" path, so a text macro can now contain
+ * a block macro (enumerate / list / table).
+ *
+ * Semantics:
+ *  - Text LEAF (envMode==='text', no children) → the leaf's `name`
+ *    field carries the raw text; emit it as a plain <span>.
+ *  - Text MACRO with a template → split the template on #N / #* and
+ *    interleave literal text runs with rendered children. Missing
+ *    slots become the standard [N] placeholder.
+ *  - Text MACRO WITHOUT a template → concat children joined by the
+ *    style's variadic separator (default '').
+ *  - Any escape-command in the literal text (e.g. \alpha) is kept
+ *    verbatim. This is a deliberate simplification: consumers who
+ *    want the LaTeX glyph should wrap that fragment in $...$ so it
+ *    goes through KaTeX. Reserved literals `\{`, `\}`, `\\`, `\#`
+ *    are unescaped so authors can produce those characters.
+ */
+function TextRun({
+  node,
+  macroDb,
+  renderChild,
+}: {
+  node: SnlSyntaxTree
+  macroDb: SnlMacroDb
+  renderChild: (child: SnlSyntaxTree) => ReactElement
+}): ReactElement {
+  // Envelope semantics for TextRun:
+  //
+  //   (a) envMode==='text' + name has NO #N placeholder and no children
+  //       → the name IS the literal text (`%hello%`).
+  //   (b) envMode==='text' + name contains #N placeholders
+  //       → the name IS a template with children as slots
+  //       (`%hello #0%(world)`); treat the same as a text macro.
+  //   (c) text macro from the db → template comes from style.template,
+  //       children fill #N slots.
+  //   (d) text leaf with no template and no macro → literal name.
+  const envIsText = node.envMode === 'text'
+  const nameHasPlaceholder = /#(\*|\d{1,2})/.test(node.name ?? '')
+  const isSyntheticTemplate = envIsText && nameHasPlaceholder
+
+  if (envIsText && !isSyntheticTemplate && node.children.length === 0) {
+    return <span className="snl-text">{unescapeTextLiterals(node.name ?? '')}</span>
+  }
+  if (!envIsText && node.children.length === 0 && !macroDb[node.name]) {
+    return <span className="snl-text">{unescapeTextLiterals(node.name ?? '')}</span>
+  }
+
+  const macro = macroDb[node.name]
+  const style = macro ? resolveStyle(node, macro) : undefined
+  // Synthetic template overrides db lookup — envMode-marked nodes are
+  // deliberately db-independent (see resolveNodeLatex comment on the
+  // same behavior for formula-mode env payloads).
+  const template = isSyntheticTemplate ? node.name : (style?.template ?? '')
+  const children = node.children
+
+  // Build the ordered fragment list by scanning the template for
+  // `#N` / `#*` / `\#`. We reuse the same escape sentinel as
+  // fillLatexTemplate so `\#` survives.
+  const parts: Array<{ kind: 'text'; value: string } | { kind: 'child'; index: number | '*' }> = []
+  if (template.length > 0) {
+    const ESCAPED = '\u0001HASH\u0001'
+    const src = template.replace(/\\#/g, ESCAPED)
+    const re = /#(\*|\d{1,2})/g
+    let last = 0
+    let m: RegExpExecArray | null
+    while ((m = re.exec(src)) !== null) {
+      if (m.index > last) {
+        parts.push({
+          kind: 'text',
+          value: src.slice(last, m.index).split(ESCAPED).join('#'),
+        })
+      }
+      parts.push({
+        kind: 'child',
+        index: m[1] === '*' ? '*' : Number(m[1]),
+      })
+      last = re.lastIndex
+    }
+    if (last < src.length) {
+      parts.push({
+        kind: 'text',
+        value: src.slice(last).split(ESCAPED).join('#'),
+      })
+    }
+  } else {
+    // No template: emit every child joined by the style's separator.
+    const sep = style?.variadic_join ?? ''
+    children.forEach((_, i) => {
+      if (i > 0 && sep) parts.push({ kind: 'text', value: sep })
+      parts.push({ kind: 'child', index: i })
+    })
+  }
+
+  return (
+    <span className="snl-text" data-name={node.name || undefined}>
+      {parts.map((p, i) => {
+        if (p.kind === 'text') {
+          return (
+            <Fragment key={i}>{unescapeTextLiterals(p.value)}</Fragment>
+          )
+        }
+        if (p.index === '*') {
+          // Variadic slot — emit every child in order, separated by the
+          // style's join (default '' in text mode, matching KaTeX path).
+          const sep = style?.variadic_join ?? ''
+          return (
+            <Fragment key={i}>
+              {children.map((child, ci) => (
+                <Fragment key={ci}>
+                  {ci > 0 && sep ? <span>{sep}</span> : null}
+                  {renderChild(child)}
+                </Fragment>
+              ))}
+            </Fragment>
+          )
+        }
+        const child = children[p.index]
+        if (!child) {
+          return (
+            <span key={i} className="snl-missing-arg">
+              [{p.index}]
+            </span>
+          )
+        }
+        return <Fragment key={i}>{renderChild(child)}</Fragment>
+      })}
+    </span>
+  )
+}
+
+/**
+ * Undo the small set of literal-escape sequences authors need in a
+ * text-mode payload. Everything else (`\alpha`, `\frac{...}`) is left
+ * ALONE — if you want a LaTeX glyph in text mode, wrap it in `$...$`
+ * so it goes through KaTeX via a formula child.
+ */
+function unescapeTextLiterals(s: string): string {
+  return s
+    .replace(/\\#/g, '#')
+    .replace(/\\\{/g, '{')
+    .replace(/\\\}/g, '}')
+    .replace(/\\\\/g, '\\')
+}
+
 function useSnlSyntaxTreeRender(
   tree: SnlSyntaxTree,
   query: SnlMacroTemplateQuery,
@@ -550,10 +712,15 @@ export function SnlSyntaxTreeView({
     () => paletteToCss({ ...DEFAULT_KIND_PALETTE, ...kindPalette }),
     [kindPalette],
   )
-  // Both formula AND text roots run through KaTeX (a text root just wraps
-  // its whole latex in `\text{...}` — see resolveNodeLatex + wrapForParent).
-  // Only block roots use the React branch below.
-  const isKatexRoot = nodeMode(tree, macroDb) !== 'block'
+  // Cat 2026-07-10 refactor: a node goes through the KaTeX pipeline
+  // ONLY when it's rooted in FORMULA mode. Text roots (and text
+  // subtrees free of any formula ancestor) render via React so a text
+  // macro can contain block-mode children (enumerate, list, table…).
+  // Block roots keep their React path. resolveNodeLatex still exists
+  // for the "text inside formula" case (\text{...} splicing) but is
+  // no longer entered from the top for text roots.
+  const rootBucket = modeBucket(nodeMode(tree, macroDb))
+  const isKatexRoot = rootBucket === 'formula'
   const { loading, error, result } = useSnlSyntaxTreeRender(
     tree,
     query,
@@ -831,10 +998,24 @@ export function SnlSyntaxTreeView({
     mergedHooks.onLeave?.()
   }
 
-  // Mode-aware React dispatch (used for non-KaTeX roots — i.e. block only —
-  // and for children of block nodes). Formula and text nodes both render
-  // through <MathSpan/>, which runs the full LaTeX pipeline (formula stays
-  // math, text wraps in `\text{...}` and can nest `$...$` for math children).
+  // Mode-aware React dispatch (used for non-KaTeX roots — text and
+  // block — and for children of block / text nodes).
+  //
+  // Cat 2026-07-10 refactor rule: "只要一个节点的 predecessors 里面没有
+  // 出现过 formula, 非必要绝不进 KaTeX. 一旦进了 KaTeX, 走 \text{}
+  // 命令，然后我们暂时不支持在外面出现过 formula mode 的子树里面写
+  // block mode 的宏."
+  //
+  // Implementation: renderNode is only invoked when we haven't hit a
+  // formula ancestor yet (formula roots + all their descendants go via
+  // MathSpan / resolveNodeLatex from the top). So here we can safely
+  // treat:
+  //   - block  → block renderer (unchanged path)
+  //   - text   → React TextRun (was KaTeX \text{}); formula CHILDREN
+  //              of a text node cross into KaTeX via MathSpan
+  //   - formula descendant of a text parent → MathSpan (from here
+  //     down we're in KaTeX; block descendants get the "cannot use
+  //     block inside formula" placeholder in resolveNodeLatex)
   const renderNode = (node: SnlSyntaxTree): ReactElement => {
     const mode = nodeMode(node, macroDb)
     if (mode === 'block') {
@@ -852,11 +1033,8 @@ export function SnlSyntaxTreeView({
         </div>
       )
     }
-    // formula OR text: single unified path — KaTeX renders the whole subtree,
-    // with parent/child mode dispatch (`\text{...}` / `$...$`) resolved by
-    // resolveNodeLatex's wrapForParent(). A text macro can still opt into a
-    // custom React renderer via `react_renderer_key`.
     if (mode === 'text') {
+      // Consumer-declared React renderer wins if a text macro asks for one.
       const macro = macroDb[node.name]
       const style = macro ? resolveStyle(node, macro) : undefined
       const key = style?.react_renderer_key
@@ -864,7 +1042,17 @@ export function SnlSyntaxTreeView({
       if (Renderer) {
         return <Renderer node={node} macroDb={macroDb} renderChild={renderNode} />
       }
+      return (
+        <TextRun
+          node={node}
+          macroDb={macroDb}
+          renderChild={renderNode}
+        />
+      )
     }
+    // formula descendant of a text/block parent: KaTeX pipeline takes
+    // over from HERE down. resolveNodeLatex handles the "\text{...}"
+    // wrapping of any text child re-entering formula context.
     return (
       <MathSpan node={node} query={query} macroDb={macroDb} katexOptions={katexOptions} />
     )
