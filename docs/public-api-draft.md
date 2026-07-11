@@ -1,217 +1,213 @@
-# SNL-Basics 对外接口 — Phase 1 起稿
+# SNL-Basics 对外接口 — Phase 1 起稿 (v2)
 
-> **状态**: Phase 1 (起稿). 目标是把当前 `@snl-basics/react` 的公共 API 从"裸露所有 export"整理成一份带 stability 标签的清单, 为后续 Phase 2 (术语化) + SNL 化落库 (dogfood) 做输入.
+> **状态**: Phase 1 (起稿). 目的是把 npm 包 `@snl-basics/react` 的对外表面**逐条落成 entry 清单**, 交付物是一张能直接喂给 Phase 2 (术语化) + Phase 3 (条目预制) 的施工蓝图.
 >
-> **审阅方式**: 猫 现场读, 有意见直接口头, 我改稿; 通过后进 Phase 2 提取 entry_kinds / macro_kinds.
+> **起稿 = 清单**: 每一行就是未来一个 entry, 明确 `id / kind / title / 父 entry`. 内容 (content.snl) Phase 3 才填. **散文性讨论**在本稿一律砍掉, 转成 `Concept` kind 的 entry (占位, 内容 Phase 3 写).
 
 ---
 
-## 0. 范围与前提
+## 决策记录 (供后续 phase 引用, 已定不再讨论)
 
-- **包名**: `@snl-basics/react`, 版本 0.7.0 (`package.json`, 目前 `"private": true`).
-- **npm 分发面**: `dist-lib/index.js` + `dist-lib/index.d.ts` + `style.css` + 两份 macro-db JSON. 由 `package.json#files: ["dist-lib"]` 白名单锁死, tarball ~29 kB.
-- **仓库源头**: `src/snl-react-view/index.ts` (`vite.config.ts` 的 lib build entry). 这份文件就是 API 的 single source of truth. 本文档把它规整.
-- **两个下游 consumer** (真实 import 面, 2026-07-11 扫盘):
-  - **SNL-Doc-Extension** (webview bundle): 通过 npm-alias `@snl-basics/react` import.
-  - **SNL-Agent-Toolkit** (Node CLI): **绕过 npm 包**, 直接从 `external/SNL-Basics/src/snl-syntax-tree/*.ts` 深路径 import parser + types. React-bundled 的 npm entry 在 Node CLI 里跑不了.
-- **对外 vs 内部**: 只要不在 `src/snl-react-view/index.ts` 里 re-export 的都是内部, 不受本文档约束. Toolkit 的深路径 import 走的是 **另一个对外表面** (纯 TS parser subset), 单列.
-
----
-
-## 1. 对外表面的两个 tier
-
-SNL-Basics 目前实际上服务两类消费者, 分两个 surface 讨论:
-
-### Surface A — `@snl-basics/react` (npm entry, 浏览器/Webview 用)
-
-React + KaTeX 依赖. 面向能跑 React 的宿主 (VS Code webview, 一般前端).
-
-Re-export 自 `src/snl-react-view/index.ts`, 编译产物在 `dist-lib/index.js`.
-
-### Surface B — Parser-only 深路径 (Node / CLI 用)
-
-`external/SNL-Basics/src/snl-syntax-tree/{parser,types,annotate-bind,...}.ts`. 纯 TS, 无 React / KaTeX / DOM 依赖. **目前 Toolkit 通过 git submodule 深路径 import 消费**, 不走 npm.
-
-需要决策 (见 §5): 要不要把这份也变成正式的 subpath export (比如 `@snl-basics/parser`), 让 Toolkit 换成 `import { parseSnlSyntaxTree } from '@snl-basics/parser'` 而不是深路径.
+- **entry_kinds** (8): `Interface` / `Class` / `Field` / `Function` / `ReactComponent` / `Property` / `Constant` / `Concept`.
+  - `Interface`: 成员**不**独立成 entry, field 写在 content 里.
+  - `Class`: 成员独立成 sub-entry — 数据成员 = `Field`, 方法 = `Function` (复用, 不新开 `Method`).
+  - `ReactComponent`: props 独立成 sub-entry, kind = `Property` (写全称避开 Lean `Prop` = Proposition 歧义).
+  - `Constant`: 覆盖纯数据 (`bundledMacroDb`) + 可扩展默认值 (`defaultRenderHooks`, `defaultRenderers`, `defaultHighlightStrategy`), 不为后者单开 kind.
+- **macro_kinds** (Phase 2 拍板, 目前占位): 至少一个 `Signature` 用于在 content 里塞 TS 签名 formula. 抄数学模式.
+- **relationships labels** (Phase 4 建库时用): `imports` (Consumer→Symbol), `stability` (Symbol→StabilityLevel entry). 与 auto-managed 的 `depends` / `uses_context` 不冲突.
+- **Stability 走 tags 字段**: Extension `EntryData` schema 目前**没有** `tags: string[]`, 本 Phase 后需补上 (data-only, 不做筛选功能, 数据通道先开出来). 三档 tag: `stable` / `experimental` / `internal`.
+- **library 切分**: 按源码 module 切 3 个 library — `snl-syntax-tree` / `snl-react-view` / `snl-macro`. 概念 entry 汇到一个 `concepts` library.
+- **父子表达**: 用 library graph 的 `branch` 结构, 不额外建 relationship.
+- **命名规则** (entry id): `<library>.<kind-prefix>.<name>[.<member>]`. 全小写连字符; kind-prefix 缩写: `iface` / `cls` / `fn` / `comp` / `const` / `field` / `prop` / `concept`. 例: `snl-syntax-tree.iface.snl-syntax-tree`, `snl-syntax-tree.cls.parse-error.field.position`.
 
 ---
 
-## 2. Surface A 分组 (按功能维度先分, stability 标签晚一步)
+## Library 1 — `snl-syntax-tree`
 
-以下按语义分区列所有当前 export. **★** 标注 = SNL-Doc-Extension 里实际有 import 的 symbol (被验证过在用).
+对应 `src/snl-syntax-tree/`. 纯 TS, 无 React / KaTeX / DOM. Toolkit 深路径 import 就是这块.
 
-### 2.1 核心数据类型 (Core types)
+### 1.1 Interfaces & Types
 
-- `SnlMacro` ★ — macro 的完整定义 (name, kind, styles[], source).
-- `SnlMacroDb` ★ — `Record<string, SnlMacro>`, 整个 macro 池.
-- `SnlMacroStyle` ★ — 单个 style 变体 (mode, template, react_renderer_key, ...).
-- `SnlMacroSource` — macro 的来源引用 ({ entries[], urls[] }).
-- `SnlSyntaxTree` ★ — 语法树节点主类型 (name, kind, children, mdata, envMode, style, scope).
-- `SnlSyntaxTreeBase` / `SnlSyntaxTreeFormulaNode` / `SnlSyntaxTreeTextNode` / `SnlSyntaxTreeBlockNode` — envMode-区分的细分类型 (不常用, 但 re-export 了).
-- `createSnlSyntaxTreeNode` — 工厂函数, 建一个默认字段填齐的节点.
-- `isSnlSyntaxTree` — type guard.
+| id | kind | title | 备注 |
+|---|---|---|---|
+| `snl-syntax-tree.iface.snl-syntax-tree` | Interface | `SnlSyntaxTree` | 语法树主类型 (name/kind/children/mdata/envMode/style/scope) |
+| `snl-syntax-tree.iface.snl-syntax-tree-base` | Interface | `SnlSyntaxTreeBase` | 基类型 (envMode 三分支的共同字段) |
+| `snl-syntax-tree.iface.snl-syntax-tree-formula-node` | Interface | `SnlSyntaxTreeFormulaNode` | formula envMode 分支 |
+| `snl-syntax-tree.iface.snl-syntax-tree-text-node` | Interface | `SnlSyntaxTreeTextNode` | text envMode 分支 |
+| `snl-syntax-tree.iface.snl-syntax-tree-block-node` | Interface | `SnlSyntaxTreeBlockNode` | block envMode 分支 |
+| `snl-syntax-tree.iface.snl-macro-template-query-args` | Interface | `SnlMacroTemplateQueryArgs` | template query 函数的入参 |
+| `snl-syntax-tree.iface.snl-macro-template-query` | Interface | `SnlMacroTemplateQuery` | template query 函数签名类型 (type alias 语义上归类为 Interface) |
 
-### 2.2 Parser + Serializer
+### 1.2 Classes
 
-- `parseSnlSyntaxTree` ★ — 主 parser. throw on error.
-- `tryParseSnlSyntaxTree` ★ — 非 throw 版, 返回 `{ ok: true, tree } | { ok: false, error }`.
-- `SnlSyntaxTreeParseError` — parse 异常类.
-- `serializeSnlSyntaxTree` ★ — tree → SNL 源码 (双向 roundtrip).
-- `annotateBindings` — 独立的 annotate 步骤 (parser 已内嵌调用, 极少数场景需要单独跑, 比如子树重标).
+| id | kind | title | parent |
+|---|---|---|---|
+| `snl-syntax-tree.cls.parse-error` | Class | `SnlSyntaxTreeParseError` | — |
+| `snl-syntax-tree.cls.parse-error.field.position` | Field | `.position` | `snl-syntax-tree.cls.parse-error` |
+| `snl-syntax-tree.cls.parse-error.field.message` | Field | `.message` (来自 Error 基类) | `snl-syntax-tree.cls.parse-error` |
 
-### 2.3 Macro DB 加载 / 查询
+### 1.3 Functions
 
-- `bundledMacroDb` ★ — 内置的核心数学 macro DB.
-- `bundledSampleMacroDb` — sample 示例 DB.
-- `loadSnlMacroDb` — 从 URL 加载 macro DB.
-- `DEFAULT_SNL_MACRO_DB_URL` — 内置 DB 的默认 URL.
-- `setSnlMacroDbCache` / `clearSnlMacroDbCache` — DB 缓存控制.
-- `createDefaultMacroTemplateQuery` — 从内置 DB 直接构建 template query.
-- `createMacroTemplateQueryFromDb` ★ — 从传入 DB 构建 template query.
-- `DefaultMacroTemplateQueryOptions` — 上面这俩的 options 类型.
-- `SnlMacroTemplateQuery` ★ — template query 函数签名类型.
-- `SnlMacroTemplateQueryArgs` — 上面的 args 类型.
-
-### 2.4 Rendering (React 组件)
-
-- `SnlSyntaxTreeView` ★ — **主渲染组件**. 输入 tree + macroDb + query + hooks, 输出 KaTeX-in-React.
-- `SnlSyntaxTreeViewProps` — 上面的 props 类型.
-- `SnlSyntaxTreeEditor` ★ — GUI 语法树编辑器 (Inductive 编辑). 现在被 CreateEntryApp 用作 SNL 输入的备选 UI.
-
-### 2.5 Hooks / Renderer 定制
-
-- `defaultRenderHooks` ★ — hooks 默认实现 (onHover / resolveMacroInfo / resolveSource / ...).
-- `defaultHighlightStrategy` — 默认 bvar-scope 高亮策略.
-- `defaultRenderers` — 默认的 block renderer 注册表 (list / enumerate / matrix / ...).
-- `HTMLDATA_KATEX_DEFAULTS` — KaTeX `\htmlData` 允许属性名的默认白名单.
-- `SnlRenderHooks` ★ — hooks 接口.
-- `SnlHoverEvent` — hover 事件 payload.
-- `SnlMacroInfo` — tooltip 里显示的 macro 说明.
-- `SnlResolvedSource` — source 解析后的形态.
-- `SnlTooltipState` — 悬浮提示内部状态类型.
-- `SnlHighlightStrategy` / `SnlHighlightSet` — 高亮策略接口.
-- `SnlRendererRegistry` — block-renderer 注册表类型.
-- `SnlBlockRenderer` — 单个 block renderer 类型.
-- `SnlBlockRendererProps` — block renderer 的 props.
-
-### 2.6 Palette (kind 配色)
-
-- `DEFAULT_KIND_PALETTE` — 内置 kind 配色 (bvar 紫 / fvar 红 / rule 绿 / ...).
-- `alpha` — 颜色 alpha helper.
-- `paletteToCss` — palette → CSS 字符串.
-- `assertSafeKindName` — kind 名合法性校验.
-- `KindColoring` — 单个 kind 的配色 ({ stroke, background }).
-- `KindPalette` ★ — 整份 palette 类型.
-
-### 2.7 Advanced / low-level
-
-- `fillLatexTemplate` — template `#N` / `#*` 填充工具 (下游偶尔用).
-
-### 2.8 副产物
-
-- `import '@snl-basics/react/style.css'` ★ — 组件必需的 CSS.
-- `snl-macro-db.json` / `snl-macro-db-samples.json` — 通过 `exports` map 暴露, 极少直接被 import.
+| id | kind | title |
+|---|---|---|
+| `snl-syntax-tree.fn.parse-snl-syntax-tree` | Function | `parseSnlSyntaxTree` |
+| `snl-syntax-tree.fn.annotate-bindings` | Function | `annotateBindings` |
+| `snl-syntax-tree.fn.create-snl-syntax-tree-node` | Function | `createSnlSyntaxTreeNode` |
+| `snl-syntax-tree.fn.is-snl-syntax-tree` | Function | `isSnlSyntaxTree` |
+| `snl-syntax-tree.fn.fill-latex-template` | Function | `fillLatexTemplate` |
 
 ---
 
-## 3. 实际下游 import 面 (证据)
+## Library 2 — `snl-macro`
 
-扫盘结果 (2026-07-11):
+对应 `src/snl-macro/`. macro DB 数据模型.
 
-### SNL-Doc-Extension (通过 `@snl-basics/react`, 8 处 import 站点)
+### 2.1 Interfaces & Types
 
-真实用到的 symbol union:
+| id | kind | title |
+|---|---|---|
+| `snl-macro.iface.snl-macro` | Interface | `SnlMacro` |
+| `snl-macro.iface.snl-macro-db` | Interface | `SnlMacroDb` (`Record<string, SnlMacro>`) |
+| `snl-macro.iface.snl-macro-style` | Interface | `SnlMacroStyle` |
+| `snl-macro.iface.snl-macro-source` | Interface | `SnlMacroSource` |
 
-- `parseSnlSyntaxTree`, `tryParseSnlSyntaxTree`, `serializeSnlSyntaxTree`, `createSnlSyntaxTreeNode`
-- `createMacroTemplateQueryFromDb`, `defaultRenderHooks`, `bundledMacroDb`
-- `SnlSyntaxTreeView`, `SnlSyntaxTreeEditor`
-- Types: `SnlMacro`, `SnlMacroDb`, `SnlMacroStyle`, `SnlSyntaxTree`, `SnlMacroTemplateQuery`, `SnlRenderHooks`, `KindPalette`
-- CSS: `@snl-basics/react/style.css`
+### 2.2 Constants
 
-约 15 个 symbol + CSS import. **没被 import 的** (从 §2 列表里减去): `SnlMacroSource`, `SnlSyntaxTreeBase/Formula/Text/BlockNode`, `isSnlSyntaxTree`, `annotateBindings`, `bundledSampleMacroDb`, `loadSnlMacroDb`, `DEFAULT_SNL_MACRO_DB_URL`, `setSnlMacroDbCache`, `clearSnlMacroDbCache`, `createDefaultMacroTemplateQuery`, `DefaultMacroTemplateQueryOptions`, `SnlMacroTemplateQueryArgs`, `defaultHighlightStrategy`, `defaultRenderers`, `HTMLDATA_KATEX_DEFAULTS`, `SnlHoverEvent`, `SnlMacroInfo`, `SnlResolvedSource`, `SnlTooltipState`, `SnlHighlightStrategy`, `SnlHighlightSet`, `SnlRendererRegistry`, `SnlBlockRenderer`, `SnlBlockRendererProps`, `DEFAULT_KIND_PALETTE`, `alpha`, `paletteToCss`, `assertSafeKindName`, `KindColoring`, `fillLatexTemplate`, `SnlSyntaxTreeViewProps`.
-
-### SNL-Agent-Toolkit (深路径, 完全绕过 npm entry)
-
-`lib/snl-parser.ts` 一个文件, 只 import 3 个:
-
-- `parseSnlSyntaxTree` (来自 `external/SNL-Basics/src/snl-syntax-tree/parser.ts`)
-- `SnlSyntaxTreeParseError` (同上)
-- `SnlSyntaxTree` type (来自 `.../snl-syntax-tree/types.ts`)
-
-**含义**: parser + types 有一份天然的"最小 Node-safe subset"事实边界. 目前作为深路径 import 存在, 是 §5 subpath-export 决策的候选面.
+| id | kind | title |
+|---|---|---|
+| `snl-macro.const.bundled-macro-db` | Constant | `bundledMacroDb` |
+| `snl-macro.const.bundled-sample-macro-db` | Constant | `bundledSampleMacroDb` |
 
 ---
 
-## 4. Stability 提议 (待猫拍板)
+## Library 3 — `snl-react-view`
 
-给每个 §2 里的 symbol 打一个 stability 标签. 提议三档:
+对应 `src/snl-react-view/` + `src/components/`. React 组件层, KaTeX + React 依赖.
 
-- **Stable**: 语义 + 签名冻结, 变更走 semver-major.
-- **Experimental**: 对外可用但保留改动权, 变更只在 minor 里公告.
-- **Internal**: 编译产物里意外泄漏, 不承诺任何兼容. 下一次 minor 可以从 `index.ts` 撤掉.
+### 3.1 React Components
 
-我的**初始提议** (强意见, 猫可推翻):
+| id | kind | title | 备注 |
+|---|---|---|---|
+| `snl-react-view.comp.snl-syntax-tree-view` | ReactComponent | `SnlSyntaxTreeView` | 主渲染组件 |
+| `snl-react-view.comp.snl-syntax-tree-editor` | ReactComponent | `SnlSyntaxTreeEditor` | GUI 编辑器 (Inductive) |
 
-### Stable
+`SnlSyntaxTreeView` 的 props (来自 `SnlSyntaxTreeViewProps` interface). Props 逐条独立成 sub-entry, kind = `Property`, 挂在组件下:
 
-Extension 已经在用的 15 个符号, 加 CSS import. 见 §3 上半部分那份 union.
+| id | kind | title | parent |
+|---|---|---|---|
+| `snl-react-view.comp.snl-syntax-tree-view.prop.tree` | Property | `tree` | `snl-react-view.comp.snl-syntax-tree-view` |
+| `snl-react-view.comp.snl-syntax-tree-view.prop.macro-db` | Property | `macroDb` | ↑ |
+| `snl-react-view.comp.snl-syntax-tree-view.prop.template-query` | Property | `templateQuery` | ↑ |
+| `snl-react-view.comp.snl-syntax-tree-view.prop.hooks` | Property | `hooks` | ↑ |
+| `snl-react-view.comp.snl-syntax-tree-view.prop.palette` | Property | `palette` | ↑ |
+| `snl-react-view.comp.snl-syntax-tree-view.prop.display-mode` | Property | `displayMode` | ↑ |
 
-具体列举:
-`SnlMacro`, `SnlMacroDb`, `SnlMacroStyle`, `SnlSyntaxTree`, `SnlMacroTemplateQuery`, `SnlRenderHooks`, `KindPalette`, `parseSnlSyntaxTree`, `tryParseSnlSyntaxTree`, `serializeSnlSyntaxTree`, `createSnlSyntaxTreeNode`, `createMacroTemplateQueryFromDb`, `defaultRenderHooks`, `bundledMacroDb`, `SnlSyntaxTreeView`, `SnlSyntaxTreeEditor`, `@snl-basics/react/style.css`.
+> **待补**: `SnlSyntaxTreeViewProps` 全字段清单我扫过入口签名但没跟具体 props 逐一对照 (源码在 `src/components/SnlSyntaxTreeView.tsx:397`). Phase 3 起 entry 时对着 interface 定义把 props 补齐 — 现在的表是"最常见 6 个"占位, 数量可能会补到 8~10. Editor 的 props 同理留到 Phase 3.
 
-### Experimental
+### 3.2 Interfaces & Types (hooks / palette 相关)
 
-明显是给下游"高级用法"预留但目前没被消费的, 暂定 Experimental (给未来六个月观察窗口):
+| id | kind | title |
+|---|---|---|
+| `snl-react-view.iface.snl-syntax-tree-view-props` | Interface | `SnlSyntaxTreeViewProps` |
+| `snl-react-view.iface.snl-render-hooks` | Interface | `SnlRenderHooks` |
+| `snl-react-view.iface.snl-hover-event` | Interface | `SnlHoverEvent` |
+| `snl-react-view.iface.snl-macro-info` | Interface | `SnlMacroInfo` |
+| `snl-react-view.iface.snl-resolved-source` | Interface | `SnlResolvedSource` |
+| `snl-react-view.iface.snl-tooltip-state` | Interface | `SnlTooltipState` |
+| `snl-react-view.iface.snl-highlight-strategy` | Interface | `SnlHighlightStrategy` |
+| `snl-react-view.iface.snl-highlight-set` | Interface | `SnlHighlightSet` |
+| `snl-react-view.iface.snl-renderer-registry` | Interface | `SnlRendererRegistry` |
+| `snl-react-view.iface.snl-block-renderer` | Interface | `SnlBlockRenderer` |
+| `snl-react-view.iface.snl-block-renderer-props` | Interface | `SnlBlockRendererProps` |
+| `snl-react-view.iface.kind-palette` | Interface | `KindPalette` |
+| `snl-react-view.iface.kind-coloring` | Interface | `KindColoring` |
+| `snl-react-view.iface.default-macro-template-query-options` | Interface | `DefaultMacroTemplateQueryOptions` |
 
-`SnlSyntaxTreeViewProps`, `SnlMacroSource`, `defaultRenderers`, `defaultHighlightStrategy`, `SnlBlockRenderer`, `SnlBlockRendererProps`, `SnlRendererRegistry`, `SnlHighlightStrategy`, `SnlHighlightSet`, `SnlHoverEvent`, `SnlMacroInfo`, `SnlResolvedSource`, `DEFAULT_KIND_PALETTE`, `paletteToCss`, `alpha`, `KindColoring`, `fillLatexTemplate`, `annotateBindings`, `HTMLDATA_KATEX_DEFAULTS`.
+### 3.3 Functions
 
-### Internal (提议从 `index.ts` 撤掉)
+Parser / serializer 的 non-throw 变体 (源码在 `snl-react-view/parse.ts`, 但语义归 syntax-tree — 通过入口 re-export, 决策: **写在 syntax-tree library 还是 react-view library?**). 目前的判断: **按 re-export 入口归类, 而不是源码物理位置**. 那这条挪回 §1.3:
 
-看起来是实现细节, 现在也没人用:
+| id | kind | title |
+|---|---|---|
+| `snl-syntax-tree.fn.try-parse-snl-syntax-tree` | Function | `tryParseSnlSyntaxTree` |
+| `snl-syntax-tree.fn.serialize-snl-syntax-tree` | Function | `serializeSnlSyntaxTree` |
 
-`isSnlSyntaxTree`, `SnlSyntaxTreeBase`, `SnlSyntaxTreeFormulaNode`, `SnlSyntaxTreeTextNode`, `SnlSyntaxTreeBlockNode`, `SnlTooltipState`, `bundledSampleMacroDb`, `loadSnlMacroDb`, `DEFAULT_SNL_MACRO_DB_URL`, `setSnlMacroDbCache`, `clearSnlMacroDbCache`, `createDefaultMacroTemplateQuery`, `DefaultMacroTemplateQueryOptions`, `SnlMacroTemplateQueryArgs`, `assertSafeKindName`.
+react-view 自己的 functions:
 
-**风险**: 撤掉 Internal 是 breaking change. 如果任何一个我看漏了, 需要保留. 猫扫一下.
+| id | kind | title |
+|---|---|---|
+| `snl-react-view.fn.load-snl-macro-db` | Function | `loadSnlMacroDb` |
+| `snl-react-view.fn.set-snl-macro-db-cache` | Function | `setSnlMacroDbCache` |
+| `snl-react-view.fn.clear-snl-macro-db-cache` | Function | `clearSnlMacroDbCache` |
+| `snl-react-view.fn.create-default-macro-template-query` | Function | `createDefaultMacroTemplateQuery` |
+| `snl-react-view.fn.create-macro-template-query-from-db` | Function | `createMacroTemplateQueryFromDb` |
+| `snl-react-view.fn.alpha` | Function | `alpha` |
+| `snl-react-view.fn.palette-to-css` | Function | `paletteToCss` |
+| `snl-react-view.fn.assert-safe-kind-name` | Function | `assertSafeKindName` |
+
+### 3.4 Constants
+
+| id | kind | title |
+|---|---|---|
+| `snl-react-view.const.default-render-hooks` | Constant | `defaultRenderHooks` |
+| `snl-react-view.const.default-highlight-strategy` | Constant | `defaultHighlightStrategy` |
+| `snl-react-view.const.default-renderers` | Constant | `defaultRenderers` |
+| `snl-react-view.const.default-kind-palette` | Constant | `DEFAULT_KIND_PALETTE` |
+| `snl-react-view.const.default-snl-macro-db-url` | Constant | `DEFAULT_SNL_MACRO_DB_URL` |
+| `snl-react-view.const.htmldata-katex-defaults` | Constant | `HTMLDATA_KATEX_DEFAULTS` |
 
 ---
 
-## 5. Surface B 的问题 — Toolkit 深路径 import 该正规化吗?
+## Library 4 — `concepts`
 
-**现状**: Toolkit `lib/snl-parser.ts` 走的是 `../external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts`. 这依赖 git submodule 的物理路径, 不经过 npm.
+横切概念. 每条都独立成 `Concept` entry, 供其它 entry 通过 `@` 引用 (Phase 3 写内容时用).
 
-**痛点**:
+| id | kind | title |
+|---|---|---|
+| `concepts.concept.surface-a-npm` | Concept | Surface A — `@snl-basics/react` npm 入口 |
+| `concepts.concept.surface-b-deep-path` | Concept | Surface B — Toolkit 深路径 (parser-only) |
+| `concepts.concept.stability-stable` | Concept | 稳定级别 — Stable |
+| `concepts.concept.stability-experimental` | Concept | 稳定级别 — Experimental |
+| `concepts.concept.stability-internal` | Concept | 稳定级别 — Internal |
+| `concepts.concept.consumer-extension` | Concept | Consumer — SNL-Doc-Extension |
+| `concepts.concept.consumer-toolkit` | Concept | Consumer — SNL-Agent-Toolkit |
+| `concepts.concept.npm-distribution` | Concept | npm 分发面 (`files: [dist-lib]` / tarball 白名单) |
+| `concepts.concept.deep-path-import-decision` | Concept | 深路径 import 的正规化决策 (a/b/c 三个选项) |
+| `concepts.concept.entry-kinds-catalogue` | Concept | 本文档的 entry_kinds 决策 (元文档) |
 
-- Toolkit 独立发布时会带上整份 SNL-Basics 源码 (虽然通过 submodule 是链接的, tarball 会怎么处理待验证).
-- 深路径 = SNL-Basics 的 `src/snl-syntax-tree/` 内部结构变了, Toolkit 就断.
-- Toolkit 自己在文件顶注释里写了: "Kept as a wrapper so the rest of the toolkit imports from a stable local path; if SNL-Basics ever ships an npm package we swap this file's imports and everything downstream stays put." — 已经预留了迁移接口.
-
-**候选方案**:
-
-- **(a) 什么都不做**: 保留深路径 import + submodule pin. 优点: 零工作. 缺点: 内部重构 SNL-Basics 就有可能砸 Toolkit; 独立发布 Toolkit 时的 tarball 边界不清.
-- **(b) 加一个 subpath export `@snl-basics/parser`** (或者叫 `@snl-basics/react/parser`): 在 `package.json#exports` 里加一条, 指向一个新的 lib build entry (纯 parser + types, 无 React). Toolkit 改成 `import { parseSnlSyntaxTree } from '@snl-basics/parser'`.
-  - 好处: Toolkit 摆脱 submodule, 走 npm.
-  - 代价: 多一个 vite lib build target, 多一份 `dist-lib/parser.{js,d.ts}` 产物; SNL-Basics 需要真的发上 npm (目前 `"private": true`).
-- **(c) 拆包**: SNL-Basics 拆成两个 npm 包 `@snl-basics/core` + `@snl-basics/react`. 最干净但工作量最大, 短期不做.
-
-**我倾向**: 短期 (a), 中期 (b) 一起解决 Toolkit 独立发布 + 内部重构不砸下游两件事. 但这依赖 SNL-Basics 走 public npm 的时间表. 猫定.
-
----
-
-## 6. 下一步 (Phase 2 预告)
-
-一旦本文档定稿, Phase 2 会做:
-
-1. 把 §2 的分区 → `entry_kinds` (`Symbol` / `TypeAlias` / `Interface` / `ReactComponent` / `Concept` / `Module` 之类).
-2. 把 stability 标签 → `macro_kinds` (`Stable` / `Experimental` / `Internal` 三个 tag macro).
-3. 把 "被谁 import" → 独立的 macro (`ImportedBy(consumer)` 之类) 或 relationships.json 边.
-4. `.SNL_Doc/` 建在 `SNL-Basics/docs/.SNL_Doc/` (`package.json#files` 白名单已确认不会打进 tarball).
-5. 顺带把 Toolkit 的 AGENT.md 里"Phase 2 术语化 → 一份 pre-authoring 术语审计"这一环用真实经验丰富.
+Stability 三档实体化成 Concept entry 有两个用处:
+1. Symbol → `stability` → StabilityLevel Concept 边, 用于查询.
+2. tag `entry.tags = ['stable']` 是 flat 字符串, Concept entry 承载定义 (什么算 stable).
 
 ---
 
-## 7. 已知遗漏 / 待补 (给猫读时 poke 用)
+## 汇总
 
-- 每个 symbol 的**签名**没列 — 有必要吗? 目前是"分组 + 名字", 后续 Phase 3 (Entry Prefabrication) 就每一项各建一个 entry 承载签名 + 说明 + 用法示例. 现在写不写取决于猫想不想在这一稿里 review 签名细节.
-- **版本策略** — 什么算 breaking, 什么算 non-breaking, 现在没写死. 依赖是否真发 npm 的决策.
-- **KaTeX / React 版本约束** — 目前 peerDependencies 只写了 katex + react. 需不需要在 API doc 里显式说 "supported React >= 18, KaTeX >= 0.16" 之类, 待定.
-- **`react_renderer_key` 的枚举** — block renderer 的可选 key ("list", "enumerate", "matrix", ...) 是 API 一部分吗? 目前是 macro-db 内容 + `defaultRenderers` 注册, 没在类型里 encode. 讨论过一次 "small enum → dropdown with named presets" — 是不是 API 里应该有个 `BuiltInBlockRendererKey` union 类型.
+- **snl-syntax-tree**: 7 Interface + 1 Class + 2 Field + 7 Function = **17 entries**
+- **snl-macro**: 4 Interface + 2 Constant = **6 entries**
+- **snl-react-view**: 2 Component + 6 Property (待补至 ~10) + 14 Interface + 8 Function + 6 Constant = **36 entries** (含待补)
+- **concepts**: **10 entries**
+
+**总计 ~69 entries**, 全部 Phase 3 待填 content.
+
+---
+
+## 已知遗漏 / 待 Phase 3 补
+
+- `SnlSyntaxTreeViewProps` / `SnlSyntaxTreeEditor` 的完整 props 列表需要对着源码 interface 定义补 sub-entry (§3.1 的表是占位, ~6 行可能扩到 ~10~15).
+- 每条 entry 的**签名**在这份 draft 里没写 — 是 Phase 3 起 entry 时逐一 `$...$` 写进 content.snl 的活.
+- `contribution_info` / `pointer` (EntryData 里已存在但未用) 在本 Phase 不涉及, 也不填.
+- `entry.tags` 字段需要 Extension 端加 schema 支持 — 是 Phase 1 结束后的独立 commit, 与本 draft 平行.
+- 条目编辑界面的预览框跟 Dashboard / Infoview 主渲染出口不一致, 需要同步 — 也是平行 commit, 记 TODO.
+
+---
+
+## Phase 2 入口
+
+本 draft 定稿后进 Phase 2, 具体做:
+
+1. 在 SNL-Basics/docs/.SNL_Doc/ 建工作区, `config.json` 里锁定上文 8 个 entry_kinds.
+2. 起 `term_macros/snl-api.json`, 至少定义 `Signature` macro. 观察填 §1.3 的第一批 Function entry 时是否需要拆更细.
+3. 起 `relationships` label 词汇表: `imports` / `stability`.
+
+Phase 3 是逐条填 content, Phase 4 是拉 library graph (每 library 内部按 §1.x/§2.x/§3.x 分区做 outline branch).
