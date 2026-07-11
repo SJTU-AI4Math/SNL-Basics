@@ -1,0 +1,732 @@
+[
+  {
+    "id": "npm.snl-basics-react",
+    "kind": "npm-package",
+    "title": "@snl-basics/react",
+    "content": {
+      "snl": "SNL-Basics 的 npm 分发单元, 版本 0.7.0 (当前 private=true). 对外暴露 SNL 语法树解析 + KaTeX-in-React 渲染 + macro DB. 包含三个源码模块: snl-syntax-tree, snl-macro, snl-react-view. tarball 通过 package.json#files 白名单限定为 dist-lib/ 内容, ~29 kB."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mod.snl-syntax-tree",
+    "kind": "module",
+    "title": "snl-syntax-tree",
+    "content": {
+      "snl": "纯 TS 的语法树模块, 无 React / KaTeX / DOM 依赖. 承担 SNL 源码到 SnlSyntaxTree 的 parse + serialize + annotate 三个职责. SNL-Agent-Toolkit 走深路径直接 import 这个模块的 parser 与 types."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mod.snl-macro",
+    "kind": "module",
+    "title": "snl-macro",
+    "content": {
+      "snl": "macro DB 的数据模型定义与内置 macro 数据. 定义 SnlMacro / SnlMacroDb / SnlMacroStyle / SnlMacroSource 四种类型, 并 ship 两份内置 DB: bundledMacroDb (核心数学) + bundledSampleMacroDb (示例)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mod.snl-react-view",
+    "kind": "module",
+    "title": "snl-react-view",
+    "content": {
+      "snl": "React 组件层, 依赖 KaTeX + React. 提供 SnlSyntaxTreeView 主渲染组件 + SnlSyntaxTreeEditor 编辑器, 以及 hooks / palette / DB loader / block-renderer 注册表等一整套渲染基础设施."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.iface.snl-syntax-tree",
+    "kind": "interface",
+    "title": "SnlSyntaxTree",
+    "content": {
+      "snl": "SNL 语法树的主类型. 一个节点带有 name, kind, children, mdata, envMode, style, scope 等字段, 是 union 类型 (formula / text / block 三种 envMode 分支的合并). 所有 parser 输出 / serializer 输入 / 渲染消费 都走这个类型."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.iface.snl-syntax-tree-base",
+    "kind": "interface",
+    "title": "SnlSyntaxTreeBase",
+    "content": {
+      "snl": "SnlSyntaxTree union 三个分支的共同字段基类. 包含 name (macro 名或 delim payload), kind (bvar / fvar / binder / rule / ... 或空), children (子节点数组), mdata (自由 metadata bag), style (可选样式变体名), scope (结构性作用域标记)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.iface.snl-syntax-tree-formula-node",
+    "kind": "interface",
+    "title": "SnlSyntaxTreeFormulaNode",
+    "content": {
+      "snl": "envMode 为 formula_inline 或 formula_display 的分支. 此时 name 字段承载 LaTeX 源码, 直接进 KaTeX 渲染."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.iface.snl-syntax-tree-text-node",
+    "kind": "interface",
+    "title": "SnlSyntaxTreeTextNode",
+    "content": {
+      "snl": "envMode 为 text 的分支. name 字段承载文本内容, 走 React text-run 渲染 (不进 KaTeX 数学模式)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.iface.snl-syntax-tree-block-node",
+    "kind": "interface",
+    "title": "SnlSyntaxTreeBlockNode",
+    "content": {
+      "snl": "envMode 为 block 的分支. 通过 react_renderer_key 派发到具体的 block renderer, 如 list / enumerate / matrix / table 等."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.iface.snl-macro-template-query-args",
+    "kind": "interface",
+    "title": "SnlMacroTemplateQueryArgs",
+    "content": {
+      "snl": "template query 函数的入参. 携带 macro name + 请求的 style + envMode, 由 query 实现返回相应 style 的 LaTeX / text template 字符串."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.iface.snl-macro-template-query",
+    "kind": "interface",
+    "title": "SnlMacroTemplateQuery",
+    "content": {
+      "snl": "template query 的函数签名类型 (type alias). 签名: (args: SnlMacroTemplateQueryArgs) => Promise<string>. 渲染管线通过它异步取到具体 style 的 template."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.cls.parse-error",
+    "kind": "class",
+    "title": "SnlSyntaxTreeParseError",
+    "content": {
+      "snl": "parser 遇到语法错误时抛出的异常类, 继承自 Error. 携带 position 字段, 指向源码中的字符位置 (0-indexed), 方便宿主定位错误."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.cls.parse-error.field.position",
+    "kind": "field",
+    "title": "position",
+    "content": {
+      "snl": "错误在源码中的字符位置, 0-indexed 整数. 非负; 指到第一个引发歧义/失败的 token 起点."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.cls.parse-error.field.message",
+    "kind": "field",
+    "title": "message",
+    "content": {
+      "snl": "继承自 Error 基类的字段. 描述错误性质 (如 'Expected EOF but got IDENT'). 格式非稳定, 不建议对 message 做字符串匹配, 应通过 position + 上下文判断."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.fn.parse-snl-syntax-tree",
+    "kind": "function",
+    "title": "parseSnlSyntaxTree",
+    "content": {
+      "snl": "SNL 源码 → SnlSyntaxTree 的主 parser. 语法错误抛 SnlSyntaxTreeParseError. 内部会自动调用 annotateBindings 完成 binder / bvar / fvar 标注. 接受可选的 SnlSyntaxTreeParseOptions 传入 activeBinderIds 用于子树重解析场景."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.fn.try-parse-snl-syntax-tree",
+    "kind": "function",
+    "title": "tryParseSnlSyntaxTree",
+    "content": {
+      "snl": "parseSnlSyntaxTree 的非 throw 变体. 返回 { ok: true, tree } 或 { ok: false, error }. 适合 UI 层做即时预览时避免 try/catch 样板."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.fn.serialize-snl-syntax-tree",
+    "kind": "function",
+    "title": "serializeSnlSyntaxTree",
+    "content": {
+      "snl": "SnlSyntaxTree → SNL 源码字符串, 与 parseSnlSyntaxTree 构成 roundtrip. 对合法 tree 保证 serialize→parse 恒等."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.fn.annotate-bindings",
+    "kind": "function",
+    "title": "annotateBindings",
+    "content": {
+      "snl": "对已 parse 出的 tree 做 in-place 的 binder / bvar / fvar / bindRef 标注. parseSnlSyntaxTree 已内嵌调用, 只在子树重解析等极少数场景需要单独跑."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.fn.create-snl-syntax-tree-node",
+    "kind": "function",
+    "title": "createSnlSyntaxTreeNode",
+    "content": {
+      "snl": "工厂函数, 建一个默认字段填齐的 SnlSyntaxTree 节点. 接受 name + 可选的字段覆盖, 用于程序化构造 tree (测试 fixture / GUI editor 均用)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.fn.is-snl-syntax-tree",
+    "kind": "function",
+    "title": "isSnlSyntaxTree",
+    "content": {
+      "snl": "类型守卫 (type guard). 判断任意 unknown 值在结构上是否满足 SnlSyntaxTree, 用于处理外部输入 (如 JSON 反序列化)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "st.fn.fill-latex-template",
+    "kind": "function",
+    "title": "fillLatexTemplate",
+    "content": {
+      "snl": "把 template 字符串里的占位符 #0 / #1 / #* / #\\ (escape) 替换成实际参数. 是渲染管线的最底层字符串拼接工具, 下游偶尔直接用."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro",
+    "kind": "interface",
+    "title": "SnlMacro",
+    "content": {
+      "snl": "单个 macro 的完整定义. 包含 name (唯一 id), kind (bvar / rule / const / ...), styles 数组 (不同渲染变体), source (macro 的来源引用, 指向 entries / URLs)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-db",
+    "kind": "interface",
+    "title": "SnlMacroDb",
+    "content": {
+      "snl": "整个 macro 池的类型, 即 Record<string, SnlMacro>. 以 macro name 为 key. 渲染时通过它按名字查 macro 定义."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-style",
+    "kind": "interface",
+    "title": "SnlMacroStyle",
+    "content": {
+      "snl": "单个 macro 的 style 变体. 包含 name (default 或自定义 tag), mode (formula_inline / formula_display / text / block), template (LaTeX 或 text 模板, 含 #N 占位), react_renderer_key (block mode 时派发的 renderer)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-source",
+    "kind": "interface",
+    "title": "SnlMacroSource",
+    "content": {
+      "snl": "macro 定义的来源引用. 包含 entries 数组 (关联到语义定义 entry 的 id) + urls 数组 (外部资料 URL). 驱动 UI 层的悬浮 popover 与 dashboard 的 Src 状态灯."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.const.bundled-macro-db",
+    "kind": "constant",
+    "title": "bundledMacroDb",
+    "content": {
+      "snl": "SNL-Basics 内置的核心数学 macro DB. 覆盖代数 / 分析 / 拓扑 / 逻辑 等基础符号 (如 \\forall, \\exists, \\in, R, plus, div, 等). 运行时可与用户 macro DB 合并 (mergeMacroDb) 组成最终渲染用 DB."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.const.bundled-sample-macro-db",
+    "kind": "constant",
+    "title": "bundledSampleMacroDb",
+    "content": {
+      "snl": "示例 macro DB, 用于文档 / 教程 / demo 场景. 包含 sample.list / sample.enumerate 等 block-mode 示例 macro, 演示 react_renderer_key 的用法."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.comp.snl-syntax-tree-view",
+    "kind": "component",
+    "title": "SnlSyntaxTreeView",
+    "content": {
+      "snl": "主渲染组件. 输入 tree + macroDb + templateQuery + hooks + palette, 输出 KaTeX-in-React 的可交互树. 支持悬浮 popover / 高亮 bvar 作用域 / block renderer 派发 / 主题化 palette."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.comp.snl-syntax-tree-view.prop.tree",
+    "kind": "property",
+    "title": "tree",
+    "content": {
+      "snl": "必需. 要渲染的已 annotate 的 SnlSyntaxTree. 组件不会自己 parse, 上游应先跑 parseSnlSyntaxTree."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.comp.snl-syntax-tree-view.prop.macro-db",
+    "kind": "property",
+    "title": "macroDb",
+    "content": {
+      "snl": "必需. 渲染用的 macro DB. 通常是 bundledMacroDb 与用户 macro 合并的结果."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.comp.snl-syntax-tree-view.prop.template-query",
+    "kind": "property",
+    "title": "templateQuery",
+    "content": {
+      "snl": "必需. template 查询函数, 一般用 createMacroTemplateQueryFromDb(macroDb) 构造. 组件异步调用它取 style-specific template."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.comp.snl-syntax-tree-view.prop.hooks",
+    "kind": "property",
+    "title": "hooks",
+    "content": {
+      "snl": "可选. 定制渲染钩子 (onHover / resolveSource / resolveMacroInfo / ...). 省略时用 defaultRenderHooks. 通常 partial merge 覆盖单个钩子即可."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.comp.snl-syntax-tree-view.prop.palette",
+    "kind": "property",
+    "title": "palette",
+    "content": {
+      "snl": "可选. kind → { stroke, background } 的配色表. 省略时用 DEFAULT_KIND_PALETTE. 覆盖 bvar / fvar / rule / const 等 kind 的颜色."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.comp.snl-syntax-tree-view.prop.display-mode",
+    "kind": "property",
+    "title": "displayMode",
+    "content": {
+      "snl": "可选. 强制根节点用 display / inline formula 模式渲染. 省略时按 tree 的 envMode 判断."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.comp.snl-syntax-tree-editor",
+    "kind": "component",
+    "title": "SnlSyntaxTreeEditor",
+    "content": {
+      "snl": "GUI 语法树编辑器 (Inductive). 允许用户以结构化方式编辑 SnlSyntaxTree, 而不是纯文本 SNL 源码. 目前被 CreateEntryApp 用作 SNL 输入的备选 UI."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-syntax-tree-view-props",
+    "kind": "interface",
+    "title": "SnlSyntaxTreeViewProps",
+    "content": {
+      "snl": "SnlSyntaxTreeView 组件的 props interface. 具体 prop 见挂在 SnlSyntaxTreeView 组件下的 Property sub-entries; 数量以源码 interface 声明为准, 待 Phase 3 逐一对照补齐."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-render-hooks",
+    "kind": "interface",
+    "title": "SnlRenderHooks",
+    "content": {
+      "snl": "渲染钩子集合. 定义 onHover / resolveMacroInfo / resolveSource / macroPopover 等回调, 宿主可通过覆盖任意子集来定制交互行为. 默认实现由 defaultRenderHooks 提供."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-hover-event",
+    "kind": "interface",
+    "title": "SnlHoverEvent",
+    "content": {
+      "snl": "onHover 钩子的 payload. 携带 name / kind / node 快照 / bindingHint / variableRole / target 元素 / clientX,Y."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-macro-info",
+    "kind": "interface",
+    "title": "SnlMacroInfo",
+    "content": {
+      "snl": "resolveMacroInfo 返回的 tooltip 显示 payload. 包含 description 主文与 extra 附加字段, 显示在悬浮框内."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-resolved-source",
+    "kind": "interface",
+    "title": "SnlResolvedSource",
+    "content": {
+      "snl": "resolveSource 返回的 macro 来源解析结果, 用于 tooltip 内展示 macro 定义所在 entry / URL 链接."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-tooltip-state",
+    "kind": "interface",
+    "title": "SnlTooltipState",
+    "content": {
+      "snl": "组件内部的 tooltip 状态类型. 一般消费者不直接使用, 但导出以便高级定制."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-highlight-strategy",
+    "kind": "interface",
+    "title": "SnlHighlightStrategy",
+    "content": {
+      "snl": "bvar 作用域高亮策略接口. 决定 hover 时哪些同 bindRef 的兄弟节点被联动高亮. 默认实现是 defaultHighlightStrategy."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-highlight-set",
+    "kind": "interface",
+    "title": "SnlHighlightSet",
+    "content": {
+      "snl": "HighlightStrategy 返回的高亮结果集合. 包含 singleHover / bvarScope / binderDecl 三类候选."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-renderer-registry",
+    "kind": "interface",
+    "title": "SnlRendererRegistry",
+    "content": {
+      "snl": "block-renderer 注册表类型, Record<string, SnlBlockRenderer>. 以 react_renderer_key (list / enumerate / matrix / ...) 为 key, 派发到对应组件."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-block-renderer",
+    "kind": "interface",
+    "title": "SnlBlockRenderer",
+    "content": {
+      "snl": "单个 block renderer 的函数组件类型: FC<SnlBlockRendererProps>. 接受 node + renderChild, 决定该 block macro 的 HTML 输出结构."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.snl-block-renderer-props",
+    "kind": "interface",
+    "title": "SnlBlockRendererProps",
+    "content": {
+      "snl": "block renderer 的 props. 包含 node (当前 block 节点) 与 renderChild (递归渲染子节点的回调)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.kind-palette",
+    "kind": "interface",
+    "title": "KindPalette",
+    "content": {
+      "snl": "整份 kind 配色表, Record<string, KindColoring>. 内置 bvar (紫) / fvar (红) / rule / const / binder / rewrite 等 kind."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.kind-coloring",
+    "kind": "interface",
+    "title": "KindColoring",
+    "content": {
+      "snl": "单个 kind 的配色 pair: { stroke, background }. stroke 用作边框 + 文字色, background 用作悬浮高亮底."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.iface.default-macro-template-query-options",
+    "kind": "interface",
+    "title": "DefaultMacroTemplateQueryOptions",
+    "content": {
+      "snl": "createDefaultMacroTemplateQuery 的可选配置. 允许指定 DB URL / 缓存策略等."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.fn.load-snl-macro-db",
+    "kind": "function",
+    "title": "loadSnlMacroDb",
+    "content": {
+      "snl": "从 URL 异步加载 macro DB JSON, 返回 SnlMacroDb. 默认 URL 是 DEFAULT_SNL_MACRO_DB_URL (即 /snl-macro-db.json). 内部有缓存, 可用 setSnlMacroDbCache / clearSnlMacroDbCache 控制."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.fn.set-snl-macro-db-cache",
+    "kind": "function",
+    "title": "setSnlMacroDbCache",
+    "content": {
+      "snl": "手动写入 macro DB 缓存. 用于宿主已经有 DB 数据 (如通过其他渠道获取) 想让 loadSnlMacroDb 直接返回它的场景."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.fn.clear-snl-macro-db-cache",
+    "kind": "function",
+    "title": "clearSnlMacroDbCache",
+    "content": {
+      "snl": "清空 macro DB 缓存, 下次 loadSnlMacroDb 会重新走网络. 用于 DB 内容变化后强制刷新."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.fn.create-default-macro-template-query",
+    "kind": "function",
+    "title": "createDefaultMacroTemplateQuery",
+    "content": {
+      "snl": "从内置 DB (通过 loadSnlMacroDb) 构造一个 SnlMacroTemplateQuery. 适合快速起 demo. 生产场景更常用 createMacroTemplateQueryFromDb, 因为宿主自己管 DB 生命周期."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.fn.create-macro-template-query-from-db",
+    "kind": "function",
+    "title": "createMacroTemplateQueryFromDb",
+    "content": {
+      "snl": "接受一个已在手上的 SnlMacroDb, 返回一个 SnlMacroTemplateQuery. 是最常见的 template query 构造方式 (Extension 用它把用户 macro + 内置 macro 合并后一次性构造)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.fn.alpha",
+    "kind": "function",
+    "title": "alpha",
+    "content": {
+      "snl": "颜色 alpha helper: (color, a) => rgba(...). 用于把 palette 里的 background 变成半透明高亮底."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.fn.palette-to-css",
+    "kind": "function",
+    "title": "paletteToCss",
+    "content": {
+      "snl": "把 KindPalette 转成 CSS 字符串 (含 [data-kind=X] 选择器块), 可以直接 injectStyle 到宿主页面. 组件内部已自动调用, 但宿主想在组件外的地方复用同一配色时会用."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.fn.assert-safe-kind-name",
+    "kind": "function",
+    "title": "assertSafeKindName",
+    "content": {
+      "snl": "kind 名合法性校验 (只允许字母数字 + 下划线 + 连字符). 防止 kind 名注入到 CSS 选择器时造成风险. throw 违规名."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.const.default-render-hooks",
+    "kind": "constant",
+    "title": "defaultRenderHooks",
+    "content": {
+      "snl": "SnlRenderHooks 的默认实现. 覆盖 onHover / resolveMacroInfo / resolveSource 等所有钩子, 提供无宿主定制时的正常交互. 宿主通常 partial merge (`{ ...defaultRenderHooks, onHover: mine }`) 而不是完全替换."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.const.default-highlight-strategy",
+    "kind": "constant",
+    "title": "defaultHighlightStrategy",
+    "content": {
+      "snl": "默认 bvar-scope 高亮策略. 悬浮到一个 bvar 时, 会一并高亮同 bindRef 的兄弟 bvar 与 binder decl. 非纯常量 — 是一个实现了 SnlHighlightStrategy 的 object."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.const.default-renderers",
+    "kind": "constant",
+    "title": "defaultRenderers",
+    "content": {
+      "snl": "默认的 block renderer 注册表. 包含内置的 list / enumerate / matrix / table / centered 等 renderer. 宿主可通过展开语法 `{ ...defaultRenderers, custom: MyRenderer }` 扩展."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.const.default-kind-palette",
+    "kind": "constant",
+    "title": "DEFAULT_KIND_PALETTE",
+    "content": {
+      "snl": "内置 kind 配色表. bvar 紫 / fvar 红 / rule 绿 / const 蓝 / binder 深紫 / rewrite 黄. 宿主可整份替换或按需覆盖单个 kind."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.const.default-snl-macro-db-url",
+    "kind": "constant",
+    "title": "DEFAULT_SNL_MACRO_DB_URL",
+    "content": {
+      "snl": "loadSnlMacroDb 的默认 URL, 值为 '/snl-macro-db.json'. 假设宿主把 ship 的 JSON 挂在站点根. 宿主 URL 结构不同时应显式传 url 参数."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "rv.const.htmldata-katex-defaults",
+    "kind": "constant",
+    "title": "HTMLDATA_KATEX_DEFAULTS",
+    "content": {
+      "snl": "KaTeX 的 \\htmlData 允许属性名白名单默认值. 包含 name / kind / style / scope / bindRef / src 等, 组件调用 katex.renderToString 时会 pass 进去让这些属性能通过 KaTeX 的 sanitizer."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "con.surface-a-npm",
+    "kind": "concept",
+    "title": "Surface A — @snl-basics/react npm 入口",
+    "content": {
+      "snl": "React + KaTeX 依赖的对外表面. 面向能跑 React 的宿主 (VS Code webview, 一般前端应用). 编译产物 dist-lib/index.js, 从 src/snl-react-view/index.ts re-export."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "con.surface-b-deep-path",
+    "kind": "concept",
+    "title": "Surface B — Toolkit 深路径 (parser-only)",
+    "content": {
+      "snl": "SNL-Agent-Toolkit 目前通过 git submodule 直接 import external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts. 纯 TS, 无 React / KaTeX / DOM 依赖, 可在 Node CLI 里跑. 是否正规化为 subpath export 见相关决策 concept."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "con.stability-stable",
+    "kind": "concept",
+    "title": "稳定级别 — Stable",
+    "content": {
+      "snl": "语义 + 签名冻结, 变更走 semver-major. Extension / Toolkit 已经在用的 symbol 默认走这一档."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "con.stability-experimental",
+    "kind": "concept",
+    "title": "稳定级别 — Experimental",
+    "content": {
+      "snl": "对外可用但保留改动权, 变更只在 minor 里公告. 已导出但目前无下游 import 的高级 API 默认走这一档."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "con.stability-internal",
+    "kind": "concept",
+    "title": "稳定级别 — Internal",
+    "content": {
+      "snl": "编译产物里意外泄漏, 不承诺任何兼容. 下一次 minor 可以从 index.ts 撤掉. 候选撤除名单见 public-api-draft.md v1 §4 (v2 已迁到 entries)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "con.consumer-extension",
+    "kind": "concept",
+    "title": "Consumer — SNL-Doc-Extension",
+    "content": {
+      "snl": "通过 npm-alias @snl-basics/react 引用. webview 端 8 处 import 站点, 实际用了约 15 个 symbol."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "con.consumer-toolkit",
+    "kind": "concept",
+    "title": "Consumer — SNL-Agent-Toolkit",
+    "content": {
+      "snl": "通过深路径 import external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts. 只用 parseSnlSyntaxTree / SnlSyntaxTreeParseError / SnlSyntaxTree 三样."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "con.npm-distribution",
+    "kind": "concept",
+    "title": "npm 分发面 (files 白名单)",
+    "content": {
+      "snl": "package.json#files: ['dist-lib'] 锁死 tarball 内容. npm pack --dry-run 显示当前 tarball 只 7 个文件 / 29 kB. 仓库里 docs/, .SNL_Doc/, spike-*.mjs 等都不进包."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "con.deep-path-import-decision",
+    "kind": "concept",
+    "title": "深路径 import 的正规化决策 (未决)",
+    "content": {
+      "snl": "三个选项: (a) 保留深路径不动, (b) 加 subpath export @snl-basics/parser, (c) 拆包为 @snl-basics/core + @snl-basics/react. 短期倾向 (a), 中期 (b), 依赖 SNL-Basics 是否真发 public npm 的时间表."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "con.entry-kinds-catalogue",
+    "kind": "concept",
+    "title": "本文档的 entry_kinds 决策 (元文档)",
+    "content": {
+      "snl": "10 个 kind: NpmPackage / Module / Interface / Class / Field / Function / ReactComponent / Property / Constant / Concept. Interface 成员不独立成 entry (写在 content 内), Class 成员独立成 sub-entry, method 复用 Function, Property 用全称避 Lean 里 Prop=Proposition 歧义, 默认实现复用 Constant."
+    },
+    "contribution_info": null,
+    "pointer": null
+  }
+]

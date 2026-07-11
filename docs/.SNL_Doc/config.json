@@ -1,0 +1,107 @@
+{
+  "version": "0.0.3",
+  "entry_kinds": [
+    {
+      "id": "npm-package",
+      "name": "NpmPackage",
+      "coloring": {
+        "stroke": "#8b5cf6",
+        "background": "#ede9fe"
+      },
+      "numbering": "1",
+      "style": ""
+    },
+    {
+      "id": "module",
+      "name": "Module",
+      "coloring": {
+        "stroke": "#6366f1",
+        "background": "#e0e7ff"
+      },
+      "numbering": "1",
+      "style": ""
+    },
+    {
+      "id": "interface",
+      "name": "Interface",
+      "coloring": {
+        "stroke": "#0891b2",
+        "background": "#cffafe"
+      },
+      "numbering": "1",
+      "style": ""
+    },
+    {
+      "id": "class",
+      "name": "Class",
+      "coloring": {
+        "stroke": "#0d9488",
+        "background": "#ccfbf1"
+      },
+      "numbering": "1",
+      "style": ""
+    },
+    {
+      "id": "field",
+      "name": "Field",
+      "coloring": {
+        "stroke": "#65a30d",
+        "background": "#ecfccb"
+      },
+      "numbering": "1",
+      "style": ""
+    },
+    {
+      "id": "function",
+      "name": "Function",
+      "coloring": {
+        "stroke": "#ea580c",
+        "background": "#ffedd5"
+      },
+      "numbering": "1",
+      "style": ""
+    },
+    {
+      "id": "component",
+      "name": "ReactComponent",
+      "coloring": {
+        "stroke": "#db2777",
+        "background": "#fce7f3"
+      },
+      "numbering": "1",
+      "style": ""
+    },
+    {
+      "id": "property",
+      "name": "Property",
+      "coloring": {
+        "stroke": "#e11d48",
+        "background": "#ffe4e6"
+      },
+      "numbering": "1",
+      "style": ""
+    },
+    {
+      "id": "constant",
+      "name": "Constant",
+      "coloring": {
+        "stroke": "#ca8a04",
+        "background": "#fef9c3"
+      },
+      "numbering": "1",
+      "style": ""
+    },
+    {
+      "id": "concept",
+      "name": "Concept",
+      "coloring": {
+        "stroke": "#525252",
+        "background": "#f5f5f5"
+      },
+      "numbering": "1",
+      "style": ""
+    }
+  ],
+  "macro_kinds": [],
+  "active_macro_packages": []
+}

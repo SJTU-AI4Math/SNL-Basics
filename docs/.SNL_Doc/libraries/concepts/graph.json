@@ -1,0 +1,153 @@
+{
+  "nodes": [
+    {
+      "id": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "label": "Entry",
+      "props": {
+        "entryId": "npm.snl-basics-react"
+      }
+    },
+    {
+      "id": "94054a40-9800-41a4-ac21-f54eadfaf04b",
+      "label": "Entry",
+      "props": {
+        "entryId": "con.surface-a-npm"
+      }
+    },
+    {
+      "id": "e0f9bc0c-f594-4e13-bcc5-a1f9255bd526",
+      "label": "Entry",
+      "props": {
+        "entryId": "con.surface-b-deep-path"
+      }
+    },
+    {
+      "id": "85d0d90d-87f0-4672-be58-170290a940b5",
+      "label": "Entry",
+      "props": {
+        "entryId": "con.stability-stable"
+      }
+    },
+    {
+      "id": "b88fa74c-ffe2-4e13-84b7-dd2a9620bdc3",
+      "label": "Entry",
+      "props": {
+        "entryId": "con.stability-experimental"
+      }
+    },
+    {
+      "id": "ade19424-a12e-4581-989d-fe3d3f63f09d",
+      "label": "Entry",
+      "props": {
+        "entryId": "con.stability-internal"
+      }
+    },
+    {
+      "id": "2cbc2125-a988-4281-9a02-17038959c036",
+      "label": "Entry",
+      "props": {
+        "entryId": "con.consumer-extension"
+      }
+    },
+    {
+      "id": "66370727-9b57-419e-a06d-0519e43d11ca",
+      "label": "Entry",
+      "props": {
+        "entryId": "con.consumer-toolkit"
+      }
+    },
+    {
+      "id": "5e46c210-870f-4d63-be01-548ba82f7fc2",
+      "label": "Entry",
+      "props": {
+        "entryId": "con.npm-distribution"
+      }
+    },
+    {
+      "id": "3c50d0c1-4484-4a49-a757-631d1526837a",
+      "label": "Entry",
+      "props": {
+        "entryId": "con.deep-path-import-decision"
+      }
+    },
+    {
+      "id": "d3666a1c-ff5d-4e1a-a01a-d78332d3a0c6",
+      "label": "Entry",
+      "props": {
+        "entryId": "con.entry-kinds-catalogue"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "16cf9be6-faf3-4fca-ac05-23a7ee9fc33e",
+      "from": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "to": "94054a40-9800-41a4-ac21-f54eadfaf04b",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "cc528782-292a-4841-8403-2cd82ec16d90",
+      "from": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "to": "e0f9bc0c-f594-4e13-bcc5-a1f9255bd526",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "cec1ffea-145b-4768-861f-00732a3b6729",
+      "from": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "to": "85d0d90d-87f0-4672-be58-170290a940b5",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "43b8ec6e-84f2-411f-96a0-8846cb4b3b05",
+      "from": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "to": "b88fa74c-ffe2-4e13-84b7-dd2a9620bdc3",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "935d09f5-4c35-418d-8e1c-902b1fc2be82",
+      "from": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "to": "ade19424-a12e-4581-989d-fe3d3f63f09d",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "810c8f56-6cfe-43d3-99c0-b5709ab4d3c9",
+      "from": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "to": "2cbc2125-a988-4281-9a02-17038959c036",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "10bb8baa-aa78-465b-b5e3-01a5a0b4dbd4",
+      "from": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "to": "66370727-9b57-419e-a06d-0519e43d11ca",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "17f1f172-96b2-4962-8c02-93db4f4598a4",
+      "from": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "to": "5e46c210-870f-4d63-be01-548ba82f7fc2",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "bb08e2c7-db85-41e0-ba48-eef7f146b8c6",
+      "from": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "to": "3c50d0c1-4484-4a49-a757-631d1526837a",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "ff23fc19-ce40-497f-9de6-7565b8df1595",
+      "from": "ba578ee3-5e3f-438a-9509-e009a5a9954e",
+      "to": "d3666a1c-ff5d-4e1a-a01a-d78332d3a0c6",
+      "label": "branch",
+      "props": {}
+    }
+  ]
+}
