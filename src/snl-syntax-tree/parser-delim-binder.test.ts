@@ -48,6 +48,27 @@ describe('delimited name forms', () => {
   it('rejects unclosed $$', () => {
     expect(() => parseSnlSyntaxTree('$$hello')).toThrow(SnlSyntaxTreeParseError)
   })
+
+  // Regression (cat 2026-07-11): annotate-bind's envMode-leaf branch used
+  // to unconditionally overwrite kind='binder' with 'fvar' because the
+  // guard only checked `!node.kind || node.envMode` — an @-prefixed
+  // delimited leaf like `@$\cdot$` hit BOTH the parser's binder stamp AND
+  // the annotate-bind fvar stamp, and the second won. Symptom: `@$\cdot$`
+  // rendered red (fvar) instead of the binder color, and any entry
+  // exporting `@$foo$` as a top-level decl was invisible to the
+  // extension's cross-entry `x@ctx` context lookup (extractExportedBinders
+  // saw no binder child), so `$…$@ctx` postfix links stayed red too.
+  it('preserves kind=binder on @-prefixed delimited leaves', () => {
+    const t = parseSnlSyntaxTree('@$\\cdot$')
+    expect(t.name).toBe('\\cdot')
+    expect(t.envMode).toBe('formula_inline')
+    expect(t.kind).toBe('binder')
+  })
+
+  it('preserves kind=binder on nested @-prefixed delimited children', () => {
+    const t = parseSnlSyntaxTree('ctx(@$\\cdot$, @%plus%)')
+    expect(t.children.map((c) => c.kind)).toEqual(['binder', 'binder'])
+  })
 })
 
 describe('@ binder prefix', () => {

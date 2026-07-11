@@ -144,7 +144,7 @@ export function annotateBindings(
         }
         return
       }
-      if (!node.kind || node.envMode) {
+      if (node.kind !== 'binder' && (!node.kind || node.envMode)) {
         // Undecided leaf: consult the stack.
         //
         // 猫猫 spec (2026-07-04-late): for delimited names, "整段代码都当
