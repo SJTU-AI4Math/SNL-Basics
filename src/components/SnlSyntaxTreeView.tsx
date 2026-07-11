@@ -6,6 +6,7 @@ import {
   useState,
   type MouseEventHandler,
   type ReactElement,
+  type ReactNode,
 } from 'react'
 import katex from 'katex'
 import type { KatexOptions } from 'katex'
@@ -506,6 +507,18 @@ function MathSpan({
  *    goes through KaTeX. Reserved literals `\{`, `\}`, `\\`, `\#`
  *    are unescaped so authors can produce those characters.
  */
+/**
+ * Resolve the kind we should stamp on a rendered node's DOM. Mirrors
+ * wrapHtmlData's priority: node.kind > macroDb kind > 'fvar'. Kept in
+ * sync so TextRun spans hover-highlight exactly like KaTeX \htmlData
+ * output. Empty-string kind (createSnlSyntaxTreeNode default) falls
+ * through — `||` is deliberate.
+ */
+function resolveNodeKind(node: SnlSyntaxTree, macroDb: SnlMacroDb): string {
+  const dbKind = node.name ? macroDb[node.name]?.kind : undefined
+  return node.kind || dbKind || 'fvar'
+}
+
 function TextRun({
   node,
   macroDb,
@@ -515,32 +528,44 @@ function TextRun({
   macroDb: SnlMacroDb
   renderChild: (child: SnlSyntaxTree) => ReactElement
 }): ReactElement {
-  // Envelope semantics for TextRun:
-  //
-  //   (a) envMode==='text' + name has NO #N placeholder and no children
-  //       → the name IS the literal text (`%hello%`).
-  //   (b) envMode==='text' + name contains #N placeholders
-  //       → the name IS a template with children as slots
-  //       (`%hello #0%(world)`); treat the same as a text macro.
-  //   (c) text macro from the db → template comes from style.template,
-  //       children fill #N slots.
-  //   (d) text leaf with no template and no macro → literal name.
+  // Envelope semantics — see the block comment below.
   const envIsText = node.envMode === 'text'
   const nameHasPlaceholder = /#(\*|\d{1,2})/.test(node.name ?? '')
   const isSyntheticTemplate = envIsText && nameHasPlaceholder
 
-  if (envIsText && !isSyntheticTemplate && node.children.length === 0) {
-    return <span className="snl-text">{unescapeTextLiterals(node.name ?? '')}</span>
+  // DOM attribute payload — mirrors wrapHtmlData so hover / palette /
+  // popover machinery treats a TextRun span exactly like a KaTeX
+  // \htmlData-wrapped node. `data-name` drives hover-root discovery,
+  // `data-kind` drives the palette CSS.
+  const kind = resolveNodeKind(node, macroDb)
+  const dataAttrs: Record<string, string | undefined> = {
+    'data-name': node.name || undefined,
+    'data-kind': kind,
   }
+  if (node.style) dataAttrs['data-style'] = node.style
+  if (node.scope) dataAttrs['data-scope'] = node.scope
+  const bindRef = getBindRef(node)
+  if (bindRef) dataAttrs['data-bindref'] = bindRef
+  const srcVal = getSrc(node)
+  if (srcVal) dataAttrs['data-src'] = srcVal
+
+  const wrap = (children: ReactNode): ReactElement => (
+    <span className="snl-text snl-hoverable" {...dataAttrs}>
+      {children}
+    </span>
+  )
+
+  // (a) envMode text leaf with no #N placeholder → literal text.
+  if (envIsText && !isSyntheticTemplate && node.children.length === 0) {
+    return wrap(unescapeTextLiterals(node.name ?? ''))
+  }
+  // (d) plain leaf (no macro) → literal name.
   if (!envIsText && node.children.length === 0 && !macroDb[node.name]) {
-    return <span className="snl-text">{unescapeTextLiterals(node.name ?? '')}</span>
+    return wrap(unescapeTextLiterals(node.name ?? ''))
   }
 
   const macro = macroDb[node.name]
   const style = macro ? resolveStyle(node, macro) : undefined
-  // Synthetic template overrides db lookup — envMode-marked nodes are
-  // deliberately db-independent (see resolveNodeLatex comment on the
-  // same behavior for formula-mode env payloads).
   const template = isSyntheticTemplate ? node.name : (style?.template ?? '')
   const children = node.children
 
@@ -582,40 +607,38 @@ function TextRun({
     })
   }
 
-  return (
-    <span className="snl-text" data-name={node.name || undefined}>
-      {parts.map((p, i) => {
-        if (p.kind === 'text') {
-          return (
-            <Fragment key={i}>{unescapeTextLiterals(p.value)}</Fragment>
-          )
-        }
-        if (p.index === '*') {
-          // Variadic slot — emit every child in order, separated by the
-          // style's join (default '' in text mode, matching KaTeX path).
-          const sep = style?.variadic_join ?? ''
-          return (
-            <Fragment key={i}>
-              {children.map((child, ci) => (
-                <Fragment key={ci}>
-                  {ci > 0 && sep ? <span>{sep}</span> : null}
-                  {renderChild(child)}
-                </Fragment>
-              ))}
-            </Fragment>
-          )
-        }
-        const child = children[p.index]
-        if (!child) {
-          return (
-            <span key={i} className="snl-missing-arg">
-              [{p.index}]
-            </span>
-          )
-        }
-        return <Fragment key={i}>{renderChild(child)}</Fragment>
-      })}
-    </span>
+  return wrap(
+    parts.map((p, i) => {
+      if (p.kind === 'text') {
+        return (
+          <Fragment key={i}>{unescapeTextLiterals(p.value)}</Fragment>
+        )
+      }
+      if (p.index === '*') {
+        // Variadic slot — emit every child in order, separated by the
+        // style's join (default '' in text mode, matching KaTeX path).
+        const sep = style?.variadic_join ?? ''
+        return (
+          <Fragment key={i}>
+            {children.map((child, ci) => (
+              <Fragment key={ci}>
+                {ci > 0 && sep ? <span>{sep}</span> : null}
+                {renderChild(child)}
+              </Fragment>
+            ))}
+          </Fragment>
+        )
+      }
+      const child = children[p.index]
+      if (!child) {
+        return (
+          <span key={i} className="snl-missing-arg">
+            [{p.index}]
+          </span>
+        )
+      }
+      return <Fragment key={i}>{renderChild(child)}</Fragment>
+    }),
   )
 }
 

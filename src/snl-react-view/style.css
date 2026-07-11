@@ -102,8 +102,17 @@
    .snl-text opts into KaTeX_Main so plain prose matches the surrounding
    $..$ formulas. Falls back to the surrounding font when KaTeX fonts
    aren't loaded. */
+/* Match KaTeXs `.katex { font: normal 1.21em ...}` so React-managed
+   text renders at the same visual size as adjacent KaTeX math and
+   doesnt look shrunk. Cat 2026-07-10: 'text 字体偏小'. Compound
+   nesting protection: nested .snl-text stays at 1em relative to its
+   already-scaled parent. */
 .snl-text {
-  font-family: KaTeX_Main, 'Times New Roman', serif;
+  font: normal 1.21em KaTeX_Main, 'Times New Roman', serif;
+  line-height: 1.2;
+}
+.snl-text .snl-text {
+  font-size: 1em;
 }
 .snl-missing-arg {
   opacity: 0.5;
