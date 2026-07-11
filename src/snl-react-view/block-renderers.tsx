@@ -6,7 +6,7 @@
  * `renderChild` callback that dispatches any child (math / text / block) back
  * through the view's mode-aware renderer.
  */
-import { Fragment, type ReactElement } from 'react'
+import { Fragment, type CSSProperties, type ReactElement } from 'react'
 import type { SnlBlockRenderer } from './hooks'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 
@@ -81,3 +81,50 @@ export const CenteredRenderer: SnlBlockRenderer = ({ node, renderChild }) => (
     {node.children.map((child, index) => keyed(renderChild(child), index))}
   </div>
 )
+
+/**
+ * `enumerate` renderer — variadic ordered list (LaTeX `\begin{enumerate}`).
+ * Renders each child as a `<li>` inside an `<ol>`. Distinguished from
+ * `list` (which emits `<ul>`) so authors can pick numbered vs bulleted
+ * at macro-declaration time.
+ *
+ * Optional per-macro-style customisation via `mdata`:
+ *   - `mdata.start` (integer, default 1) — the first counter value,
+ *     matching LaTeX `\setcounter{enumi}{n-1}` before the environment.
+ *   - `mdata.listStyle` ('decimal' | 'lower-alpha' | 'upper-alpha' |
+ *     'lower-roman' | 'upper-roman', default 'decimal') — matches the
+ *     four common LaTeX enumerate label styles ('1.', 'a.', 'A.', 'i.',
+ *     'I.'). Any other string is passed through to CSS list-style-type
+ *     so themes can extend it.
+ *
+ * If neither key is set the renderer produces a plain `<ol>` and lets
+ * the surrounding CSS (`.snl-block-enumerate`) control appearance —
+ * mirrors LaTeX's plain `\begin{enumerate}` default.
+ */
+export const EnumerateRenderer: SnlBlockRenderer = ({ node, renderChild }) => {
+  const mdata =
+    node.mdata && typeof node.mdata === 'object'
+      ? (node.mdata as { start?: unknown; listStyle?: unknown })
+      : undefined
+  const start =
+    typeof mdata?.start === 'number' && Number.isFinite(mdata.start) && mdata.start >= 1
+      ? mdata.start
+      : undefined
+  const listStyle =
+    typeof mdata?.listStyle === 'string' && mdata.listStyle.length > 0
+      ? mdata.listStyle
+      : undefined
+  const style: CSSProperties = {}
+  if (listStyle) style.listStyleType = listStyle
+  return (
+    <ol
+      className="snl-block snl-block-enumerate"
+      start={start}
+      style={style}
+    >
+      {node.children.map((child, index) => (
+        <li key={index}>{renderChild(child)}</li>
+      ))}
+    </ol>
+  )
+}

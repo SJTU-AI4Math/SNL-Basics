@@ -66,4 +66,31 @@ describe('block renderers via SnlSyntaxTreeView', () => {
       expect(div).not.toBeNull()
     })
   })
+
+  it('enumerate renderer produces an <ol> with one <li> per child', async () => {
+    const tree = createSnlSyntaxTreeNode('sample.enumerate', {
+      children: [leaf('a'), leaf('b'), leaf('c')],
+    })
+    const { container } = renderTree(tree)
+    await waitFor(() => {
+      const ol = container.querySelector('ol.snl-block-enumerate')
+      expect(ol).not.toBeNull()
+      expect(ol!.querySelectorAll('li')).toHaveLength(3)
+    })
+  })
+
+  it('enumerate renderer honours mdata.start and mdata.listStyle', async () => {
+    const tree = createSnlSyntaxTreeNode('sample.enumerate', {
+      mdata: { start: 3, listStyle: 'lower-alpha' },
+      children: [leaf('a'), leaf('b')],
+    })
+    const { container } = renderTree(tree)
+    await waitFor(() => {
+      const ol = container.querySelector<HTMLOListElement>('ol.snl-block-enumerate')
+      expect(ol).not.toBeNull()
+      // React translates the `start` prop to the DOM attribute.
+      expect(ol!.getAttribute('start')).toBe('3')
+      expect(ol!.style.listStyleType).toBe('lower-alpha')
+    })
+  })
 })

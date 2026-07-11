@@ -98,6 +98,9 @@
 .snl-block-list {
   padding-left: 2em;
 }
+.snl-block-enumerate {
+  padding-left: 2em;
+}
 .snl-block-table {
   border-collapse: collapse;
 }

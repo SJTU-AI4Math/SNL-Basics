@@ -7,7 +7,7 @@ import type { SnlMacro, SnlMacroDb, SnlMacroSource } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import type { BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { readBindRefFromDom } from '../snl-syntax-tree/binding'
-import { CenteredRenderer, ListRenderer, TableRenderer } from './block-renderers'
+import { CenteredRenderer, EnumerateRenderer, ListRenderer, TableRenderer } from './block-renderers'
 
 export type { SnlMacroDb }
 
@@ -168,11 +168,18 @@ export type SnlBlockRenderer = FC<SnlBlockRendererProps>
 export type SnlRendererRegistry = Record<string, SnlBlockRenderer>
 
 /**
- * Built-in block renderers keyed by `react_renderer_key`: `"list"`, `"table"`,
- * `"centered"`. Spread your own entries over this to extend it.
+ * Built-in block renderers keyed by `react_renderer_key`:
+ *   `"list"`      — unordered list (LaTeX `\begin{itemize}` → `<ul>`).
+ *   `"enumerate"` — ordered list   (LaTeX `\begin{enumerate}` → `<ol>`).
+ *                   Honours `mdata.start` (starting counter) and
+ *                   `mdata.listStyle` ('decimal' / 'lower-alpha' / …).
+ *   `"table"`     — `<table>` with optional `table-header` first row.
+ *   `"centered"`  — horizontally-centered block wrapper.
+ * Spread your own entries over this to extend it.
  */
 export const defaultRenderers: SnlRendererRegistry = {
   list: ListRenderer,
+  enumerate: EnumerateRenderer,
   table: TableRenderer,
   centered: CenteredRenderer,
 }

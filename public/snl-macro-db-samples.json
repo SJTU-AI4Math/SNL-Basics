@@ -16,6 +16,23 @@
     ],
     "dynamic_arity": true
   },
+  "sample.enumerate": {
+    "name": "sample.enumerate",
+    "description": "Sample block macro: renders variadic children as an ordered list (<ol><li>…) — LaTeX's \\begin{enumerate}. Set mdata.start to change the first counter value, mdata.listStyle to switch label style (decimal / lower-alpha / upper-alpha / lower-roman / upper-roman).",
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "tag": "default",
+        "mode": "block",
+        "template": "",
+        "react_renderer_key": "enumerate"
+      }
+    ],
+    "dynamic_arity": true
+  },
   "sample.table": {
     "name": "sample.table",
     "description": "Sample block macro: renders variadic row children as a table. If the first child's kind is 'table-header' it becomes the <thead>, otherwise all rows render as body rows.",
