@@ -103,5 +103,7 @@
     }
   ],
   "macro_kinds": [],
-  "active_macro_packages": []
+  "active_macro_packages": [
+    "api-doc"
+  ]
 }

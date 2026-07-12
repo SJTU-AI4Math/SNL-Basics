@@ -1,0 +1,310 @@
+{
+  "version": "0.1.0",
+  "name": "api-doc",
+  "description": "Term macros for the SNL-Basics dogfood API doc (Phase 2). Inline-term references (api.iface, api.fn, api.class, api.const, api.prop, api.comp, api.mod, api.pkg, api.concept, api.kw, api.file, api.code), connector punctuation (api.slash, api.plus, api.arrow, api.list), and one structural macro (api.para) for prose paragraphs.",
+  "macros": {
+    "api.iface": {
+      "description": "Inline reference to a TypeScript interface or type alias defined in the SNL-Basics API. Renders in \\texttt{} with a cyan tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.class": {
+      "description": "Inline reference to a TypeScript class in the SNL-Basics API. Renders in \\texttt{} with a teal tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Teal}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.field": {
+      "description": "Inline reference to a Class's field (data or method member). Renders in \\texttt{} with a lime tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{OliveGreen}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.fn": {
+      "description": "Inline reference to a function or method exported by SNL-Basics. Renders in \\texttt{} with an orange tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Orange}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.const": {
+      "description": "Inline reference to an exported constant / default-instance / value in SNL-Basics. Renders in \\texttt{} with an amber tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Goldenrod}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.prop": {
+      "description": "Inline reference to a React component prop. Renders in \\texttt{} with a rose tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{RubineRed}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.comp": {
+      "description": "Inline reference to a React component. Renders in \\texttt{} with a pink tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Magenta}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.mod": {
+      "description": "Inline reference to a source-tree module / namespace. Renders in \\texttt{} with an indigo tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{RoyalBlue}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.pkg": {
+      "description": "Inline reference to an npm package or distribution unit. Renders in \\texttt{} with a violet tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.concept": {
+      "description": "Inline reference to a cross-cutting concept (surface, stability level, consumer, distribution decision). Renders in \\texttt{} with a neutral tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Gray}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.kw": {
+      "description": "Inline lowercase keyword or built-in term (macro, kind, envMode, template, ...). Renders in \\texttt{} with a neutral gray, no strong color — these are common vocabulary, not linked artefacts.",
+      "kind": "fvar",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Gray}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.file": {
+      "description": "Inline reference to a source file or workspace-relative path. Renders in \\texttt{} with a cyan tint.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{MidnightBlue}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.code": {
+      "description": "Inline monospace fallback for arbitrary code snippets (e.g. \\forall, `dist-lib/index.js`). No color; use when no other kind fits.",
+      "kind": "fvar",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Black}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "api.slash": {
+      "description": "Variadic connector macro — joins children with ' / '. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
+      "kind": "rule",
+      "dynamic_arity": true,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "text",
+          "template": "",
+          "variadic_left": "",
+          "variadic_join": " / ",
+          "variadic_right": ""
+        }
+      ]
+    },
+    "api.plus": {
+      "description": "Variadic connector macro — joins children with ' + '. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
+      "kind": "rule",
+      "dynamic_arity": true,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "text",
+          "template": "",
+          "variadic_left": "",
+          "variadic_join": " + ",
+          "variadic_right": ""
+        }
+      ]
+    },
+    "api.arrow": {
+      "description": "Variadic connector macro — joins children with ' → '. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
+      "kind": "rule",
+      "dynamic_arity": true,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "text",
+          "template": "",
+          "variadic_left": "",
+          "variadic_join": " → ",
+          "variadic_right": ""
+        }
+      ]
+    },
+    "api.list": {
+      "description": "Variadic connector macro — joins children with '、'. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
+      "kind": "rule",
+      "dynamic_arity": true,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "text",
+          "template": "",
+          "variadic_left": "",
+          "variadic_join": "、",
+          "variadic_right": ""
+        }
+      ]
+    },
+    "api.para": {
+      "description": "One paragraph of prose. Variadic in the number of inline items. Renders as a text-mode block; every entry's content.snl uses `api.para` as its ROOT single macro tree (SNL grammar requirement). Multi-paragraph entries chain paragraphs via literal newlines inside the para text, or nest a second para as the last child.",
+      "kind": "rule",
+      "dynamic_arity": true,
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "text",
+          "template": "",
+          "variadic_left": "",
+          "variadic_join": "",
+          "variadic_right": ""
+        }
+      ]
+    }
+  }
+}
