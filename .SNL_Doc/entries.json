@@ -129,7 +129,11 @@
       "markdown": "parser 遇到语法错误时抛出的异常类, 继承自 Error. 携带 position 字段, 指向源码中的字符位置 (0-indexed), 方便宿主定位错误."
     },
     "contribution_info": null,
-    "pointer": null
+    "pointer": {
+      "file": "src/snl-syntax-tree/parser.ts",
+      "mode": "regex",
+      "pattern": "export class SnlSyntaxTreeParseError"
+    }
   },
   {
     "id": "st.cls.parse-error.field.position",
@@ -162,7 +166,11 @@
       "markdown": "SNL 源码 → SnlSyntaxTree 的主 parser. 语法错误抛 SnlSyntaxTreeParseError. 内部会自动调用 annotateBindings 完成 binder / bvar / fvar 标注. 接受可选的 SnlSyntaxTreeParseOptions 传入 activeBinderIds 用于子树重解析场景."
     },
     "contribution_info": null,
-    "pointer": null
+    "pointer": {
+      "file": "src/snl-syntax-tree/parser.ts",
+      "mode": "regex",
+      "pattern": "export function parseSnlSyntaxTree"
+    }
   },
   {
     "id": "st.fn.try-parse-snl-syntax-tree",
@@ -239,7 +247,11 @@
       "markdown": "单个 macro 的完整定义. 包含 name (唯一 id), kind (bvar / rule / const / ...), styles 数组 (不同渲染变体), source (macro 的来源引用, 指向 entries / URLs)."
     },
     "contribution_info": null,
-    "pointer": null
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "export interface SnlMacro\\b"
+    }
   },
   {
     "id": "mac.iface.snl-macro-db",
@@ -305,7 +317,12 @@
       "markdown": "主渲染组件. 输入 tree + macroDb + templateQuery + hooks + palette, 输出 KaTeX-in-React 的可交互树. 支持悬浮 popover / 高亮 bvar 作用域 / block renderer 派发 / 主题化 palette."
     },
     "contribution_info": null,
-    "pointer": null
+    "pointer": {
+      "file": "src/components/SnlSyntaxTreeView.tsx",
+      "mode": "lines",
+      "line": 744,
+      "endLine": 744
+    }
   },
   {
     "id": "rv.comp.snl-syntax-tree-view.prop.tree",
