@@ -36,6 +36,15 @@ import {
 interface RenderResult {
   latex: string
   html: string
+  /**
+   * Which effect run produced this result. Consumers commit it to the
+   * DOM only when it matches the latest reqId, so stale HTML from a
+   * superseded async run can never replace a fresher render already on
+   * screen — and equally, when a new run starts we clear the DOM up
+   * front rather than letting the old render linger for the ~async
+   * window it takes KaTeX to resolve.
+   */
+  reqId: number
 }
 
 /**
@@ -797,7 +806,7 @@ function useSnlSyntaxTreeRender(
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const reqIdRef = useRef(0)
-  const cache = useMemo(() => new Map<string, string>(), [query])
+  const cache = useMemo(() => new Map<string, string>(), [query, macroDb])
 
   useEffect(() => {
     if (!enabled) {
@@ -822,7 +831,13 @@ function useSnlSyntaxTreeRender(
           ...katexOptions,
         })
         if (!cancelled && reqIdRef.current === reqId) {
-          setResult({ latex, html })
+          // Stamp the result with its reqId so the consumer can refuse to
+          // commit stale HTML to the DOM. Without this, a rapidly-typing
+          // user sees the PREVIOUS successful render remain in innerHTML
+          // until the new async run resolves — i.e. typing `d → de → def`
+          // (where `def` is a macro) briefly shows the `de` fvar render
+          // before flipping to the `def` macro render. Cat 2026-07-13.
+          setResult({ latex, html, reqId })
         }
       } catch (err) {
         if (!cancelled && reqIdRef.current === reqId) {
@@ -843,7 +858,7 @@ function useSnlSyntaxTreeRender(
     }
   }, [cache, enabled, katexOptions, query, macroDb, tree])
 
-  return { loading, error, result }
+  return { loading, error, result, reqIdRef }
 }
 
 /**
@@ -906,6 +921,21 @@ export function SnlSyntaxTreeView({
       }
     }
   }, [])
+
+  // Clear the DOM the moment `tree` changes so a stale KaTeX render
+  // never sits on screen while the new async run is still resolving.
+  // Cat 2026-07-13: typing `d → de → def` (where `def` is a macro) used
+  // to briefly flash the `de` fvar render because that render had
+  // already committed to innerHTML and stayed there until the `def`
+  // run's setState propagated. Reset first, then let the effect below
+  // paint the fresh result.
+  useEffect(() => {
+    if (!isKatexRoot) return
+    const el = containerRef.current
+    if (!el) return
+    lastHtmlRef.current = null
+    el.innerHTML = ''
+  }, [isKatexRoot, tree])
 
   useEffect(() => {
     const el = containerRef.current
