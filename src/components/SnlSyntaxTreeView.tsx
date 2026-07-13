@@ -575,13 +575,14 @@ function TextRun({
     </span>
   )
 
-  // (a) envMode text leaf with no #N placeholder → literal text.
+  // (a) envMode text leaf with no #N placeholder → literal text (with
+  // `$…$` math-island escapes handled by renderTextWithMathIslands).
   if (envIsText && !isSyntheticTemplate && node.children.length === 0) {
-    return wrap(unescapeTextLiterals(node.name ?? ''))
+    return wrap(renderTextWithMathIslands(node.name ?? ''))
   }
   // (d) plain leaf (no macro) → literal name.
   if (!envIsText && node.children.length === 0 && !macroDb[node.name]) {
-    return wrap(unescapeTextLiterals(node.name ?? ''))
+    return wrap(renderTextWithMathIslands(node.name ?? ''))
   }
 
   const macro = macroDb[node.name]
@@ -631,7 +632,7 @@ function TextRun({
     parts.map((p, i) => {
       if (p.kind === 'text') {
         return (
-          <Fragment key={i}>{unescapeTextLiterals(p.value)}</Fragment>
+          <Fragment key={i}>{renderTextWithMathIslands(p.value)}</Fragment>
         )
       }
       if (p.index === '*') {
@@ -674,6 +675,115 @@ function unescapeTextLiterals(s: string): string {
     .replace(/\\\{/g, '{')
     .replace(/\\\}/g, '}')
     .replace(/\\\\/g, '\\')
+}
+
+/**
+ * Render a literal-text run from a text-mode context, but recognize
+ * `$…$` (inline math) and `$$…$$` (display math) islands and hand them
+ * to KaTeX. Cat 2026-07-12: 'text 宏里面的 $ ... $ 依然要走 KaTeX'.
+ *
+ * Escape convention:
+ *   `\$`  → literal dollar (does NOT open math)
+ *   `$…$` → inline math; contents are raw KaTeX source
+ *   `$$…$$` → display math; contents are raw KaTeX source
+ *
+ * Non-math runs still go through `unescapeTextLiterals` for `\#`, `\{`,
+ * `\}`, `\\`. Unbalanced `$` (no closing pair) falls back to literal.
+ * On KaTeX throw, the offending run is emitted as literal text in red so
+ * a broken formula never eats the surrounding prose.
+ */
+function renderTextWithMathIslands(src: string): ReactNode[] {
+  const parts: ReactNode[] = []
+  // Scanner state — walk char by char so we can honor `\$` cleanly.
+  let i = 0
+  let literalStart = 0
+  const flushLiteral = (end: number, keyOffset: number): void => {
+    if (end <= literalStart) return
+    const piece = src.slice(literalStart, end)
+    // Strip \$ → $ AFTER we've decided this is literal (we still needed
+    // the backslash to prevent math opening earlier in the scan).
+    const withDollar = piece.replace(/\\\$/g, '$')
+    parts.push(
+      <Fragment key={`t-${keyOffset}`}>{unescapeTextLiterals(withDollar)}</Fragment>,
+    )
+  }
+  while (i < src.length) {
+    const ch = src[i]
+    // Backslash-escaped dollar: skip the pair, stay in literal mode.
+    if (ch === '\\' && src[i + 1] === '$') {
+      i += 2
+      continue
+    }
+    if (ch !== '$') {
+      i += 1
+      continue
+    }
+    // Encountered a `$`. Decide inline vs display and find the closer.
+    const isDisplay = src[i + 1] === '$'
+    const openLen = isDisplay ? 2 : 1
+    const searchFrom = i + openLen
+    // For inline, we must skip over `\$` sequences in the payload.
+    let closeAt = -1
+    if (isDisplay) {
+      closeAt = src.indexOf('$$', searchFrom)
+    } else {
+      let j = searchFrom
+      while (j < src.length) {
+        if (src[j] === '\\' && src[j + 1] === '$') {
+          j += 2
+          continue
+        }
+        // Guard against $$ inside inline scan (author probably meant
+        // display) — treat as unmatched to be safe.
+        if (src[j] === '$' && src[j + 1] === '$') {
+          break
+        }
+        if (src[j] === '$') {
+          closeAt = j
+          break
+        }
+        j += 1
+      }
+    }
+    if (closeAt < 0) {
+      // Unmatched — treat the `$` as a literal, keep scanning.
+      i += 1
+      continue
+    }
+    // Emit the literal run before the opening delimiter.
+    flushLiteral(i, i)
+    const latex = src.slice(searchFrom, closeAt)
+    const key = `m-${i}`
+    let html: string
+    try {
+      html = katex.renderToString(latex, {
+        displayMode: isDisplay,
+        throwOnError: true,
+        strict: false,
+        trust: false,
+      })
+    } catch (err) {
+      html = ''
+      parts.push(
+        <span
+          key={key}
+          style={{ color: 'var(--vscode-errorForeground, #f48771)' }}
+          title={err instanceof Error ? err.message : String(err)}
+        >
+          {src.slice(i, closeAt + openLen)}
+        </span>,
+      )
+    }
+    if (html) {
+      parts.push(
+        <span key={key} className="snl-math-span" dangerouslySetInnerHTML={{ __html: html }} />,
+      )
+    }
+    i = closeAt + openLen
+    literalStart = i
+  }
+  flushLiteral(src.length, src.length)
+  return parts
 }
 
 function useSnlSyntaxTreeRender(
