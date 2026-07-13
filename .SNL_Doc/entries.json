@@ -861,7 +861,7 @@
   {
     "id": "mac.iface.snl-macro.dynamic_arity",
     "kind": "field",
-    "title": "$\\texttt{dynamic_arity}$",
+    "title": "$\\texttt{dynamic\\_arity}$",
     "content": {
       "snl": "Type.judge(SnlMacro.dynamic_arity,boolean)",
       "markdown": "当 macro 的参数个数**不由 template 固定**时为 true — 此时 `styles[0].template` 必须包含 `#*` 占位. 所有 style 必须一致遵守这个 flag; 它是**macro 级别**的不变量, 因此在 call site 切换 style 永远不会改变实参 arity 契约."
@@ -927,7 +927,7 @@
   {
     "id": "mac.iface.snl-macro-style.variadic_left",
     "kind": "field",
-    "title": "$\\texttt{variadic_left}$",
+    "title": "$\\texttt{variadic\\_left}$",
     "content": {
       "snl": "Type.judge(SnlMacroStyle.variadic_left,Type.opt(string))",
       "markdown": "`#*` 变长渲染时的**左定界符**. 只在 `SnlMacro.dynamic_arity=true` 时生效. 缺省 `\"\"`. 渲染结果为 `variadic_left + children.join(variadic_join) + variadic_right`."
@@ -938,7 +938,7 @@
   {
     "id": "mac.iface.snl-macro-style.variadic_join",
     "kind": "field",
-    "title": "$\\texttt{variadic_join}$",
+    "title": "$\\texttt{variadic\\_join}$",
     "content": {
       "snl": "Type.judge(SnlMacroStyle.variadic_join,Type.opt(string))",
       "markdown": "`#*` 变长渲染的**分隔符**. 只在 `SnlMacro.dynamic_arity=true` 时生效. 缺省: formula 模式 `\", \"`, text 模式 `\"\"`."
@@ -949,7 +949,7 @@
   {
     "id": "mac.iface.snl-macro-style.variadic_right",
     "kind": "field",
-    "title": "$\\texttt{variadic_right}$",
+    "title": "$\\texttt{variadic\\_right}$",
     "content": {
       "snl": "Type.judge(SnlMacroStyle.variadic_right,Type.opt(string))",
       "markdown": "`#*` 变长渲染的**右定界符**. 只在 `SnlMacro.dynamic_arity=true` 时生效. 缺省 `\"\"`."
@@ -960,7 +960,7 @@
   {
     "id": "mac.iface.snl-macro-style.react_renderer_key",
     "kind": "field",
-    "title": "$\\texttt{react_renderer_key}$",
+    "title": "$\\texttt{react\\_renderer\\_key}$",
     "content": {
       "snl": "Type.judge(SnlMacroStyle.react_renderer_key,Type.opt(string))",
       "markdown": "Block / text mode 的 dispatch key — 让 host (`SnlRenderHooks`) 选出对应的自定义 React 组件. 只在 `mode` 为 `block` 或 `text` 时生效. 例如 `\"enumerate\"` / `\"table\"` / `\"centered\"`."
