@@ -241,17 +241,13 @@
   {
     "id": "mac.iface.snl-macro",
     "kind": "interface",
-    "title": "SnlMacro",
+    "title": "$\\texttt{SnlMacro}$",
     "content": {
-      "snl": "api.para(%单个 %,api.kw(%macro%),% 的完整定义. 包含 name (唯一 id), %,api.kw(%kind%),% (%,api.kw(%bvar%),% / rule / const / ...), %,api.kw(%styles%),% 数组 (不同渲染变体), %,api.kw(%source%),% (%,api.kw(%macro%),% 的来源引用, 指向 entries / %,api.kw(%URLs%),%).%)",
+      "snl": "interface(SnlMacro,enumerate(Type.judge(SnlMacro.name,string)))",
       "markdown": "单个 macro 的完整定义. 包含 name (唯一 id), kind (bvar / rule / const / ...), styles 数组 (不同渲染变体), source (macro 的来源引用, 指向 entries / URLs)."
     },
     "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-macro/types.ts",
-      "mode": "regex",
-      "pattern": "export interface SnlMacro\\b"
-    }
+    "pointer": null
   },
   {
     "id": "mac.iface.snl-macro-db",
@@ -815,6 +811,16 @@
     "content": {
       "snl": "api.para(%10 个 %,api.kw(%kind%),%: NpmPackage / Module / Interface / Class / Field / Function / ReactComponent / Property / Constant / Concept. Interface 成员不独立成 entry (写在 content 内), Class 成员独立成 sub-entry, method 复用 Function, Property 用全称避 Lean 里 Prop=Proposition 歧义, 默认实现复用 Constant.%)",
       "markdown": "10 个 kind: NpmPackage / Module / Interface / Class / Field / Function / ReactComponent / Property / Constant / Concept. Interface 成员不独立成 entry (写在 content 内), Class 成员独立成 sub-entry, method 复用 Function, Property 用全称避 Lean 里 Prop=Proposition 歧义, 默认实现复用 Constant."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro.name",
+    "kind": "field",
+    "title": "$\\texttt{name}$",
+    "content": {
+      "markdown": "`name` member of `SnlMacro` stores the name / id of the macro. \n\nThe name of the macro should be universally unique. "
     },
     "contribution_info": null,
     "pointer": null

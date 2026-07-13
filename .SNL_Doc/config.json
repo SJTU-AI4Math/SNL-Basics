@@ -102,7 +102,35 @@
       "style": ""
     }
   ],
-  "macro_kinds": [],
+  "macro_kinds": [
+    {
+      "id": "Syntax",
+      "name": "Syntax",
+      "description": "",
+      "coloring": {
+        "stroke": "#0078D4",
+        "background": "#DDEEFF"
+      }
+    },
+    {
+      "id": "class",
+      "name": "Class",
+      "description": "",
+      "coloring": {
+        "stroke": "#4EC9A2",
+        "background": "#ddffee"
+      }
+    },
+    {
+      "id": "const",
+      "name": "Constant",
+      "description": "",
+      "coloring": {
+        "stroke": "#888888",
+        "background": "#eeeeee"
+      }
+    }
+  ],
   "active_macro_packages": [
     "api-doc"
   ]

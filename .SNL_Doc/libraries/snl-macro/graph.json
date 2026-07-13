@@ -48,50 +48,50 @@
       "props": {
         "entryId": "mac.const.bundled-sample-macro-db"
       }
+    },
+    {
+      "id": "n_1",
+      "label": "Entry",
+      "props": {
+        "entryId": "mac.iface.snl-macro.name"
+      }
     }
   ],
   "relationships": [
     {
-      "id": "89ae5fb9-c342-47a8-b7b8-02e7fa20318b",
       "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
       "to": "b5b10656-6b0d-4cb5-925b-f444331767f6",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "90a55efb-9610-40e2-bdc1-18d4125e17d3",
       "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
       "to": "1ce09716-5762-47d0-a0e9-f4dd38f363fa",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "a2a47d5c-b2aa-494e-82c6-2cf7b3f2d31a",
       "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
       "to": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "5c205f04-a076-405c-81a5-5894df54a158",
       "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
       "to": "a504abbd-facb-455f-9bb2-79a4ba303901",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "8fcdf036-0d9d-4afb-aa2f-932d8e4d2d4f",
       "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
       "to": "a7e5cf72-8f62-4f00-b14d-f96c2729dbf2",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "f0b51bad-5450-4c55-b3bc-1f2899974ce7",
       "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
       "to": "797f3aa4-bbd7-4934-9b39-19ae7a6d21fb",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
+    },
+    {
+      "from": "b5b10656-6b0d-4cb5-925b-f444331767f6",
+      "to": "n_1",
+      "label": "branch"
     }
   ]
 }
