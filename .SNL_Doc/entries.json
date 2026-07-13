@@ -70,7 +70,7 @@
     "kind": "interface",
     "title": "SnlSyntaxTreeFormulaNode",
     "content": {
-      "snl": "api.para(api.kw(%envMode%),% 为 formula_inline 或 formula_display 的分支. 此时 name 字段承载 LaTeX 源码, 直接进 %,api.kw(%KaTeX%),% 渲染.%)",
+      "snl": "api.para(api.kw(%envMode%),% 为 formula\\_inline 或 formula\\_display 的分支. 此时 name 字段承载 LaTeX 源码, 直接进 %,api.kw(%KaTeX%),% 渲染.%)",
       "markdown": "envMode 为 formula_inline 或 formula_display 的分支. 此时 name 字段承载 LaTeX 源码, 直接进 KaTeX 渲染."
     },
     "contribution_info": null,
@@ -92,7 +92,7 @@
     "kind": "interface",
     "title": "SnlSyntaxTreeBlockNode",
     "content": {
-      "snl": "api.para(api.kw(%envMode%),% 为 %,api.kw(%block%),% 的分支. 通过 %,api.kw(%react_renderer_key%),% 派发到具体的 %,api.kw(%block%),% %,api.kw(%renderer%),%, 如 list / enumerate / matrix / table 等.%)",
+      "snl": "api.para(api.kw(%envMode%),% 为 %,api.kw(%block%),% 的分支. 通过 %,api.kw(%react\\_renderer\\_key%),% 派发到具体的 %,api.kw(%block%),% %,api.kw(%renderer%),%, 如 list / enumerate / matrix / table 等.%)",
       "markdown": "envMode 为 block 的分支. 通过 react_renderer_key 派发到具体的 block renderer, 如 list / enumerate / matrix / table 等."
     },
     "contribution_info": null,
@@ -243,7 +243,7 @@
     "kind": "interface",
     "title": "$\\texttt{SnlMacro}$",
     "content": {
-      "snl": "interface(SnlMacro,enumerate(Type.judge(SnlMacro.name,string),Type.judge(SnlMacro.description,string),Type.judge(SnlMacro.source,SnlMacroSource),Type.judge(SnlMacro.kind,Type.opt(string)),Type.judge(SnlMacro.dynamic_arity,boolean),Type.judge(SnlMacro.styles,Type.array(SnlMacroStyle)),Type.judge(SnlMacro.tags,Type.opt(Type.array(string)))))",
+      "snl": "interface(SnlMacro,enumerate(Type.judge(SnlMacro.name,string),Type.judge(SnlMacro.description,string),Type.judge(SnlMacro.source,SnlMacroSource),Type.judge(SnlMacro.kind,Type.opt(string)),Type.judge(SnlMacro.dynamic\\_arity,boolean),Type.judge(SnlMacro.styles,Type.array(SnlMacroStyle)),Type.judge(SnlMacro.tags,Type.opt(Type.array(string)))))",
       "markdown": "单个 macro 的完整定义. 全局唯一 `name` 是主 id; `styles[]` 承载所有渲染变体; `source` 绑定语义来源 entry / URL; `kind` 驱动调色板; `dynamic_arity` 决定 `#*` 是否可用."
     },
     "contribution_info": null,
@@ -265,7 +265,7 @@
     "kind": "interface",
     "title": "SnlMacroStyle",
     "content": {
-      "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.tag,string),Type.judge(SnlMacroStyle.mode,Type.union(Type.literal(formula_inline),Type.literal(formula_display),Type.literal(text),Type.literal(block))),Type.judge(SnlMacroStyle.template,string),Type.judge(SnlMacroStyle.variadic_left,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_join,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_right,Type.opt(string)),Type.judge(SnlMacroStyle.react_renderer_key,Type.opt(string)),Type.judge(SnlMacroStyle.tags,Type.opt(Type.array(string)))))",
+      "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.tag,string),Type.judge(SnlMacroStyle.mode,Type.union(Type.literal(formula\\_inline),Type.literal(formula\\_display),Type.literal(text),Type.literal(block))),Type.judge(SnlMacroStyle.template,string),Type.judge(SnlMacroStyle.variadic\\_left,Type.opt(string)),Type.judge(SnlMacroStyle.variadic\\_join,Type.opt(string)),Type.judge(SnlMacroStyle.variadic\\_right,Type.opt(string)),Type.judge(SnlMacroStyle.react\\_renderer\\_key,Type.opt(string)),Type.judge(SnlMacroStyle.tags,Type.opt(Type.array(string)))))",
       "markdown": "单个 macro 的一个渲染 style. 所有 style 共享 macro 级 arity, 只改变**渲染输出**. `styles[0]` 是隐式默认."
     },
     "contribution_info": null,
@@ -298,7 +298,7 @@
     "kind": "constant",
     "title": "bundledSampleMacroDb",
     "content": {
-      "snl": "api.para(%示例 %,api.kw(%macro%),% DB, 用于文档 / 教程 / demo 场景. 包含 sample.list / sample.enumerate 等 %,api.kw(%block%),%-mode 示例 %,api.kw(%macro%),%, 演示 %,api.kw(%react_renderer_key%),% 的用法.%)",
+      "snl": "api.para(%示例 %,api.kw(%macro%),% DB, 用于文档 / 教程 / demo 场景. 包含 sample.list / sample.enumerate 等 %,api.kw(%block%),%-mode 示例 %,api.kw(%macro%),%, 演示 %,api.kw(%react\\_renderer\\_key%),% 的用法.%)",
       "markdown": "示例 macro DB, 用于文档 / 教程 / demo 场景. 包含 sample.list / sample.enumerate 等 block-mode 示例 macro, 演示 react_renderer_key 的用法."
     },
     "contribution_info": null,
@@ -369,7 +369,7 @@
     "kind": "property",
     "title": "palette",
     "content": {
-      "snl": "api.para(%可选. %,api.kw(%kind%),% → { stroke, background } 的配色表. 省略时用 %,api.const(%DEFAULT_KIND_PALETTE%),%. 覆盖 %,api.kw(%bvar%),% / %,api.kw(%fvar%),% / rule / const 等 %,api.kw(%kind%),% 的颜色.%)",
+      "snl": "api.para(%可选. %,api.kw(%kind%),% → { stroke, background } 的配色表. 省略时用 %,api.const(%DEFAULT\\_KIND\\_PALETTE%),%. 覆盖 %,api.kw(%bvar%),% / %,api.kw(%fvar%),% / rule / const 等 %,api.kw(%kind%),% 的颜色.%)",
       "markdown": "可选. kind → { stroke, background } 的配色表. 省略时用 DEFAULT_KIND_PALETTE. 覆盖 bvar / fvar / rule / const 等 kind 的颜色."
     },
     "contribution_info": null,
@@ -490,7 +490,7 @@
     "kind": "interface",
     "title": "SnlRendererRegistry",
     "content": {
-      "snl": "api.para(api.kw(%block%),%-%,api.kw(%renderer%),% 注册表类型, Record<string, %,api.iface(%SnlBlockRenderer%),%>. 以 %,api.kw(%react_renderer_key%),% (list / enumerate / matrix / ...) 为 key, 派发到对应组件.%)",
+      "snl": "api.para(api.kw(%block%),%-%,api.kw(%renderer%),% 注册表类型, Record<string, %,api.iface(%SnlBlockRenderer%),%>. 以 %,api.kw(%react\\_renderer\\_key%),% (list / enumerate / matrix / ...) 为 key, 派发到对应组件.%)",
       "markdown": "block-renderer 注册表类型, Record<string, SnlBlockRenderer>. 以 react_renderer_key (list / enumerate / matrix / ...) 为 key, 派发到对应组件."
     },
     "contribution_info": null,
@@ -556,7 +556,7 @@
     "kind": "function",
     "title": "loadSnlMacroDb",
     "content": {
-      "snl": "api.para(%从 %,api.kw(%URL%),% 异步加载 %,api.kw(%macro%),% DB JSON, 返回 %,api.iface(%SnlMacroDb%),%. 默认 %,api.kw(%URL%),% 是 %,api.const(%DEFAULT_SNL_MACRO_DB_URL%),% (即 %,api.file(%/snl-macro-db.json%),%). 内部有缓存, 可用 %,api.fn(%setSnlMacroDbCache%),% / %,api.fn(%clearSnlMacroDbCache%),% 控制.%)",
+      "snl": "api.para(%从 %,api.kw(%URL%),% 异步加载 %,api.kw(%macro%),% DB JSON, 返回 %,api.iface(%SnlMacroDb%),%. 默认 %,api.kw(%URL%),% 是 %,api.const(%DEFAULT\\_SNL\\_MACRO\\_DB\\_URL%),% (即 %,api.file(%/snl-macro-db.json%),%). 内部有缓存, 可用 %,api.fn(%setSnlMacroDbCache%),% / %,api.fn(%clearSnlMacroDbCache%),% 控制.%)",
       "markdown": "从 URL 异步加载 macro DB JSON, 返回 SnlMacroDb. 默认 URL 是 DEFAULT_SNL_MACRO_DB_URL (即 /snl-macro-db.json). 内部有缓存, 可用 setSnlMacroDbCache / clearSnlMacroDbCache 控制."
     },
     "contribution_info": null,
@@ -863,7 +863,7 @@
     "kind": "field",
     "title": "$\\texttt{dynamic\\_arity}$",
     "content": {
-      "snl": "Type.judge(SnlMacro.dynamic_arity,boolean)",
+      "snl": "Type.judge(SnlMacro.dynamic\\_arity,boolean)",
       "markdown": "当 macro 的参数个数**不由 template 固定**时为 true — 此时 `styles[0].template` 必须包含 `#*` 占位. 所有 style 必须一致遵守这个 flag; 它是**macro 级别**的不变量, 因此在 call site 切换 style 永远不会改变实参 arity 契约."
     },
     "contribution_info": null,
@@ -907,7 +907,7 @@
     "kind": "field",
     "title": "$\\texttt{mode}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.mode,Type.union(Type.literal(formula_inline),Type.literal(formula_display),Type.literal(text),Type.literal(block)))",
+      "snl": "Type.judge(SnlMacroStyle.mode,Type.union(Type.literal(formula\\_inline),Type.literal(formula\\_display),Type.literal(text),Type.literal(block)))",
       "markdown": "语义渲染模式, v3 起 4 个 flat 平行值:\n\n- `formula_inline`  — KaTeX 行内公式 (`$...$`)\n- `formula_display` — KaTeX 展示公式 (`$$...$$`)\n- `text`            — KaTeX `\\text{...}`; 内部可通过 `$...$` 逃逸回公式\n- `block`           — React 渲染的块 (list / table / centered / …)"
     },
     "contribution_info": null,
@@ -929,7 +929,7 @@
     "kind": "field",
     "title": "$\\texttt{variadic\\_left}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.variadic_left,Type.opt(string))",
+      "snl": "Type.judge(SnlMacroStyle.variadic\\_left,Type.opt(string))",
       "markdown": "`#*` 变长渲染时的**左定界符**. 只在 `SnlMacro.dynamic_arity=true` 时生效. 缺省 `\"\"`. 渲染结果为 `variadic_left + children.join(variadic_join) + variadic_right`."
     },
     "contribution_info": null,
@@ -940,7 +940,7 @@
     "kind": "field",
     "title": "$\\texttt{variadic\\_join}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.variadic_join,Type.opt(string))",
+      "snl": "Type.judge(SnlMacroStyle.variadic\\_join,Type.opt(string))",
       "markdown": "`#*` 变长渲染的**分隔符**. 只在 `SnlMacro.dynamic_arity=true` 时生效. 缺省: formula 模式 `\", \"`, text 模式 `\"\"`."
     },
     "contribution_info": null,
@@ -951,7 +951,7 @@
     "kind": "field",
     "title": "$\\texttt{variadic\\_right}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.variadic_right,Type.opt(string))",
+      "snl": "Type.judge(SnlMacroStyle.variadic\\_right,Type.opt(string))",
       "markdown": "`#*` 变长渲染的**右定界符**. 只在 `SnlMacro.dynamic_arity=true` 时生效. 缺省 `\"\"`."
     },
     "contribution_info": null,
@@ -962,7 +962,7 @@
     "kind": "field",
     "title": "$\\texttt{react\\_renderer\\_key}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.react_renderer_key,Type.opt(string))",
+      "snl": "Type.judge(SnlMacroStyle.react\\_renderer\\_key,Type.opt(string))",
       "markdown": "Block / text mode 的 dispatch key — 让 host (`SnlRenderHooks`) 选出对应的自定义 React 组件. 只在 `mode` 为 `block` 或 `text` 时生效. 例如 `\"enumerate\"` / `\"table\"` / `\"centered\"`."
     },
     "contribution_info": null,
