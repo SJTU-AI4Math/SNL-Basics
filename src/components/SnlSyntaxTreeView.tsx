@@ -1256,7 +1256,18 @@ export function SnlSyntaxTreeView({
   return (
     <div className="katex-panel">
       <style dangerouslySetInnerHTML={{ __html: paletteCss }} />
+      {/*
+       * Cat 2026-07-13: use `isKatexRoot` as a KEY so React unmounts the
+       * OLD container div (React-rendered TextRun subtree, or KaTeX
+       * innerHTML surface) the instant we switch modes. Without this,
+       * typing `deff → def` (fvar → macro) left the previous
+       * TextRun-rendered `deff` glyph in the DOM while the new KaTeX
+       * render was written on top via innerHTML, producing a stacked
+       * "text + macro" display. Distinct keys guarantee a fresh DOM node
+       * per mode; containerRef binds to whichever branch is mounted.
+       */}
       <div
+        key={isKatexRoot ? 'katex' : 'react'}
         ref={containerRef}
         className="katex-html"
         onMouseMove={handleKaTeXMouseMove}
