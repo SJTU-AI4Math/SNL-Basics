@@ -1,0 +1,25 @@
+{
+  "version": "0.1.0",
+  "name": "katex",
+  "description": "KaTeX rendering concepts referenced from SNL docs. Each macro links to the official KaTeX documentation.",
+  "macros": {
+    "katex.renderToString": {
+      "description": "KaTeX `renderToString(source, options)` — synchronously compiles LaTeX to an HTML string.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://katex.org/docs/api.html"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{BurntOrange}{\\texttt{#0}}"
+        }
+      ]
+    }
+  }
+}

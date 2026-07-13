@@ -1,0 +1,133 @@
+{
+  "version": "0.1.0",
+  "name": "ts",
+  "description": "TypeScript language and standard library concepts referenced from SNL docs. Each macro links to the official TypeScript handbook or MDN.",
+  "macros": {
+    "ts.interface": {
+      "description": "TypeScript `interface` — a named object type describing the shape of a value.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/objects.html"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "ts.type-alias": {
+      "description": "TypeScript `type` alias — names a type expression.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#type-aliases"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "ts.union": {
+      "description": "TypeScript union type `A | B` — a value that is one of several types.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#union-types"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "ts.record": {
+      "description": "TypeScript `Record<K,V>` utility type — an object whose keys are of type K and values of type V.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "ts.readonly": {
+      "description": "TypeScript `Readonly<T>` utility type — marks all properties of T as readonly.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/utility-types.html#readonlytype"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "ts.promise": {
+      "description": "JavaScript `Promise` — represents the eventual completion (or failure) of an async operation.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "ts.function-type": {
+      "description": "TypeScript function type `(params) => ReturnType`.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/functions.html#function-type-expressions"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      ]
+    }
+  }
+}

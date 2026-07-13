@@ -132,6 +132,9 @@
     }
   ],
   "active_macro_packages": [
-    "api-doc"
+    "api-doc",
+    "katex",
+    "react",
+    "ts"
   ]
 }

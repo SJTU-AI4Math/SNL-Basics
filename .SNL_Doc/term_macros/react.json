@@ -1,0 +1,151 @@
+{
+  "version": "0.1.0",
+  "name": "react",
+  "description": "React framework concepts referenced from SNL docs. Each macro links to the official react.dev reference.",
+  "macros": {
+    "react.FC": {
+      "description": "React `FunctionComponent<Props>` — the type of a function component. Accepts props, returns a `ReactElement`.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://react.dev/learn/your-first-component"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "react.ReactElement": {
+      "description": "React `ReactElement` — the value returned by a component; a lightweight description of what to render.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://react.dev/reference/react/isValidElement"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "react.useMemo": {
+      "description": "React `useMemo` hook — memoizes a computed value across renders.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://react.dev/reference/react/useMemo"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "react.useEffect": {
+      "description": "React `useEffect` hook — synchronizes a component with an external system.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://react.dev/reference/react/useEffect"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "react.useState": {
+      "description": "React `useState` hook — declares a state variable local to a component.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://react.dev/reference/react/useState"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "react.useRef": {
+      "description": "React `useRef` hook — creates a mutable ref object whose `.current` is stable across renders.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://react.dev/reference/react/useRef"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "react.hooks": {
+      "description": "React Hooks — functions starting with `use` that let function components hook into React state and lifecycle.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://react.dev/reference/react/hooks"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      ]
+    },
+    "react.props": {
+      "description": "React props — the parameters a parent component passes to a child.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://react.dev/learn/passing-props-to-a-component"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      ]
+    }
+  }
+}
