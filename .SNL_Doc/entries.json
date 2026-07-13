@@ -243,8 +243,8 @@
     "kind": "interface",
     "title": "$\\texttt{SnlMacro}$",
     "content": {
-      "snl": "interface(SnlMacro,enumerate(Type.judge(SnlMacro.name,string)))",
-      "markdown": "单个 macro 的完整定义. 包含 name (唯一 id), kind (bvar / rule / const / ...), styles 数组 (不同渲染变体), source (macro 的来源引用, 指向 entries / URLs)."
+      "snl": "interface(SnlMacro,enumerate(Type.judge(SnlMacro.name,string),Type.judge(SnlMacro.description,string),Type.judge(SnlMacro.source,SnlMacroSource),Type.judge(SnlMacro.kind,Type.opt(string)),Type.judge(SnlMacro.dynamic_arity,boolean),Type.judge(SnlMacro.styles,Type.array(SnlMacroStyle)),Type.judge(SnlMacro.tags,Type.opt(Type.array(string)))))",
+      "markdown": "单个 macro 的完整定义. 全局唯一 `name` 是主 id; `styles[]` 承载所有渲染变体; `source` 绑定语义来源 entry / URL; `kind` 驱动调色板; `dynamic_arity` 决定 `#*` 是否可用."
     },
     "contribution_info": null,
     "pointer": null
@@ -254,8 +254,8 @@
     "kind": "interface",
     "title": "SnlMacroDb",
     "content": {
-      "snl": "api.para(%整个 %,api.kw(%macro%),% 池的类型, 即 Record<string, %,api.iface(%SnlMacro%),%>. 以 %,api.kw(%macro%),% name 为 key. 渲染时通过它按名字查 %,api.kw(%macro%),% 定义.%)",
-      "markdown": "整个 macro 池的类型, 即 Record<string, SnlMacro>. 以 macro name 为 key. 渲染时通过它按名字查 macro 定义."
+      "snl": "Type.judge(SnlMacroDb,Type.record(string,SnlMacro))",
+      "markdown": "**整个 macro 池的类型**, 即 `Record<string, SnlMacro>`. Key 是 `SnlMacro.name` (全局唯一), value 是 macro 本体. 提供给渲染器的 `macroDb` 参数就是这个类型."
     },
     "contribution_info": null,
     "pointer": null
@@ -265,8 +265,8 @@
     "kind": "interface",
     "title": "SnlMacroStyle",
     "content": {
-      "snl": "api.para(%单个 %,api.kw(%macro%),% 的 %,api.kw(%style%),% 变体. 包含 name (default 或自定义 tag), mode (formula_inline / formula_display / text / %,api.kw(%block%),%), %,api.kw(%template%),% (LaTeX 或 text 模板, 含 #N 占位), %,api.kw(%react_renderer_key%),% (%,api.kw(%block%),% mode 时派发的 %,api.kw(%renderer%),%).%)",
-      "markdown": "单个 macro 的 style 变体. 包含 name (default 或自定义 tag), mode (formula_inline / formula_display / text / block), template (LaTeX 或 text 模板, 含 #N 占位), react_renderer_key (block mode 时派发的 renderer)."
+      "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.tag,string),Type.judge(SnlMacroStyle.mode,Type.union(Type.literal(formula_inline),Type.literal(formula_display),Type.literal(text),Type.literal(block))),Type.judge(SnlMacroStyle.template,string),Type.judge(SnlMacroStyle.variadic_left,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_join,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_right,Type.opt(string)),Type.judge(SnlMacroStyle.react_renderer_key,Type.opt(string)),Type.judge(SnlMacroStyle.tags,Type.opt(Type.array(string)))))",
+      "markdown": "单个 macro 的一个渲染 style. 所有 style 共享 macro 级 arity, 只改变**渲染输出**. `styles[0]` 是隐式默认."
     },
     "contribution_info": null,
     "pointer": null
@@ -276,8 +276,8 @@
     "kind": "interface",
     "title": "SnlMacroSource",
     "content": {
-      "snl": "api.para(api.kw(%macro%),% 定义的来源引用. 包含 entries 数组 (关联到语义定义 entry 的 id) + urls 数组 (外部资料 %,api.kw(%URL%),%). 驱动 UI 层的悬浮 %,api.kw(%popover%),% 与 dashboard 的 Src 状态灯.%)",
-      "markdown": "macro 定义的来源引用. 包含 entries 数组 (关联到语义定义 entry 的 id) + urls 数组 (外部资料 URL). 驱动 UI 层的悬浮 popover 与 dashboard 的 Src 状态灯."
+      "snl": "interface(SnlMacroSource,enumerate(Type.judge(SnlMacroSource.entries,Type.array(string)),Type.judge(SnlMacroSource.urls,Type.array(string))))",
+      "markdown": "macro 的**语义来源引用**. Resolver 顺序: `entries[0..]` 中第一个能被 host 解析出的; 都解析不了则退回 `urls[0]`; 再无则 `null`."
     },
     "contribution_info": null,
     "pointer": null
@@ -821,6 +821,182 @@
     "title": "$\\texttt{name}$",
     "content": {
       "markdown": "`name` member of `SnlMacro` stores the name / id of the macro. \n\nThe name of the macro should be universally unique. "
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro.description",
+    "kind": "field",
+    "title": "$\\texttt{description}$",
+    "content": {
+      "snl": "Type.judge(SnlMacro.description,string)",
+      "markdown": "人类可读的描述文字, 出现在 tooltip / 文档 / macro editor 的 description 面板中. 不参与语义解析, 但强烈建议每个 macro 都填写."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro.source",
+    "kind": "field",
+    "title": "$\\texttt{source}$",
+    "content": {
+      "snl": "Type.judge(SnlMacro.source,SnlMacroSource)",
+      "markdown": "macro 的**语义来源绑定**. 指向定义该 macro 数学 / 编程语义的 entry 或 URL. Resolver 顺序: `entries[0..]` 中第一个能被 host 解析出的; 都解析不了则退回 `urls[0]`; 再无则返回 `null`. SNL-Basics 本身不解释 entry id — 交给 consumer 通过 `SnlRenderHooks.resolveSource` hook 解析."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro.kind",
+    "kind": "field",
+    "title": "$\\texttt{kind}$",
+    "content": {
+      "snl": "Type.judge(SnlMacro.kind,Type.opt(string))",
+      "markdown": "语义分类 (`rule` / `const` / `bvar` / `binder` / `fvar` / 自定义). 决定该 macro 渲染时 DOM 节点的 `data-kind` 属性 -- 驱动 hover 高亮和调色板. 未设置时, 节点自动获得 `data-kind=\"fvar\"` — v3 里已经**没有** `default` kind, 未分类等于 fvar."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro.dynamic_arity",
+    "kind": "field",
+    "title": "$\\texttt{dynamic_arity}$",
+    "content": {
+      "snl": "Type.judge(SnlMacro.dynamic_arity,boolean)",
+      "markdown": "当 macro 的参数个数**不由 template 固定**时为 true — 此时 `styles[0].template` 必须包含 `#*` 占位. 所有 style 必须一致遵守这个 flag; 它是**macro 级别**的不变量, 因此在 call site 切换 style 永远不会改变实参 arity 契约."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro.styles",
+    "kind": "field",
+    "title": "$\\texttt{styles}$",
+    "content": {
+      "snl": "Type.judge(SnlMacro.styles,Type.array(SnlMacroStyle))",
+      "markdown": "按顺序排列的所有渲染 style. `styles[0]` 是**隐式默认** style — 当 SNL 源省略 `[style]` 时用它. `foo[bar](x)` 中 parser 会挑 `tag === \"bar\"` 的 style; 未知 tag 是渲染期错误. 每个 macro 至少一个 style. Style tag 遵循 parser IDENT 规则 `[A-Za-z_][A-Za-z0-9_]*`, 在同一 `styles` 数组内必须唯一."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro.tags",
+    "kind": "field",
+    "title": "$\\texttt{tags}$",
+    "content": {
+      "snl": "Type.judge(SnlMacro.tags,Type.opt(Type.array(string)))",
+      "markdown": "附加在 macro 本身的自由文本标签, 下游 search index 使用. 禁止包含反斜杠 (会干扰 downstream 的 LaTeX / text search)."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-style.tag",
+    "kind": "field",
+    "title": "$\\texttt{tag}$",
+    "content": {
+      "snl": "Type.judge(SnlMacroStyle.tag,string)",
+      "markdown": "Style 标签 — `foo[tag](…)` 里用的那个 token. 遵循 parser IDENT 规则 `[A-Za-z_][A-Za-z0-9_]*`. 在同一个 macro 的 `styles[]` 内必须唯一."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-style.mode",
+    "kind": "field",
+    "title": "$\\texttt{mode}$",
+    "content": {
+      "snl": "Type.judge(SnlMacroStyle.mode,Type.union(Type.literal(formula_inline),Type.literal(formula_display),Type.literal(text),Type.literal(block)))",
+      "markdown": "语义渲染模式, v3 起 4 个 flat 平行值:\n\n- `formula_inline`  — KaTeX 行内公式 (`$...$`)\n- `formula_display` — KaTeX 展示公式 (`$$...$$`)\n- `text`            — KaTeX `\\text{...}`; 内部可通过 `$...$` 逃逸回公式\n- `block`           — React 渲染的块 (list / table / centered / …)"
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-style.template",
+    "kind": "field",
+    "title": "$\\texttt{template}$",
+    "content": {
+      "snl": "Type.judge(SnlMacroStyle.template,string)",
+      "markdown": "LaTeX-native template. 占位符规则见 `fillLatexTemplate`: `#0`, `#1`, …, `#*` (variadic), `\\#` 表字面 `#`. 对于 `text` mode, `$...$` 会切换回 KaTeX island."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-style.variadic_left",
+    "kind": "field",
+    "title": "$\\texttt{variadic_left}$",
+    "content": {
+      "snl": "Type.judge(SnlMacroStyle.variadic_left,Type.opt(string))",
+      "markdown": "`#*` 变长渲染时的**左定界符**. 只在 `SnlMacro.dynamic_arity=true` 时生效. 缺省 `\"\"`. 渲染结果为 `variadic_left + children.join(variadic_join) + variadic_right`."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-style.variadic_join",
+    "kind": "field",
+    "title": "$\\texttt{variadic_join}$",
+    "content": {
+      "snl": "Type.judge(SnlMacroStyle.variadic_join,Type.opt(string))",
+      "markdown": "`#*` 变长渲染的**分隔符**. 只在 `SnlMacro.dynamic_arity=true` 时生效. 缺省: formula 模式 `\", \"`, text 模式 `\"\"`."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-style.variadic_right",
+    "kind": "field",
+    "title": "$\\texttt{variadic_right}$",
+    "content": {
+      "snl": "Type.judge(SnlMacroStyle.variadic_right,Type.opt(string))",
+      "markdown": "`#*` 变长渲染的**右定界符**. 只在 `SnlMacro.dynamic_arity=true` 时生效. 缺省 `\"\"`."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-style.react_renderer_key",
+    "kind": "field",
+    "title": "$\\texttt{react_renderer_key}$",
+    "content": {
+      "snl": "Type.judge(SnlMacroStyle.react_renderer_key,Type.opt(string))",
+      "markdown": "Block / text mode 的 dispatch key — 让 host (`SnlRenderHooks`) 选出对应的自定义 React 组件. 只在 `mode` 为 `block` 或 `text` 时生效. 例如 `\"enumerate\"` / `\"table\"` / `\"centered\"`."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-style.tags",
+    "kind": "field",
+    "title": "$\\texttt{tags}$",
+    "content": {
+      "snl": "Type.judge(SnlMacroStyle.tags,Type.opt(Type.array(string)))",
+      "markdown": "附加在此 style 上的自由文本标签, 下游 search index 使用. 禁止反斜杠."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-source.entries",
+    "kind": "field",
+    "title": "$\\texttt{entries}$",
+    "content": {
+      "snl": "Type.judge(SnlMacroSource.entries,Type.array(string))",
+      "markdown": "**不透明**的 entry id 列表, 按优先级排列. SNL-Basics 不解释这些 id — consumer 通过 `SnlRenderHooks.resolveSource` hook 把它们解析成显示 payload (entry title / kind / URL). Resolver 取第一个能解析出的."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "mac.iface.snl-macro-source.urls",
+    "kind": "field",
+    "title": "$\\texttt{urls}$",
+    "content": {
+      "snl": "Type.judge(SnlMacroSource.urls,Type.array(string))",
+      "markdown": "兜底 URL 列表 (wikipedia / mathlib docs / arxiv 等). 只有当 `entries[]` 全都解析不出时才会用 `urls[0]`."
     },
     "contribution_info": null,
     "pointer": null

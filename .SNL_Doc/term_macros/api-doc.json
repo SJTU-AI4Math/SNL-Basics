@@ -498,6 +498,1065 @@
           "text": ""
         }
       ]
+    },
+    "Type.opt": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "#0\\texttt{?}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "Syntax"
+    },
+    "Type.array": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "#0\\texttt{[]}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "Syntax"
+    },
+    "Type.record": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{Record<}#0\\texttt{, }#1\\texttt{>}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "Syntax"
+    },
+    "Type.union": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": true,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": "",
+          "variadic_left": "",
+          "variadic_join": "\\texttt{ | }",
+          "variadic_right": ""
+        }
+      ],
+      "kind": "Syntax"
+    },
+    "Type.literal": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{CE9178}'}\\texttt{\\color{CE9178}#0}\\texttt{\\color{CE9178}'}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "Syntax"
+    },
+    "boolean": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}boolean}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "number": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}number}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "null": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}null}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "void": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}void}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "SnlMacroSource": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlMacroSource}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "SnlMacroStyle": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlMacroStyle}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "SnlMacroDb": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlMacroDb}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "SnlMacroTemplateQueryArgs": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlMacroTemplateQueryArgs}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "SnlSyntaxTree": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTree}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "SnlRenderHooks": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlRenderHooks}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "SnlMacroInfo": {
+      "description": "",
+      "source": {
+        "entries": [],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlMacroInfo}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "class"
+    },
+    "SnlMacro.description": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro.description"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{description}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacro.source": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro.source"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{source}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacro.kind": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro.kind"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{kind}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacro.dynamic_arity": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro.dynamic_arity"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{dynamic_arity}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacro.styles": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro.styles"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{styles}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacro.tags": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro.tags"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{tags}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacroStyle.tag": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro-style.tag"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{tag}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacroStyle.mode": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro-style.mode"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{mode}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacroStyle.template": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro-style.template"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{template}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacroStyle.variadic_left": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro-style.variadic_left"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{variadic_left}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacroStyle.variadic_join": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro-style.variadic_join"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{variadic_join}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacroStyle.variadic_right": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro-style.variadic_right"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{variadic_right}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacroStyle.react_renderer_key": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro-style.react_renderer_key"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{react_renderer_key}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacroStyle.tags": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro-style.tags"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{tags}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacroSource.entries": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro-source.entries"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{entries}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
+    },
+    "SnlMacroSource.urls": {
+      "description": "",
+      "source": {
+        "entries": [
+          "mac.iface.snl-macro-source.urls"
+        ],
+        "urls": []
+      },
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{urls}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      ],
+      "kind": "const"
     }
   },
   "description": "Term macros for the SNL-Basics dogfood API doc (Phase 2). Inline-term references (api.iface, api.fn, api.class, api.const, api.prop, api.comp, api.mod, api.pkg, api.concept, api.kw, api.file, api.code), connector punctuation (api.slash, api.plus, api.arrow, api.list), and one structural macro (api.para) for prose paragraphs."
