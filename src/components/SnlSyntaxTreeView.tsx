@@ -776,7 +776,7 @@ function renderTextWithMathIslands(src: string): ReactNode[] {
     }
     if (html) {
       parts.push(
-        <span key={key} className="snl-text-math" dangerouslySetInnerHTML={{ __html: html }} />,
+        <span key={key} className="snl-math-span" dangerouslySetInnerHTML={{ __html: html }} />,
       )
     }
     i = closeAt + openLen
