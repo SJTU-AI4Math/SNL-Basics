@@ -66,5 +66,17 @@ export type {
 // === Advanced / low-level (kept for downstream consumers) ===
 export { fillLatexTemplate } from '../snl-syntax-tree/template'
 
+export {
+  modeBucket,
+  nodeDisplay,
+  nodeMode,
+  resolveNodeLatex,
+  resolveRootLatex,
+  resolveStyle,
+  sanitizeHtmlDataAttr,
+  wrapForParent,
+  wrapHtmlData,
+} from './render-source'
+
 // === Optional demo editor (not part of the core library) ===
 export { SnlSyntaxTreeEditor } from '../components/SnlSyntaxTreeEditor/SnlSyntaxTreeEditor'
