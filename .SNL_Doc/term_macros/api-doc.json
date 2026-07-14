@@ -1129,7 +1129,7 @@
         {
           "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{dynamic_arity}",
+          "template": "\\texttt{dynamic\\_arity}",
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -1333,7 +1333,7 @@
         {
           "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{variadic_left}",
+          "template": "\\texttt{variadic\\_left}",
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -1367,7 +1367,7 @@
         {
           "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{variadic_join}",
+          "template": "\\texttt{variadic\\_join}",
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -1401,7 +1401,7 @@
         {
           "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{variadic_right}",
+          "template": "\\texttt{variadic\\_right}",
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -1435,7 +1435,7 @@
         {
           "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{react_renderer_key}",
+          "template": "\\texttt{react\\_renderer\\_key}",
           "typst": {
             "built_in": "",
             "synthesis": {
