@@ -380,7 +380,7 @@
         {
           "tag": "default",
           "mode": "block",
-          "template": "#*",
+          "template": "",
           "react_renderer_key": "enumerate",
           "typst": {
             "built_in": "",

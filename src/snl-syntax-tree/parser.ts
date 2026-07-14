@@ -157,16 +157,16 @@ function tokenize(input: string): Token[] {
       continue
     }
 
-    if (/[A-Za-z_\\]/.test(ch)) {
+    if (/[A-Za-z0-9_\\]/.test(ch)) {
       const start = i
       i += 1
       // 支持 Lean 风格命名 + 点缀后缀（原 style），如 DivRing.div.inlineDiv。
       // 允许开头的反斜杠（`\i` / `\operatorname` 等 LaTeX 命令名 as leaf id）。
-      // 允许 `-` (hyphen) — 2026-07-04-late 猫猫 spec fix: macro names may
-      // contain hyphens. Earlier a defensive check rejected them for fear
-      // KaTeX would treat `-` as a math binary-minus inside \htmlData attr
-      // values, but empirical verification (see git log) shows KaTeX
-      // passes hyphens through verbatim.
+      // 允许 `-` (hyphen) — 2026-07-04-late 猫猫 spec fix.
+      // 允许 leading digit (2026-07-14 猫猫 spec §numeral): 全数字的 token
+      // 作为 numeral literal 使用（`3`, `1.5` 等），下游 fallback 会按
+      // math-mode 数字裸渲。仍然是 IDENT 类型—— parser 不区分 numeric-only 与
+      // 一般 identifier，语义在 render fallback (fallbackLatexSymbol) 里分岔。
       while (i < input.length && /[A-Za-z0-9_.\-]/.test(input[i])) {
         i += 1
       }

@@ -7,24 +7,33 @@ import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
 import type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 
-function mathMacro(name: string, template: string, variadic_join?: string): SnlMacro {
+function mathMacro(
+  name: string,
+  opts: { variadic_left?: string; variadic_join?: string; variadic_right?: string } = {},
+): SnlMacro {
+  const style: any = { tag: 'default', mode: 'formula_inline', template: '' }
+  if (opts.variadic_left !== undefined) style.variadic_left = opts.variadic_left
+  if (opts.variadic_join !== undefined) style.variadic_join = opts.variadic_join
+  if (opts.variadic_right !== undefined) style.variadic_right = opts.variadic_right
   return {
     name,
     description: '',
     source: { entries: [], urls: [] },
     dynamic_arity: true,
-    styles: [
-      variadic_join
-        ? { tag: 'default', mode: 'formula_inline', template, variadic_join }
-        : { tag: 'default', mode: 'formula_inline', template },
-    ],
+    styles: [style],
   }
 }
 
-// Inline DB using the LaTeX-native #* placeholder syntax (post-migration shape).
+// Cat 2026-07-14 §dynamic_arity-no-template: template is IGNORED for
+// dynamic_arity macros. The pmatrix envelope moves to variadic_left /
+// variadic_right, and matrix.row is a pure `& `-joined pass-through.
 const db: SnlMacroDb = {
-  pmatrix: mathMacro('pmatrix', '\\begin{pmatrix}#*\\end{pmatrix}', ' \\\\ '),
-  'matrix.row': mathMacro('matrix.row', '#*', ' & '),
+  pmatrix: mathMacro('pmatrix', {
+    variadic_left: '\\begin{pmatrix}',
+    variadic_join: ' \\\\ ',
+    variadic_right: '\\end{pmatrix}',
+  }),
+  'matrix.row': mathMacro('matrix.row', { variadic_join: ' & ' }),
 }
 const query = createMacroTemplateQueryFromDb(db)
 

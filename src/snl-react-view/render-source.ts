@@ -181,7 +181,13 @@ export async function resolveNodeLatex(
 ): Promise<string> {
   const macro = node.name ? macroDb[node.name] : undefined
   const style = macro ? resolveStyle(node, macro) : undefined
-  const hasDbTemplate = Boolean(style?.template)
+  // Whether the DB knows this macro. A registered macro whose template is
+  // an empty string is still "known" — we should NOT fall through to the
+  // bare-identifier / `\operatorname` fallback. Especially important for
+  // dynamic_arity macros: post-2026-07-14 spec their template is IGNORED
+  // and typically empty, but the render path still routes through the
+  // delimiter-driven variadic branch below.
+  const hasDbMacro = Boolean(macro)
 
   const selfMode: SnlMacroStyle['mode'] =
     node.envMode ?? style?.mode ?? 'formula_inline'
@@ -234,7 +240,7 @@ export async function resolveNodeLatex(
   }
 
   // macroDb-miss fallback for plain-identifier names.
-  if (!hasDbTemplate) {
+  if (!hasDbMacro) {
     const bs = node.name.startsWith('\\')
     if (node.children.length > 0) {
       const stem = bs ? node.name.slice(1) : node.name
@@ -267,20 +273,39 @@ export async function resolveNodeLatex(
   const children_joined =
     variadicLeft + wrappedChildren.join(variadicJoin) + variadicRight
 
+  // Cat 2026-07-14 §dynamic_arity-no-template:
+  //   For dynamic_arity macros the template string is meaningless — the
+  //   render is fully determined by (variadic_left, variadic_join,
+  //   variadic_right) + the recursed children. Bypass fillLatexTemplate
+  //   entirely so authors don't have to remember to write `#*`, and so
+  //   accidental template contents don't leak into the output.
+  if (macro?.dynamic_arity) {
+    // A dynamic_arity macro whose variadic_join carries top-level
+    // tabular alignment tokens (`&` / `\\`) must NOT be wrapped in
+    // `\htmlData{...}{...}` — those tokens have to stay ungrouped for
+    // the surrounding LaTeX environment (matrix.row inside a pmatrix,
+    // etc.). Cat 2026-07-04 §4.
+    //
+    // For every other dynamic macro (Type.union with `|`, list with
+    // commas, set with `\{ , \}`, …) we DO wrap so hovering on the
+    // separator glyph walks up to THIS macro rather than to a
+    // grand-ancestor that happens to also enclose the region. Cat
+    // 2026-07-14 §hover-on-separator.
+    const joinIsAlignment =
+      /(?:^|[^\\])&|\\\\/.test(variadicJoin) &&
+      !variadicLeft &&
+      !variadicRight
+    if (joinIsAlignment) {
+      return children_joined
+    }
+    return wrapHtmlData(node, children_joined, macroDb)
+  }
+
   const filled = fillLatexTemplate(
     template,
     { ...childValues, children_joined },
     selfBucket,
   )
-  // Pure pass-through variadic helper (e.g. matrix.row): keep alignment
-  // tokens ungrouped for the enclosing environment.
-  if (
-    template.trim() === '#*' &&
-    !variadicLeft &&
-    !variadicRight
-  ) {
-    return filled
-  }
   return wrapHtmlData(node, filled, macroDb)
 }
 

@@ -24,6 +24,12 @@ function fallbackLatexSymbol(name: string): string {
   if (/^[A-Za-z]+$/.test(name)) {
     return name
   }
+  // Numeric literals (`3`, `1.5`, `-2`) render verbatim in math mode —
+  // KaTeX handles them as numerals directly, no \mathrm wrap needed.
+  // Cat 2026-07-14 spec §numeral.
+  if (/^-?\d+(\.\d+)?$/.test(name)) {
+    return name
+  }
   return `\\mathrm{${escapeLatexText(name)}}`
 }
 
