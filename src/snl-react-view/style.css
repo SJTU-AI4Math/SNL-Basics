@@ -46,8 +46,13 @@
 }
 
 .katex-html .snl-single-hover {
-  display: inline-block;
-  vertical-align: baseline;
+  /* Do NOT set `display: inline-block` — changing display on hover forces a
+     layout recalculation on ancestors, and any enclosing block-mode formula
+     (`.katex-display`, centered via auto margins) visibly re-centers / jumps.
+     `box-decoration-break: clone` lets the highlight span line-breaks without
+     needing inline-block. (cat 2026-07-16: display-math jump-on-hover bug.) */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
   border-radius: 2px;
 }
 
