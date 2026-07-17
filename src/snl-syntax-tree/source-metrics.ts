@@ -25,8 +25,8 @@ function metadata(node: SnlSyntaxTree): Record<string, unknown> {
  * A node is sourced when it is:
  * - a macro whose source has a resolvable entry id or at least one URL;
  * - a binder; or
- * - a bvar whose metadata points to a binder (`bindRef` / binder name) or a
- *   resolvable entry id.
+ * - a bvar whose metadata points to a local binder (`bindRef`) or to an
+ *   accessible entry source already validated by the consumer's context lookup.
  */
 export function analyzeSnlTreeSources(
   root: SnlSyntaxTree | null | undefined,
