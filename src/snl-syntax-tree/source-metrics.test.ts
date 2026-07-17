@@ -54,9 +54,9 @@ describe('analyzeSnlTreeSources', () => {
 
     expect(analyzeSnlTreeSources(tree, macroDb, new Set(['entry-ok']))).toEqual({
       totalNodes: 10,
-      sourcedNodes: 6,
-      semanticFreedom: 4,
-      structuredRatio: 6 / 10,
+      sourcedNodes: 5,
+      semanticFreedom: 5,
+      structuredRatio: 5 / 10,
     })
   })
 

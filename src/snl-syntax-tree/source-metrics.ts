@@ -58,7 +58,7 @@ export function analyzeSnlTreeSources(
       const src = typeof meta.src === 'string' ? meta.src : ''
       sourced =
         (bindRef.length > 0 && binderNames.has(node.name)) ||
-        (src.length > 0 && (binderNames.has(src) || accessibleEntryIds.has(src)))
+        (src.length > 0 && accessibleEntryIds.has(src))
     } else {
       const macro = macroDb[node.name]
       if (macro) {
