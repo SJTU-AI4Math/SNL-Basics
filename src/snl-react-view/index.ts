@@ -23,6 +23,11 @@ export type {
 export { parseSnlSyntaxTree, tryParseSnlSyntaxTree, SnlSyntaxTreeParseError } from './parse'
 export { serializeSnlSyntaxTree } from './serialize'
 export { annotateBindings } from '../snl-syntax-tree/annotate-bind'
+export {
+  analyzeSnlTreeSources,
+  type SnlMacroSourceLookup,
+  type SnlSourceMetrics,
+} from '../snl-syntax-tree/source-metrics'
 
 // === DB loading & template query ===
 export {
