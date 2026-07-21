@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, type KeyboardEventHandler } from 'react'
 import {
-  createDefaultMacroTemplateQuery,
-  loadSnlMacroDb,
+  createProjectMacroTemplateQuery,
   SnlSyntaxTreeEditor,
   SnlSyntaxTreeView,
   parseSnlSyntaxTree,
@@ -12,7 +11,7 @@ import {
 } from './snl-react-view'
 
 const INITIAL_INPUT =
-  'FOL.forall(x,FOL.implies[double](FOL.app(P,x),FOL.paren(FOL.or(y,FOL.app(Q,x)))))'
+  'Type.forall(x,Type.judge(Type.app(P,x),Type.judge(y,Type.Sort(0))))'
 
 const MAX_UNDO_CHECKPOINTS = 10
 
@@ -52,14 +51,12 @@ export default function App() {
   const [latexSource, setLatexSource] = useState('')
   const [templateDb, setTemplateDb] = useState<SnlMacroDb>({})
   const [, setUndoStack] = useState<SnlSyntaxTree[]>([])
-  const query = useMemo(() => createDefaultMacroTemplateQuery(), [])
+  const query = useMemo(() => createProjectMacroTemplateQuery(templateDb), [templateDb])
   const treeString = useMemo(() => serializeSnlSyntaxTree(tree), [tree])
   const treeDiagram = useMemo(() => toTreeDiagram(tree), [tree])
 
   useEffect(() => {
-    void loadSnlMacroDb()
-      .then((db) => setTemplateDb(db))
-      .catch(() => setTemplateDb({}))
+    setTemplateDb({})
   }, [])
 
   const parseFromInput = () => {
@@ -115,7 +112,7 @@ export default function App() {
       <div className="section">
         <h2>1) Parser 输入</h2>
         <p>
-          语法：name（含点缀后缀，如 FOL.forall.typed）后可跟可选的 [style] 方括号覆盖渲染样式，
+          语法：name（含点缀后缀，如 Type.forall.typed）后可跟可选的 [style] 方括号覆盖渲染样式，
           再跟 (child1,child2(…))。例如 FOL.implies[double](a,b) 用 ⇒ 渲染，不写方括号则用宏的
           defaultStyle。量词首个子节点即绑定变量；裸名叶子是否在作用域内由编译期推断为 bvar / fvar。
         </p>

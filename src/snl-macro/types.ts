@@ -81,7 +81,7 @@ export interface SnlMacroStyle {
 }
 
 export interface SnlMacro {
-  /** Globally unique name, e.g. "Add.add", "FOL.forall", "FOL.forall.typed" */
+  /** Globally unique name, e.g. "Add.add", "Type.forall", "Type.forall.typed" */
   name: string
   /** Human-readable description shown in tooltips / docs. */
   description: string

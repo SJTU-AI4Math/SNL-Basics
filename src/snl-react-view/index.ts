@@ -32,6 +32,7 @@ export {
   clearSnlMacroDbCache,
   createDefaultMacroTemplateQuery,
   createMacroTemplateQueryFromDb,
+  createProjectMacroTemplateQuery,
   type DefaultMacroTemplateQueryOptions,
 } from './default-query'
 export type { SnlMacroTemplateQuery, SnlMacroTemplateQueryArgs } from '../snl-syntax-tree/query'

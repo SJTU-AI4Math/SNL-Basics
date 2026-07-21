@@ -33,7 +33,7 @@ describe('auto-wrap \\htmlData', () => {
   })
 
   it('emits data-scope="binder" + bindRef for a quantifier (bvar-scope highlighting)', async () => {
-    const tree = parseSnlSyntaxTree('FOL.forall(x,x)')
+    const tree = parseSnlSyntaxTree('Type.forall(x,x)')
     const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
 
     await waitFor(() => {

@@ -21,7 +21,7 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
   it('applies .snl-single-hover to the hovered subtree while nested subtrees keep their [data-kind]', async () => {
     // forall(x, add(x, mul(x, y))) — add wraps a nested mul subtree.
     const tree = parseSnlSyntaxTree(
-      'FOL.forall(x, Add.add(x, Mul.mul(x, y)))',
+      'Type.forall(x, Add.add(x, Mul.mul(x, y)))',
     )
     const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
 

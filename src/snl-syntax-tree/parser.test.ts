@@ -86,8 +86,8 @@ describe('parseSnlSyntaxTree', () => {
   })
 
   it('marks the quantifier binding variable and annotates bindRef', () => {
-    const tree = parseSnlSyntaxTree('FOL.forall.binder(x,y)')
-    expect(tree.name).toBe('FOL.forall.binder')
+    const tree = parseSnlSyntaxTree('Type.forall.binder(x,y)')
+    expect(tree.name).toBe('Type.forall.binder')
     expect(tree.mdata).toMatchObject({ bindRef: 'b1' })
     expect(tree.children[0].name).toBe('x')
     expect(tree.children[0].kind).toBe('binder')
@@ -100,23 +100,23 @@ describe('parseSnlSyntaxTree', () => {
     // to the macro's DB-declared kind (e.g. `Type` → 'rule') instead of
     // masking it as fvar. The wrapHtmlData chain still lands on 'fvar' as
     // the ultimate fallback when there's no db entry.
-    const tree = parseSnlSyntaxTree('FOL.forall.binder(x,y)')
+    const tree = parseSnlSyntaxTree('Type.forall.binder(x,y)')
     expect(tree.children[1].kind).toBe('')
     expect(tree.children[1].name).toBe('y')
 
-    const t2 = parseSnlSyntaxTree('FOL.forall.binder(x,x)')
+    const t2 = parseSnlSyntaxTree('Type.forall.binder(x,x)')
     expect(t2.children[1].kind).toBe('bvar')
     expect(t2.children[1].mdata).toMatchObject({ bindRef: 'b1' })
   })
 
   it('infers bound/free variables in nested FOL example', () => {
     const input =
-      'FOL.forall.binder(x,FOL.implies.infix(FOL.app.apply(P,x),FOL.paren.round(FOL.or.infix(y,FOL.app.apply(Q,x)))))'
+      'Type.forall.binder(x,FOL.implies.infix(Type.app.apply(P,x),FOL.paren.round(FOL.or.infix(y,Type.app.apply(Q,x)))))'
     const tree = parseSnlSyntaxTree(input)
 
     const implies = tree.children[1]
     const app1 = implies.children[0]
-    expect(app1.name).toBe('FOL.app.apply')
+    expect(app1.name).toBe('Type.app.apply')
     // Unbound leaves now stay kind='' (was: 'fvar') — see contract update
     // in the sibling test above.
     expect(app1.children[0].kind).toBe('')
@@ -129,7 +129,7 @@ describe('parseSnlSyntaxTree', () => {
     expect(orNode.name).toBe('FOL.or.infix')
     expect(orNode.children[0].kind).toBe('')
     expect(orNode.children[0].name).toBe('y')
-    expect(orNode.children[1].name).toBe('FOL.app.apply')
+    expect(orNode.children[1].name).toBe('Type.app.apply')
     expect(orNode.children[1].children[0].kind).toBe('')
     expect(orNode.children[1].children[1].kind).toBe('bvar')
   })

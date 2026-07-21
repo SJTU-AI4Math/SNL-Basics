@@ -5,7 +5,7 @@ import type { SnlSyntaxTree } from './types'
 // enclosing binder scope.
 //
 // A "binder" is either:
-//   (a) a legacy hardcoded FOL.forall / FOL.exists quantifier (see below).
+//   (a) a legacy hardcoded Type.forall / FOL.exists quantifier (see below).
 //       The first child is the introduction site of the bound variable and
 //       gets kind='binder' + bindRef, and its name becomes an active binder
 //       for the quantifier body's parse.
@@ -20,12 +20,12 @@ import type { SnlSyntaxTree } from './types'
 // bvar with the matching bindRef; otherwise it becomes an fvar. This mirrors
 // how KaTeX / textbook binder-scoping works.
 
-/** 量词宏（原 FOL.forall / FOL.exists，v1 后带点缀后缀如 FOL.forall.binder） */
+/** 量词宏（原 Type.forall / FOL.exists，v1 后带点缀后缀如 Type.forall.binder） */
 function isLegacyQuantifierName(name: string): boolean {
   return (
-    name === 'FOL.forall' ||
+    name === 'Type.forall' ||
     name === 'FOL.exists' ||
-    name.startsWith('FOL.forall.') ||
+    name.startsWith('Type.forall.') ||
     name.startsWith('FOL.exists.')
   )
 }
@@ -76,7 +76,7 @@ export function annotateBindings(
   const initFrames: Frame[] = initialStack.map((name) => ({ name, ref: '' }))
 
   function walk(node: SnlSyntaxTree, stack: Frame[]): void {
-    // --- (a) Legacy FOL.forall / FOL.exists quantifier ---
+    // --- (a) Legacy Type.forall / FOL.exists quantifier ---
     // Preserve the existing behavior: first child is the introduction site;
     // subsequent siblings see it in scope.
     if (isLegacyQuantifierName(node.name)) {

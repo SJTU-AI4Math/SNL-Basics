@@ -87,6 +87,11 @@ export function createMacroTemplateQueryFromDb(db: SnlMacroDb): SnlMacroTemplate
   return buildQueryBody(db)
 }
 
+/** Create a query backed only by the caller-provided database. */
+export function createProjectMacroTemplateQuery(db: SnlMacroDb): SnlMacroTemplateQuery {
+  return buildQueryBody(db)
+}
+
 /** Options for {@link createDefaultMacroTemplateQuery}. */
 export interface DefaultMacroTemplateQueryOptions {
   /** 模板库 URL，默认 {@link DEFAULT_SNL_MACRO_DB_URL} */
