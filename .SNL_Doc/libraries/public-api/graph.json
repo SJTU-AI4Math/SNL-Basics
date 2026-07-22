@@ -4,105 +4,112 @@
       "id": "ab33b074-26da-4b82-9814-bdeb741c5dfc",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.iface.snl-syntax-tree"
+        "entryId": "st.iface.snl-syntax-tree"
       }
     },
     {
       "id": "3ee27523-1e28-4341-852c-4a0884ec6d69",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.iface.snl-macro"
+        "entryId": "mac.iface.snl-macro"
       }
     },
     {
       "id": "34fcdff6-04b0-41c7-8dc7-361d632f2f11",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.iface.snl-macro-db"
+        "entryId": "mac.iface.snl-macro-db"
       }
     },
     {
       "id": "98b308d8-d7c4-4d66-8740-2aab6f7e1b9f",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.iface.snl-macro-style"
+        "entryId": "mac.iface.snl-macro-style"
       }
     },
     {
       "id": "e6498d0c-3d0d-4b18-8506-8063732de989",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.iface.snl-macro-template-query"
+        "entryId": "st.iface.snl-macro-template-query"
       }
     },
     {
       "id": "951dc568-069a-40d1-9a76-bd172c9af87f",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.iface.snl-render-hooks"
+        "entryId": "rv.iface.snl-render-hooks"
       }
     },
     {
       "id": "bf728cdc-1098-47a2-8177-ed8356e406b7",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.iface.kind-coloring"
+        "entryId": "rv.iface.kind-coloring"
+      }
+    },
+    {
+      "id": "71957fed-4151-514d-8592-73daff781b6e",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.kind-palette"
       }
     },
     {
       "id": "e27ea3ab-53f5-460b-801f-4e0ae369a57f",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.fn.parse-snl-syntax-tree"
+        "entryId": "st.fn.parse-snl-syntax-tree"
       }
     },
     {
       "id": "70ffc05b-f317-418b-b830-58f9464b8da0",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.fn.try-parse-snl-syntax-tree"
+        "entryId": "st.fn.try-parse-snl-syntax-tree"
       }
     },
     {
       "id": "aefa17e3-3836-45f8-bd90-2b2c087591e5",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.fn.create-snl-syntax-tree-node"
+        "entryId": "st.fn.create-snl-syntax-tree-node"
       }
     },
     {
       "id": "680bfabb-63b6-4ba8-94f6-8c190e20fa85",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.const.bundled-macro-db"
+        "entryId": "mac.const.bundled-macro-db"
       }
     },
     {
       "id": "d0816d2d-8454-414f-8204-0e4088dbd325",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.fn.create-macro-template-query-from-db"
+        "entryId": "rv.fn.create-macro-template-query-from-db"
       }
     },
     {
       "id": "4aca7660-6297-4f1d-8d6e-bb464a7d01c9",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.comp.snl-syntax-tree-view"
+        "entryId": "rv.comp.snl-syntax-tree-view"
       }
     },
     {
       "id": "8fa12278-37da-48f3-820e-2d8bb630aa7e",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.const.default-render-hooks"
+        "entryId": "rv.const.default-render-hooks"
       }
     },
     {
       "id": "d17fd634-75bd-4b68-b04e-0d9b9f5e7923",
       "label": "Entry",
       "props": {
-        "entryId": "public-api.const.default-kind-palette"
+        "entryId": "rv.const.default-kind-palette"
       }
     }
   ],

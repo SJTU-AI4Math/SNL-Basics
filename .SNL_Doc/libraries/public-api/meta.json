@@ -1,4 +1,4 @@
 {
   "title": "public-api",
-  "description": "SNL-Basics 公开导出的 API 表面（16 个 exports）。此 library 只收 public、稳定、供下游消费的接口。旧的 snl-syntax-tree / snl-macro / snl-react-view / concepts 四个 library 保留作为 public-private 并存的实现文档。"
+  "description": "SNL-Basics 的 Schema 接口视图。library 仅引用全局 Entry，不复制或拥有 Entry；同一接口可同时出现在模块 library 与本视图。snl-macro 接口以经审计的 mac.* Entry 为准。"
 }
