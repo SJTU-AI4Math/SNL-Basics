@@ -15,6 +15,7 @@ export {
   map_reader,
   pure_reader,
   read_localized,
+  write_localized,
   type I18n,
   type LanguageEnvironment,
   type Localized,

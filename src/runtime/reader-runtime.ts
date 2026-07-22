@@ -103,3 +103,17 @@ export function read_localized<Language extends string, Value>(
     throw new Error('I18n map has no values')
   }
 }
+
+/** Merge an edited projection back into the currently queried language. */
+export function write_localized<Language extends string, Value>(
+  original: Localized<Language, Value>,
+  value: Value,
+): ReaderM<LanguageEnvironment<Language>, Localized<Language, Value>> {
+  return ({ language }) => {
+    if (!is_i18n(original)) return value
+    return {
+      ...original,
+      values: { ...original.values, [language]: value },
+    }
+  }
+}

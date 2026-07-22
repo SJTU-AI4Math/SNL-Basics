@@ -4,6 +4,7 @@ import {
   is_i18n,
   map_reader,
   read_localized,
+  write_localized,
   type I18n,
   type ReaderM,
 } from './reader-runtime'
@@ -51,6 +52,19 @@ describe('read_localized', () => {
       values: { en: 'Entry' },
     }
     expect(read_localized(partial)({ language: 'zh-CN' })).toBe('Entry')
+  })
+
+  it('merges an edited projection back into the queried language', () => {
+    const original: I18n<'en' | 'zh-CN', string> = {
+      type: 'i18n',
+      default_language: 'en',
+      values: { en: 'Entry', 'zh-CN': '条目' },
+    }
+    expect(write_localized(original, '词条')({ language: 'zh-CN' })).toEqual({
+      ...original,
+      values: { en: 'Entry', 'zh-CN': '词条' },
+    })
+    expect(write_localized('Invariant', 'Changed')({ language: 'zh-CN' })).toBe('Changed')
   })
 
   it('rejects an empty or internally invalid I18n map', () => {

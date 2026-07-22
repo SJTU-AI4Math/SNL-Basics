@@ -98,7 +98,9 @@ class ReaderRuntime<Environment> {
 
 Every environment-dependent Basics API is expressed as a Reader and executed
 through a query-initialized runtime. Basics never chooses the settings, locale,
-theme, request context, or persistence backend. See
+theme, request context, or persistence backend. `read_localized` resolves a
+projection, while `write_localized` merges an edited projection back into the
+currently queried language without discarding sibling translations. See
 [Query-injected runtime standard](query-injected-runtime.md).
 
 ## Query-only `MacroDataDriver`
