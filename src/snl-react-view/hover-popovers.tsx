@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type ReactElement,
+  type JSX,
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
@@ -185,7 +185,7 @@ function PopoverFrame<TSubject>({
   bounds,
   register,
   children,
-}: PopoverFrameProps<TSubject>): ReactElement<any> {
+}: PopoverFrameProps<TSubject>): JSX.Element {
   const ref = useRef<HTMLDivElement | null>(null)
   const [position, setPosition] = useState({ x: popover.x, y: popover.y })
 
@@ -238,7 +238,7 @@ export function HoverPopoverProvider<TSubject>({
   style,
   resolveBounds = findPopoverBounds,
   portalTarget,
-}: HoverPopoverProviderProps<TSubject>): ReactElement<any> {
+}: HoverPopoverProviderProps<TSubject>): JSX.Element {
   const offset = options?.offset ?? 12
   const hitPadding = options?.hitPadding ?? offset + 8
   const margin = options?.viewportMargin ?? 8
