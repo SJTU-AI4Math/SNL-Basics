@@ -32,7 +32,7 @@
       "id": "7b5f692c-0bfb-4a14-aad4-9ceef77fe4ea",
       "label": "Entry",
       "props": {
-        "entryId": "rv.comp.snl-syntax-tree-view.prop.template-query"
+        "entryId": "rv.comp.snl-syntax-tree-view.prop.query"
       }
     },
     {
@@ -46,14 +46,14 @@
       "id": "12a9cc1e-8c9c-45c3-a248-a0ef5bc99d20",
       "label": "Entry",
       "props": {
-        "entryId": "rv.comp.snl-syntax-tree-view.prop.palette"
+        "entryId": "rv.comp.snl-syntax-tree-view.prop.kind-palette"
       }
     },
     {
       "id": "f7b4964a-2c2b-4514-9159-6be65219edb6",
       "label": "Entry",
       "props": {
-        "entryId": "rv.comp.snl-syntax-tree-view.prop.display-mode"
+        "entryId": "rv.comp.snl-syntax-tree-view.prop.katex-options"
       }
     },
     {
@@ -257,6 +257,13 @@
       "label": "Entry",
       "props": {
         "entryId": "rv.const.htmldata-katex-defaults"
+      }
+    },
+    {
+      "id": "e51ea298-0090-507e-9df8-b0437a4b756a",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.comp.snl-syntax-tree-view.prop.on-resolved"
       }
     }
   ],
@@ -510,6 +517,13 @@
       "id": "1e2d04dc-2ada-4433-b5ba-8d381e9f23a9",
       "from": "9b2c9258-a34e-488a-9606-61d2de49003d",
       "to": "dca3a47b-c93e-41c8-99d3-1b064a0edc54",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "4f3cf2c1-963f-5c35-863f-30be15ceb168",
+      "from": "e865542e-c58f-4a78-bb2e-967971a703f4",
+      "to": "e51ea298-0090-507e-9df8-b0437a4b756a",
       "label": "branch",
       "props": {}
     }
