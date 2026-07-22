@@ -1,0 +1,17 @@
+{
+  "counters": [
+    {
+      "id": "counter-section",
+      "name": "Section",
+      "numbering": "1",
+      "children": [
+        {
+          "id": "counter-subsection",
+          "name": "Subsection",
+          "numbering": ".1",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

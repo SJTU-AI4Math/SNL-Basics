@@ -2357,5 +2357,214 @@
     },
     "contribution_info": null,
     "pointer": null
+  },
+  {
+    "id": "overview.public-api",
+    "kind": "npm-package",
+    "title": "Overall Info",
+    "content": {
+      "snl": "%The @snl-basics/react npm package: its package-root public API, SNL syntax-tree parser, React/KaTeX renderer, and macro database surface.%",
+      "markdown": "The @snl-basics/react npm package: its package-root public API, SNL syntax-tree parser, React/KaTeX renderer, and macro database surface."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.public.interfaces",
+    "kind": "section",
+    "title": "Interfaces",
+    "content": {
+      "snl": "%Public TypeScript interfaces and type aliases, grouped by source module.%",
+      "markdown": "Public TypeScript interfaces and type aliases, grouped by source module."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.public.parsing",
+    "kind": "section",
+    "title": "Parsing",
+    "content": {
+      "snl": "%Syntax-tree parsing and related tree operations.%",
+      "markdown": "Syntax-tree parsing and related tree operations."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.public.macro-db",
+    "kind": "section",
+    "title": "Macro Database",
+    "content": {
+      "snl": "%Bundled macro data, loading, caching, and template queries.%",
+      "markdown": "Bundled macro data, loading, caching, and template queries."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.public.rendering",
+    "kind": "section",
+    "title": "Rendering",
+    "content": {
+      "snl": "%React components, rendering configuration, hover popovers, and the low-level render pipeline.%",
+      "markdown": "React components, rendering configuration, hover popovers, and the low-level render pipeline."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.interfaces.macros",
+    "kind": "subsection",
+    "title": "SNL Macros",
+    "content": {
+      "snl": "%Interfaces from the SNL macro data model.%",
+      "markdown": "Interfaces from the SNL macro data model."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.interfaces.syntax-tree",
+    "kind": "subsection",
+    "title": "SNL Syntax Tree",
+    "content": {
+      "snl": "%Interfaces from the SNL syntax-tree module.%",
+      "markdown": "Interfaces from the SNL syntax-tree module."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.interfaces.react-view",
+    "kind": "subsection",
+    "title": "React View",
+    "content": {
+      "snl": "%Interfaces from the React rendering module.%",
+      "markdown": "Interfaces from the React rendering module."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.parsing.core",
+    "kind": "subsection",
+    "title": "Core Parsing",
+    "content": {
+      "snl": "%Parser entry points and parse errors.%",
+      "markdown": "Parser entry points and parse errors."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.parsing.construction",
+    "kind": "subsection",
+    "title": "Construction and Validation",
+    "content": {
+      "snl": "%Tree construction and runtime recognition.%",
+      "markdown": "Tree construction and runtime recognition."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.parsing.serialization",
+    "kind": "subsection",
+    "title": "Serialization and Analysis",
+    "content": {
+      "snl": "%Serialization, binding annotation, and source analysis.%",
+      "markdown": "Serialization, binding annotation, and source analysis."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.parsing.templates",
+    "kind": "subsection",
+    "title": "Template Resolution",
+    "content": {
+      "snl": "%LaTeX template resolution.%",
+      "markdown": "LaTeX template resolution."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.macro-db.bundled",
+    "kind": "subsection",
+    "title": "Bundled Data",
+    "content": {
+      "snl": "%Bundled macro database exports.%",
+      "markdown": "Bundled macro database exports."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.macro-db.loading",
+    "kind": "subsection",
+    "title": "Loading and Cache",
+    "content": {
+      "snl": "%Macro database URL, loading, and cache management.%",
+      "markdown": "Macro database URL, loading, and cache management."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.macro-db.queries",
+    "kind": "subsection",
+    "title": "Template Queries",
+    "content": {
+      "snl": "%Macro template-query constructors.%",
+      "markdown": "Macro template-query constructors."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.rendering.components",
+    "kind": "subsection",
+    "title": "Components",
+    "content": {
+      "snl": "%Public React components.%",
+      "markdown": "Public React components."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.rendering.configuration",
+    "kind": "subsection",
+    "title": "Configuration and Defaults",
+    "content": {
+      "snl": "%Rendering constants, palettes, and validation helpers.%",
+      "markdown": "Rendering constants, palettes, and validation helpers."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.rendering.popovers",
+    "kind": "subsection",
+    "title": "Hover Popovers",
+    "content": {
+      "snl": "%Hover-popover hooks and geometry helpers.%",
+      "markdown": "Hover-popover hooks and geometry helpers."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sub.public.rendering.pipeline",
+    "kind": "subsection",
+    "title": "Render Pipeline",
+    "content": {
+      "snl": "%Low-level render-mode, LaTeX, style, and HTML-data helpers.%",
+      "markdown": "Low-level render-mode, LaTeX, style, and HTML-data helpers."
+    },
+    "contribution_info": null,
+    "pointer": null
   }
 ]
