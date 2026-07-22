@@ -57,13 +57,6 @@
       }
     },
     {
-      "id": "797f3aa4-bbd7-4934-9b39-19ae7a6d21fb",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.const.bundled-sample-macro-db"
-      }
-    },
-    {
       "id": "n_1",
       "label": "Entry",
       "props": {
@@ -217,11 +210,6 @@
     {
       "from": "sec-macro-databases",
       "to": "a7e5cf72-8f62-4f00-b14d-f96c2729dbf2",
-      "label": "branch"
-    },
-    {
-      "from": "sec-macro-databases",
-      "to": "797f3aa4-bbd7-4934-9b39-19ae7a6d21fb",
       "label": "branch"
     },
     {

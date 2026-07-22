@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest'
-import { bundledMacroDb, bundledSampleMacroDb } from './bundled-db'
+import { bundledMacroDb } from './bundled-db'
 
 test('bundledMacroDb has expected macros', () => {
-  expect(bundledMacroDb['Add.add']).toBeDefined()
-  const infix = bundledMacroDb['Add.add'].styles.find((s) => s.tag === 'infix')
+  expect(bundledMacroDb['FOL.implies']).toBeDefined()
+  const infix = bundledMacroDb['FOL.implies'].styles.find((s) => s.tag === 'infix')
   expect(infix).toBeDefined()
   expect(infix!.template).toContain('#0')
   expect(infix!.template).not.toContain('@CHILD')
@@ -12,7 +12,7 @@ test('bundledMacroDb has expected macros', () => {
   expect(bundledMacroDb['pmatrix']).toBeDefined()
 })
 test('bundledMacroDb macros carry only render fields (no output backends)', () => {
-  const macro = bundledMacroDb['Add.add'] as unknown as Record<string, unknown>
+  const macro = bundledMacroDb['FOL.implies'] as unknown as Record<string, unknown>
   expect(macro.typst).toBeUndefined()
   expect(macro.latex).toBeUndefined()
   expect(macro.markdown).toBeUndefined()
@@ -37,13 +37,8 @@ test('no macro carries the legacy top-level mode/display/defaultStyle', () => {
     expect(raw.katex_react).toBeUndefined()
   }
 })
-test('Mul.mul default (styles[0]) is implicit; infix follows', () => {
-  const styles = bundledMacroDb['Mul.mul'].styles
-  expect(styles.map((s) => s.tag)).toEqual(['implicit', 'infix'])
-})
-test('bundledSampleMacroDb has block samples with per-style mode', () => {
-  expect(bundledSampleMacroDb['sample.list']).toBeDefined()
-  const def = bundledSampleMacroDb['sample.list'].styles[0]
-  expect(def.mode).toBe('block')
-  expect(def.react_renderer_key).toBe('list')
+test('ordinary arithmetic operators are not bundled', () => {
+  for (const name of ['Add.add', 'Sub.sub', 'Mul.mul', 'DivRing.div']) {
+    expect(bundledMacroDb[name]).toBeUndefined()
+  }
 })

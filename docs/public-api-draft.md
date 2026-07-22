@@ -76,7 +76,6 @@
 | id | kind | title |
 |---|---|---|
 | `snl-macro.const.bundled-macro-db` | Constant | `bundledMacroDb` |
-| `snl-macro.const.bundled-sample-macro-db` | Constant | `bundledSampleMacroDb` |
 
 ---
 

@@ -4,14 +4,24 @@ import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
 import { createMacroTemplateQueryFromDb } from './default-query'
 import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
-import mainDbJson from '../../public/snl-macro-db.json'
-import samplesDbJson from '../../public/snl-macro-db-samples.json'
-import type { SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 
+function blockMacro(name: string, reactRendererKey: string): SnlMacro {
+  return {
+    name,
+    description: 'Test fixture',
+    source: { entries: [], urls: [] },
+    dynamic_arity: true,
+    styles: [{ tag: 'default', mode: 'block', template: '', react_renderer_key: reactRendererKey }],
+  }
+}
+
 const db: SnlMacroDb = {
-  ...(mainDbJson as unknown as SnlMacroDb),
-  ...(samplesDbJson as unknown as SnlMacroDb),
+  'sample.list': blockMacro('sample.list', 'list'),
+  'sample.enumerate': blockMacro('sample.enumerate', 'enumerate'),
+  'sample.table': blockMacro('sample.table', 'table'),
+  'sample.centered': blockMacro('sample.centered', 'centered'),
 }
 const query = createMacroTemplateQueryFromDb(db)
 

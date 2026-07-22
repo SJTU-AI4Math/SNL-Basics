@@ -1,7 +1,7 @@
 {
   "name": "@snl-basics/react",
   "private": true,
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
   "type": "module",
   "exports": {
@@ -11,8 +11,7 @@
       "default": "./dist-lib/index.js"
     },
     "./style.css": "./dist-lib/style.css",
-    "./snl-macro-db.json": "./dist-lib/snl-macro-db.json",
-    "./snl-macro-db-samples.json": "./dist-lib/snl-macro-db-samples.json"
+    "./snl-macro-db.json": "./dist-lib/snl-macro-db.json"
   },
   "types": "./dist-lib/index.d.ts",
   "files": [

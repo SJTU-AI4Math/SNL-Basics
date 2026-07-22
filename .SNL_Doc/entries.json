@@ -34,8 +34,8 @@
     "kind": "module",
     "title": "SNL Macro Module",
     "content": {
-      "snl": "%macro DB 的数据模型定义与内置 macro 数据. 定义 SnlMacro / SnlMacroDb / SnlMacroStyle / SnlMacroSource 四种类型, 并 ship 两份内置 DB: bundledMacroDb (核心数学) + bundledSampleMacroDb (示例).%",
-      "markdown": "macro DB 的数据模型定义与内置 macro 数据. 定义 SnlMacro / SnlMacroDb / SnlMacroStyle / SnlMacroSource 四种类型, 并 ship 两份内置 DB: bundledMacroDb (核心数学) + bundledSampleMacroDb (示例)."
+      "snl": "%macro DB 的数据模型定义与内置 macro 数据. 定义 SnlMacro / SnlMacroDb / SnlMacroStyle / SnlMacroSource 四种类型, 并提供 bundledMacroDb 作为内置核心 macro DB.%",
+      "markdown": "macro DB 的数据模型定义与内置 macro 数据. 定义 SnlMacro / SnlMacroDb / SnlMacroStyle / SnlMacroSource 四种类型, 并提供 bundledMacroDb 作为内置核心 macro DB."
     },
     "contribution_info": null,
     "pointer": {
@@ -402,21 +402,6 @@
       "file": "src/snl-macro/bundled-db.ts",
       "mode": "regex",
       "pattern": "export\\s+const\\s+bundledMacroDb\\b"
-    }
-  },
-  {
-    "id": "mac.const.bundled-sample-macro-db",
-    "kind": "constant",
-    "title": "Bundled Sample Macro Database",
-    "content": {
-      "snl": "%示例 macro DB, 用于文档 / 教程 / demo 场景. 包含 sample.list / sample.enumerate 等 block-mode 示例 macro, 演示 reactrendererkey 的用法.%",
-      "markdown": "示例 macro DB, 用于文档 / 教程 / demo 场景. 包含 sample.list / sample.enumerate 等 block-mode 示例 macro, 演示 react_renderer_key 的用法."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-macro/bundled-db.ts",
-      "mode": "regex",
-      "pattern": "export\\s+const\\s+bundledSampleMacroDb\\b"
     }
   },
   {

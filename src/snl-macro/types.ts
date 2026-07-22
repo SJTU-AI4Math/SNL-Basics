@@ -2,8 +2,8 @@
  * SnlMacro v3 (v6 on-disk) — the single source of truth for a macro.
  *
  * A macro is a globally-unique named renderer. Multiple macros MAY share the
- * same source entry (e.g. Add.add.infix and Add.add.implicit both refer to the
- * "addition" entry). Consumer-owned output backends (Typst / LaTeX / Markdown /
+ * same source entry (e.g. FOL.implies.infix and FOL.implies.double both refer to the
+ * "implication" entry). Consumer-owned output backends (Typst / LaTeX / Markdown /
  * plain text) live in downstream extensions, not in this render-only library.
  *
  * v3 (v6 on-disk) changes vs v2 (v5 on-disk):
@@ -81,7 +81,7 @@ export interface SnlMacroStyle {
 }
 
 export interface SnlMacro {
-  /** Globally unique name, e.g. "Add.add", "FOL.forall", "FOL.forall.typed" */
+  /** Globally unique name, e.g. "FOL.eq", "FOL.forall", "FOL.forall.typed" */
   name: string
   /** Human-readable description shown in tooltips / docs. */
   description: string

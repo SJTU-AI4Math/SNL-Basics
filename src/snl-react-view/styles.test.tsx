@@ -37,30 +37,6 @@ describe('style dispatch via [style] bracket', () => {
     })
   })
 
-  it('Mul.mul default is implicit (#0#1); [infix] switches to \\cdot', async () => {
-    let implicitLatex = ''
-    render(
-      <SnlSyntaxTreeView
-        tree={parseSnlSyntaxTree('Mul.mul(a,b)')}
-        query={query}
-        macroDb={db}
-        onResolved={(l) => (implicitLatex = l)}
-      />,
-    )
-    await waitFor(() => expect(implicitLatex).not.toBe(''))
-    expect(implicitLatex).not.toContain('\\cdot')
-
-    let infixLatex = ''
-    render(
-      <SnlSyntaxTreeView
-        tree={parseSnlSyntaxTree('Mul.mul[infix](a,b)')}
-        query={query}
-        macroDb={db}
-        onResolved={(l) => (infixLatex = l)}
-      />,
-    )
-    await waitFor(() => expect(infixLatex).toContain('\\cdot'))
-  })
 
   it('throws (render error) for an unknown style tag', async () => {
     const tree = parseSnlSyntaxTree('FOL.implies[nope](a,b)')

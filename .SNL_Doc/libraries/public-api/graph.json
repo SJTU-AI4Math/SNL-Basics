@@ -134,13 +134,6 @@
       }
     },
     {
-      "id": "edcefde8-d5db-5ba8-9193-70fec058d08e",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.const.bundled-sample-macro-db"
-      }
-    },
-    {
       "id": "f4b892f5-1533-5542-a8bf-b0dbafaf8189",
       "label": "Entry",
       "props": {
@@ -665,11 +658,6 @@
     {
       "from": "sec-macro-databases",
       "to": "0089c3ab-f22d-5408-8d9e-5a8f818ac49c",
-      "label": "branch"
-    },
-    {
-      "from": "sec-macro-databases",
-      "to": "edcefde8-d5db-5ba8-9193-70fec058d08e",
       "label": "branch"
     },
     {

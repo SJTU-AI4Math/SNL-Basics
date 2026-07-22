@@ -21,7 +21,6 @@ import { fileURLToPath } from 'node:url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const targets = [
   join(__dirname, '..', 'public', 'snl-macro-db.json'),
-  join(__dirname, '..', 'public', 'snl-macro-db-samples.json'),
 ]
 
 const dryRun = process.argv.includes('--dry-run')

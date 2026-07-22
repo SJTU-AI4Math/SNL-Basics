@@ -115,21 +115,11 @@ import 'katex/dist/katex.min.css'
 import '@snl-basics/react/style.css'
 
 const query = createMacroTemplateQueryFromDb(bundledMacroDb)
-const tree = parseSnlSyntaxTree('Add.add(a, b)')
+const tree = parseSnlSyntaxTree('FOL.implies(a, b)')
 // <SnlSyntaxTreeView tree={tree} macroDb={bundledMacroDb} query={query} />
 ```
 
 > **No network required — the DB is baked into the package.**
-
-Sample block macros (`sample.list` / `sample.table` / `sample.centered`) live in
-a separate typed export, `bundledSampleMacroDb`, so a math-only consumer doesn't
-pay for them. Merge when you want the samples too:
-
-```tsx
-import { bundledMacroDb, bundledSampleMacroDb } from '@snl-basics/react'
-
-const db = { ...bundledMacroDb, ...bundledSampleMacroDb }
-```
 
 ## Bundling (Vite / webpack)
 
@@ -173,8 +163,6 @@ The optional `[style]` bracket picks a style; without it the macro's
 ```ts
 parseSnlSyntaxTree('FOL.implies(a, b)')          // default style → a \rightarrow b
 parseSnlSyntaxTree('FOL.implies[double](a, b)')  // 'double' style → a \Rightarrow b
-parseSnlSyntaxTree('Mul.mul(a, b)')              // default 'implicit' → ab
-parseSnlSyntaxTree('Mul.mul[infix](a, b)')       // 'infix' → a \cdot b
 ```
 
 The picked tag is exposed on the node as `node.style` and (when explicit) is
@@ -191,16 +179,16 @@ render error.
 
   ```ts
   const macro: SnlMacro = {
-    name: 'Mul.mul',
+    name: 'FOL.implies',
     description: '…',
     source: { entries: [], urls: [] },
     kind: 'const',          // optional; unset → nodes render as data-kind="fvar"
     arity: 'fixed',
     mode: 'formula',
-    defaultStyle: 'implicit',
+    defaultStyle: 'infix',
     styles: {
-      implicit: { template: '#0#1' },
-      infix:    { template: '#0 \\cdot #1' },
+      infix:  { template: '#0 \\rightarrow #1' },
+      double: { template: '#0 \\Rightarrow #1' },
     },
   }
   ```
@@ -335,10 +323,6 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 />
 ```
 
-The library also ships sample block macros as the typed `bundledSampleMacroDb`
-export (`sample.list`, `sample.table`, `sample.centered`) that you can merge into
-your DB to try the built-in renderers.
-
 ## Output backends
 
 Output backends (Typst / LaTeX / Markdown / plain text) are **consumer-side
@@ -353,7 +337,7 @@ and conversion code (see SNL-Doc-Extension).
 The full public surface is the grouped barrel in
 [`src/snl-react-view/index.ts`](src/snl-react-view/index.ts). Complete
 TypeScript declarations for every export — props, hooks, types, and the typed
-`bundledMacroDb` / `bundledSampleMacroDb` accessors — are published at
+`bundledMacroDb` accessor — are published at
 [`dist-lib/index.d.ts`](dist-lib/index.d.ts) and are what your editor resolves
 on `import type { … } from '@snl-basics/react'`.
 
@@ -361,7 +345,7 @@ on `import type { … } from '@snl-basics/react'`.
 
 ```bash
 npm install
-npm run build:lib   # emits dist-lib/ (JS + types + style.css + macro DBs)
+npm run build:lib   # emits dist-lib/ (JS + types + style.css + core macro DB)
 npm test            # vitest
 npm run dev         # interactive demo (src/App.tsx)
 ```
