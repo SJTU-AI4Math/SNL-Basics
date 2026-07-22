@@ -340,7 +340,9 @@
     "SnlMacro": {
       "description": "",
       "source": {
-        "entries": [],
+        "entries": [
+          "mac.iface.snl-macro"
+        ],
         "urls": []
       },
       "kind": "class",
@@ -437,7 +439,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro.name"
+          "mac.iface.snl-macro"
         ],
         "urls": []
       },
@@ -793,7 +795,9 @@
     "SnlMacroSource": {
       "description": "",
       "source": {
-        "entries": [],
+        "entries": [
+          "mac.iface.snl-macro-source"
+        ],
         "urls": []
       },
       "dynamic_arity": false,
@@ -825,7 +829,9 @@
     "SnlMacroStyle": {
       "description": "",
       "source": {
-        "entries": [],
+        "entries": [
+          "mac.iface.snl-macro-style"
+        ],
         "urls": []
       },
       "dynamic_arity": false,
@@ -857,7 +863,9 @@
     "SnlMacroDb": {
       "description": "",
       "source": {
-        "entries": [],
+        "entries": [
+          "mac.iface.snl-macro-db"
+        ],
         "urls": []
       },
       "dynamic_arity": false,
@@ -889,7 +897,9 @@
     "SnlMacroTemplateQueryArgs": {
       "description": "",
       "source": {
-        "entries": [],
+        "entries": [
+          "st.iface.snl-macro-template-query-args"
+        ],
         "urls": []
       },
       "dynamic_arity": false,
@@ -921,7 +931,9 @@
     "SnlSyntaxTree": {
       "description": "",
       "source": {
-        "entries": [],
+        "entries": [
+          "st.iface.snl-syntax-tree"
+        ],
         "urls": []
       },
       "dynamic_arity": false,
@@ -953,7 +965,9 @@
     "SnlRenderHooks": {
       "description": "",
       "source": {
-        "entries": [],
+        "entries": [
+          "rv.iface.snl-render-hooks"
+        ],
         "urls": []
       },
       "dynamic_arity": false,
@@ -985,7 +999,9 @@
     "SnlMacroInfo": {
       "description": "",
       "source": {
-        "entries": [],
+        "entries": [
+          "rv.iface.snl-macro-info"
+        ],
         "urls": []
       },
       "dynamic_arity": false,
@@ -1018,7 +1034,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro.description"
+          "mac.iface.snl-macro"
         ],
         "urls": []
       },
@@ -1052,7 +1068,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro.source"
+          "mac.iface.snl-macro"
         ],
         "urls": []
       },
@@ -1086,7 +1102,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro.kind"
+          "mac.iface.snl-macro"
         ],
         "urls": []
       },
@@ -1120,7 +1136,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro.dynamic_arity"
+          "mac.iface.snl-macro"
         ],
         "urls": []
       },
@@ -1154,7 +1170,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro.styles"
+          "mac.iface.snl-macro"
         ],
         "urls": []
       },
@@ -1188,7 +1204,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro.tags"
+          "mac.iface.snl-macro"
         ],
         "urls": []
       },
@@ -1222,7 +1238,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.tag"
+          "mac.iface.snl-macro-style"
         ],
         "urls": []
       },
@@ -1256,7 +1272,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.mode"
+          "mac.iface.snl-macro-style"
         ],
         "urls": []
       },
@@ -1290,7 +1306,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.template"
+          "mac.iface.snl-macro-style"
         ],
         "urls": []
       },
@@ -1324,7 +1340,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.variadic_left"
+          "mac.iface.snl-macro-style"
         ],
         "urls": []
       },
@@ -1358,7 +1374,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.variadic_join"
+          "mac.iface.snl-macro-style"
         ],
         "urls": []
       },
@@ -1392,7 +1408,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.variadic_right"
+          "mac.iface.snl-macro-style"
         ],
         "urls": []
       },
@@ -1426,7 +1442,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.react_renderer_key"
+          "mac.iface.snl-macro-style"
         ],
         "urls": []
       },
@@ -1460,7 +1476,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.tags"
+          "mac.iface.snl-macro-style"
         ],
         "urls": []
       },
@@ -1494,7 +1510,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-source.entries"
+          "mac.iface.snl-macro-source"
         ],
         "urls": []
       },
@@ -1528,7 +1544,7 @@
       "description": "",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-source.urls"
+          "mac.iface.snl-macro-source"
         ],
         "urls": []
       },
@@ -1557,6 +1573,1536 @@
         }
       ],
       "kind": "const"
+    },
+    "SnlSyntaxTree.name": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{name}"
+        }
+      ]
+    },
+    "SnlSyntaxTree.style": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{style}"
+        }
+      ]
+    },
+    "SnlSyntaxTree.envMode": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{envMode}"
+        }
+      ]
+    },
+    "SnlSyntaxTree.kind": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{kind}"
+        }
+      ]
+    },
+    "SnlSyntaxTree.scope": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{scope}"
+        }
+      ]
+    },
+    "SnlSyntaxTree.mdata": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{mdata}"
+        }
+      ]
+    },
+    "SnlSyntaxTree.children": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{children}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeBase": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-base"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeBase}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeBase.name": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-base"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{name}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeBase.style": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-base"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{style}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeBase.kind": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-base"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{kind}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeBase.scope": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-base"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{scope}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeBase.mdata": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-base"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{mdata}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeBase.children": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-base"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{children}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeFormulaNode": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-formula-node"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeFormulaNode}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeFormulaNode.mode": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-formula-node"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{mode}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeTextNode": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-text-node"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeTextNode}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeTextNode.mode": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-text-node"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{mode}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeBlockNode": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-block-node"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeBlockNode}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeBlockNode.mode": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-block-node"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{mode}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeBlockNode.block_kind": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-block-node"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{block\\_kind}"
+        }
+      ]
+    },
+    "SnlMacroTemplateQueryArgs.name": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-macro-template-query-args"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{name}"
+        }
+      ]
+    },
+    "SnlMacroTemplateQueryArgs.node": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-macro-template-query-args"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{node}"
+        }
+      ]
+    },
+    "SnlMacroTemplateQuery": {
+      "description": "",
+      "source": {
+        "entries": [
+          "st.iface.snl-macro-template-query"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlMacroTemplateQuery}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeViewProps": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-syntax-tree-view-props"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeViewProps}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeViewProps.tree": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.comp.snl-syntax-tree-view.prop.tree"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{tree}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeViewProps.query": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.comp.snl-syntax-tree-view.prop.query"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{query}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeViewProps.macroDb": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.comp.snl-syntax-tree-view.prop.macro-db"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{macroDb}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeViewProps.katexOptions": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.comp.snl-syntax-tree-view.prop.katex-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{katexOptions}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeViewProps.kindPalette": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.comp.snl-syntax-tree-view.prop.kind-palette"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{kindPalette}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeViewProps.onResolved": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.comp.snl-syntax-tree-view.prop.on-resolved"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{onResolved}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeViewProps.hooks": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.comp.snl-syntax-tree-view.prop.hooks"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{hooks}"
+        }
+      ]
+    },
+    "SnlRenderHooks.onHover": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-render-hooks"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{onHover}"
+        }
+      ]
+    },
+    "SnlRenderHooks.onLeave": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-render-hooks"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{onLeave}"
+        }
+      ]
+    },
+    "SnlRenderHooks.resolveMacroInfo": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-render-hooks"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{resolveMacroInfo}"
+        }
+      ]
+    },
+    "SnlRenderHooks.resolveSource": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-render-hooks"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{resolveSource}"
+        }
+      ]
+    },
+    "SnlRenderHooks.renderTooltip": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-render-hooks"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{renderTooltip}"
+        }
+      ]
+    },
+    "SnlRenderHooks.highlightStrategy": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-render-hooks"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{highlightStrategy}"
+        }
+      ]
+    },
+    "SnlRenderHooks.renderers": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-render-hooks"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{renderers}"
+        }
+      ]
+    },
+    "SnlHoverEvent": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-hover-event"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlHoverEvent}"
+        }
+      ]
+    },
+    "SnlHoverEvent.name": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-hover-event"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{name}"
+        }
+      ]
+    },
+    "SnlHoverEvent.kind": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-hover-event"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{kind}"
+        }
+      ]
+    },
+    "SnlHoverEvent.node": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-hover-event"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{node}"
+        }
+      ]
+    },
+    "SnlHoverEvent.bindingHint": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-hover-event"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{bindingHint}"
+        }
+      ]
+    },
+    "SnlHoverEvent.variableRole": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-hover-event"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{variableRole}"
+        }
+      ]
+    },
+    "SnlHoverEvent.target": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-hover-event"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{target}"
+        }
+      ]
+    },
+    "SnlHoverEvent.clientX": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-hover-event"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{clientX}"
+        }
+      ]
+    },
+    "SnlHoverEvent.clientY": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-hover-event"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{clientY}"
+        }
+      ]
+    },
+    "SnlMacroInfo.description": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-macro-info"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{description}"
+        }
+      ]
+    },
+    "SnlMacroInfo.extra": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-macro-info"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{extra}"
+        }
+      ]
+    },
+    "SnlResolvedSource": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-resolved-source"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlResolvedSource}"
+        }
+      ]
+    },
+    "SnlResolvedSource.kind": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-resolved-source"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{kind}"
+        }
+      ]
+    },
+    "SnlResolvedSource.ref": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-resolved-source"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{ref}"
+        }
+      ]
+    },
+    "SnlResolvedSource.displayName": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-resolved-source"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{displayName}"
+        }
+      ]
+    },
+    "SnlResolvedSource.href": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-resolved-source"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{href}"
+        }
+      ]
+    },
+    "SnlTooltipState": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlTooltipState}"
+        }
+      ]
+    },
+    "SnlTooltipState.visible": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{visible}"
+        }
+      ]
+    },
+    "SnlTooltipState.x": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{x}"
+        }
+      ]
+    },
+    "SnlTooltipState.y": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{y}"
+        }
+      ]
+    },
+    "SnlTooltipState.name": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{name}"
+        }
+      ]
+    },
+    "SnlTooltipState.kind": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{kind}"
+        }
+      ]
+    },
+    "SnlTooltipState.variableRole": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{variableRole}"
+        }
+      ]
+    },
+    "SnlTooltipState.bindingHint": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{bindingHint}"
+        }
+      ]
+    },
+    "SnlTooltipState.info": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{info}"
+        }
+      ]
+    },
+    "SnlTooltipState.loading": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{loading}"
+        }
+      ]
+    },
+    "SnlTooltipState.source": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-tooltip-state"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{source}"
+        }
+      ]
+    },
+    "SnlHighlightStrategy": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-highlight-strategy"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlHighlightStrategy}"
+        }
+      ]
+    },
+    "SnlHighlightStrategy.computeHighlightSet": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-highlight-strategy"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{computeHighlightSet}"
+        }
+      ]
+    },
+    "SnlHighlightSet": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-highlight-set"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlHighlightSet}"
+        }
+      ]
+    },
+    "SnlHighlightSet.singleHover": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-highlight-set"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{singleHover}"
+        }
+      ]
+    },
+    "SnlHighlightSet.bvarScope": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-highlight-set"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{bvarScope}"
+        }
+      ]
+    },
+    "SnlHighlightSet.binderDecl": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-highlight-set"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{binderDecl}"
+        }
+      ]
+    },
+    "SnlRendererRegistry": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-renderer-registry"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlRendererRegistry}"
+        }
+      ]
+    },
+    "SnlBlockRenderer": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-block-renderer"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlBlockRenderer}"
+        }
+      ]
+    },
+    "SnlBlockRendererProps": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-block-renderer-props"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlBlockRendererProps}"
+        }
+      ]
+    },
+    "SnlBlockRendererProps.node": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-block-renderer-props"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{node}"
+        }
+      ]
+    },
+    "SnlBlockRendererProps.macroDb": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-block-renderer-props"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{macroDb}"
+        }
+      ]
+    },
+    "SnlBlockRendererProps.renderChild": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.snl-block-renderer-props"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{renderChild}"
+        }
+      ]
+    },
+    "KindPalette": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.kind-palette"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}KindPalette}"
+        }
+      ]
+    },
+    "KindColoring": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.kind-coloring"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}KindColoring}"
+        }
+      ]
+    },
+    "KindColoring.stroke": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.kind-coloring"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{stroke}"
+        }
+      ]
+    },
+    "KindColoring.background": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.kind-coloring"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{background}"
+        }
+      ]
+    },
+    "DefaultMacroTemplateQueryOptions": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.default-macro-template-query-options"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}DefaultMacroTemplateQueryOptions}"
+        }
+      ]
+    },
+    "DefaultMacroTemplateQueryOptions.templateDbUrl": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.default-macro-template-query-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{templateDbUrl}"
+        }
+      ]
+    },
+    "DefaultMacroTemplateQueryOptions.artificialDelayMs": {
+      "description": "",
+      "source": {
+        "entries": [
+          "rv.iface.default-macro-template-query-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{artificialDelayMs}"
+        }
+      ]
     }
   },
   "description": "Term macros for the SNL-Basics dogfood API doc (Phase 2). Inline-term references (api.iface, api.fn, api.class, api.const, api.prop, api.comp, api.mod, api.pkg, api.concept, api.kw, api.file, api.code), connector punctuation (api.slash, api.plus, api.arrow, api.list), and one structural macro (api.para) for prose paragraphs."
