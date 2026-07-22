@@ -1,4 +1,10 @@
-export type { SnlMacro, SnlMacroStyle, SnlMacroSource } from './types'
+export type {
+  SnlInvariantMacroStyle,
+  SnlMacro,
+  SnlMacroSource,
+  SnlMacroStyle,
+  SnlTextMacroStyle,
+} from './types'
 export {
   MacroDataDriver,
   type MacroDataQueries,

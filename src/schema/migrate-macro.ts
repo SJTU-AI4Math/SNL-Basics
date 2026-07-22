@@ -39,9 +39,34 @@ export interface MacroV6 {
   styles: MacroStyleV6[]
 }
 
-/** Detect whether a style is already v7 (has style_name, no tag/variadic triple) */
+/** Validate a serialized I18n<string> value. */
+function isI18nString(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const record = value as Record<string, unknown>
+  if (record.type !== 'i18n' || typeof record.default_language !== 'string') return false
+  if (!record.values || typeof record.values !== 'object' || Array.isArray(record.values)) return false
+  const values = record.values as Record<string, unknown>
+  const keys = Object.keys(values)
+  return (
+    keys.length > 0 &&
+    typeof values[record.default_language] === 'string' &&
+    keys.every((key) => typeof values[key] === 'string')
+  )
+}
+
+/** Detect whether a style is already v7 and respects localized-template rules. */
 function isStyleV7(s: Record<string, unknown>): boolean {
-  return 'style_name' in s && !('tag' in s) && !('variadic_left' in s) && !('variadic_join' in s) && !('variadic_right' in s)
+  if (!('style_name' in s) || 'tag' in s || 'variadic_left' in s || 'variadic_join' in s || 'variadic_right' in s) {
+    return false
+  }
+  if (!Array.isArray(s.tags) || !s.tags.every((tag) => typeof tag === 'string')) return false
+  if (s.mode === 'text') {
+    return typeof s.template === 'string' || isI18nString(s.template)
+  }
+  if (s.mode === 'formula_inline' || s.mode === 'formula_display' || s.mode === 'block') {
+    return typeof s.template === 'string'
+  }
+  return false
 }
 
 /** Detect whether a macro document is already v7 */
@@ -77,13 +102,19 @@ export function migrateStyleV6toV7(style: MacroStyleV6): SnlMacroStyle {
     throw new Error('block_template_name is valid only in block mode')
   }
 
-  return {
+  const base = {
     style_name: style.tag ?? style.style_name ?? 'default',
-    mode: style.mode as SnlMacroStyle['mode'],
     template,
     separator,
-    block_template_name,
     tags: style.tags ?? [],
+  }
+  if (style.mode === 'text') {
+    return { ...base, mode: 'text' }
+  }
+  return {
+    ...base,
+    mode: style.mode as 'formula_inline' | 'formula_display' | 'block',
+    block_template_name,
   }
 }
 

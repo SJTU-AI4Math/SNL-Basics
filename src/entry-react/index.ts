@@ -1,7 +1,10 @@
 /** Tree-shakeable `@snl-basics/react/entry` Entry rendering route. */
 export {
   EntryDataDriver,
+  read_entry_content,
+  resolve_entry_content,
   type EntryContent,
+  type ResolvedEntryContent,
   type EntryData,
   type EntryKind,
   type EntrySummary,

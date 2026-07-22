@@ -24,7 +24,13 @@ export {
 } from '../runtime'
 
 // === Core types ===
-export type { SnlMacro, SnlMacroStyle, SnlMacroSource } from '../snl-macro/types'
+export type {
+  SnlInvariantMacroStyle,
+  SnlMacro,
+  SnlMacroStyle,
+  SnlMacroSource,
+  SnlTextMacroStyle,
+} from '../snl-macro/types'
 export type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 export { createSnlSyntaxTreeNode, isSnlSyntaxTree } from '../snl-syntax-tree/types'
 export type {
@@ -114,9 +120,11 @@ export {
   modeBucket,
   nodeDisplay,
   nodeMode,
+  read_style_template,
   resolveNodeLatex,
   resolveRootLatex,
   resolveStyle,
+  resolve_style_template,
   sanitizeHtmlDataAttr,
   wrapForParent,
   wrapHtmlData,

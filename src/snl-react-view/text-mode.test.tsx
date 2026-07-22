@@ -21,6 +21,7 @@ import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
 import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { testDriver } from '../snl-react-view/test-helpers'
+import { ReaderRuntime, type I18n } from '../runtime'
 
 function leaf(name: string): SnlSyntaxTree {
   return createSnlSyntaxTreeNode(name, { kind: 'fvar' })
@@ -96,6 +97,26 @@ function panelText(container: HTMLElement): string {
 }
 
 describe('text-mode template splicing (regression)', () => {
+  it('renders an I18n text template using the injected language query', async () => {
+    const template: I18n<string, string> = {
+      type: 'i18n',
+      default_language: 'en',
+      values: { en: '#0 equals #1', 'zh-CN': '#0 等于 #1' },
+    }
+    const localized: SnlMacro = {
+      ...eqDualMode,
+      styles: [{ style_name: 'default', mode: 'text', template, tags: [] }],
+    }
+    const tree = createSnlSyntaxTreeNode('Eq.eq', { children: [leaf('a'), leaf('b')] })
+    const runtime = new ReaderRuntime({
+      queries: { query_environment: () => ({ language: 'zh-CN' }) },
+    })
+    const { container } = render(
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver({ 'Eq.eq': localized })} reader_runtime={runtime} />,
+    )
+    await waitFor(() => expect(panelText(container)).toContain('a 等于 b'))
+  })
+
   it('splices #0 / #1 into the template and keeps literal 与 / 相等', async () => {
     const tree = createSnlSyntaxTreeNode('Eq.eq', {
       children: [leaf('a'), leaf('b')],

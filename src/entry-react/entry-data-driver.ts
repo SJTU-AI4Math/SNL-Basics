@@ -1,9 +1,63 @@
+import {
+  is_i18n,
+  read_localized,
+  type LanguageEnvironment,
+  type Localized,
+  type ReaderM,
+  type ReaderRuntime,
+} from '../runtime'
+
 export interface EntryContent {
+  snl?: string
+  markdown?: Localized<string, string>
+  latex?: Localized<string, string>
+  text?: Localized<string, string>
+  typst?: Localized<string, string>
+}
+
+export interface ResolvedEntryContent {
   snl?: string
   markdown?: string
   latex?: string
   text?: string
   typst?: string
+}
+
+/** Resolve every non-SNL channel from consumer-owned language preferences. */
+export function read_entry_content(
+  content: EntryContent,
+): ReaderM<LanguageEnvironment<string>, ResolvedEntryContent> {
+  return (environment) => {
+    const resolved: ResolvedEntryContent = {}
+    if (content.snl !== undefined) resolved.snl = content.snl
+    if (content.markdown !== undefined) {
+      resolved.markdown = read_localized(content.markdown)(environment)
+    }
+    if (content.latex !== undefined) {
+      resolved.latex = read_localized(content.latex)(environment)
+    }
+    if (content.text !== undefined) {
+      resolved.text = read_localized(content.text)(environment)
+    }
+    if (content.typst !== undefined) {
+      resolved.typst = read_localized(content.typst)(environment)
+    }
+    return resolved
+  }
+}
+
+/** Execute Entry-content localization at a renderer boundary. */
+export function resolve_entry_content(
+  content: EntryContent,
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
+): ResolvedEntryContent {
+  const localized = [content.markdown, content.latex, content.text, content.typst]
+    .some((value) => value !== undefined && is_i18n(value))
+  if (localized && !reader_runtime) {
+    throw new Error('localized Entry content requires reader_runtime')
+  }
+  if (reader_runtime) return reader_runtime.run_reader(read_entry_content(content))
+  return read_entry_content(content)({ language: '' })
 }
 
 export interface EntryData {

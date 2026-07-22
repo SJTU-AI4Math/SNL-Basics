@@ -24,14 +24,29 @@ interface SnlMacroSource {
   urls: string[]
 }
 
-interface SnlMacroStyle {
-  style_name: string
-  mode: 'formula_inline' | 'formula_display' | 'text' | 'block'
-  template: string
-  separator?: string
-  block_template_name?: string
-  tags: string[]
+interface I18n<Language extends string, Value = string> {
+  type: 'i18n'
+  default_language: Language
+  values: Partial<Record<Language, Value>>
 }
+type Localized<Language extends string, Value = string> = Value | I18n<Language, Value>
+
+type SnlMacroStyle =
+  | {
+      style_name: string
+      mode: 'formula_inline' | 'formula_display' | 'block'
+      template: string
+      separator?: string
+      block_template_name?: string
+      tags: string[]
+    }
+  | {
+      style_name: string
+      mode: 'text'
+      template: Localized<string, string>
+      separator?: string
+      tags: string[]
+    }
 
 interface SnlMacro {
   name: string
@@ -64,6 +79,27 @@ function createSnlSyntaxTreeNode(
 
 `parseSnlSyntaxTree` throws `SnlSyntaxTreeParseError`; editors should normally
 use the non-throwing `tryParseSnlSyntaxTree` form.
+
+## Query-injected Reader runtime
+
+```ts
+type ReaderM<Environment, Value> = (environment: Environment) => Value
+
+interface ReaderRuntimeQueries<Environment> {
+  query_environment(): Environment
+}
+
+class ReaderRuntime<Environment> {
+  constructor(options: { queries: ReaderRuntimeQueries<Environment> })
+  query_environment(): Environment
+  run_reader<Value>(reader: ReaderM<Environment, Value>): Value
+}
+```
+
+Every environment-dependent Basics API is expressed as a Reader and executed
+through a query-initialized runtime. Basics never chooses the settings, locale,
+theme, request context, or persistence backend. See
+[Query-injected runtime standard](query-injected-runtime.md).
 
 ## Query-only `MacroDataDriver`
 

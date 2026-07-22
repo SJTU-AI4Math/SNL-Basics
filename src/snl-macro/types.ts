@@ -1,3 +1,5 @@
+import type { Localized } from '../runtime'
+
 /**
  * SnlMacro v7 (on-disk) — the single source of truth for a macro.
  *
@@ -37,42 +39,38 @@ export interface SnlMacroSource {
  * `mode` lives per style so a single macro can carry a formula style
  * ("a = b") alongside a prose style ("a 与 b 相等").
  */
-export interface SnlMacroStyle {
+interface SnlMacroStyleBase {
   /**
    * Style name — the token used in `foo[style_name](…)`. `[A-Za-z_][A-Za-z0-9_]*`
    * (parser IDENT rules). Must be unique within a macro's `styles` array.
    */
   style_name: string
   /**
-   * Semantic render mode. Four flat parallel values:
-   *   - `formula_inline`  — KaTeX inline math ($...$)
-   *   - `formula_display` — KaTeX display math ($$...$$)
-   *   - `text`            — KaTeX `\text{...}`; may host formulas via `$...$`
-   *   - `block`           — React-rendered block (list / table / centered / …)
-   */
-  mode: 'formula_inline' | 'formula_display' | 'text' | 'block'
-  /**
-   * LaTeX-native template. Placeholders: #0, #1, … (positional children),
-   * #* (all children joined by `separator`), \# (literal #).
-   */
-  template: string
-  /**
    * Separator string for `#*` expansion in dynamic-arity macros.
    * Defaults to `', '` for formula modes, `''` for text mode.
    * Ignored when the macro is not dynamic_arity.
    */
   separator?: string
-  /**
-   * Block renderer dispatch key — see block-renderers.tsx.
-   * Only applies when mode is 'block'.
-   */
-  block_template_name?: string
-  /**
-   * Free-text labels attached to this style — used by downstream search
-   * indices. Backslashes are forbidden.
-   */
+  /** Free-text labels used by downstream search indices. */
   tags: string[]
 }
+
+/** Formula and block templates are language-invariant render programs. */
+export interface SnlInvariantMacroStyle extends SnlMacroStyleBase {
+  mode: 'formula_inline' | 'formula_display' | 'block'
+  template: string
+  /** Block renderer dispatch key; only applies when mode is `block`. */
+  block_template_name?: string
+}
+
+/** Text templates may be invariant strings or serializable language maps. */
+export interface SnlTextMacroStyle extends SnlMacroStyleBase {
+  mode: 'text'
+  template: Localized<string, string>
+  block_template_name?: never
+}
+
+export type SnlMacroStyle = SnlInvariantMacroStyle | SnlTextMacroStyle
 
 export interface SnlMacro {
   /** Globally unique macro name, e.g. "FOL.eq", "FOL.forall", "FOL.forall.typed" */

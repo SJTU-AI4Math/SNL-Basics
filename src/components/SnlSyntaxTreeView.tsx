@@ -12,6 +12,7 @@ import katex from 'katex'
 import type { KatexOptions } from 'katex'
 import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
+import type { LanguageEnvironment, ReaderRuntime } from '../runtime'
 import {
   SnlInteractionDriver,
   decodeTreePath,
@@ -29,6 +30,7 @@ import {
   nodeMode,
   resolveRootLatex,
   resolveStyle,
+  resolve_style_template,
 } from '../snl-react-view/render-source'
 import { findBinderScopeAncestor, findMinimalHoverRoot } from '../snl-react-view/hover-dom'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
@@ -57,6 +59,8 @@ export interface SnlSyntaxTreeViewProps {
   tree: SnlSyntaxTree
   /** The single macro data source — query-only driver with bounded cache. */
   macro_data_driver: MacroDataDriver
+  /** Consumer-owned runtime used when a text Macro template is localized. */
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   /** Injectable interaction handler (hover/leave/click/ctrl-click via delegated events). */
   interaction_driver?: SnlInteractionDriver
   /** KaTeX options forwarded to `katex.renderToString`. */
@@ -84,11 +88,13 @@ type TooltipState = SnlTooltipState & { interactionKey: string }
 function MathSpan({
   node,
   driver,
+  reader_runtime,
   treePath,
   katexOptions,
 }: {
   node: SnlSyntaxTree
   driver: MacroDataDriver
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   treePath: TreePath
   katexOptions?: KatexOptions
 }): ReactElement {
@@ -99,7 +105,7 @@ function MathSpan({
     const controller = new AbortController()
     void (async () => {
       try {
-        const latex = await resolveRootLatex(node, driver, controller.signal, treePath)
+        const latex = await resolveRootLatex(node, driver, controller.signal, treePath, reader_runtime)
         const macro = node.env_mode ? null : await driver.query_macro({ macro_name: node.macro_name, signal: controller.signal })
         const out = katex.renderToString(latex, {
           throwOnError: false,
@@ -121,7 +127,7 @@ function MathSpan({
       cancelled = true
       controller.abort()
     }
-  }, [node, driver, treePath, katexOptions])
+  }, [node, driver, reader_runtime, treePath, katexOptions])
   return <span className="snl-math-span" ref={spanRef} />
 }
 
@@ -161,11 +167,13 @@ function resolveNodeKind(node: SnlSyntaxTree, macros: SnlMacroRecord): string {
 function TextRun({
   node,
   macros,
+  reader_runtime,
   treePath,
   renderChild,
 }: {
   node: SnlSyntaxTree
   macros: SnlMacroRecord
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   treePath: string
   renderChild: (child: SnlSyntaxTree, index: number) => ReactElement
 }): ReactElement {
@@ -209,7 +217,11 @@ function TextRun({
 
   const macro = macros[node.macro_name]
   const style = macro ? resolveStyle(node, macro) : undefined
-  const template = isSyntheticTemplate ? node.macro_name : (style?.template ?? '')
+  const template = isSyntheticTemplate
+    ? node.macro_name
+    : style
+      ? resolve_style_template(style, reader_runtime)
+      : ''
   const children = node.children
 
   // Build the ordered fragment list by scanning the template for
@@ -420,6 +432,7 @@ function renderTextWithMathIslands(src: string): ReactNode[] {
 function useSnlSyntaxTreeRender(
   tree: SnlSyntaxTree,
   driver: MacroDataDriver,
+  reader_runtime: ReaderRuntime<LanguageEnvironment<string>> | undefined,
   katexOptions: KatexOptions | undefined,
   enabled: boolean,
 ) {
@@ -443,7 +456,7 @@ function useSnlSyntaxTreeRender(
       setLoading(true)
       setError(null)
       try {
-        const latex = await resolveRootLatex(tree, driver, controller.signal)
+        const latex = await resolveRootLatex(tree, driver, controller.signal, [], reader_runtime)
         const rootMacro = tree.env_mode ? null : await driver.query_macro({ macro_name: tree.macro_name, signal: controller.signal })
         const html = katex.renderToString(latex, {
           throwOnError: false,
@@ -472,7 +485,7 @@ function useSnlSyntaxTreeRender(
       cancelled = true
       controller.abort()
     }
-  }, [enabled, katexOptions, driver, tree])
+  }, [enabled, katexOptions, driver, reader_runtime, tree])
 
   return { loading, error, result, reqIdRef }
 }
@@ -485,6 +498,7 @@ function useSnlSyntaxTreeRender(
 export function SnlSyntaxTreeView({
   tree,
   macro_data_driver,
+  reader_runtime,
   interaction_driver: _interaction_driver,
   katexOptions,
   kindPalette,
@@ -584,6 +598,7 @@ export function SnlSyntaxTreeView({
   const { loading, error, result } = useSnlSyntaxTreeRender(
     tree,
     macro_data_driver,
+    reader_runtime,
     katexOptions,
     isKatexRoot,
   )
@@ -991,6 +1006,7 @@ export function SnlSyntaxTreeView({
         <TextRun
           node={node}
           macros={resolvedMacros}
+          reader_runtime={reader_runtime}
           treePath={pathStr}
           renderChild={(child, idx) => renderNode(child, pathStr ? `${pathStr}.${idx}` : `${idx}`)}
         />
@@ -1001,6 +1017,7 @@ export function SnlSyntaxTreeView({
       <MathSpan
         node={node}
         driver={macro_data_driver}
+        reader_runtime={reader_runtime}
         treePath={decodeTreePath(pathStr)}
         katexOptions={katexOptions}
       />

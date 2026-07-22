@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, type ReactElement } from 'react'
 import katex from 'katex'
 import type { MacroDataDriver } from '../snl-macro/macro-data-driver'
+import type { LanguageEnvironment, ReaderRuntime } from '../runtime'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
 import { tryParseSnlSyntaxTree } from '../snl-react-view/parse'
 import type { KindPalette } from '../snl-react-view/kind-palette'
@@ -15,7 +16,13 @@ import {
 } from '../snl-react-view/hover-popovers'
 import { MarkdownBody } from './markdown-body'
 import { LatexBody } from './latex-body'
-import { EntryDataDriver, type EntryData, type EntryKind } from './entry-data-driver'
+import {
+  EntryDataDriver,
+  resolve_entry_content,
+  type EntryData,
+  type EntryKind,
+  type ResolvedEntryContent,
+} from './entry-data-driver'
 import { resolveEntryContextSources } from './context-source'
 
 export interface EntryInteractionPorts {
@@ -29,6 +36,7 @@ export interface EntrySurfaceProps {
   kind: EntryKind | null
   entry_data_driver: EntryDataDriver
   macro_data_driver: MacroDataDriver
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   interaction_driver?: SnlInteractionDriver
   interaction_ports?: EntryInteractionPorts
   hooks?: SnlRenderHooks
@@ -55,6 +63,7 @@ export interface EntryPreviewProviderProps {
   children: React.ReactNode
   entry_data_driver: EntryDataDriver
   macro_data_driver: MacroDataDriver
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   interaction_ports?: EntryInteractionPorts
   hooks?: SnlRenderHooks
   kind_palette?: KindPalette
@@ -94,9 +103,10 @@ function titleHtml(title: string): string {
   catch { return katex.renderToString(`\\text{${escapeForKatexText(title)}}`, { displayMode: false, throwOnError: false, strict: false, trust: false }) }
 }
 
-function surface(content: EntryData['content']): 'snl' | 'markdown' | 'latex' | 'text' | 'none' {
+function surface(content: ResolvedEntryContent): 'snl' | 'markdown' | 'typst' | 'latex' | 'text' | 'none' {
   if (content.snl?.trim()) return 'snl'
   if (content.markdown?.trim()) return 'markdown'
+  if (content.typst?.trim()) return 'typst'
   if (content.latex?.trim()) return 'latex'
   if (content.text?.trim()) return 'text'
   return 'none'
@@ -106,12 +116,13 @@ interface SnlEntryBodyProps {
   source: string
   entry_data_driver: EntryDataDriver
   macro_data_driver: MacroDataDriver
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   interaction_driver?: SnlInteractionDriver
   hooks?: SnlRenderHooks
   kind_palette?: KindPalette
 }
 
-function SnlEntryBody({ source, entry_data_driver, macro_data_driver, interaction_driver, hooks, kind_palette }: SnlEntryBodyProps): ReactElement {
+function SnlEntryBody({ source, entry_data_driver, macro_data_driver, reader_runtime, interaction_driver, hooks, kind_palette }: SnlEntryBodyProps): ReactElement {
   const parsed = useMemo(() => tryParseSnlSyntaxTree(source), [source])
   const [state, setState] = useState<{ tree: object; driver: EntryDataDriver; status: 'loading' | 'ready' | 'error'; error?: Error } | null>(null)
   const current = parsed.ok && state?.tree === parsed.tree && state.driver === entry_data_driver ? state : null
@@ -132,12 +143,13 @@ function SnlEntryBody({ source, entry_data_driver, macro_data_driver, interactio
   if (!parsed.ok) return <><div role="alert" className="snl-entry-error">SNL parse error: {parsed.error}{parsed.position === undefined ? '' : ` (at ${parsed.position})`}</div><pre>{source}</pre></>
   if (!current || current.status === 'loading') return <div className="snl-entry-loading">Resolving Entry context…</div>
   if (current.status === 'error') return <><div role="alert" className="snl-entry-error">Entry context query failed: {current.error!.message}</div><pre>{source}</pre></>
-  return <SnlSyntaxTreeView tree={parsed.tree} macro_data_driver={macro_data_driver} interaction_driver={interaction_driver} hooks={hooks} kindPalette={kind_palette} />
+  return <SnlSyntaxTreeView tree={parsed.tree} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={interaction_driver} hooks={hooks} kindPalette={kind_palette} />
 }
 
 export function EntrySurface(props: EntrySurfaceProps): ReactElement {
-  const { entry, kind, macro_data_driver, interaction_driver, interaction_ports, hooks, kind_palette, counter_label } = props
-  const bodySurface = surface(entry.content ?? {})
+  const { entry, kind, macro_data_driver, reader_runtime, interaction_driver, interaction_ports, hooks, kind_palette, counter_label } = props
+  const content = resolve_entry_content(entry.content ?? {}, reader_runtime)
+  const bodySurface = surface(content)
   const html = useMemo(() => titleHtml(entry.title ?? ''), [entry.title])
   const stroke = kind?.coloring?.stroke?.trim() || '#888888'
   const background = kind?.coloring?.background?.trim() || 'transparent'
@@ -171,10 +183,11 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     {bodySurface !== 'none' ? <>
       <div style={{ borderTop: `0.5px solid ${stroke}`, margin: '4px 10px' }} />
       <div data-entry-body={bodySurface} style={{ padding: '0.9rem', fontSize: '1.05rem' }}>
-        {bodySurface === 'snl' ? <SnlEntryBody source={entry.content.snl!} entry_data_driver={props.entry_data_driver} macro_data_driver={macro_data_driver} interaction_driver={effectiveInteractionDriver} hooks={hooks} kind_palette={kind_palette} /> : null}
-        {bodySurface === 'markdown' ? <MarkdownBody source={entry.content.markdown!} /> : null}
-        {bodySurface === 'latex' ? <LatexBody source={entry.content.latex!} /> : null}
-        {bodySurface === 'text' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{entry.content.text}</pre> : null}
+        {bodySurface === 'snl' ? <SnlEntryBody source={content.snl!} entry_data_driver={props.entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={effectiveInteractionDriver} hooks={hooks} kind_palette={kind_palette} /> : null}
+        {bodySurface === 'markdown' ? <MarkdownBody source={content.markdown!} /> : null}
+        {bodySurface === 'typst' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content.typst}</pre> : null}
+        {bodySurface === 'latex' ? <LatexBody source={content.latex!} /> : null}
+        {bodySurface === 'text' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content.text}</pre> : null}
       </div>
     </> : null}
   </section>
@@ -212,7 +225,7 @@ function EntryPreviewBridge({ children }: { children: React.ReactNode }): ReactE
 }
 
 /** Generic recursive Entry popovers; host loading is entirely supplied by EntryDataDriver. */
-export function EntryPreviewProvider({ children, entry_data_driver, macro_data_driver, interaction_ports, hooks, kind_palette, options, className, style }: EntryPreviewProviderProps): ReactElement {
-  const renderPopover = (popover: HoverPopover<string>): React.ReactNode => <EntryPreviewBridge><EntryView entry_id={popover.subject} entry_data_driver={entry_data_driver} macro_data_driver={macro_data_driver} interaction_ports={interaction_ports} hooks={hooks} kind_palette={kind_palette} /></EntryPreviewBridge>
+export function EntryPreviewProvider({ children, entry_data_driver, macro_data_driver, reader_runtime, interaction_ports, hooks, kind_palette, options, className, style }: EntryPreviewProviderProps): ReactElement {
+  const renderPopover = (popover: HoverPopover<string>): React.ReactNode => <EntryPreviewBridge><EntryView entry_id={popover.subject} entry_data_driver={entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_ports={interaction_ports} hooks={hooks} kind_palette={kind_palette} /></EntryPreviewBridge>
   return <HoverPopoverProvider<string> renderPopover={renderPopover} options={options} className={className} style={style}><EntryPreviewBridge>{children}</EntryPreviewBridge></HoverPopoverProvider>
 }

@@ -20,6 +20,13 @@
  */
 
 import type { SnlMacro, SnlMacroStyle } from '../snl-macro/types'
+import {
+  is_i18n,
+  read_localized,
+  type LanguageEnvironment,
+  type ReaderM,
+  type ReaderRuntime,
+} from '../runtime'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { getBindRef, getSrc } from '../snl-syntax-tree/binding'
 import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
@@ -72,6 +79,25 @@ export function resolveStyle(node: SnlSyntaxTree, macro: SnlMacro): SnlMacroStyl
     )
   }
   return style
+}
+
+/** Resolve a style template from consumer-supplied language preferences. */
+export function read_style_template(
+  style: SnlMacroStyle,
+): ReaderM<LanguageEnvironment<string>, string> {
+  return read_localized<string, string>(style.template)
+}
+
+/** Run a style-template Reader at a renderer boundary. */
+export function resolve_style_template(
+  style: SnlMacroStyle,
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
+): string {
+  if (!is_i18n(style.template)) return style.template
+  if (!reader_runtime) {
+    throw new Error('localized text Macro template requires reader_runtime')
+  }
+  return reader_runtime.run_reader(read_style_template(style))
 }
 
 /**
@@ -180,6 +206,7 @@ export async function resolveNodeLatex(
   driver: MacroDataDriver,
   treePath: TreePath = [],
   signal?: AbortSignal,
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
 ): Promise<string> {
   const macro = node.env_mode ? null : await driver.query_macro({ macro_name: node.macro_name, signal })
   const style = macro ? resolveStyle(node, macro) : undefined
@@ -190,7 +217,7 @@ export async function resolveNodeLatex(
   const selfBucket = modeBucket(selfMode)
 
   const childRawList = await Promise.all(
-    node.children.map((child, i) => resolveNodeLatex(child, driver, [...treePath, i], signal)),
+    node.children.map((child, i) => resolveNodeLatex(child, driver, [...treePath, i], signal, reader_runtime)),
   )
 
   const wrappedChildren = await Promise.all(childRawList.map(async (latex, index) => {
@@ -253,7 +280,7 @@ export async function resolveNodeLatex(
     }
   }
 
-  const template = style?.template ?? node.macro_name
+  const template = style ? resolve_style_template(style, reader_runtime) : node.macro_name
 
   const childValues = Object.fromEntries(
     wrappedChildren.map((latex, index) => [`child${index}`, latex]),
@@ -298,8 +325,9 @@ export async function resolveRootLatex(
   driver: MacroDataDriver,
   signal?: AbortSignal,
   treePath: TreePath = [],
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
 ): Promise<string> {
-  const raw = await resolveNodeLatex(root, driver, treePath, signal)
+  const raw = await resolveNodeLatex(root, driver, treePath, signal, reader_runtime)
   const macro = root.env_mode ? null : await driver.query_macro({ macro_name: root.macro_name, signal })
   let rootMode: SnlMacroStyle['mode'] = 'formula_inline'
   if (root.env_mode) {

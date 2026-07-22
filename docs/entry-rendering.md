@@ -8,7 +8,7 @@ Markdown pipeline.
 ## Setup
 
 ```tsx
-import { MacroDataDriver } from '@snl-basics/react'
+import { MacroDataDriver, ReaderRuntime } from '@snl-basics/react'
 import {
   EntryDataDriver,
   EntryPreviewProvider,
@@ -31,14 +31,23 @@ const entries = new EntryDataDriver({
   },
 })
 
-<EntryPreviewProvider entry_data_driver={entries} macro_data_driver={macros}>
-  <EntryView entry_id="definition.ring" entry_data_driver={entries} macro_data_driver={macros} />
+const runtime = new ReaderRuntime({
+  queries: { query_environment: () => ({ language: readLanguageSetting() }) },
+})
+
+<EntryPreviewProvider entry_data_driver={entries} macro_data_driver={macros} reader_runtime={runtime}>
+  <EntryView entry_id="definition.ring" entry_data_driver={entries} macro_data_driver={macros} reader_runtime={runtime} />
 </EntryPreviewProvider>
 ```
 
 ## Rendering contract
 
-- Body priority is nonblank SNL, Markdown, LaTeX, text, then a header-only card.
+- Body priority is nonblank SNL, Markdown, Typst, LaTeX, text, then a header-only card.
+- Markdown, Typst, LaTeX, and text may be invariant strings or serialized
+  `I18n<string,string>` maps. SNL is always a language-invariant string.
+- A localized body is resolved through the injected `ReaderRuntime`; Basics
+  never reads a locale or settings backend itself. Invariant legacy strings do
+  not require a runtime.
 - SNL parse and context-query errors preserve the original source.
 - Titles are prose with balanced `$...$` inline-math islands; escaped or
   unbalanced dollars remain prose.

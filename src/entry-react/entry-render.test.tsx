@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
+import { ReaderRuntime, type I18n } from '../runtime'
 import { EntryDataDriver, type EntryData } from './entry-data-driver'
 import { EntrySurface, EntryView, EntryPreviewProvider, titleToKatexSource } from './entry-render'
 
@@ -15,6 +16,19 @@ const dataDriver = (entries: Record<string, EntryData | undefined> = {}) => new 
 afterEach(cleanup)
 
 describe('Entry surface dispatch', () => {
+  it('renders localized non-SNL content through the injected Reader runtime', () => {
+    const markdown: I18n<string, string> = {
+      type: 'i18n',
+      default_language: 'en',
+      values: { en: '**Group**', 'zh-CN': '**群**' },
+    }
+    const runtime = new ReaderRuntime({
+      queries: { query_environment: () => ({ language: 'zh-CN' }) },
+    })
+    const view = render(<EntrySurface entry={base({ markdown })} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} reader_runtime={runtime} />)
+    expect(view.container.querySelector('.snl-markdown-body strong')?.textContent).toBe('群')
+  })
+
   it('uses SNL > Markdown > LaTeX > text priority', async () => {
     const view = render(<EntrySurface entry={base({ snl: '%SNL wins%', markdown: '**Markdown**', latex: 'L', text: 'T' })} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
     await waitFor(() => expect(view.container.textContent).toContain('SNL wins'))

@@ -11,6 +11,7 @@ import {
   TREE_SCHEMA_VERSION,
 } from './index'
 import type { MacroV6, MacroStyleV6, SyntaxTreeNodeV1 } from './index'
+import type { I18n } from '../runtime'
 
 describe('schema/versions', () => {
   it('exports correct version constants', () => {
@@ -112,6 +113,34 @@ describe('schema/migrate-macro', () => {
       },
     }
     expect(isMacroDocumentV7(partial as any)).toBe(false)
+  })
+
+  it('accepts I18n templates only for text styles', () => {
+    const i18n: I18n<string, string> = {
+      type: 'i18n',
+      default_language: 'en',
+      values: { en: '#0 is a group', 'zh-CN': '#0 是群' },
+    }
+    const text = migrateMacroV6toV7(v6Macro)
+    text.styles = [{ style_name: 'prose', mode: 'text', template: i18n, tags: [] }]
+    expect(isMacroDocumentV7({ Add: text } as any)).toBe(true)
+
+    const formula = {
+      ...text,
+      styles: [{ style_name: 'formula', mode: 'formula_inline', template: i18n, tags: [] }],
+    }
+    expect(isMacroDocumentV7({ Add: formula } as any)).toBe(false)
+  })
+
+  it('rejects empty I18n text templates', () => {
+    const text = migrateMacroV6toV7(v6Macro)
+    text.styles = [{
+      style_name: 'prose',
+      mode: 'text',
+      template: { type: 'i18n', default_language: 'en', values: {} },
+      tags: [],
+    }]
+    expect(isMacroDocumentV7({ Add: text } as any)).toBe(false)
   })
 
   it('join-only v6 dynamic styles gain a real #* template', () => {
