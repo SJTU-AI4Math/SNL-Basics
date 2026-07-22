@@ -636,12 +636,13 @@
         "entries": [],
         "urls": []
       },
+      "kind": "Syntax",
       "dynamic_arity": false,
       "styles": [
         {
           "tag": "default",
           "mode": "formula_inline",
-          "template": "{\\color{CE9178}\\texttt{'}#0\\color{CE9178}\\texttt{'}}",
+          "template": "{\\color{CE9178}\\texttt{`}#0\\color{CE9178}\\texttt{'}}",
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -659,8 +660,7 @@
           "markdown": "",
           "text": ""
         }
-      ],
-      "kind": "Syntax"
+      ]
     },
     "boolean": {
       "description": "",

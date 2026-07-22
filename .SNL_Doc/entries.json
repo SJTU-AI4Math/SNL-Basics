@@ -265,7 +265,7 @@
     "kind": "interface",
     "title": "SnlMacroStyle",
     "content": {
-      "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.tag,string),Type.judge(SnlMacroStyle.mode,Type.union(Type.literal(formula_inline),Type.literal(formula_display),Type.literal(text),Type.literal(block))),Type.judge(SnlMacroStyle.template,string),Type.judge(SnlMacroStyle.variadic_left,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_join,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_right,Type.opt(string)),Type.judge(SnlMacroStyle.react_renderer_key,Type.opt(string)),Type.judge(SnlMacroStyle.tags,Type.opt(Type.array(string)))))",
+      "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.tag,string),Type.judge(SnlMacroStyle.mode,Type.union(Type.literal($\\texttt{formula\\_inline}$),Type.literal($\\texttt{formula\\_display}$),Type.literal($\\texttt{text}$),Type.literal($\\texttt{block}$))),Type.judge(SnlMacroStyle.template,string),Type.judge(SnlMacroStyle.variadic_left,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_join,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_right,Type.opt(string)),Type.judge(SnlMacroStyle.react_renderer_key,Type.opt(string)),Type.judge(SnlMacroStyle.tags,Type.opt(Type.array(string)))))",
       "markdown": "单个 macro 的一个渲染 style. 所有 style 共享 macro 级 arity, 只改变**渲染输出**. `styles[0]` 是隐式默认."
     },
     "contribution_info": null,
