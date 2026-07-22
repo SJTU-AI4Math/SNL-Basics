@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState, type KeyboardEventHandler } from 'react'
 import {
-  createDefaultMacroTemplateQuery,
-  loadSnlMacroDb,
-  SnlSyntaxTreeEditor,
+  MacroDataDriver,
   SnlSyntaxTreeView,
   parseSnlSyntaxTree,
   serializeSnlSyntaxTree,
   tryParseSnlSyntaxTree,
   type SnlSyntaxTree,
-  type SnlMacroDb,
 } from './snl-react-view'
+import { SnlSyntaxTreeEditor } from './components/SnlSyntaxTreeEditor/SnlSyntaxTreeEditor'
+import type { SnlMacroRecord } from './snl-macro/types'
 
 const INITIAL_INPUT =
   'FOL.forall(x,FOL.implies[double](FOL.app(P,x),FOL.paren(FOL.or(y,FOL.app(Q,x)))))'
@@ -19,7 +18,7 @@ const MAX_UNDO_CHECKPOINTS = 10
 // 用简洁文本方式展示树形层级，方便肉眼检查 parser/编辑器结果。
 function toTreeDiagram(node: SnlSyntaxTree, depth = 0): string {
   const prefix = `${'  '.repeat(depth)}- `
-  const line = `${prefix}${node.name}`
+  const line = `${prefix}${node.macro_name}`
   if (node.children.length === 0) {
     return line
   }
@@ -28,7 +27,7 @@ function toTreeDiagram(node: SnlSyntaxTree, depth = 0): string {
 
 function cloneTree(node: SnlSyntaxTree): SnlSyntaxTree {
   return {
-    name: node.name,
+    macro_name: node.macro_name,
     kind: node.kind,
     scope: node.scope,
     mdata: node.mdata,
@@ -36,8 +35,8 @@ function cloneTree(node: SnlSyntaxTree): SnlSyntaxTree {
   }
 }
 
-function buildMatchSignature(node: SnlSyntaxTree, db: SnlMacroDb): string {
-  const nameMatched = Boolean(db[node.name])
+function buildMatchSignature(node: SnlSyntaxTree, db: SnlMacroRecord): string {
+  const nameMatched = Boolean(db[node.macro_name])
   const current = `${Number(nameMatched)}`
   if (node.children.length === 0) {
     return current
@@ -50,15 +49,25 @@ export default function App() {
   const [tree, setTree] = useState<SnlSyntaxTree>(() => parseSnlSyntaxTree(INITIAL_INPUT))
   const [parseError, setParseError] = useState<string | null>(null)
   const [latexSource, setLatexSource] = useState('')
-  const [templateDb, setTemplateDb] = useState<SnlMacroDb>({})
+  const [templateDb, setTemplateDb] = useState<SnlMacroRecord>({})
   const [, setUndoStack] = useState<SnlSyntaxTree[]>([])
-  const query = useMemo(() => createDefaultMacroTemplateQuery(), [])
+  const driver = useMemo(
+    () => new MacroDataDriver({
+      queries: {
+        async query_macro({ macro_name }) {
+          return templateDb[macro_name] ?? null
+        },
+      },
+    }),
+    [templateDb],
+  )
   const treeString = useMemo(() => serializeSnlSyntaxTree(tree), [tree])
   const treeDiagram = useMemo(() => toTreeDiagram(tree), [tree])
 
   useEffect(() => {
-    void loadSnlMacroDb()
-      .then((db) => setTemplateDb(db))
+    void fetch('/snl-macro-db.json')
+      .then((r) => r.json())
+      .then((db) => setTemplateDb(db as SnlMacroRecord))
       .catch(() => setTemplateDb({}))
   }, [])
 
@@ -142,8 +151,7 @@ export default function App() {
           <h2>3) KaTeX 渲染结果</h2>
           <SnlSyntaxTreeView
             tree={tree}
-            query={query}
-            macroDb={templateDb}
+            macro_data_driver={driver}
             katexOptions={{ displayMode: true, trust: true }}
             onResolved={setLatexSource}
           />

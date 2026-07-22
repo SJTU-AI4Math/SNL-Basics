@@ -49,7 +49,7 @@ describe('fillLatexTemplate', () => {
     const out = fillLatexTemplate('@CHILD0@ @NAME@ @CHILDREN@', {
       child0: 'a',
       children_joined: 'x',
-      name: 'Foo',
+      macro_name: 'Foo',
     })
     expect(out).toBe('@CHILD0@ @NAME@ @CHILDREN@')
   })

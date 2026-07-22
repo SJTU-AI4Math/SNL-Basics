@@ -1,6 +1,5 @@
 {
   "Pow.pow": {
-    "name": "Pow.pow",
     "description": "幂运算，表示底数的指数次方。 — 上标形式渲染幂。",
     "source": {
       "entries": [],
@@ -9,15 +8,17 @@
     "kind": "const",
     "styles": [
       {
-        "tag": "sup",
         "mode": "formula_inline",
-        "template": "{#0}^{#1}"
+        "template": "{#0}^{#1}",
+        "style_name": "sup",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "Pow.pow",
+    "tags": []
   },
   "FOL.forall": {
-    "name": "FOL.forall",
     "description": "一阶逻辑全称量词。binder：∀ x, body；binderTyped：∀ (x : T), body。 — ∀ x, body。引入处 x[binder]，体内 x[bvar]；编译期按名绑定。",
     "source": {
       "entries": [],
@@ -26,15 +27,17 @@
     "kind": "rule",
     "styles": [
       {
-        "tag": "binder",
         "mode": "formula_inline",
-        "template": "\\forall\\, #0,\\, #1"
+        "template": "\\forall\\, #0,\\, #1",
+        "style_name": "binder",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "FOL.forall",
+    "tags": []
   },
   "FOL.forall.typed": {
-    "name": "FOL.forall.typed",
     "description": "一阶逻辑全称量词。binder：∀ x, body；binderTyped：∀ (x : T), body。 — ∀ (x : T), body（类型标注）。",
     "source": {
       "entries": [],
@@ -43,15 +46,17 @@
     "kind": "rule",
     "styles": [
       {
-        "tag": "binder",
         "mode": "formula_inline",
-        "template": "\\forall\\left(#0 : #1\\right),\\, #2"
+        "template": "\\forall\\left(#0 : #1\\right),\\, #2",
+        "style_name": "binder",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "FOL.forall.typed",
+    "tags": []
   },
   "FOL.exists": {
-    "name": "FOL.exists",
     "description": "一阶逻辑存在量词。binder：∃ x, body；binderTyped：∃ (x : T), body。 — ∃ x, body。",
     "source": {
       "entries": [],
@@ -60,15 +65,17 @@
     "kind": "rule",
     "styles": [
       {
-        "tag": "binder",
         "mode": "formula_inline",
-        "template": "\\exists\\, #0,\\, #1"
+        "template": "\\exists\\, #0,\\, #1",
+        "style_name": "binder",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "FOL.exists",
+    "tags": []
   },
   "FOL.exists.typed": {
-    "name": "FOL.exists.typed",
     "description": "一阶逻辑存在量词。binder：∃ x, body；binderTyped：∃ (x : T), body。 — ∃ (x : T), body。",
     "source": {
       "entries": [],
@@ -77,15 +84,17 @@
     "kind": "rule",
     "styles": [
       {
-        "tag": "binder",
         "mode": "formula_inline",
-        "template": "\\exists\\left(#0 : #1\\right),\\, #2"
+        "template": "\\exists\\left(#0 : #1\\right),\\, #2",
+        "style_name": "binder",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "FOL.exists.typed",
+    "tags": []
   },
   "FOL.app": {
-    "name": "FOL.app",
     "description": "函数/谓词应用：单列算子，子项为函子与参数。 — f(t) 形式，左子为函子，右子为参数。",
     "source": {
       "entries": [],
@@ -94,15 +103,18 @@
     "kind": "rule",
     "styles": [
       {
-        "tag": "apply",
         "mode": "formula_inline",
-        "template": "#0\\left(#1\\right)"
+        "template": "#0\\left(#*\\right)",
+        "separator": ", ",
+        "style_name": "apply",
+        "tags": []
       }
     ],
-    "dynamic_arity": true
+    "dynamic_arity": true,
+    "name": "FOL.app",
+    "tags": []
   },
   "FOL.paren": {
-    "name": "FOL.paren",
     "description": "括号分组：单列算子，子项为被包裹的公式。 — \\left( \\cdots \\right)。",
     "source": {
       "entries": [],
@@ -111,15 +123,17 @@
     "kind": "rule",
     "styles": [
       {
-        "tag": "round",
         "mode": "formula_inline",
-        "template": "\\left(#0\\right)"
+        "template": "\\left(#0\\right)",
+        "style_name": "round",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "FOL.paren",
+    "tags": []
   },
   "FOL.implies": {
-    "name": "FOL.implies",
     "description": "一阶逻辑蕴含（实质蕴涵）。 — 中缀 \\rightarrow（infix，默认）或 \\Rightarrow（double）。",
     "source": {
       "entries": [],
@@ -128,20 +142,23 @@
     "kind": "rule",
     "styles": [
       {
-        "tag": "infix",
         "mode": "formula_inline",
-        "template": "#0 \\rightarrow #1"
+        "template": "#0 \\rightarrow #1",
+        "style_name": "infix",
+        "tags": []
       },
       {
-        "tag": "double",
         "mode": "formula_inline",
-        "template": "#0 \\Rightarrow #1"
+        "template": "#0 \\Rightarrow #1",
+        "style_name": "double",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "FOL.implies",
+    "tags": []
   },
   "FOL.and": {
-    "name": "FOL.and",
     "description": "一阶逻辑合取。 — 中缀 \\land。",
     "source": {
       "entries": [],
@@ -150,15 +167,17 @@
     "kind": "const",
     "styles": [
       {
-        "tag": "infix",
         "mode": "formula_inline",
-        "template": "#0 \\land #1"
+        "template": "#0 \\land #1",
+        "style_name": "infix",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "FOL.and",
+    "tags": []
   },
   "FOL.or": {
-    "name": "FOL.or",
     "description": "一阶逻辑析取。 — 中缀 \\lor。",
     "source": {
       "entries": [],
@@ -167,15 +186,17 @@
     "kind": "const",
     "styles": [
       {
-        "tag": "infix",
         "mode": "formula_inline",
-        "template": "#0 \\lor #1"
+        "template": "#0 \\lor #1",
+        "style_name": "infix",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "FOL.or",
+    "tags": []
   },
   "FOL.not": {
-    "name": "FOL.not",
     "description": "一阶逻辑否定。 — 前缀 \\neg。",
     "source": {
       "entries": [],
@@ -184,15 +205,17 @@
     "kind": "const",
     "styles": [
       {
-        "tag": "prefix",
         "mode": "formula_inline",
-        "template": "\\neg #0"
+        "template": "\\neg #0",
+        "style_name": "prefix",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "FOL.not",
+    "tags": []
   },
   "FOL.eq": {
-    "name": "FOL.eq",
     "description": "一阶逻辑等词（相等）。 — 中缀等号。",
     "source": {
       "entries": [],
@@ -201,15 +224,17 @@
     "kind": "rule",
     "styles": [
       {
-        "tag": "infix",
         "mode": "formula_inline",
-        "template": "#0 = #1"
+        "template": "#0 = #1",
+        "style_name": "infix",
+        "tags": []
       }
     ],
-    "dynamic_arity": false
+    "dynamic_arity": false,
+    "name": "FOL.eq",
+    "tags": []
   },
   "pmatrix": {
-    "name": "pmatrix",
     "description": "Parenthesized matrix. Children are row macros (matrix.row(...)).",
     "source": {
       "entries": [],
@@ -219,16 +244,18 @@
     },
     "styles": [
       {
-        "tag": "default",
         "mode": "formula_inline",
         "template": "\\begin{pmatrix}#*\\end{pmatrix}",
-        "variadic_join": " \\\\ "
+        "style_name": "default",
+        "tags": [],
+        "separator": " \\\\ "
       }
     ],
-    "dynamic_arity": true
+    "dynamic_arity": true,
+    "name": "pmatrix",
+    "tags": []
   },
   "matrix.row": {
-    "name": "matrix.row",
     "description": "A single row inside a matrix macro. Children are cells.",
     "source": {
       "entries": [],
@@ -236,12 +263,15 @@
     },
     "styles": [
       {
-        "tag": "default",
         "mode": "formula_inline",
         "template": "#*",
-        "variadic_join": " & "
+        "style_name": "default",
+        "tags": [],
+        "separator": " & "
       }
     ],
-    "dynamic_arity": true
+    "dynamic_arity": true,
+    "name": "matrix.row",
+    "tags": []
   }
 }

@@ -4,14 +4,13 @@ import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
-import { createMacroTemplateQueryFromDb } from './default-query'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
 import { paletteToCss, DEFAULT_KIND_PALETTE } from './kind-palette'
 import mainDbJson from '../../public/snl-macro-db.json'
-import type { SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacroRecord } from '../snl-macro/types'
+import { testDriver } from '../snl-react-view/test-helpers'
 
-const db = mainDbJson as unknown as SnlMacroDb
-const query = createMacroTemplateQueryFromDb(db)
+const db = mainDbJson as unknown as SnlMacroRecord
 
 const css = readFileSync(path.resolve(process.cwd(), 'src/snl-react-view/style.css'), 'utf8')
 
@@ -23,7 +22,7 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
     const tree = parseSnlSyntaxTree(
       'FOL.forall(x, Add.add(x, Mul.mul(x, y)))',
     )
-    const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
+    const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 
     await waitFor(() => {
       expect(container.querySelector('[data-name="Add.add"]')).not.toBeNull()

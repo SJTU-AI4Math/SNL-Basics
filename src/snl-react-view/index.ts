@@ -2,14 +2,13 @@
  * `@snl-basics/react` — Structured Natural Language (SNL) base library.
  *
  * Parse a macro DSL to syntax trees and render them to KaTeX-in-React with hover
- * interactions.
+ * interactions. v0.10.0: single MacroDataDriver backend, injectable interaction.
  *
  * Styles: `import '@snl-basics/react/style.css'` and `import 'katex/dist/katex.min.css'`.
  */
 
 // === Core types ===
-export type { SnlMacro, SnlMacroDb, SnlMacroStyle, SnlMacroSource } from '../snl-macro/types'
-export { bundledMacroDb } from '../snl-macro/bundled-db'
+export type { SnlMacro, SnlMacroStyle, SnlMacroSource } from '../snl-macro/types'
 export type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 export { createSnlSyntaxTreeNode, isSnlSyntaxTree } from '../snl-syntax-tree/types'
 export type {
@@ -18,6 +17,27 @@ export type {
   SnlSyntaxTreeTextNode,
   SnlSyntaxTreeBlockNode,
 } from '../snl-syntax-tree/node-types'
+
+// === MacroDataDriver (the single macro data source) ===
+export {
+  MacroDataDriver,
+  type MacroDataQueries,
+  type MacroDataDriverOptions,
+  type MacroQueryArgs,
+} from '../snl-macro/macro-data-driver'
+
+// === InteractionDriver ===
+export {
+  SnlInteractionDriver,
+  encodeTreePath,
+  decodeTreePath,
+  resolveTreePath,
+  type SnlInteractionDriverOptions,
+  type SnlInteractionContext,
+  type InteractionCallback,
+  type LeaveCallback,
+  type TreePath,
+} from './interaction-driver'
 
 // === Parser ===
 export { parseSnlSyntaxTree, tryParseSnlSyntaxTree, SnlSyntaxTreeParseError } from './parse'
@@ -28,18 +48,6 @@ export {
   type SnlMacroSourceLookup,
   type SnlSourceMetrics,
 } from '../snl-syntax-tree/source-metrics'
-
-// === DB loading & template query ===
-export {
-  loadSnlMacroDb,
-  DEFAULT_SNL_MACRO_DB_URL,
-  setSnlMacroDbCache,
-  clearSnlMacroDbCache,
-  createDefaultMacroTemplateQuery,
-  createMacroTemplateQueryFromDb,
-  type DefaultMacroTemplateQueryOptions,
-} from './default-query'
-export type { SnlMacroTemplateQuery, SnlMacroTemplateQueryArgs } from '../snl-syntax-tree/query'
 
 // === Rendering ===
 export { SnlSyntaxTreeView, type SnlSyntaxTreeViewProps } from '../components/SnlSyntaxTreeView'
@@ -97,6 +105,3 @@ export {
   wrapForParent,
   wrapHtmlData,
 } from './render-source'
-
-// === Optional demo editor (not part of the core library) ===
-export { SnlSyntaxTreeEditor } from '../components/SnlSyntaxTreeEditor/SnlSyntaxTreeEditor'

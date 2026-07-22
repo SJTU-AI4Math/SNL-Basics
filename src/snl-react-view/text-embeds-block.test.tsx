@@ -8,39 +8,38 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
-import { createMacroTemplateQueryFromDb } from './default-query'
 import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
-import type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
+import { testDriver } from '../snl-react-view/test-helpers'
 
 const proseWithList: SnlMacro = {
-  name: 'note',
-  description: 'A prose note that references a list',
+  name: 'note', description: 'A prose note that references a list',
   source: { entries: [], urls: [] },
   dynamic_arity: false,
+  tags: [],
   styles: [
-    { tag: 'default', mode: 'text', template: '注意以下几点：#0' },
+    { style_name: 'default', mode: 'text', template: '注意以下几点：#0', tags: [] },
   ],
 }
 const enumerateMacro: SnlMacro = {
-  name: 'enumerate',
-  description: 'Ordered list',
+  name: 'enumerate', description: 'Ordered list',
   source: { entries: [], urls: [] },
   dynamic_arity: true,
+  tags: [],
   styles: [
     {
-      tag: 'default',
+      style_name: 'default',
       mode: 'block',
       template: '',
-      react_renderer_key: 'enumerate',
+      block_template_name: 'enumerate', tags: [],
     },
   ],
 }
 
-const db: SnlMacroDb = {
+const db: SnlMacroRecord = {
   note: proseWithList,
   enumerate: enumerateMacro,
 }
-const query = createMacroTemplateQueryFromDb(db)
 
 afterEach(cleanup)
 
@@ -54,7 +53,7 @@ describe('text-mode container with block-mode child (cat 2026-07-10)', () => {
     })
     const tree = createSnlSyntaxTreeNode('note', { children: [enumNode] })
     const { container } = render(
-      <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />,
     )
     await waitFor(() => {
       // The outer text macro renders as a .snl-text span.

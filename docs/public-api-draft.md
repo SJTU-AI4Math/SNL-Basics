@@ -12,7 +12,7 @@
   - `Interface`: 成员**不**独立成 entry, field 写在 content 里.
   - `Class`: 成员独立成 sub-entry — 数据成员 = `Field`, 方法 = `Function` (复用, 不新开 `Method`).
   - `ReactComponent`: props 独立成 sub-entry, kind = `Property` (写全称避开 Lean `Prop` = Proposition 歧义).
-  - `Constant`: 覆盖纯数据 (`bundledMacroDb`) + 可扩展默认值 (`defaultRenderHooks`, `defaultRenderers`, `defaultHighlightStrategy`), 不为后者单开 kind.
+  - `Constant`: 覆盖纯数据 + 可扩展默认值 (`defaultRenderHooks`, `defaultRenderers`, `defaultHighlightStrategy`), 不为后者单开 kind.
 - **macro_kinds** (Phase 2 拍板, 目前占位): 至少一个 `Signature` 用于在 content 里塞 TS 签名 formula. 抄数学模式.
 - **relationships labels** (Phase 4 建库时用): `imports` (Consumer→Symbol), `stability` (Symbol→StabilityLevel entry). 与 auto-managed 的 `depends` / `uses_context` 不冲突.
 - **Stability 走 tags 字段**: Extension `EntryData` schema 目前**没有** `tags: string[]`, 本 Phase 后需补上 (data-only, 不做筛选功能, 数据通道先开出来). 三档 tag: `stable` / `experimental` / `internal`.
@@ -30,13 +30,11 @@
 
 | id | kind | title | 备注 |
 |---|---|---|---|
-| `snl-syntax-tree.iface.snl-syntax-tree` | Interface | `SnlSyntaxTree` | 语法树主类型 (name/kind/children/mdata/envMode/style/scope) |
-| `snl-syntax-tree.iface.snl-syntax-tree-base` | Interface | `SnlSyntaxTreeBase` | 基类型 (envMode 三分支的共同字段) |
-| `snl-syntax-tree.iface.snl-syntax-tree-formula-node` | Interface | `SnlSyntaxTreeFormulaNode` | formula envMode 分支 |
-| `snl-syntax-tree.iface.snl-syntax-tree-text-node` | Interface | `SnlSyntaxTreeTextNode` | text envMode 分支 |
-| `snl-syntax-tree.iface.snl-syntax-tree-block-node` | Interface | `SnlSyntaxTreeBlockNode` | block envMode 分支 |
-| `snl-syntax-tree.iface.snl-macro-template-query-args` | Interface | `SnlMacroTemplateQueryArgs` | template query 函数的入参 |
-| `snl-syntax-tree.iface.snl-macro-template-query` | Interface | `SnlMacroTemplateQuery` | template query 函数签名类型 (type alias 语义上归类为 Interface) |
+| `snl-syntax-tree.iface.snl-syntax-tree` | Interface | `SnlSyntaxTree` | 语法树主类型 (macro_name/kind/children/mdata/env_mode/style_name/scope) |
+| `snl-syntax-tree.iface.snl-syntax-tree-base` | Interface | `SnlSyntaxTreeBase` | 基类型 (env_mode 四分支的共同字段) |
+| `snl-syntax-tree.iface.snl-syntax-tree-formula-node` | Interface | `SnlSyntaxTreeFormulaNode` | formula env_mode 分支 |
+| `snl-syntax-tree.iface.snl-syntax-tree-text-node` | Interface | `SnlSyntaxTreeTextNode` | text env_mode 分支 |
+| `snl-syntax-tree.iface.snl-syntax-tree-block-node` | Interface | `SnlSyntaxTreeBlockNode` | block env_mode 分支 |
 
 ### 1.2 Classes
 
@@ -67,15 +65,21 @@
 | id | kind | title |
 |---|---|---|
 | `snl-macro.iface.snl-macro` | Interface | `SnlMacro` |
-| `snl-macro.iface.snl-macro-db` | Interface | `SnlMacroDb` (`Record<string, SnlMacro>`) |
 | `snl-macro.iface.snl-macro-style` | Interface | `SnlMacroStyle` |
 | `snl-macro.iface.snl-macro-source` | Interface | `SnlMacroSource` |
+| `snl-macro.iface.macro-data-queries` | Interface | `MacroDataQueries` |
 
-### 2.2 Constants
+### 2.2 Classes
 
 | id | kind | title |
 |---|---|---|
-| `snl-macro.const.bundled-macro-db` | Constant | `bundledMacroDb` |
+| `snl-macro.cls.macro-data-driver` | Class | `MacroDataDriver` |
+| `snl-macro.cls.macro-data-driver.field.query-macro` | Field | `.query_macro({macro_name, signal?})` |
+| `snl-macro.cls.macro-data-driver.field.clear-cache` | Field | `.clear_cache(name?)` |
+
+### 2.3 Query boundary
+
+Macro 数据访问只公开 `MacroDataDriver` 与 `MacroDataQueries`。存储适配由消费端实现，不列入包 API entry。
 
 ---
 
@@ -95,8 +99,8 @@
 | id | kind | title | parent |
 |---|---|---|---|
 | `snl-react-view.comp.snl-syntax-tree-view.prop.tree` | Property | `tree` | `snl-react-view.comp.snl-syntax-tree-view` |
-| `snl-react-view.comp.snl-syntax-tree-view.prop.macro-db` | Property | `macroDb` | ↑ |
-| `snl-react-view.comp.snl-syntax-tree-view.prop.template-query` | Property | `templateQuery` | ↑ |
+| `snl-react-view.comp.snl-syntax-tree-view.prop.macro-data-driver` | Property | `macro_data_driver` | ↑ |
+| `snl-react-view.comp.snl-syntax-tree-view.prop.interaction-driver` | Property | `interaction_driver` | ↑ |
 | `snl-react-view.comp.snl-syntax-tree-view.prop.hooks` | Property | `hooks` | ↑ |
 | `snl-react-view.comp.snl-syntax-tree-view.prop.palette` | Property | `palette` | ↑ |
 | `snl-react-view.comp.snl-syntax-tree-view.prop.display-mode` | Property | `displayMode` | ↑ |
@@ -120,7 +124,7 @@
 | `snl-react-view.iface.snl-block-renderer-props` | Interface | `SnlBlockRendererProps` |
 | `snl-react-view.iface.kind-palette` | Interface | `KindPalette` |
 | `snl-react-view.iface.kind-coloring` | Interface | `KindColoring` |
-| `snl-react-view.iface.default-macro-template-query-options` | Interface | `DefaultMacroTemplateQueryOptions` |
+| `snl-react-view.iface.snl-interaction-context` | Interface | `SnlInteractionContext` |
 
 ### 3.3 Functions
 
@@ -135,14 +139,15 @@ react-view 自己的 functions:
 
 | id | kind | title |
 |---|---|---|
-| `snl-react-view.fn.load-snl-macro-db` | Function | `loadSnlMacroDb` |
-| `snl-react-view.fn.set-snl-macro-db-cache` | Function | `setSnlMacroDbCache` |
-| `snl-react-view.fn.clear-snl-macro-db-cache` | Function | `clearSnlMacroDbCache` |
-| `snl-react-view.fn.create-default-macro-template-query` | Function | `createDefaultMacroTemplateQuery` |
-| `snl-react-view.fn.create-macro-template-query-from-db` | Function | `createMacroTemplateQueryFromDb` |
 | `snl-react-view.fn.alpha` | Function | `alpha` |
 | `snl-react-view.fn.palette-to-css` | Function | `paletteToCss` |
 | `snl-react-view.fn.assert-safe-kind-name` | Function | `assertSafeKindName` |
+
+### 3.3b Classes
+
+| id | kind | title |
+|---|---|---|
+| `snl-react-view.cls.snl-interaction-driver` | Class | `SnlInteractionDriver` |
 
 ### 3.4 Constants
 
@@ -152,7 +157,6 @@ react-view 自己的 functions:
 | `snl-react-view.const.default-highlight-strategy` | Constant | `defaultHighlightStrategy` |
 | `snl-react-view.const.default-renderers` | Constant | `defaultRenderers` |
 | `snl-react-view.const.default-kind-palette` | Constant | `DEFAULT_KIND_PALETTE` |
-| `snl-react-view.const.default-snl-macro-db-url` | Constant | `DEFAULT_SNL_MACRO_DB_URL` |
 | `snl-react-view.const.htmldata-katex-defaults` | Constant | `HTMLDATA_KATEX_DEFAULTS` |
 
 ---
@@ -182,12 +186,12 @@ Stability 三档实体化成 Concept entry 有两个用处:
 
 ## 汇总
 
-- **snl-syntax-tree**: 7 Interface + 1 Class + 2 Field + 7 Function = **17 entries**
-- **snl-macro**: 4 Interface + 2 Constant = **6 entries**
-- **snl-react-view**: 2 Component + 6 Property (待补至 ~10) + 14 Interface + 8 Function + 6 Constant = **36 entries** (含待补)
+- **snl-syntax-tree**: 5 Interface + 1 Class + 2 Field + 7 Function = **15 entries**
+- **snl-macro**: 4 Interface + 1 Class + 3 Field = **8 entries**
+- **snl-react-view**: 2 Component + 6 Property (待补至 ~10) + 14 Interface + 3 Function + 1 Class + 5 Constant = **31 entries** (含待补)
 - **concepts**: **10 entries**
 
-**总计 ~69 entries**, 全部 Phase 3 待填 content.
+**总计 ~68 entries**, 全部 Phase 3 待填 content.
 
 ---
 

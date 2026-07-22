@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
-import type { SnlMacroDb } from '../../snl-macro/types'
+import type { SnlMacroRecord } from '../../snl-macro/types'
 import type { SnlSyntaxTree } from '../../snl-syntax-tree/types'
 
 interface SnlSyntaxTreeEditorProps {
   value: SnlSyntaxTree
   onChange: (next: SnlSyntaxTree) => void
-  templateDb?: SnlMacroDb
+  templateDb?: SnlMacroRecord
   nodeIndex?: number
 }
 
@@ -33,7 +33,7 @@ export function SnlSyntaxTreeEditor({
   const [activeInput, setActiveInput] = useState<'name' | null>(null)
 
   const nameSuggestions = useMemo(() => {
-    const prefix = value.name.trim().toLowerCase()
+    const prefix = value.macro_name.trim().toLowerCase()
     if (!templateDb) {
       return []
     }
@@ -44,17 +44,17 @@ export function SnlSyntaxTreeEditor({
     return allNames
       .filter((name) => name.toLowerCase().startsWith(prefix))
       .slice(0, 6)
-  }, [templateDb, value.name])
+  }, [templateDb, value.macro_name])
 
   // v1 扁平 schema：宏名唯一即命中（不再有 style 层）
-  const nameMatched = Boolean(templateDb?.[value.name])
+  const nameMatched = Boolean(templateDb?.[value.macro_name])
 
   const applyNameSuggestion = (index?: number) => {
     const selected = nameSuggestions[index ?? nameSuggestIndex] ?? nameSuggestions[0]
     if (!selected) {
       return
     }
-    updateNode({ name: selected })
+    updateNode({ macro_name: selected })
     setShowNameSuggest(false)
     setNameSuggestIndex(0)
   }
@@ -72,7 +72,7 @@ export function SnlSyntaxTreeEditor({
             ]
               .filter(Boolean)
               .join(' ')}
-            value={value.name}
+            value={value.macro_name}
             onFocus={() => {
               setActiveInput('name')
               setShowNameSuggest(true)
@@ -84,7 +84,7 @@ export function SnlSyntaxTreeEditor({
             onChange={(e) => {
               setNameSuggestIndex(0)
               setShowNameSuggest(true)
-              updateNode({ name: e.target.value })
+              updateNode({ macro_name: e.target.value })
             }}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {

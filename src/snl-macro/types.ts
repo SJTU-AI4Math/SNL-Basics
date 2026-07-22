@@ -1,33 +1,26 @@
 /**
- * SnlMacro v3 (v6 on-disk) — the single source of truth for a macro.
+ * SnlMacro v7 (on-disk) — the single source of truth for a macro.
  *
  * A macro is a globally-unique named renderer. Multiple macros MAY share the
  * same source entry (e.g. FOL.implies.infix and FOL.implies.double both refer to the
  * "implication" entry). Consumer-owned output backends (Typst / LaTeX / Markdown /
  * plain text) live in downstream extensions, not in this render-only library.
  *
- * v3 (v6 on-disk) changes vs v2 (v5 on-disk):
- *  - `SnlMacroStyle.mode` is flattened to 4 parallel values:
- *    `'formula_inline' | 'formula_display' | 'text' | 'block'`.
- *    The old `display` axis (only meaningful for the ROOT of a KaTeX render)
- *    is folded into the formula mode itself — this removes a fake-orthogonal
- *    axis that only had two visible states in the entire product.
- *  - `SnlMacro.arity: 'fixed' | 'variadic'` is replaced by a boolean
- *    `SnlMacro.dynamic_arity: boolean` (default false). "Variadic" was a
- *    LaTeX-jargon word for what the user experiences as "argument count is
- *    dynamic" — the name matches the checkbox in the editor.
- *  - `SnlMacroStyle.variadic_join` is split into three: `variadic_left`,
- *    `variadic_join`, `variadic_right` (all optional strings, default ''),
- *    so a macro like `matrix.row` can spell out the surrounding delimiters
- *    without embedding them awkwardly in the template.
- *  - `SnlMacro.tags?: string[]` and `SnlMacroStyle.tags?: string[]` — free
- *    text labels for search / bookkeeping. Backslashes are forbidden (they'd
- *    interfere with any downstream LaTeX/text search).
+ * v7 on-disk changes vs v6:
+ *  - `SnlMacroStyle.tag` renamed to `style_name` — consistent with tree-node
+ *    field and unambiguous (no more "tag" vs "name" confusion).
+ *  - `SnlMacroStyle.react_renderer_key` renamed to `block_template_name` —
+ *    only meaningful for `mode === 'block'` styles.
+ *  - Removed `variadic_left`, `variadic_join`, `variadic_right` —
+ *    replaced by `separator?: string`. Dynamic templates use `#*`.
+ *  - `SnlMacro.tags` and `SnlMacroStyle.tags` are now required `string[]`.
+ *  - `SnlMacro.name` stays as `name` (NOT renamed).
+ *  - No runtime legacy aliases — all consumers must use the new field names.
  */
 /**
  * Source-of-truth binding for a macro. Resolver order: `entries[0..]` first
  * valid, else `urls[0]`, else null. SNL-Basics doesn't interpret entry ids —
- * consumers resolve them via {@link SnlRenderHooks.resolveSource}.
+ * consumers resolve them via the interaction driver.
  */
 export interface SnlMacroSource {
   entries: string[] // opaque entry ids (SNL-Basics doesn't interpret; consumer resolves via hook)
@@ -46,42 +39,43 @@ export interface SnlMacroSource {
  */
 export interface SnlMacroStyle {
   /**
-   * Style tag — the token used in `foo[tag](…)`. `[A-Za-z_][A-Za-z0-9_]*`
+   * Style name — the token used in `foo[style_name](…)`. `[A-Za-z_][A-Za-z0-9_]*`
    * (parser IDENT rules). Must be unique within a macro's `styles` array.
    */
-  tag: string
+  style_name: string
   /**
-   * Semantic render mode. Four flat parallel values (v3):
+   * Semantic render mode. Four flat parallel values:
    *   - `formula_inline`  — KaTeX inline math ($...$)
    *   - `formula_display` — KaTeX display math ($$...$$)
    *   - `text`            — KaTeX `\text{...}`; may host formulas via `$...$`
    *   - `block`           — React-rendered block (list / table / centered / …)
    */
   mode: 'formula_inline' | 'formula_display' | 'text' | 'block'
-  /** LaTeX-native template. See fillLatexTemplate for placeholders: #0, #1, #* (variadic), \# (literal). */
+  /**
+   * LaTeX-native template. Placeholders: #0, #1, … (positional children),
+   * #* (all children joined by `separator`), \# (literal #).
+   */
   template: string
   /**
-   * Delimiters + separator for `#*` in a dynamic-arity macro. Ignored when
-   * {@link SnlMacro.dynamic_arity} is false. Defaults: `''` / `', '` (formula)
-   * or `''` (text) / `''`. Rendered as `variadic_left + children.join(variadic_join) + variadic_right`.
+   * Separator string for `#*` expansion in dynamic-arity macros.
+   * Defaults to `', '` for formula modes, `''` for text mode.
+   * Ignored when the macro is not dynamic_arity.
    */
-  variadic_left?: string
-  variadic_join?: string
-  variadic_right?: string
+  separator?: string
   /**
-   * Block/text mode dispatch key — see hooks.tsx / block-renderers.tsx.
-   * Only applies when mode is 'block' or 'text'.
+   * Block renderer dispatch key — see block-renderers.tsx.
+   * Only applies when mode is 'block'.
    */
-  react_renderer_key?: string
+  block_template_name?: string
   /**
    * Free-text labels attached to this style — used by downstream search
-   * indices. Backslashes are forbidden. Optional.
+   * indices. Backslashes are forbidden.
    */
-  tags?: string[]
+  tags: string[]
 }
 
 export interface SnlMacro {
-  /** Globally unique name, e.g. "FOL.eq", "FOL.forall", "FOL.forall.typed" */
+  /** Globally unique macro name, e.g. "FOL.eq", "FOL.forall", "FOL.forall.typed" */
   name: string
   /** Human-readable description shown in tooltips / docs. */
   description: string
@@ -107,18 +101,18 @@ export interface SnlMacro {
   /**
    * All render styles in order. `styles[0]` is the **implicit default** used
    * when the SNL source omits `[style]`. In `foo[bar](x)`, the parser picks
-   * the style whose `tag === "bar"`; unknown tags are a render-time error.
-   * Every macro has at least one style. Style tags follow `[A-Za-z_][A-Za-z0-9_]*`
+   * the style whose `style_name === "bar"`; unknown names are a render-time error.
+   * Every macro has at least one style. Style names follow `[A-Za-z_][A-Za-z0-9_]*`
    * (parser IDENT rules) and must be unique within this array.
    */
   styles: SnlMacroStyle[]
 
   /**
    * Free-text labels attached to the macro itself — used by downstream
-   * search indices. Backslashes are forbidden. Optional.
+   * search indices. Backslashes are forbidden.
    */
-  tags?: string[]
+  tags: string[]
 }
 
 /** The flat macro database: name → macro. */
-export type SnlMacroDb = Record<string, SnlMacro>
+export type SnlMacroRecord = Record<string, SnlMacro>

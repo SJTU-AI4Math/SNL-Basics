@@ -6,37 +6,37 @@ import { SnlSyntaxTreeParseError, parseSnlSyntaxTree } from './parser'
 describe('delimited name forms', () => {
   it('parses %text% as a text envMode node', () => {
     const t = parseSnlSyntaxTree('%hello world%')
-    expect(t.name).toBe('hello world')
-    expect(t.envMode).toBe('text')
+    expect(t.macro_name).toBe('hello world')
+    expect(t.env_mode).toBe('text')
     expect(t.children).toEqual([])
   })
 
   it('parses $latex$ as a formula_inline envMode node', () => {
     const t = parseSnlSyntaxTree('$x + y$')
-    expect(t.name).toBe('x + y')
-    expect(t.envMode).toBe('formula_inline')
+    expect(t.macro_name).toBe('x + y')
+    expect(t.env_mode).toBe('formula_inline')
   })
 
   it('parses $$latex$$ as a formula_display envMode node', () => {
     const t = parseSnlSyntaxTree('$$\\int_0^1 x\\,dx$$')
-    expect(t.name).toBe('\\int_0^1 x\\,dx')
-    expect(t.envMode).toBe('formula_display')
+    expect(t.macro_name).toBe('\\int_0^1 x\\,dx')
+    expect(t.env_mode).toBe('formula_display')
   })
 
   it('does NOT parse `$x$` inside `%…%` as a nested subtree', () => {
     // The whole payload is the string; the inner $ is part of the name.
     const t = parseSnlSyntaxTree('%foo $x$ bar%')
-    expect(t.name).toBe('foo $x$ bar')
-    expect(t.envMode).toBe('text')
+    expect(t.macro_name).toBe('foo $x$ bar')
+    expect(t.env_mode).toBe('text')
     expect(t.children).toEqual([])
   })
 
   it('accepts a style bracket and children on a delimited name', () => {
     const t = parseSnlSyntaxTree('$f$[custom](x, y)')
-    expect(t.name).toBe('f')
-    expect(t.envMode).toBe('formula_inline')
-    expect(t.style).toBe('custom')
-    expect(t.children.map((c) => c.name)).toEqual(['x', 'y'])
+    expect(t.macro_name).toBe('f')
+    expect(t.env_mode).toBe('formula_inline')
+    expect(t.style_name).toBe('custom')
+    expect(t.children.map((c) => c.macro_name)).toEqual(['x', 'y'])
   })
 
   it('rejects unclosed %', () => {
@@ -51,7 +51,7 @@ describe('delimited name forms', () => {
 
   // Regression (cat 2026-07-11): annotate-bind's envMode-leaf branch used
   // to unconditionally overwrite kind='binder' with 'fvar' because the
-  // guard only checked `!node.kind || node.envMode` — an @-prefixed
+  // guard only checked `!node.kind || node.env_mode` — an @-prefixed
   // delimited leaf like `@$\cdot$` hit BOTH the parser's binder stamp AND
   // the annotate-bind fvar stamp, and the second won. Symptom: `@$\cdot$`
   // rendered red (fvar) instead of the binder color, and any entry
@@ -60,8 +60,8 @@ describe('delimited name forms', () => {
   // saw no binder child), so `$…$@ctx` postfix links stayed red too.
   it('preserves kind=binder on @-prefixed delimited leaves', () => {
     const t = parseSnlSyntaxTree('@$\\cdot$')
-    expect(t.name).toBe('\\cdot')
-    expect(t.envMode).toBe('formula_inline')
+    expect(t.macro_name).toBe('\\cdot')
+    expect(t.env_mode).toBe('formula_inline')
     expect(t.kind).toBe('binder')
   })
 
@@ -74,7 +74,7 @@ describe('delimited name forms', () => {
 describe('@ binder prefix', () => {
   it('marks the node as kind=binder', () => {
     const t = parseSnlSyntaxTree('@foo')
-    expect(t.name).toBe('foo')
+    expect(t.macro_name).toBe('foo')
     expect(t.kind).toBe('binder')
   })
 
@@ -85,10 +85,10 @@ describe('@ binder prefix', () => {
     // different kind in the \htmlData wrap).
     const plain = parseSnlSyntaxTree('f(x)')
     const bound = parseSnlSyntaxTree('@f(x)')
-    expect(bound.name).toBe(plain.name)
-    expect(bound.envMode).toBe(plain.envMode) // both undefined
+    expect(bound.macro_name).toBe(plain.macro_name)
+    expect(bound.env_mode).toBe(plain.env_mode) // both undefined
     expect(bound.children).toHaveLength(plain.children.length)
-    expect(bound.children[0].name).toBe(plain.children[0].name)
+    expect(bound.children[0].macro_name).toBe(plain.children[0].macro_name)
     // kind is expected to differ:
     expect(plain.kind).not.toBe('binder')
     expect(bound.kind).toBe('binder')
@@ -103,17 +103,17 @@ describe('@ binder prefix', () => {
 
   it('composes with $…$ delimited name', () => {
     const t = parseSnlSyntaxTree('@$x + y$(a)')
-    expect(t.name).toBe('x + y')
-    expect(t.envMode).toBe('formula_inline')
+    expect(t.macro_name).toBe('x + y')
+    expect(t.env_mode).toBe('formula_inline')
     expect(t.kind).toBe('binder')
-    expect(t.children[0].name).toBe('a')
+    expect(t.children[0].macro_name).toBe('a')
     expect(t.children[0].kind).toBe('binder')
   })
 
   it('composes with %…% delimited name', () => {
     const t = parseSnlSyntaxTree('@%my binder%(a)')
-    expect(t.name).toBe('my binder')
-    expect(t.envMode).toBe('text')
+    expect(t.macro_name).toBe('my binder')
+    expect(t.env_mode).toBe('text')
     expect(t.kind).toBe('binder')
     expect(t.children[0].kind).toBe('binder')
   })
@@ -125,7 +125,7 @@ describe('binder scoping — @ contributes names to later siblings', () => {
     // later $x$ sibling looks up "x" and resolves to bvar.
     const t = parseSnlSyntaxTree('FooScope(@x, $x$)')
     expect(t.children[0].kind).toBe('binder')
-    expect(t.children[1].name).toBe('x')
+    expect(t.children[1].macro_name).toBe('x')
     expect(t.children[1].kind).toBe('bvar')
     // Later child should carry the fresh bindRef stamped by annotate-bind.
     const bref = (t.children[1].mdata as { bindRef?: string } | null)?.bindRef
@@ -137,18 +137,18 @@ describe('binder scoping — @ contributes names to later siblings', () => {
     // The whole delim payload is the name. Complex payloads seldom match a
     // later leaf, so those leaves default to fvar.
     const t = parseSnlSyntaxTree('FooScope(@$x + y$, $x$)')
-    expect(t.children[1].name).toBe('x')
+    expect(t.children[1].macro_name).toBe('x')
     expect(t.children[1].kind).toBe('fvar')
   })
 
   it('@Tuple(a, b) contributes ALL of Tuple, a, b as active binders', () => {
     const t = parseSnlSyntaxTree('FooScope(@Tuple(a, b), Body($a$, $b$, $c$))')
     const body = t.children[1]
-    expect(body.children[0].name).toBe('a')
+    expect(body.children[0].macro_name).toBe('a')
     expect(body.children[0].kind).toBe('bvar')
-    expect(body.children[1].name).toBe('b')
+    expect(body.children[1].macro_name).toBe('b')
     expect(body.children[1].kind).toBe('bvar')
-    expect(body.children[2].name).toBe('c')
+    expect(body.children[2].macro_name).toBe('c')
     expect(body.children[2].kind).toBe('fvar')
   })
 })
@@ -177,8 +177,8 @@ describe('deep-nested binder scoping (2026-07-04-late bug 1)', () => {
     )
     // Walk to the last leaf: def-hyp > Set.union > T
     const setUnion = t.children[1]
-    expect(setUnion.name).toBe('Set.union')
-    expect(setUnion.children[0].name).toBe('T')
+    expect(setUnion.macro_name).toBe('Set.union')
+    expect(setUnion.children[0].macro_name).toBe('T')
     expect(setUnion.children[0].kind).toBe('bvar')
   })
 
@@ -187,7 +187,7 @@ describe('deep-nested binder scoping (2026-07-04-late bug 1)', () => {
       'wrap(inner(@T, deeper(@A, @B)), use(T, A, B))'
     )
     const use = t.children[1]
-    expect(use.name).toBe('use')
+    expect(use.macro_name).toBe('use')
     expect(use.children[0].kind).toBe('bvar') // T
     expect(use.children[1].kind).toBe('bvar') // A
     expect(use.children[2].kind).toBe('bvar') // B
@@ -198,14 +198,14 @@ describe('bare-leaf kind fallback (2026-07-04-late bug 2)', () => {
   it('unbound bare leaf leaves kind="" (not "fvar") so wrapHtmlData can fall through to dbKind', () => {
     // `Type` in `Type.judge(@T, Type)` should NOT be stamped fvar by
     // annotate-bind — it stays '' so the view later resolves it against
-    // macroDb['Type'].kind (typically 'rule').
+    // queried Type macro kind (typically 'rule').
     const t = parseSnlSyntaxTree('Type.judge(@T, Type)')
-    expect(t.children[1].name).toBe('Type')
+    expect(t.children[1].macro_name).toBe('Type')
     expect(t.children[1].kind).toBe('')
   })
 
   it('but delimited-leaf (envMode) still gets fvar when unbound', () => {
-    // envMode nodes bypass macroDb, so annotate-bind DOES stamp fvar for
+    // env_mode nodes bypass macro queries, so annotate-bind DOES stamp fvar for
     // them (no db entry to fall through to).
     const t = parseSnlSyntaxTree('$x$')
     expect(t.kind).toBe('fvar')

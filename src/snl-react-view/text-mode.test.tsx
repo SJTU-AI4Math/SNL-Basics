@@ -17,42 +17,41 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
-import { createMacroTemplateQueryFromDb } from './default-query'
 import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
-import type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { testDriver } from '../snl-react-view/test-helpers'
 
 function leaf(name: string): SnlSyntaxTree {
   return createSnlSyntaxTreeNode(name, { kind: 'fvar' })
 }
 
 const eqDualMode: SnlMacro = {
-  name: 'Eq.eq',
-  description: 'equality',
+  name: 'Eq.eq', description: 'equality',
   source: { entries: [], urls: [] },
   kind: 'const',
   dynamic_arity: false,
+  tags: [],
   styles: [
-    { tag: 'infix', mode: 'formula_inline', template: '#0 = #1' },
-    { tag: 'prose', mode: 'text', template: '#0 与 #1 相等' },
+    { style_name: 'infix', mode: 'formula_inline', template: '#0 = #1', tags: [] },
+    { style_name: 'prose', mode: 'text', template: '#0 与 #1 相等', tags: [] },
   ],
 }
 
 const listAllPeople: SnlMacro = {
-  name: 'ListPeople.all',
-  description: 'list all people, comma-separated',
+  name: 'ListPeople.all', description: 'list all people, comma-separated',
   source: { entries: [], urls: [] },
   dynamic_arity: true,
+  tags: [],
   styles: [
-    { tag: 'default', mode: 'text', template: '所有人：#*', variadic_join: '、' },
+    { style_name: 'default', mode: 'text', template: '所有人：#*', separator: '、', tags: [] },
   ],
 }
 
-const db: SnlMacroDb = {
+const db: SnlMacroRecord = {
   'Eq.eq': eqDualMode,
   'ListPeople.all': listAllPeople,
 }
-const query = createMacroTemplateQueryFromDb(db)
 
 afterEach(cleanup)
 
@@ -66,9 +65,9 @@ describe('text-mode template splicing (regression)', () => {
     const tree = createSnlSyntaxTreeNode('Eq.eq', {
       children: [leaf('a'), leaf('b')],
     })
-    tree.style = 'prose'
+    tree.style_name = 'prose'
     const { container } = render(
-      <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />,
     )
     await waitFor(() => {
       const raw = panelText(container)
@@ -83,9 +82,9 @@ describe('text-mode template splicing (regression)', () => {
     const tree = createSnlSyntaxTreeNode('Eq.eq', {
       children: [leaf('lhs'), leaf('rhs')],
     })
-    tree.style = 'prose'
+    tree.style_name = 'prose'
     const { container } = render(
-      <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />,
     )
     await waitFor(() => {
       const raw = panelText(container)
@@ -107,9 +106,9 @@ describe('text-mode template splicing (regression)', () => {
     const tree = createSnlSyntaxTreeNode('Eq.eq', {
       children: [leaf('only')],
     })
-    tree.style = 'prose'
+    tree.style_name = 'prose'
     const { container } = render(
-      <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />,
     )
     await waitFor(() => {
       const missing = container.querySelector('.snl-missing-arg')
@@ -118,12 +117,12 @@ describe('text-mode template splicing (regression)', () => {
     })
   })
 
-  it('expands #* with variadic_join between text-mode children', async () => {
+  it('expands #* with separator between text-mode children', async () => {
     const tree = createSnlSyntaxTreeNode('ListPeople.all', {
       children: [leaf('Alice'), leaf('Bob'), leaf('Cara')],
     })
     const { container } = render(
-      <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />,
     )
     await waitFor(() => {
       const raw = panelText(container)
@@ -145,9 +144,7 @@ describe('text-mode template splicing (regression)', () => {
     let latex = ''
     render(
       <SnlSyntaxTreeView
-        tree={tree}
-        query={query}
-        macroDb={db}
+        tree={tree} macro_data_driver={testDriver(db)}
         onResolved={(l) => (latex = l)}
       />,
     )
@@ -166,9 +163,9 @@ describe('text-mode template splicing (regression)', () => {
     const tree = createSnlSyntaxTreeNode('Eq.eq', {
       children: [leaf('a'), leaf('b')],
     })
-    tree.style = 'prose'
+    tree.style_name = 'prose'
     const { container } = render(
-      <SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />,
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />,
     )
     await waitFor(() => {
       const text = container.querySelector('.snl-text')

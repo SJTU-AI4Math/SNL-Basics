@@ -2,20 +2,19 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
-import { createMacroTemplateQueryFromDb } from './default-query'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
 import mainDbJson from '../../public/snl-macro-db.json'
-import type { SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacroRecord } from '../snl-macro/types'
+import { testDriver } from '../snl-react-view/test-helpers'
 
-const db = mainDbJson as unknown as SnlMacroDb
-const query = createMacroTemplateQueryFromDb(db)
+const db = mainDbJson as unknown as SnlMacroRecord
 
 afterEach(cleanup)
 
 describe('auto-wrap \\htmlData', () => {
   it('wraps every rendered node in data-name/data-kind (Add.add)', async () => {
     const tree = parseSnlSyntaxTree('Add.add(a,b)')
-    const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
+    const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 
     await waitFor(() => {
       expect(container.querySelector('[data-name="Add.add"]')).not.toBeNull()
@@ -34,7 +33,7 @@ describe('auto-wrap \\htmlData', () => {
 
   it('emits data-scope="binder" + bindRef for a quantifier (bvar-scope highlighting)', async () => {
     const tree = parseSnlSyntaxTree('FOL.forall(x,x)')
-    const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
+    const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 
     await waitFor(() => {
       expect(container.querySelector('[data-scope="binder"]')).not.toBeNull()

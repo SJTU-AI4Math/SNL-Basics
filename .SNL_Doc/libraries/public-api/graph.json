@@ -29,13 +29,6 @@
       }
     },
     {
-      "id": "entry-mac-iface-snl-macro-db",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.iface.snl-macro-db"
-      }
-    },
-    {
       "id": "entry-mac-iface-snl-macro-style",
       "label": "Entry",
       "props": {
@@ -92,20 +85,6 @@
       }
     },
     {
-      "id": "entry-st-iface-snl-macro-template-query",
-      "label": "Entry",
-      "props": {
-        "entryId": "st.iface.snl-macro-template-query"
-      }
-    },
-    {
-      "id": "entry-st-iface-snl-macro-template-query-args",
-      "label": "Entry",
-      "props": {
-        "entryId": "st.iface.snl-macro-template-query-args"
-      }
-    },
-    {
       "id": "entry-st-iface-snl-macro-source-lookup",
       "label": "Entry",
       "props": {
@@ -124,13 +103,6 @@
       "label": "Entry",
       "props": {
         "entryId": "sub.public.interfaces.react-view"
-      }
-    },
-    {
-      "id": "entry-rv-iface-default-macro-template-query-options",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.iface.default-macro-template-query-options"
       }
     },
     {
@@ -393,52 +365,10 @@
       }
     },
     {
-      "id": "entry-rv-fn-load-snl-macro-db",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.fn.load-snl-macro-db"
-      }
-    },
-    {
-      "id": "entry-rv-const-default-snl-macro-db-url",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.const.default-snl-macro-db-url"
-      }
-    },
-    {
-      "id": "entry-rv-fn-set-snl-macro-db-cache",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.fn.set-snl-macro-db-cache"
-      }
-    },
-    {
-      "id": "entry-rv-fn-clear-snl-macro-db-cache",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.fn.clear-snl-macro-db-cache"
-      }
-    },
-    {
       "id": "entry-sub-public-macro-db-queries",
       "label": "Entry",
       "props": {
         "entryId": "sub.public.macro-db.queries"
-      }
-    },
-    {
-      "id": "entry-rv-fn-create-default-macro-template-query",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.fn.create-default-macro-template-query"
-      }
-    },
-    {
-      "id": "entry-rv-fn-create-macro-template-query-from-db",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.fn.create-macro-template-query-from-db"
       }
     },
     {
@@ -677,11 +607,6 @@
     },
     {
       "from": "entry-sub-public-interfaces-macros",
-      "to": "entry-mac-iface-snl-macro-db",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-interfaces-macros",
       "to": "entry-mac-iface-snl-macro-style",
       "label": "branch"
     },
@@ -722,16 +647,6 @@
     },
     {
       "from": "entry-sub-public-interfaces-syntax-tree",
-      "to": "entry-st-iface-snl-macro-template-query",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-interfaces-syntax-tree",
-      "to": "entry-st-iface-snl-macro-template-query-args",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-interfaces-syntax-tree",
       "to": "entry-st-iface-snl-macro-source-lookup",
       "label": "branch"
     },
@@ -743,11 +658,6 @@
     {
       "from": "entry-sec-public-interfaces",
       "to": "entry-sub-public-interfaces-react-view",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-interfaces-react-view",
-      "to": "entry-rv-iface-default-macro-template-query-options",
       "label": "branch"
     },
     {
@@ -936,38 +846,8 @@
       "label": "branch"
     },
     {
-      "from": "entry-sub-public-macro-db-loading",
-      "to": "entry-rv-fn-load-snl-macro-db",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-macro-db-loading",
-      "to": "entry-rv-const-default-snl-macro-db-url",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-macro-db-loading",
-      "to": "entry-rv-fn-set-snl-macro-db-cache",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-macro-db-loading",
-      "to": "entry-rv-fn-clear-snl-macro-db-cache",
-      "label": "branch"
-    },
-    {
       "from": "entry-sec-public-macro-db",
       "to": "entry-sub-public-macro-db-queries",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-macro-db-queries",
-      "to": "entry-rv-fn-create-default-macro-template-query",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-macro-db-queries",
-      "to": "entry-rv-fn-create-macro-template-query-from-db",
       "label": "branch"
     },
     {

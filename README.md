@@ -29,9 +29,7 @@ import '@snl-basics/react/style.css'
 
 ## 5-minute quickstart
 
-The macro DB ships with the package **fully typed** — import `bundledMacroDb`
-directly (no network fetch, no cast), build a query from it, parse an
-expression, and render:
+Create a query-only `MacroDataDriver`, parse an expression, and render:
 
 ```tsx
 import 'katex/dist/katex.min.css'
@@ -40,16 +38,27 @@ import '@snl-basics/react/style.css'
 import { useMemo } from 'react'
 import {
   SnlSyntaxTreeView,
+  MacroDataDriver,
   parseSnlSyntaxTree,
   annotateBindings,
-  createMacroTemplateQueryFromDb,
-  bundledMacroDb,
   type SnlSyntaxTree,
 } from '@snl-basics/react'
 
+// Your macro definitions (or fetch from a server/file)
+import macroDb from './my-macros.json'
+
 export function Demo() {
-  // 1. A query resolves a macro name to its KaTeX template (from the DB).
-  const query = useMemo(() => createMacroTemplateQueryFromDb(bundledMacroDb), [])
+  // 1. Create a MacroDataDriver — the query-only data source for the view.
+  const driver = useMemo(
+    () => new MacroDataDriver({
+      queries: {
+        async query_macro({ macro_name }) {
+          return macroDb[macro_name] ?? null
+        },
+      },
+    }),
+    [],
+  )
 
   // 2. Parse SNL source, then annotate binders/bound-variables for hover.
   const tree: SnlSyntaxTree = useMemo(() => {
@@ -62,22 +71,26 @@ export function Demo() {
   return (
     <SnlSyntaxTreeView
       tree={tree}
-      query={query}
-      macroDb={bundledMacroDb}
+      macro_data_driver={driver}
       katexOptions={{ displayMode: true }}
     />
   )
 }
 ```
 
-Prefer to load the DB over HTTP (e.g. served from your `public/` dir)? Use
-`loadSnlMacroDb(url)` instead of the direct import:
+For async/remote backends, implement `MacroDataQueries` directly:
 
 ```tsx
-import { loadSnlMacroDb, createDefaultMacroTemplateQuery } from '@snl-basics/react'
+import { MacroDataDriver } from '@snl-basics/react'
 
-const db = await loadSnlMacroDb('/snl-macro-db.json')
-const query = createDefaultMacroTemplateQuery({ templateDbUrl: '/snl-macro-db.json' })
+const driver = new MacroDataDriver({
+  queries: {
+    query_macro: async ({ macro_name }) => {
+      const res = await fetch(`/api/macros/${macro_name}`)
+      return res.ok ? res.json() : null
+    },
+  },
+})
 ```
 
 ### KaTeX options — hover requires `trust: true` / `strict: false` ⚠️
@@ -100,26 +113,31 @@ katex.renderToString(latex, { throwOnError: false, ...HTMLDATA_KATEX_DEFAULTS })
 
 ## Offline / bundled usage (VS Code, Electron, Node)
 
-No network required — the core math DB is baked into the package as typed
-`bundledMacroDb`, so embedders with no networking (VS Code webviews, Electron
-renderers, Node) can render entirely offline:
+No network required — load a macro JSON file and create a driver from it.
+The bundled `public/snl-macro-db.json` ships with the package:
 
 ```tsx
 import {
-  bundledMacroDb,
-  createMacroTemplateQueryFromDb,
+  MacroDataDriver,
   parseSnlSyntaxTree,
   SnlSyntaxTreeView,
 } from '@snl-basics/react'
 import 'katex/dist/katex.min.css'
 import '@snl-basics/react/style.css'
+import macroDb from '../public/snl-macro-db.json'
 
-const query = createMacroTemplateQueryFromDb(bundledMacroDb)
+const driver = new MacroDataDriver({
+  queries: {
+    async query_macro({ macro_name }) {
+      return macroDb[macro_name] ?? null
+    },
+  },
+})
 const tree = parseSnlSyntaxTree('FOL.implies(a, b)')
-// <SnlSyntaxTreeView tree={tree} macroDb={bundledMacroDb} query={query} />
+// <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} />
 ```
 
-> **No network required — the DB is baked into the package.**
+> **No network required — load the bundled JSON and query through the driver.**
 
 ## Bundling (Vite / webpack)
 
@@ -148,33 +166,33 @@ arity* are **styles**, not separate macros — see below.
 
 ## Styles & the `[style]` bracket
 
-A macro declares one or more render **styles** keyed by tag, plus a
-`defaultStyle`. All styles of a macro **must accept the same arity** — a style
-only varies the render output, never the child count. This is the invariant that
-makes switching styles always safe:
+A macro declares one or more render **styles** keyed by `style_name`, with
+`styles[0]` as the implicit default. All styles of a macro **must accept the
+same arity** — a style only varies the render output, never the child count.
+This is the invariant that makes switching styles always safe:
 
 ```
 node := IDENT ('[' IDENT ']')? ('(' args ')')?
 ```
 
 The optional `[style]` bracket picks a style; without it the macro's
-`defaultStyle` is used.
+`styles[0]` (default) is used.
 
 ```ts
 parseSnlSyntaxTree('FOL.implies(a, b)')          // default style → a \rightarrow b
 parseSnlSyntaxTree('FOL.implies[double](a, b)')  // 'double' style → a \Rightarrow b
 ```
 
-The picked tag is exposed on the node as `node.style` and (when explicit) is
-emitted as `data-style="<tag>"` on the rendered element. An unknown tag is a
+The picked tag is exposed on the node as `node.style_name` and (when explicit)
+is emitted as `data-style="<tag>"` on the rendered element. An unknown tag is a
 render error.
 
 ## Concepts
 
 - **Macro** — a named renderer. Top-level fields are `name`, `description`,
-  `source`, optional `kind`, `arity`, `mode`, optional `display`, `defaultStyle`,
-  and a `styles` map. Consumer-owned output strategies (`typst` / `latex` /
-  `markdown` / `text`) live downstream. Fields and semantics live in
+  `source`, optional `kind`, `dynamic_arity`, and a `styles` array (ordered,
+  `styles[0]` is the default). Consumer-owned output strategies (`typst` /
+  `latex` / `markdown` / `text`) live downstream. Fields and semantics live in
   [`src/snl-macro/types.ts`](src/snl-macro/types.ts):
 
   ```ts
@@ -182,14 +200,12 @@ render error.
     name: 'FOL.implies',
     description: '…',
     source: { entries: [], urls: [] },
-    kind: 'const',          // optional; unset → nodes render as data-kind="fvar"
-    arity: 'fixed',
-    mode: 'formula',
-    defaultStyle: 'infix',
-    styles: {
-      infix:  { template: '#0 \\rightarrow #1' },
-      double: { template: '#0 \\Rightarrow #1' },
-    },
+    dynamic_arity: false,
+    tags: [],
+    styles: [
+      { style_name: 'infix', mode: 'formula_inline', template: '#0 \\rightarrow #1', tags: [] },
+      { style_name: 'double', mode: 'formula_inline', template: '#0 \\Rightarrow #1', tags: [] },
+    ],
   }
   ```
 
@@ -198,15 +214,21 @@ render error.
   `kind` and annotation assigns none, the node defaults to **`fvar`** (there is
   no more neutral-grey `default` kind).
 - **Syntax tree** — the parsed representation
-  (`{ name, style?, kind, mdata, children }`). At render time each node is
-  dispatched by its macro's `mode`: `formula` (KaTeX), `text` (`<span>`), or
-  `block` (a registered block renderer), and rendered with the resolved style.
+  (`{ macro_name, style_name?, kind, mdata, children }`). At render time each
+  node is dispatched by its style's `mode`: `formula_inline`/`formula_display`
+  (KaTeX), `text` (`<span>`), or `block` (a registered block renderer via
+  `block_template_name`).
+- **MacroDataDriver** — the single query-only data-access layer between the View
+  and macro data. Provides `query_macro({macro_name})` with bounded LRU cache
+  and in-flight dedup. Created with `new MacroDataDriver({ queries })` where
+  queries implements `MacroDataQueries`; storage and transport adaptation stays
+  in the consumer.
 - **Hooks** — every interaction is customizable via `SnlRenderHooks`: supply your
   own `renderTooltip`, `onHover` / `onLeave`, `resolveMacroInfo`, `resolveSource`,
   `highlightStrategy`, or `renderers`. Anything you omit falls back to
   `defaultRenderHooks`.
 - **Arity & placeholders** — fixed-arity macros use `#0`, `#1`, …; variadic
-  macros use `#*` joined by `variadic_join` (e.g. `pmatrix` / `matrix.row`).
+  macros use `#*` joined by `separator` (e.g. `pmatrix` / `matrix.row`).
   See [Template DSL](#template-dsl).
 
 ### Template DSL
@@ -214,13 +236,13 @@ render error.
 Templates use LaTeX-native macro-argument syntax:
 
 - `#0` / `#1` / … — 0-indexed children (fixed-arity macros)
-- `#*` — all children joined (variadic macros, `variadic_join` sep)
+- `#*` — all children joined (dynamic_arity macros, `separator` string)
 - `\#` — literal `#` (renders as `#` in KaTeX)
 
 `\htmlData` is added automatically by the view layer — do not write it
 yourself in templates. Every node is wrapped in
-`\htmlData{name=<macro>,kind=<node.kind>[,style=<tag>]}{...}` so hover
-interactions work with zero boilerplate.
+`\htmlData{name=<macro>,kind=<node.kind>[,style=<tag>][,tree-path=<path>]}{...}`
+so hover interactions work with zero boilerplate.
 
 ## Customization examples
 
@@ -229,8 +251,7 @@ interactions work with zero boilerplate.
 ```tsx
 <SnlSyntaxTreeView
   tree={tree}
-  query={query}
-  macroDb={db}
+  macro_data_driver={driver}
   hooks={{
     renderTooltip: (state) =>
       state.visible ? (
@@ -298,15 +319,16 @@ const hooks: SnlRenderHooks = {
 
 ### Custom block renderer
 
-Register a renderer keyed by the resolved style's `react_renderer_key`. Spread
+Register a renderer keyed by the resolved style's `block_template_name`. Spread
 `defaultRenderers` to keep the built-in `list` / `table` / `centered` renderers:
 
 ```tsx
 import { defaultRenderers, type SnlBlockRenderer } from '@snl-basics/react'
 
-// Macro DB entry:
-// { arity: 'variadic', mode: 'block', defaultStyle: 'default',
-//   styles: { default: { template: '', react_renderer_key: 'callout' } } }
+// Macro DB entry (v7 shape):
+// { name: 'MyCallout', dynamic_arity: true,
+//   styles: [{ style_name: 'default', mode: 'block', template: '',
+//              block_template_name: 'callout', tags: [] }], tags: [] }
 const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
   <aside className="callout">
     {node.children.map((child, i) => (
@@ -317,8 +339,7 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 
 <SnlSyntaxTreeView
   tree={tree}
-  query={query}
-  macroDb={db}
+  macro_data_driver={driver}
   hooks={{ renderers: { ...defaultRenderers, callout: Callout } }}
 />
 ```
@@ -327,17 +348,17 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 
 Output backends (Typst / LaTeX / Markdown / plain text) are **consumer-side
 concerns** and are no longer part of this library (removed in 0.4.0). A `SnlMacro`
-now carries only render fields (`name`, `description`, `source`, `kind`, `arity`,
-`mode`, `display`, `defaultStyle`, `styles`). Downstream extensions that need to
-emit those formats own their own extended macro shape (with per-style backends)
-and conversion code (see SNL-Doc-Extension).
+now carries only render fields (`name`, `description`, `source`,
+`dynamic_arity`, `tags`, `styles`). Downstream extensions that need to emit those formats
+own their own extended macro shape (with per-style backends) and conversion code
+(see SNL-Doc-Extension).
 
 ## API reference
 
 The full public surface is the grouped barrel in
 [`src/snl-react-view/index.ts`](src/snl-react-view/index.ts). Complete
-TypeScript declarations for every export — props, hooks, types, and the typed
-`bundledMacroDb` accessor — are published at
+TypeScript declarations for every export — props, hooks, types, and the
+`MacroDataDriver` class — are published at
 [`dist-lib/index.d.ts`](dist-lib/index.d.ts) and are what your editor resolves
 on `import type { … } from '@snl-basics/react'`.
 

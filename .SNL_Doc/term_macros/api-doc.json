@@ -12,11 +12,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.class": {
       "description": "Inline reference to a TypeScript class in the SNL-Basics API. Renders in \\texttt{} with a teal tint.",
@@ -28,11 +30,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Teal}{\\texttt{#0}}"
+          "template": "\\textcolor{Teal}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.field": {
       "description": "Inline reference to a Class's field (data or method member). Renders in \\texttt{} with a lime tint.",
@@ -44,11 +48,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{OliveGreen}{\\texttt{#0}}"
+          "template": "\\textcolor{OliveGreen}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.fn": {
       "description": "Inline reference to a function or method exported by SNL-Basics. Renders in \\texttt{} with an orange tint.",
@@ -60,11 +66,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Orange}{\\texttt{#0}}"
+          "template": "\\textcolor{Orange}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.const": {
       "description": "Inline reference to an exported constant / default-instance / value in SNL-Basics. Renders in \\texttt{} with an amber tint.",
@@ -76,11 +84,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Goldenrod}{\\texttt{#0}}"
+          "template": "\\textcolor{Goldenrod}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.prop": {
       "description": "Inline reference to a React component prop. Renders in \\texttt{} with a rose tint.",
@@ -92,11 +102,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{RubineRed}{\\texttt{#0}}"
+          "template": "\\textcolor{RubineRed}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.comp": {
       "description": "Inline reference to a React component. Renders in \\texttt{} with a pink tint.",
@@ -108,11 +120,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Magenta}{\\texttt{#0}}"
+          "template": "\\textcolor{Magenta}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.mod": {
       "description": "Inline reference to a source-tree module / namespace. Renders in \\texttt{} with an indigo tint.",
@@ -124,11 +138,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{RoyalBlue}{\\texttt{#0}}"
+          "template": "\\textcolor{RoyalBlue}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.pkg": {
       "description": "Inline reference to an npm package or distribution unit. Renders in \\texttt{} with a violet tint.",
@@ -140,11 +156,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+          "template": "\\textcolor{Purple}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.concept": {
       "description": "Inline reference to a cross-cutting concept (surface, stability level, consumer, distribution decision). Renders in \\texttt{} with a neutral tint.",
@@ -156,11 +174,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Gray}{\\texttt{#0}}"
+          "template": "\\textcolor{Gray}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.kw": {
       "description": "Inline lowercase keyword or built-in term (macro, kind, envMode, template, ...). Renders in \\texttt{} with a neutral gray, no strong color — these are common vocabulary, not linked artefacts.",
@@ -172,11 +192,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Gray}{\\texttt{#0}}"
+          "template": "\\textcolor{Gray}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.file": {
       "description": "Inline reference to a source file or workspace-relative path. Renders in \\texttt{} with a cyan tint.",
@@ -188,11 +210,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{MidnightBlue}{\\texttt{#0}}"
+          "template": "\\textcolor{MidnightBlue}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.code": {
       "description": "Inline monospace fallback for arbitrary code snippets (e.g. \\forall, `dist-lib/index.js`). No color; use when no other kind fits.",
@@ -204,11 +228,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Black}{\\texttt{#0}}"
+          "template": "\\textcolor{Black}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "api.slash": {
       "description": "Variadic connector macro — joins children with ' / '. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
@@ -220,14 +246,14 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "text",
-          "template": "",
-          "variadic_left": "",
-          "variadic_join": " / ",
-          "variadic_right": ""
+          "template": "#*",
+          "style_name": "default",
+          "tags": [],
+          "separator": " / "
         }
-      ]
+      ],
+      "tags": []
     },
     "api.plus": {
       "description": "Variadic connector macro — joins children with ' + '. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
@@ -239,14 +265,14 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "text",
-          "template": "",
-          "variadic_left": "",
-          "variadic_join": " + ",
-          "variadic_right": ""
+          "template": "#*",
+          "style_name": "default",
+          "tags": [],
+          "separator": " + "
         }
-      ]
+      ],
+      "tags": []
     },
     "api.arrow": {
       "description": "Variadic connector macro — joins children with ' → '. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
@@ -258,14 +284,14 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "text",
-          "template": "",
-          "variadic_left": "",
-          "variadic_join": " → ",
-          "variadic_right": ""
+          "template": "#*",
+          "style_name": "default",
+          "tags": [],
+          "separator": " → "
         }
-      ]
+      ],
+      "tags": []
     },
     "api.list": {
       "description": "Variadic connector macro — joins children with '、'. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
@@ -277,14 +303,14 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "text",
-          "template": "",
-          "variadic_left": "",
-          "variadic_join": "、",
-          "variadic_right": ""
+          "template": "#*",
+          "style_name": "default",
+          "tags": [],
+          "separator": "、"
         }
-      ]
+      ],
+      "tags": []
     },
     "api.para": {
       "description": "One paragraph of prose. Variadic in the number of inline items. Renders as a text-mode block; every entry's content.snl uses `api.para` as its ROOT single macro tree (SNL grammar requirement). Multi-paragraph entries chain paragraphs via literal newlines inside the para text, or nest a second para as the last child.",
@@ -296,14 +322,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "text",
-          "template": "",
-          "variadic_left": "",
-          "variadic_join": "",
-          "variadic_right": ""
+          "template": "#*",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "interface": {
       "description": "",
@@ -315,7 +340,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "text",
           "template": "${\\color{569CD6}\\texttt{interface }}$#0 consists of the following data:\n#1",
           "typst": {
@@ -333,9 +357,12 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlMacro": {
       "description": "",
@@ -349,7 +376,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}SnlMacro}",
           "typst": {
@@ -367,9 +393,12 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "enumerate": {
       "description": "",
@@ -380,10 +409,8 @@
       "dynamic_arity": true,
       "styles": [
         {
-          "tag": "default",
           "mode": "block",
-          "template": "",
-          "react_renderer_key": "enumerate",
+          "template": "#*",
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -399,9 +426,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": [],
+          "block_template_name": "enumerate"
         }
-      ]
+      ],
+      "tags": []
     },
     "Type.judge": {
       "description": "",
@@ -413,7 +444,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "#0\\texttt{: }#1",
           "typst": {
@@ -431,9 +461,12 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlMacro.name": {
       "description": "The `name` field of `SnlMacro`.",
@@ -447,7 +480,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{name}",
           "typst": {
@@ -465,9 +497,12 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "string": {
       "description": "",
@@ -481,7 +516,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}string}",
           "typst": {
@@ -499,9 +533,12 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "Type.opt": {
       "description": "",
@@ -512,7 +549,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "#0\\texttt{?}",
           "typst": {
@@ -530,10 +566,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "Syntax"
+      "kind": "Syntax",
+      "tags": []
     },
     "Type.array": {
       "description": "",
@@ -544,7 +583,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "#0\\texttt{[]}",
           "typst": {
@@ -562,10 +600,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "Syntax"
+      "kind": "Syntax",
+      "tags": []
     },
     "Type.record": {
       "description": "",
@@ -576,7 +617,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{Record<}#0\\texttt{, }#1\\texttt{>}",
           "typst": {
@@ -594,10 +634,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "Syntax"
+      "kind": "Syntax",
+      "tags": []
     },
     "Type.union": {
       "description": "",
@@ -608,9 +651,8 @@
       "dynamic_arity": true,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "",
+          "template": "#*",
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -627,12 +669,13 @@
           },
           "markdown": "",
           "text": "",
-          "variadic_left": "",
-          "variadic_join": "\\texttt{ | }",
-          "variadic_right": ""
+          "style_name": "default",
+          "tags": [],
+          "separator": "\\texttt{ | }"
         }
       ],
-      "kind": "Syntax"
+      "kind": "Syntax",
+      "tags": []
     },
     "Type.literal": {
       "description": "",
@@ -644,7 +687,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "{\\color{CE9178}\\texttt{`}#0\\color{CE9178}\\texttt{'}}",
           "typst": {
@@ -662,9 +704,12 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "boolean": {
       "description": "",
@@ -677,7 +722,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}boolean}",
           "typst": {
@@ -695,10 +739,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "class"
+      "kind": "class",
+      "tags": []
     },
     "number": {
       "description": "",
@@ -711,7 +758,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}number}",
           "typst": {
@@ -729,10 +775,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "class"
+      "kind": "class",
+      "tags": []
     },
     "null": {
       "description": "",
@@ -743,7 +792,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}null}",
           "typst": {
@@ -761,10 +809,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "class"
+      "kind": "class",
+      "tags": []
     },
     "void": {
       "description": "",
@@ -777,7 +828,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}void}",
           "typst": {
@@ -795,10 +845,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "class"
+      "kind": "class",
+      "tags": []
     },
     "SnlMacroSource": {
       "description": "",
@@ -811,7 +864,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}SnlMacroSource}",
           "typst": {
@@ -829,10 +881,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "class"
+      "kind": "class",
+      "tags": []
     },
     "SnlMacroStyle": {
       "description": "",
@@ -845,7 +900,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}SnlMacroStyle}",
           "typst": {
@@ -863,78 +917,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "class"
-    },
-    "SnlMacroDb": {
-      "description": "",
-      "source": {
-        "entries": [
-          "mac.iface.snl-macro-db"
-        ],
-        "urls": []
-      },
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlMacroDb}",
-          "typst": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "latex": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "markdown": "",
-          "text": ""
-        }
-      ],
-      "kind": "class"
-    },
-    "SnlMacroTemplateQueryArgs": {
-      "description": "",
-      "source": {
-        "entries": [
-          "st.iface.snl-macro-template-query-args"
-        ],
-        "urls": []
-      },
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlMacroTemplateQueryArgs}",
-          "typst": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "latex": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "markdown": "",
-          "text": ""
-        }
-      ],
-      "kind": "class"
+      "kind": "class",
+      "tags": []
     },
     "SnlSyntaxTree": {
       "description": "",
@@ -947,7 +936,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTree}",
           "typst": {
@@ -965,10 +953,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "class"
+      "kind": "class",
+      "tags": []
     },
     "SnlRenderHooks": {
       "description": "",
@@ -981,7 +972,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}SnlRenderHooks}",
           "typst": {
@@ -999,10 +989,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "class"
+      "kind": "class",
+      "tags": []
     },
     "SnlMacroInfo": {
       "description": "",
@@ -1015,7 +1008,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{\\color{4EC9A2}SnlMacroInfo}",
           "typst": {
@@ -1033,10 +1025,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "class"
+      "kind": "class",
+      "tags": []
     },
     "SnlMacro.description": {
       "description": "The `description` field of `SnlMacro`.",
@@ -1049,7 +1044,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{description}",
           "typst": {
@@ -1067,10 +1061,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
     "SnlMacro.source": {
       "description": "The `source` field of `SnlMacro`.",
@@ -1083,7 +1080,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{source}",
           "typst": {
@@ -1101,10 +1097,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
     "SnlMacro.kind": {
       "description": "The `kind` field of `SnlMacro`.",
@@ -1117,7 +1116,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{kind}",
           "typst": {
@@ -1135,10 +1133,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
     "SnlMacro.dynamic_arity": {
       "description": "The `dynamic_arity` field of `SnlMacro`.",
@@ -1151,7 +1152,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{dynamic\\_arity}",
           "typst": {
@@ -1169,10 +1169,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
     "SnlMacro.styles": {
       "description": "The `styles` field of `SnlMacro`.",
@@ -1185,7 +1188,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{styles}",
           "typst": {
@@ -1203,10 +1205,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
     "SnlMacro.tags": {
       "description": "The `tags` field of `SnlMacro`.",
@@ -1219,7 +1224,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{tags}",
           "typst": {
@@ -1237,25 +1241,27 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
-    "SnlMacroStyle.tag": {
-      "description": "The `tag` field of `SnlMacroStyle`.",
+    "SnlMacroStyle.style_name": {
+      "description": "The `style_name` field of `SnlMacroStyle`.",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.tag"
+          "mac.iface.snl-macro-style.style_name"
         ],
         "urls": []
       },
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{tag}",
+          "template": "\\\\texttt{style\\\\_name}",
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -1271,10 +1277,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
     "SnlMacroStyle.mode": {
       "description": "The `mode` field of `SnlMacroStyle`.",
@@ -1287,7 +1296,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{mode}",
           "typst": {
@@ -1305,10 +1313,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
     "SnlMacroStyle.template": {
       "description": "The `template` field of `SnlMacroStyle`.",
@@ -1321,7 +1332,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{template}",
           "typst": {
@@ -1339,25 +1349,27 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
-    "SnlMacroStyle.variadic_left": {
-      "description": "The `variadic_left` field of `SnlMacroStyle`.",
+    "SnlMacroStyle.separator": {
+      "description": "The `separator` field of `SnlMacroStyle`.",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.variadic_left"
+          "mac.iface.snl-macro-style.separator"
         ],
         "urls": []
       },
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{variadic\\_left}",
+          "template": "\\\\texttt{separator}",
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -1373,25 +1385,27 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
-    "SnlMacroStyle.variadic_join": {
-      "description": "The `variadic_join` field of `SnlMacroStyle`.",
+    "SnlMacroStyle.block_template_name": {
+      "description": "The `block_template_name` field of `SnlMacroStyle`.",
       "source": {
         "entries": [
-          "mac.iface.snl-macro-style.variadic_join"
+          "mac.iface.snl-macro-style.block_template_name"
         ],
         "urls": []
       },
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{variadic\\_join}",
+          "template": "\\\\texttt{block\\\\_template\\\\_name}",
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -1407,78 +1421,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
-    },
-    "SnlMacroStyle.variadic_right": {
-      "description": "The `variadic_right` field of `SnlMacroStyle`.",
-      "source": {
-        "entries": [
-          "mac.iface.snl-macro-style.variadic_right"
-        ],
-        "urls": []
-      },
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{variadic\\_right}",
-          "typst": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "latex": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "markdown": "",
-          "text": ""
-        }
-      ],
-      "kind": "const"
-    },
-    "SnlMacroStyle.react_renderer_key": {
-      "description": "The `react_renderer_key` field of `SnlMacroStyle`.",
-      "source": {
-        "entries": [
-          "mac.iface.snl-macro-style.react_renderer_key"
-        ],
-        "urls": []
-      },
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{react\\_renderer\\_key}",
-          "typst": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "latex": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "markdown": "",
-          "text": ""
-        }
-      ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
     "SnlMacroStyle.tags": {
       "description": "The `tags` field of `SnlMacroStyle`.",
@@ -1491,7 +1440,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{tags}",
           "typst": {
@@ -1509,10 +1457,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
     "SnlMacroSource.entries": {
       "description": "The `entries` field of `SnlMacroSource`.",
@@ -1525,7 +1476,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{entries}",
           "typst": {
@@ -1543,10 +1493,13 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
     "SnlMacroSource.urls": {
       "description": "The `urls` field of `SnlMacroSource`.",
@@ -1559,7 +1512,6 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{urls}",
           "typst": {
@@ -1577,16 +1529,19 @@
             }
           },
           "markdown": "",
-          "text": ""
+          "text": "",
+          "style_name": "default",
+          "tags": []
         }
       ],
-      "kind": "const"
+      "kind": "const",
+      "tags": []
     },
-    "SnlSyntaxTree.name": {
-      "description": "The `name` field of `SnlSyntaxTree`.",
+    "SnlSyntaxTree.macro_name": {
+      "description": "The `macro_name` field of `SnlSyntaxTree`.",
       "source": {
         "entries": [
-          "st.iface.snl-syntax-tree.name"
+          "st.iface.snl-syntax-tree.macro_name"
         ],
         "urls": []
       },
@@ -1594,17 +1549,19 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{name}"
+          "template": "\\\\texttt{macro\\\\_name}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
-    "SnlSyntaxTree.style": {
-      "description": "The `style` field of `SnlSyntaxTree`.",
+    "SnlSyntaxTree.style_name": {
+      "description": "The `style_name` field of `SnlSyntaxTree`.",
       "source": {
         "entries": [
-          "st.iface.snl-syntax-tree.style"
+          "st.iface.snl-syntax-tree.style_name"
         ],
         "urls": []
       },
@@ -1612,17 +1569,19 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{style}"
+          "template": "\\\\texttt{style\\\\_name}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
-    "SnlSyntaxTree.envMode": {
-      "description": "The `envMode` field of `SnlSyntaxTree`.",
+    "SnlSyntaxTree.env_mode": {
+      "description": "The `env_mode` field of `SnlSyntaxTree`.",
       "source": {
         "entries": [
-          "st.iface.snl-syntax-tree.env-mode"
+          "st.iface.snl-syntax-tree.env_mode"
         ],
         "urls": []
       },
@@ -1630,11 +1589,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{envMode}"
+          "template": "\\\\texttt{env\\\\_mode}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTree.kind": {
       "description": "The `kind` field of `SnlSyntaxTree`.",
@@ -1648,11 +1609,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{kind}"
+          "template": "\\texttt{kind}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTree.scope": {
       "description": "The `scope` field of `SnlSyntaxTree`.",
@@ -1666,11 +1629,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{scope}"
+          "template": "\\texttt{scope}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTree.mdata": {
       "description": "The `mdata` field of `SnlSyntaxTree`.",
@@ -1684,11 +1649,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{mdata}"
+          "template": "\\texttt{mdata}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTree.children": {
       "description": "The `children` field of `SnlSyntaxTree`.",
@@ -1702,11 +1669,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{children}"
+          "template": "\\texttt{children}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeBase": {
       "description": "",
@@ -1720,17 +1689,19 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeBase}"
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeBase}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
-    "SnlSyntaxTreeBase.name": {
-      "description": "The `name` field of `SnlSyntaxTreeBase`.",
+    "SnlSyntaxTreeBase.macro_name": {
+      "description": "The `macro_name` field of `SnlSyntaxTreeBase`.",
       "source": {
         "entries": [
-          "st.iface.snl-syntax-tree-base.name"
+          "st.iface.snl-syntax-tree-base.macro_name"
         ],
         "urls": []
       },
@@ -1738,17 +1709,19 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{name}"
+          "template": "\\\\texttt{macro\\\\_name}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
-    "SnlSyntaxTreeBase.style": {
-      "description": "The `style` field of `SnlSyntaxTreeBase`.",
+    "SnlSyntaxTreeBase.style_name": {
+      "description": "The `style_name` field of `SnlSyntaxTreeBase`.",
       "source": {
         "entries": [
-          "st.iface.snl-syntax-tree-base.style"
+          "st.iface.snl-syntax-tree-base.style_name"
         ],
         "urls": []
       },
@@ -1756,11 +1729,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{style}"
+          "template": "\\\\texttt{style\\\\_name}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeBase.kind": {
       "description": "The `kind` field of `SnlSyntaxTreeBase`.",
@@ -1774,11 +1749,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{kind}"
+          "template": "\\texttt{kind}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeBase.scope": {
       "description": "The `scope` field of `SnlSyntaxTreeBase`.",
@@ -1792,11 +1769,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{scope}"
+          "template": "\\texttt{scope}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeBase.mdata": {
       "description": "The `mdata` field of `SnlSyntaxTreeBase`.",
@@ -1810,11 +1789,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{mdata}"
+          "template": "\\texttt{mdata}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeBase.children": {
       "description": "The `children` field of `SnlSyntaxTreeBase`.",
@@ -1828,11 +1809,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{children}"
+          "template": "\\texttt{children}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeFormulaNode": {
       "description": "",
@@ -1846,11 +1829,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeFormulaNode}"
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeFormulaNode}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeFormulaNode.mode": {
       "description": "The `mode` field of `SnlSyntaxTreeFormulaNode`.",
@@ -1864,11 +1849,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{mode}"
+          "template": "\\texttt{mode}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeTextNode": {
       "description": "",
@@ -1882,11 +1869,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeTextNode}"
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeTextNode}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeTextNode.mode": {
       "description": "The `mode` field of `SnlSyntaxTreeTextNode`.",
@@ -1900,11 +1889,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{mode}"
+          "template": "\\texttt{mode}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeBlockNode": {
       "description": "",
@@ -1918,11 +1909,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeBlockNode}"
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeBlockNode}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeBlockNode.mode": {
       "description": "The `mode` field of `SnlSyntaxTreeBlockNode`.",
@@ -1936,11 +1929,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{mode}"
+          "template": "\\texttt{mode}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeBlockNode.block_kind": {
       "description": "The `block_kind` field of `SnlSyntaxTreeBlockNode`.",
@@ -1954,65 +1949,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{block\\_kind}"
+          "template": "\\texttt{block\\_kind}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
-    },
-    "SnlMacroTemplateQueryArgs.name": {
-      "description": "The `name` field of `SnlMacroTemplateQueryArgs`.",
-      "source": {
-        "entries": [
-          "st.iface.snl-macro-template-query-args.name"
-        ],
-        "urls": []
-      },
-      "kind": "const",
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{name}"
-        }
-      ]
-    },
-    "SnlMacroTemplateQueryArgs.node": {
-      "description": "The `node` field of `SnlMacroTemplateQueryArgs`.",
-      "source": {
-        "entries": [
-          "st.iface.snl-macro-template-query-args.node"
-        ],
-        "urls": []
-      },
-      "kind": "const",
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{node}"
-        }
-      ]
-    },
-    "SnlMacroTemplateQuery": {
-      "description": "",
-      "source": {
-        "entries": [
-          "st.iface.snl-macro-template-query"
-        ],
-        "urls": []
-      },
-      "kind": "class",
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlMacroTemplateQuery}"
-        }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeViewProps": {
       "description": "",
@@ -2026,11 +1969,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeViewProps}"
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeViewProps}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeViewProps.tree": {
       "description": "The `tree` field of `SnlSyntaxTreeViewProps`.",
@@ -2044,11 +1989,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{tree}"
+          "template": "\\texttt{tree}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeViewProps.query": {
       "description": "The `query` field of `SnlSyntaxTreeViewProps`.",
@@ -2062,17 +2009,19 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{query}"
+          "template": "\\texttt{query}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
-    "SnlSyntaxTreeViewProps.macroDb": {
-      "description": "The `macroDb` field of `SnlSyntaxTreeViewProps`.",
+    "SnlSyntaxTreeViewProps.macro_data_driver": {
+      "description": "The `macro_data_driver` field of `SnlSyntaxTreeViewProps`.",
       "source": {
         "entries": [
-          "rv.iface.snl-syntax-tree-view-props.macro-db"
+          "rv.iface.snl-syntax-tree-view-props.macro_data_driver"
         ],
         "urls": []
       },
@@ -2080,11 +2029,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{macroDb}"
+          "template": "\\\\texttt{macro\\\\_data\\\\_driver}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeViewProps.katexOptions": {
       "description": "The `katexOptions` field of `SnlSyntaxTreeViewProps`.",
@@ -2098,11 +2049,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{katexOptions}"
+          "template": "\\texttt{katexOptions}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeViewProps.kindPalette": {
       "description": "The `kindPalette` field of `SnlSyntaxTreeViewProps`.",
@@ -2116,11 +2069,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{kindPalette}"
+          "template": "\\texttt{kindPalette}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeViewProps.onResolved": {
       "description": "The `onResolved` field of `SnlSyntaxTreeViewProps`.",
@@ -2134,11 +2089,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{onResolved}"
+          "template": "\\texttt{onResolved}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeViewProps.hooks": {
       "description": "The `hooks` field of `SnlSyntaxTreeViewProps`.",
@@ -2152,11 +2109,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{hooks}"
+          "template": "\\texttt{hooks}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlRenderHooks.onHover": {
       "description": "The `onHover` field of `SnlRenderHooks`.",
@@ -2170,11 +2129,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{onHover}"
+          "template": "\\texttt{onHover}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlRenderHooks.onLeave": {
       "description": "The `onLeave` field of `SnlRenderHooks`.",
@@ -2188,11 +2149,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{onLeave}"
+          "template": "\\texttt{onLeave}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlRenderHooks.resolveMacroInfo": {
       "description": "The `resolveMacroInfo` field of `SnlRenderHooks`.",
@@ -2206,11 +2169,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{resolveMacroInfo}"
+          "template": "\\texttt{resolveMacroInfo}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlRenderHooks.resolveSource": {
       "description": "The `resolveSource` field of `SnlRenderHooks`.",
@@ -2224,11 +2189,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{resolveSource}"
+          "template": "\\texttt{resolveSource}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlRenderHooks.renderTooltip": {
       "description": "The `renderTooltip` field of `SnlRenderHooks`.",
@@ -2242,11 +2209,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{renderTooltip}"
+          "template": "\\texttt{renderTooltip}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlRenderHooks.highlightStrategy": {
       "description": "The `highlightStrategy` field of `SnlRenderHooks`.",
@@ -2260,11 +2229,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{highlightStrategy}"
+          "template": "\\texttt{highlightStrategy}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlRenderHooks.renderers": {
       "description": "The `renderers` field of `SnlRenderHooks`.",
@@ -2278,11 +2249,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{renderers}"
+          "template": "\\texttt{renderers}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHoverEvent": {
       "description": "",
@@ -2296,11 +2269,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlHoverEvent}"
+          "template": "\\texttt{\\color{4EC9A2}SnlHoverEvent}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHoverEvent.name": {
       "description": "The `name` field of `SnlHoverEvent`.",
@@ -2314,11 +2289,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{name}"
+          "template": "\\texttt{name}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHoverEvent.kind": {
       "description": "The `kind` field of `SnlHoverEvent`.",
@@ -2332,11 +2309,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{kind}"
+          "template": "\\texttt{kind}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHoverEvent.node": {
       "description": "The `node` field of `SnlHoverEvent`.",
@@ -2350,11 +2329,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{node}"
+          "template": "\\texttt{node}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHoverEvent.bindingHint": {
       "description": "The `bindingHint` field of `SnlHoverEvent`.",
@@ -2368,11 +2349,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{bindingHint}"
+          "template": "\\texttt{bindingHint}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHoverEvent.variableRole": {
       "description": "The `variableRole` field of `SnlHoverEvent`.",
@@ -2386,11 +2369,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{variableRole}"
+          "template": "\\texttt{variableRole}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHoverEvent.target": {
       "description": "The `target` field of `SnlHoverEvent`.",
@@ -2404,11 +2389,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{target}"
+          "template": "\\texttt{target}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHoverEvent.clientX": {
       "description": "The `clientX` field of `SnlHoverEvent`.",
@@ -2422,11 +2409,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{clientX}"
+          "template": "\\texttt{clientX}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHoverEvent.clientY": {
       "description": "The `clientY` field of `SnlHoverEvent`.",
@@ -2440,11 +2429,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{clientY}"
+          "template": "\\texttt{clientY}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlMacroInfo.description": {
       "description": "The `description` field of `SnlMacroInfo`.",
@@ -2458,11 +2449,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{description}"
+          "template": "\\texttt{description}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlMacroInfo.extra": {
       "description": "The `extra` field of `SnlMacroInfo`.",
@@ -2476,11 +2469,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{extra}"
+          "template": "\\texttt{extra}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlResolvedSource": {
       "description": "",
@@ -2494,11 +2489,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlResolvedSource}"
+          "template": "\\texttt{\\color{4EC9A2}SnlResolvedSource}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlResolvedSource.kind": {
       "description": "The `kind` field of `SnlResolvedSource`.",
@@ -2512,11 +2509,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{kind}"
+          "template": "\\texttt{kind}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlResolvedSource.ref": {
       "description": "The `ref` field of `SnlResolvedSource`.",
@@ -2530,11 +2529,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{ref}"
+          "template": "\\texttt{ref}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlResolvedSource.displayName": {
       "description": "The `displayName` field of `SnlResolvedSource`.",
@@ -2548,11 +2549,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{displayName}"
+          "template": "\\texttt{displayName}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlResolvedSource.href": {
       "description": "The `href` field of `SnlResolvedSource`.",
@@ -2566,11 +2569,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{href}"
+          "template": "\\texttt{href}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState": {
       "description": "",
@@ -2584,11 +2589,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlTooltipState}"
+          "template": "\\texttt{\\color{4EC9A2}SnlTooltipState}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState.visible": {
       "description": "The `visible` field of `SnlTooltipState`.",
@@ -2602,11 +2609,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{visible}"
+          "template": "\\texttt{visible}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState.x": {
       "description": "The `x` field of `SnlTooltipState`.",
@@ -2620,11 +2629,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{x}"
+          "template": "\\texttt{x}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState.y": {
       "description": "The `y` field of `SnlTooltipState`.",
@@ -2638,11 +2649,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{y}"
+          "template": "\\texttt{y}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState.name": {
       "description": "The `name` field of `SnlTooltipState`.",
@@ -2656,11 +2669,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{name}"
+          "template": "\\texttt{name}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState.kind": {
       "description": "The `kind` field of `SnlTooltipState`.",
@@ -2674,11 +2689,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{kind}"
+          "template": "\\texttt{kind}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState.variableRole": {
       "description": "The `variableRole` field of `SnlTooltipState`.",
@@ -2692,11 +2709,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{variableRole}"
+          "template": "\\texttt{variableRole}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState.bindingHint": {
       "description": "The `bindingHint` field of `SnlTooltipState`.",
@@ -2710,11 +2729,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{bindingHint}"
+          "template": "\\texttt{bindingHint}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState.info": {
       "description": "The `info` field of `SnlTooltipState`.",
@@ -2728,11 +2749,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{info}"
+          "template": "\\texttt{info}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState.loading": {
       "description": "The `loading` field of `SnlTooltipState`.",
@@ -2746,11 +2769,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{loading}"
+          "template": "\\texttt{loading}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlTooltipState.source": {
       "description": "The `source` field of `SnlTooltipState`.",
@@ -2764,11 +2789,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{source}"
+          "template": "\\texttt{source}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHighlightStrategy": {
       "description": "",
@@ -2782,11 +2809,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlHighlightStrategy}"
+          "template": "\\texttt{\\color{4EC9A2}SnlHighlightStrategy}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHighlightStrategy.computeHighlightSet": {
       "description": "The `computeHighlightSet` field of `SnlHighlightStrategy`.",
@@ -2800,11 +2829,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{computeHighlightSet}"
+          "template": "\\texttt{computeHighlightSet}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHighlightSet": {
       "description": "",
@@ -2818,11 +2849,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlHighlightSet}"
+          "template": "\\texttt{\\color{4EC9A2}SnlHighlightSet}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHighlightSet.singleHover": {
       "description": "The `singleHover` field of `SnlHighlightSet`.",
@@ -2836,11 +2869,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{singleHover}"
+          "template": "\\texttt{singleHover}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHighlightSet.bvarScope": {
       "description": "The `bvarScope` field of `SnlHighlightSet`.",
@@ -2854,11 +2889,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{bvarScope}"
+          "template": "\\texttt{bvarScope}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlHighlightSet.binderDecl": {
       "description": "The `binderDecl` field of `SnlHighlightSet`.",
@@ -2872,11 +2909,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{binderDecl}"
+          "template": "\\texttt{binderDecl}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlRendererRegistry": {
       "description": "",
@@ -2890,11 +2929,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlRendererRegistry}"
+          "template": "\\texttt{\\color{4EC9A2}SnlRendererRegistry}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlBlockRenderer": {
       "description": "",
@@ -2908,11 +2949,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlBlockRenderer}"
+          "template": "\\texttt{\\color{4EC9A2}SnlBlockRenderer}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlBlockRendererProps": {
       "description": "",
@@ -2926,11 +2969,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlBlockRendererProps}"
+          "template": "\\texttt{\\color{4EC9A2}SnlBlockRendererProps}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlBlockRendererProps.node": {
       "description": "The `node` field of `SnlBlockRendererProps`.",
@@ -2944,17 +2989,19 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{node}"
+          "template": "\\texttt{node}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
-    "SnlBlockRendererProps.macroDb": {
-      "description": "The `macroDb` field of `SnlBlockRendererProps`.",
+    "SnlBlockRendererProps.macro_data_driver": {
+      "description": "The `macro_data_driver` field of `SnlBlockRendererProps`.",
       "source": {
         "entries": [
-          "rv.iface.snl-block-renderer-props.macro-db"
+          "rv.iface.snl-block-renderer-props.macro_data_driver"
         ],
         "urls": []
       },
@@ -2962,11 +3009,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{macroDb}"
+          "template": "\\\\texttt{macro\\\\_data\\\\_driver}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlBlockRendererProps.renderChild": {
       "description": "The `renderChild` field of `SnlBlockRendererProps`.",
@@ -2980,11 +3029,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{renderChild}"
+          "template": "\\texttt{renderChild}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "KindPalette": {
       "description": "",
@@ -2998,11 +3049,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}KindPalette}"
+          "template": "\\texttt{\\color{4EC9A2}KindPalette}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "KindColoring": {
       "description": "",
@@ -3016,11 +3069,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}KindColoring}"
+          "template": "\\texttt{\\color{4EC9A2}KindColoring}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "KindColoring.stroke": {
       "description": "The `stroke` field of `KindColoring`.",
@@ -3034,11 +3089,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{stroke}"
+          "template": "\\texttt{stroke}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "KindColoring.background": {
       "description": "The `background` field of `KindColoring`.",
@@ -3052,65 +3109,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{background}"
+          "template": "\\texttt{background}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
-    },
-    "DefaultMacroTemplateQueryOptions": {
-      "description": "",
-      "source": {
-        "entries": [
-          "rv.iface.default-macro-template-query-options"
-        ],
-        "urls": []
-      },
-      "kind": "class",
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}DefaultMacroTemplateQueryOptions}"
-        }
-      ]
-    },
-    "DefaultMacroTemplateQueryOptions.templateDbUrl": {
-      "description": "The `templateDbUrl` field of `DefaultMacroTemplateQueryOptions`.",
-      "source": {
-        "entries": [
-          "rv.iface.default-macro-template-query-options.template-db-url"
-        ],
-        "urls": []
-      },
-      "kind": "const",
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{templateDbUrl}"
-        }
-      ]
-    },
-    "DefaultMacroTemplateQueryOptions.artificialDelayMs": {
-      "description": "The `artificialDelayMs` field of `DefaultMacroTemplateQueryOptions`.",
-      "source": {
-        "entries": [
-          "rv.iface.default-macro-template-query-options.artificial-delay-ms"
-        ],
-        "urls": []
-      },
-      "kind": "const",
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{artificialDelayMs}"
-        }
-      ]
+      ],
+      "tags": []
     },
     "SnlMacroSourceLookup": {
       "description": "Public TypeScript schema SnlMacroSourceLookup.",
@@ -3124,11 +3129,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlMacroSourceLookup}"
+          "template": "\\texttt{\\color{4EC9A2}SnlMacroSourceLookup}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSourceMetrics": {
       "description": "Public TypeScript schema SnlSourceMetrics.",
@@ -3142,11 +3149,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlSourceMetrics}"
+          "template": "\\texttt{\\color{4EC9A2}SnlSourceMetrics}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSourceMetrics.totalNodes": {
       "description": "The `totalNodes` field of `SnlSourceMetrics`.",
@@ -3160,11 +3169,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{totalNodes}"
+          "template": "\\texttt{totalNodes}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSourceMetrics.sourcedNodes": {
       "description": "The `sourcedNodes` field of `SnlSourceMetrics`.",
@@ -3178,11 +3189,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{sourcedNodes}"
+          "template": "\\texttt{sourcedNodes}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSourceMetrics.semanticFreedom": {
       "description": "The `semanticFreedom` field of `SnlSourceMetrics`.",
@@ -3196,11 +3209,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{semanticFreedom}"
+          "template": "\\texttt{semanticFreedom}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSourceMetrics.structuredRatio": {
       "description": "The `structuredRatio` field of `SnlSourceMetrics`.",
@@ -3214,11 +3229,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{structuredRatio}"
+          "template": "\\texttt{structuredRatio}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopover": {
       "description": "Public TypeScript schema HoverPopover.",
@@ -3232,11 +3249,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}HoverPopover}"
+          "template": "\\texttt{\\color{4EC9A2}HoverPopover}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopover.id": {
       "description": "The `id` field of `HoverPopover`.",
@@ -3250,11 +3269,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{id}"
+          "template": "\\texttt{id}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopover.subject": {
       "description": "The `subject` field of `HoverPopover`.",
@@ -3268,11 +3289,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{subject}"
+          "template": "\\texttt{subject}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopover.originRect": {
       "description": "The `originRect` field of `HoverPopover`.",
@@ -3286,11 +3309,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{originRect}"
+          "template": "\\texttt{originRect}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopover.x": {
       "description": "The `x` field of `HoverPopover`.",
@@ -3304,11 +3329,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{x}"
+          "template": "\\texttt{x}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopover.y": {
       "description": "The `y` field of `HoverPopover`.",
@@ -3322,11 +3349,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{y}"
+          "template": "\\texttt{y}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopover.parentId": {
       "description": "The `parentId` field of `HoverPopover`.",
@@ -3340,11 +3369,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{parentId}"
+          "template": "\\texttt{parentId}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopover.frozen": {
       "description": "The `frozen` field of `HoverPopover`.",
@@ -3358,11 +3389,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{frozen}"
+          "template": "\\texttt{frozen}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopover.phase": {
       "description": "The `phase` field of `HoverPopover`.",
@@ -3376,11 +3409,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{phase}"
+          "template": "\\texttt{phase}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverApi": {
       "description": "Public TypeScript schema HoverPopoverApi.",
@@ -3394,11 +3429,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}HoverPopoverApi}"
+          "template": "\\texttt{\\color{4EC9A2}HoverPopoverApi}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverApi.spawn": {
       "description": "The `spawn` field of `HoverPopoverApi`.",
@@ -3412,11 +3449,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{spawn}"
+          "template": "\\texttt{spawn}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverApi.updatePointer": {
       "description": "The `updatePointer` field of `HoverPopoverApi`.",
@@ -3430,11 +3469,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{updatePointer}"
+          "template": "\\texttt{updatePointer}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverApi.freeze": {
       "description": "The `freeze` field of `HoverPopoverApi`.",
@@ -3448,11 +3489,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{freeze}"
+          "template": "\\texttt{freeze}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverApi.cancelUnfrozen": {
       "description": "The `cancelUnfrozen` field of `HoverPopoverApi`.",
@@ -3466,11 +3509,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{cancelUnfrozen}"
+          "template": "\\texttt{cancelUnfrozen}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverApi.dismissAll": {
       "description": "The `dismissAll` field of `HoverPopoverApi`.",
@@ -3484,11 +3529,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{dismissAll}"
+          "template": "\\texttt{dismissAll}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverApi.isAlive": {
       "description": "The `isAlive` field of `HoverPopoverApi`.",
@@ -3502,11 +3549,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{isAlive}"
+          "template": "\\texttt{isAlive}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverOptions": {
       "description": "Public TypeScript schema HoverPopoverOptions.",
@@ -3520,11 +3569,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}HoverPopoverOptions}"
+          "template": "\\texttt{\\color{4EC9A2}HoverPopoverOptions}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverOptions.offset": {
       "description": "The `offset` field of `HoverPopoverOptions`.",
@@ -3538,11 +3589,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{offset}"
+          "template": "\\texttt{offset}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverOptions.hitPadding": {
       "description": "The `hitPadding` field of `HoverPopoverOptions`.",
@@ -3556,11 +3609,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{hitPadding}"
+          "template": "\\texttt{hitPadding}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverOptions.viewportMargin": {
       "description": "The `viewportMargin` field of `HoverPopoverOptions`.",
@@ -3574,11 +3629,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{viewportMargin}"
+          "template": "\\texttt{viewportMargin}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverOptions.openDelayMs": {
       "description": "The `openDelayMs` field of `HoverPopoverOptions`.",
@@ -3592,11 +3649,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{openDelayMs}"
+          "template": "\\texttt{openDelayMs}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverOptions.fadeMs": {
       "description": "The `fadeMs` field of `HoverPopoverOptions`.",
@@ -3610,11 +3669,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{fadeMs}"
+          "template": "\\texttt{fadeMs}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverOptions.freezeDelayMs": {
       "description": "The `freezeDelayMs` field of `HoverPopoverOptions`.",
@@ -3628,11 +3689,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{freezeDelayMs}"
+          "template": "\\texttt{freezeDelayMs}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverOptions.maxZIndexBase": {
       "description": "The `maxZIndexBase` field of `HoverPopoverOptions`.",
@@ -3646,11 +3709,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{maxZIndexBase}"
+          "template": "\\texttt{maxZIndexBase}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverProviderProps": {
       "description": "Public TypeScript schema HoverPopoverProviderProps.",
@@ -3664,11 +3729,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}HoverPopoverProviderProps}"
+          "template": "\\texttt{\\color{4EC9A2}HoverPopoverProviderProps}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverProviderProps.children": {
       "description": "The `children` field of `HoverPopoverProviderProps`.",
@@ -3682,11 +3749,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{children}"
+          "template": "\\texttt{children}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverProviderProps.renderPopover": {
       "description": "The `renderPopover` field of `HoverPopoverProviderProps`.",
@@ -3700,11 +3769,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{renderPopover}"
+          "template": "\\texttt{renderPopover}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverProviderProps.options": {
       "description": "The `options` field of `HoverPopoverProviderProps`.",
@@ -3718,11 +3789,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{options}"
+          "template": "\\texttt{options}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverProviderProps.className": {
       "description": "The `className` field of `HoverPopoverProviderProps`.",
@@ -3736,11 +3809,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{className}"
+          "template": "\\texttt{className}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverProviderProps.style": {
       "description": "The `style` field of `HoverPopoverProviderProps`.",
@@ -3754,11 +3829,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{style}"
+          "template": "\\texttt{style}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverProviderProps.resolveBounds": {
       "description": "The `resolveBounds` field of `HoverPopoverProviderProps`.",
@@ -3772,11 +3849,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{resolveBounds}"
+          "template": "\\texttt{resolveBounds}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "HoverPopoverProviderProps.portalTarget": {
       "description": "The `portalTarget` field of `HoverPopoverProviderProps`.",
@@ -3790,11 +3869,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{portalTarget}"
+          "template": "\\texttt{portalTarget}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "PopoverPhase": {
       "description": "Public TypeScript schema PopoverPhase.",
@@ -3808,11 +3889,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}PopoverPhase}"
+          "template": "\\texttt{\\color{4EC9A2}PopoverPhase}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ViewportBounds": {
       "description": "Public TypeScript schema ViewportBounds.",
@@ -3826,11 +3909,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}ViewportBounds}"
+          "template": "\\texttt{\\color{4EC9A2}ViewportBounds}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeParseOptions": {
       "description": "Options for parsing an SNL fragment.",
@@ -3844,11 +3929,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeParseOptions}"
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeParseOptions}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeParseOptions.activeBinderIds": {
       "description": "The `activeBinderIds` field of `SnlSyntaxTreeParseOptions`.",
@@ -3862,11 +3949,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{activeBinderIds}"
+          "template": "\\texttt{activeBinderIds}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeParseError.position": {
       "description": "The `position` field of `SnlSyntaxTreeParseError`.",
@@ -3880,11 +3969,13 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{position}"
+          "template": "\\texttt{position}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "SnlSyntaxTreeParseError.message": {
       "description": "The `message` field of `SnlSyntaxTreeParseError`.",
@@ -3898,9 +3989,51 @@
       "dynamic_arity": false,
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{message}"
+          "template": "\\texttt{message}",
+          "style_name": "default",
+          "tags": []
+        }
+      ],
+      "tags": []
+    },
+    "MacroDataQueries.query_macro": {
+      "description": "The `query_macro` field of `MacroDataQueries`.",
+      "source": {
+        "entries": [
+          "mac.iface.macro-data-queries.query_macro"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "tags": [],
+      "styles": [
+        {
+          "style_name": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{query\\_macro}",
+          "tags": []
+        }
+      ]
+    },
+    "SnlSyntaxTreeViewProps.interaction_driver": {
+      "description": "The `interaction_driver` field of `SnlSyntaxTreeViewProps`.",
+      "source": {
+        "entries": [
+          "rv.iface.snl-syntax-tree-view-props.interaction_driver"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "tags": [],
+      "styles": [
+        {
+          "style_name": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{interaction\\_driver}",
+          "tags": []
         }
       ]
     }

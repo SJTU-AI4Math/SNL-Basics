@@ -2,9 +2,9 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
-import { createMacroTemplateQueryFromDb } from './default-query'
 import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
-import type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
+import { testDriver } from '../snl-react-view/test-helpers'
 
 function fracMacro(name: string, display?: 'inline' | 'block'): SnlMacro {
   return {
@@ -12,21 +12,22 @@ function fracMacro(name: string, display?: 'inline' | 'block'): SnlMacro {
     description: '',
     source: { entries: [], urls: [] },
     dynamic_arity: false,
+    tags: [],
     styles: [
       {
-        tag: 'default',
+        style_name: 'default',
         mode: display === 'block' ? 'formula_display' : 'formula_inline',
         template: '\\frac{#0}{#1}',
+        tags: [],
       },
     ],
   }
 }
 
-const db: SnlMacroDb = {
+const db: SnlMacroRecord = {
   'block.frac': fracMacro('block.frac', 'block'),
   'inline.frac': fracMacro('inline.frac'),
 }
-const query = createMacroTemplateQueryFromDb(db)
 
 function leaf(name: string) {
   return createSnlSyntaxTreeNode(name, { kind: 'fvar' })
@@ -39,7 +40,7 @@ describe('macro.display → KaTeX displayMode', () => {
     const tree = createSnlSyntaxTreeNode('block.frac', {
       children: [leaf('a'), leaf('b')],
     })
-    const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
+    const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
     await waitFor(() => {
       expect(container.querySelector('.katex-display')).not.toBeNull()
     })
@@ -49,7 +50,7 @@ describe('macro.display → KaTeX displayMode', () => {
     const tree = createSnlSyntaxTreeNode('inline.frac', {
       children: [leaf('a'), leaf('b')],
     })
-    const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
+    const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
     await waitFor(() => {
       expect(container.querySelector('.katex')).not.toBeNull()
     })

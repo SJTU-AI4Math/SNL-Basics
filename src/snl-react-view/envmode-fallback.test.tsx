@@ -11,24 +11,22 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
-import { createMacroTemplateQueryFromDb } from './default-query'
+
 import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
-import type { SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacroRecord } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { testDriver } from '../snl-react-view/test-helpers'
 
 // Empty macroDb + its query — every node is a macroDb-miss by construction.
-const emptyDb: SnlMacroDb = {}
-const emptyQuery = createMacroTemplateQueryFromDb(emptyDb)
+const emptyDb: SnlMacroRecord = {}
+
 
 /** Extract the resolved LaTeX from a render via the onResolved callback. */
-function collectLatex(tree: SnlSyntaxTree, db: SnlMacroDb): Promise<string> {
+function collectLatex(tree: SnlSyntaxTree, db: SnlMacroRecord): Promise<string> {
   return new Promise<string>((resolve) => {
-    const query = createMacroTemplateQueryFromDb(db)
     render(
       <SnlSyntaxTreeView
-        tree={tree}
-        macroDb={db}
-        query={query}
+        tree={tree} macro_data_driver={testDriver(db)}
         onResolved={(latex) => resolve(latex)}
       />,
     )
@@ -42,14 +40,14 @@ describe('envMode synthetic-macro path', () => {
     // Cat 2026-07-10 refactor: text roots via React TextRun, not KaTeX \\text{...}.
     // onResolved is KaTeX-only, so assert on the DOM.
     const t: SnlSyntaxTree = {
-      name: 'hello world',
-      envMode: 'text',
+      macro_name: 'hello world',
+      env_mode: 'text',
       kind: '',
       mdata: null,
       children: [],
     }
     const { container } = render(
-      <SnlSyntaxTreeView tree={t} macroDb={emptyDb} query={emptyQuery} />,
+      <SnlSyntaxTreeView tree={t} macro_data_driver={testDriver(emptyDb)} />,
     )
     await waitFor(() => {
       const text = container.querySelector('.snl-text')
@@ -60,8 +58,8 @@ describe('envMode synthetic-macro path', () => {
 
   it('$latex$ root renders payload as raw LaTeX', async () => {
     const t: SnlSyntaxTree = {
-      name: 'x + y',
-      envMode: 'formula_inline',
+      macro_name: 'x + y',
+      env_mode: 'formula_inline',
       kind: '',
       mdata: null,
       children: [],
@@ -77,8 +75,8 @@ describe('envMode synthetic-macro path', () => {
     // (though it stays in the tree for scoping). Result: just "f" (as
     // raw LaTeX, wrapped in \htmlData).
     const t: SnlSyntaxTree = {
-      name: 'f',
-      envMode: 'formula_inline',
+      macro_name: 'f',
+      env_mode: 'formula_inline',
       kind: '',
       mdata: null,
       children: [createSnlSyntaxTreeNode('a', { kind: 'fvar' })],
@@ -98,8 +96,8 @@ describe('envMode synthetic-macro path', () => {
     // `@$\operatorname{Im}(#0)$(x)` — payload has `#0`, so `x` gets
     // inlined. Result: `\operatorname{Im}(x)`.
     const t: SnlSyntaxTree = {
-      name: '\\operatorname{Im}(#0)',
-      envMode: 'formula_inline',
+      macro_name: '\\operatorname{Im}(#0)',
+      env_mode: 'formula_inline',
       kind: '',
       mdata: null,
       children: [createSnlSyntaxTreeNode('x', { kind: 'fvar' })],
@@ -112,14 +110,14 @@ describe('envMode synthetic-macro path', () => {
 
   it('%text with #0% splices child', async () => {
     const t: SnlSyntaxTree = {
-      name: 'hello #0',
-      envMode: 'text',
+      macro_name: 'hello #0',
+      env_mode: 'text',
       kind: '',
       mdata: null,
       children: [createSnlSyntaxTreeNode('name', { kind: 'fvar' })],
     }
     const { container } = render(
-      <SnlSyntaxTreeView tree={t} macroDb={emptyDb} query={emptyQuery} />,
+      <SnlSyntaxTreeView tree={t} macro_data_driver={testDriver(emptyDb)} />,
     )
     await waitFor(() => {
       const root = container.querySelector('.snl-text')
@@ -136,7 +134,7 @@ describe('envMode synthetic-macro path', () => {
 describe('macroDb-miss fallback for plain names', () => {
   it('applied `foo(a)` with no db entry renders as `foo(a)` (no \\operatorname)', async () => {
     const t: SnlSyntaxTree = {
-      name: 'foo',
+      macro_name: 'foo',
       kind: 'fvar',
       mdata: null,
       children: [createSnlSyntaxTreeNode('a', { kind: 'fvar' })],
@@ -148,7 +146,7 @@ describe('macroDb-miss fallback for plain names', () => {
 
   it('applied `\\foo(a)` with no db entry renders as \\operatorname{foo}(a)', async () => {
     const t: SnlSyntaxTree = {
-      name: '\\foo',
+      macro_name: '\\foo',
       kind: 'fvar',
       mdata: null,
       children: [createSnlSyntaxTreeNode('a', { kind: 'fvar' })],
@@ -160,7 +158,7 @@ describe('macroDb-miss fallback for plain names', () => {
 
   it('leaf `\\i` renders as \\mathrm{i}', async () => {
     const t: SnlSyntaxTree = {
-      name: '\\i',
+      macro_name: '\\i',
       kind: 'fvar',
       mdata: null,
       children: [],
@@ -171,7 +169,7 @@ describe('macroDb-miss fallback for plain names', () => {
 
   it('leaf `x` (pure alpha) renders as bare `x`', async () => {
     const t: SnlSyntaxTree = {
-      name: 'x',
+      macro_name: 'x',
       kind: 'fvar',
       mdata: null,
       children: [],
@@ -185,7 +183,7 @@ describe('macroDb-miss fallback for plain names', () => {
     // Sanity check that our fake query pipeline actually finishes.
     const t = createSnlSyntaxTreeNode('x', { kind: 'fvar' })
     const { container } = render(
-      <SnlSyntaxTreeView tree={t} macroDb={emptyDb} query={emptyQuery} />,
+      <SnlSyntaxTreeView tree={t} macro_data_driver={testDriver(emptyDb)} />,
     )
     await waitFor(() => {
       expect(container.querySelector('.katex')).not.toBeNull()
@@ -201,7 +199,7 @@ describe('@ binder kind survives the fallback path (2026-07-04-late 猫猫 fix)'
     // `f(x)`. The fix drops the override so wrapHtmlData falls through to
     // node.kind ('binder' in this case).
     const t: SnlSyntaxTree = {
-      name: 'f',
+      macro_name: 'f',
       kind: 'binder',
       mdata: null,
       children: [createSnlSyntaxTreeNode('x', { kind: 'binder' })],
@@ -213,7 +211,7 @@ describe('@ binder kind survives the fallback path (2026-07-04-late 猫猫 fix)'
 
   it('un-@ f(x) still renders with kind=fvar (default annotate-bind)', async () => {
     const t: SnlSyntaxTree = {
-      name: 'f',
+      macro_name: 'f',
       kind: 'fvar',
       mdata: null,
       children: [createSnlSyntaxTreeNode('x', { kind: 'fvar' })],

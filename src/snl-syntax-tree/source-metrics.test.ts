@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacroRecord } from '../snl-macro/types'
 import type { SnlSyntaxTree } from './types'
 import { analyzeSnlTreeSources } from './source-metrics'
 
@@ -9,31 +9,31 @@ function node(
   mdata: unknown = null,
   children: SnlSyntaxTree[] = [],
 ): SnlSyntaxTree {
-  return { name, kind, mdata, children }
+  return { macro_name: name, kind, mdata, children }
 }
 
-const style = [{ tag: 'default', mode: 'formula_inline' as const, template: '#0' }]
+const style = [{ style_name: 'default', mode: 'formula_inline' as const, template: '#0', tags: [] as string[] }]
 
-const macroDb: SnlMacroDb = {
+const macroDb: SnlMacroRecord = {
   'macro.entry': {
-    name: 'macro.entry',
-    description: '',
+    name: 'macro.entry', description: '',
     source: { entries: ['missing-entry', 'entry-ok'], urls: [] },
     dynamic_arity: false,
+    tags: [],
     styles: style,
   },
   'macro.url': {
-    name: 'macro.url',
-    description: '',
+    name: 'macro.url', description: '',
     source: { entries: [], urls: ['https://example.test/source'] },
     dynamic_arity: false,
+    tags: [],
     styles: style,
   },
   'macro.missing': {
-    name: 'macro.missing',
-    description: '',
+    name: 'macro.missing', description: '',
     source: { entries: ['missing-entry'], urls: [] },
     dynamic_arity: false,
+    tags: [],
     styles: style,
   },
 }

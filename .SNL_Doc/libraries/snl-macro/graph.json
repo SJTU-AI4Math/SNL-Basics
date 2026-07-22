@@ -29,13 +29,6 @@
       }
     },
     {
-      "id": "1ce09716-5762-47d0-a0e9-f4dd38f363fa",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.iface.snl-macro-db"
-      }
-    },
-    {
       "id": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
       "label": "Entry",
       "props": {
@@ -109,7 +102,7 @@
       "id": "field-mac-iface-snl-macro-style-tag",
       "label": "Entry",
       "props": {
-        "entryId": "mac.iface.snl-macro-style.tag"
+        "entryId": "mac.iface.snl-macro-style.style_name"
       }
     },
     {
@@ -127,31 +120,17 @@
       }
     },
     {
-      "id": "field-mac-iface-snl-macro-style-variadic-left",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.iface.snl-macro-style.variadic_left"
-      }
-    },
-    {
       "id": "field-mac-iface-snl-macro-style-variadic-join",
       "label": "Entry",
       "props": {
-        "entryId": "mac.iface.snl-macro-style.variadic_join"
-      }
-    },
-    {
-      "id": "field-mac-iface-snl-macro-style-variadic-right",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.iface.snl-macro-style.variadic_right"
+        "entryId": "mac.iface.snl-macro-style.separator"
       }
     },
     {
       "id": "field-mac-iface-snl-macro-style-react-renderer-key",
       "label": "Entry",
       "props": {
-        "entryId": "mac.iface.snl-macro-style.react_renderer_key"
+        "entryId": "mac.iface.snl-macro-style.block_template_name"
       }
     },
     {
@@ -174,6 +153,27 @@
       "props": {
         "entryId": "mac.iface.snl-macro-source.urls"
       }
+    },
+    {
+      "id": "mac-cls-macro-data-driver",
+      "label": "Entry",
+      "props": {
+        "entryId": "mac.cls.macro-data-driver"
+      }
+    },
+    {
+      "id": "mac-iface-macro-data-queries",
+      "label": "Entry",
+      "props": {
+        "entryId": "mac.iface.macro-data-queries"
+      }
+    },
+    {
+      "id": "field-mac-iface-macro-data-queries-query-macro",
+      "label": "Entry",
+      "props": {
+        "entryId": "mac.iface.macro-data-queries.query_macro"
+      }
     }
   ],
   "relationships": [
@@ -185,11 +185,6 @@
     {
       "from": "sec-macro-interfaces",
       "to": "b5b10656-6b0d-4cb5-925b-f444331767f6",
-      "label": "branch"
-    },
-    {
-      "from": "sec-macro-interfaces",
-      "to": "1ce09716-5762-47d0-a0e9-f4dd38f363fa",
       "label": "branch"
     },
     {
@@ -264,17 +259,7 @@
     },
     {
       "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "field-mac-iface-snl-macro-style-variadic-left",
-      "label": "branch"
-    },
-    {
-      "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
       "to": "field-mac-iface-snl-macro-style-variadic-join",
-      "label": "branch"
-    },
-    {
-      "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "field-mac-iface-snl-macro-style-variadic-right",
       "label": "branch"
     },
     {
@@ -295,6 +280,21 @@
     {
       "from": "a504abbd-facb-455f-9bb2-79a4ba303901",
       "to": "field-mac-iface-snl-macro-source-urls",
+      "label": "branch"
+    },
+    {
+      "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
+      "to": "mac-cls-macro-data-driver",
+      "label": "branch"
+    },
+    {
+      "from": "sec-macro-interfaces",
+      "to": "mac-iface-macro-data-queries",
+      "label": "branch"
+    },
+    {
+      "from": "mac-iface-macro-data-queries",
+      "to": "field-mac-iface-macro-data-queries-query-macro",
       "label": "branch"
     }
   ]

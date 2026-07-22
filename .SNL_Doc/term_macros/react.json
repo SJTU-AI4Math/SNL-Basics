@@ -15,11 +15,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "react.ReactElement": {
       "description": "React `ReactElement` — the value returned by a component; a lightweight description of what to render.",
@@ -33,11 +35,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "react.useMemo": {
       "description": "React `useMemo` hook — memoizes a computed value across renders.",
@@ -51,11 +55,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "react.useEffect": {
       "description": "React `useEffect` hook — synchronizes a component with an external system.",
@@ -69,11 +75,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "react.useState": {
       "description": "React `useState` hook — declares a state variable local to a component.",
@@ -87,11 +95,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "react.useRef": {
       "description": "React `useRef` hook — creates a mutable ref object whose `.current` is stable across renders.",
@@ -105,11 +115,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "react.hooks": {
       "description": "React Hooks — functions starting with `use` that let function components hook into React state and lifecycle.",
@@ -123,11 +135,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "react.props": {
       "description": "React props — the parameters a parent component passes to a child.",
@@ -141,11 +155,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Cerulean}{\\texttt{#0}}"
+          "template": "\\textcolor{Cerulean}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     }
   }
 }

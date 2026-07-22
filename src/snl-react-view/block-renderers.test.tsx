@@ -2,10 +2,10 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
-import { createMacroTemplateQueryFromDb } from './default-query'
 import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
-import type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { testDriver } from '../snl-react-view/test-helpers'
 
 function blockMacro(name: string, reactRendererKey: string): SnlMacro {
   return {
@@ -13,24 +13,24 @@ function blockMacro(name: string, reactRendererKey: string): SnlMacro {
     description: 'Test fixture',
     source: { entries: [], urls: [] },
     dynamic_arity: true,
-    styles: [{ tag: 'default', mode: 'block', template: '', react_renderer_key: reactRendererKey }],
+    tags: [],
+    styles: [{ style_name: 'default', mode: 'block', template: '', block_template_name: reactRendererKey, tags: [] }],
   }
 }
 
-const db: SnlMacroDb = {
+const db: SnlMacroRecord = {
   'sample.list': blockMacro('sample.list', 'list'),
   'sample.enumerate': blockMacro('sample.enumerate', 'enumerate'),
   'sample.table': blockMacro('sample.table', 'table'),
   'sample.centered': blockMacro('sample.centered', 'centered'),
 }
-const query = createMacroTemplateQueryFromDb(db)
 
 function leaf(name: string, kind = 'fvar'): SnlSyntaxTree {
   return createSnlSyntaxTreeNode(name, { kind })
 }
 
 function renderTree(tree: SnlSyntaxTree) {
-  return render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
+  return render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 }
 
 afterEach(cleanup)

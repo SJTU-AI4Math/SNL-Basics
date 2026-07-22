@@ -4,8 +4,8 @@
     "kind": "npm-package",
     "title": "SNL Basics React Package",
     "content": {
-      "snl": "%The npm distribution unit for SNL-Basics, version 0.9.0 (currently private=true). It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, and the macro DB. It contains three source modules: snl-syntax-tree, snl-macro, and snl-react-view. The package.json#files allowlist restricts the tarball to the contents of dist-lib/, approximately 29 kB.%",
-      "markdown": "The npm distribution unit for SNL-Basics, version 0.9.0 (currently `private=true`). It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, and the macro DB. It contains three source modules: snl-syntax-tree, snl-macro, and snl-react-view. The `package.json#files` allowlist restricts the tarball to the contents of `dist-lib/`, approximately 29 kB."
+      "snl": "%The npm distribution unit for SNL-Basics, version 0.10.0 (currently private=true). It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, and the macro DB. It contains three source modules: snl-syntax-tree, snl-macro, and snl-react-view. The package.json#files allowlist restricts the tarball to the contents of dist-lib/, approximately 29 kB.%",
+      "markdown": "The npm distribution unit for SNL-Basics, version 0.10.0 (currently `private=true`). It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, and the macro DB. It contains three source modules: snl-syntax-tree, snl-macro, and snl-react-view. The `package.json#files` allowlist restricts the tarball to the contents of `dist-lib/`, approximately 29 kB."
     },
     "contribution_info": null,
     "pointer": {
@@ -34,8 +34,8 @@
     "kind": "module",
     "title": "SNL Macro Module",
     "content": {
-      "snl": "%Data-model definitions and bundled data for the macro DB. It defines the four types SnlMacro, SnlMacroDb, SnlMacroStyle, and SnlMacroSource, and provides bundledMacroDb as the bundled core macro DB.%",
-      "markdown": "Data-model definitions and bundled data for the macro DB. It defines the four types `SnlMacro`, `SnlMacroDb`, `SnlMacroStyle`, and `SnlMacroSource`, and provides `bundledMacroDb` as the bundled core macro DB."
+      "snl": "%Query-oriented macro data model. It defines SnlMacro, SnlMacroStyle, SnlMacroSource, MacroDataQueries, and MacroDataDriver. Consumers own storage and provide query_macro.%",
+      "markdown": "Query-oriented macro data model. It defines `SnlMacro`, `SnlMacroStyle`, `SnlMacroSource`, `MacroDataQueries`, and `MacroDataDriver`. Consumers own storage and provide `query_macro`."
     },
     "contribution_info": null,
     "pointer": {
@@ -64,8 +64,8 @@
     "kind": "interface",
     "title": "SNL Syntax Tree",
     "content": {
-      "snl": "interface(SnlSyntaxTree,enumerate(Type.judge(SnlSyntaxTree.name,string),Type.judge(SnlSyntaxTree.style,Type.opt(string)),Type.judge(SnlSyntaxTree.envMode,Type.opt(Type.union(Type.literal(formula_inline),Type.literal(formula_display),Type.literal(text)))),Type.judge(SnlSyntaxTree.kind,string),Type.judge(SnlSyntaxTree.scope,Type.opt(string)),Type.judge(SnlSyntaxTree.mdata,unknown),Type.judge(SnlSyntaxTree.children,Type.array(SnlSyntaxTree))))",
-      "markdown": "The principal type for an SNL syntax tree. A node has fields including `name`, `kind`, `children`, `mdata`, `envMode`, `style`, and `scope`. It is a union type combining the three `envMode` branches: formula, text, and block. All parser output, serializer input, and renderer consumption use this type."
+      "snl": "interface(SnlSyntaxTree,enumerate(Type.judge(SnlSyntaxTree.macro_name,string),Type.judge(SnlSyntaxTree.style_name,Type.opt(string)),Type.judge(SnlSyntaxTree.env_mode,Type.opt(Type.union(Type.literal(formula_inline),Type.literal(formula_display),Type.literal(text)))),Type.judge(SnlSyntaxTree.kind,string),Type.judge(SnlSyntaxTree.scope,Type.opt(string)),Type.judge(SnlSyntaxTree.mdata,unknown),Type.judge(SnlSyntaxTree.children,Type.array(SnlSyntaxTree))))",
+      "markdown": "The principal type for an SNL syntax tree. A node has fields including `macro_name`, `kind`, `children`, `mdata`, `env_mode`, `style_name`, and `scope`. It is a union type combining the three `env_mode` branches: formula, text, and block. All parser output, serializer input, and renderer consumption use this type."
     },
     "contribution_info": null,
     "pointer": {
@@ -79,8 +79,8 @@
     "kind": "interface",
     "title": "SNL Syntax Tree Base",
     "content": {
-      "snl": "interface(SnlSyntaxTreeBase,enumerate(Type.judge(SnlSyntaxTreeBase.name,string),Type.judge(SnlSyntaxTreeBase.style,Type.opt(string)),Type.judge(SnlSyntaxTreeBase.kind,string),Type.judge(SnlSyntaxTreeBase.scope,Type.opt(string)),Type.judge(SnlSyntaxTreeBase.mdata,unknown),Type.judge(SnlSyntaxTreeBase.children,Type.array(SnlSyntaxTree))))",
-      "markdown": "The base containing the fields common to all three branches of the `SnlSyntaxTree` union: `name` (a macro name or delimiter payload), `kind` (`bvar`, `fvar`, `binder`, `rule`, and so on, or empty), `children` (an array of child nodes), `mdata` (a free-form metadata bag), `style` (an optional style-variant name), and `scope` (a structural scope marker)."
+      "snl": "interface(SnlSyntaxTreeBase,enumerate(Type.judge(SnlSyntaxTreeBase.macro_name,string),Type.judge(SnlSyntaxTreeBase.style_name,Type.opt(string)),Type.judge(SnlSyntaxTreeBase.kind,string),Type.judge(SnlSyntaxTreeBase.scope,Type.opt(string)),Type.judge(SnlSyntaxTreeBase.mdata,unknown),Type.judge(SnlSyntaxTreeBase.children,Type.array(SnlSyntaxTree))))",
+      "markdown": "The base containing the fields common to all three branches of the `SnlSyntaxTree` union: `macro_name` (a macro name or delimiter payload), `kind` (`bvar`, `fvar`, `binder`, `rule`, and so on, or empty), `children` (an array of child nodes), `mdata` (a free-form metadata bag), `style_name` (an optional style-variant name), and `scope` (a structural scope marker)."
     },
     "contribution_info": null,
     "pointer": {
@@ -125,43 +125,13 @@
     "title": "Block SNL Syntax Tree Node",
     "content": {
       "snl": "interface(SnlSyntaxTreeBlockNode,enumerate(Type.judge(SnlSyntaxTreeBlockNode.mode,Type.literal(block)),Type.judge(SnlSyntaxTreeBlockNode.block_kind,Type.union(Type.literal(list),Type.literal(table),Type.literal(centered),Type.literal(custom)))))",
-      "markdown": "The branch whose `envMode` is `block`. It dispatches through `react_renderer_key` to a specific block renderer, such as `list`, `enumerate`, `matrix`, or `table`."
+      "markdown": "The branch whose `env_mode` is `block`. It dispatches through `block_template_name` to a specific block renderer, such as `list`, `enumerate`, `matrix`, or `table`."
     },
     "contribution_info": null,
     "pointer": {
       "file": "src/snl-syntax-tree/node-types.ts",
       "mode": "regex",
       "pattern": "export\\s+interface\\s+SnlSyntaxTreeBlockNode\\b"
-    }
-  },
-  {
-    "id": "st.iface.snl-macro-template-query-args",
-    "kind": "interface",
-    "title": "SNL Macro Template Query Arguments",
-    "content": {
-      "snl": "interface(SnlMacroTemplateQueryArgs,enumerate(Type.judge(SnlMacroTemplateQueryArgs.name,string),Type.judge(SnlMacroTemplateQueryArgs.node,SnlSyntaxTree)))",
-      "markdown": "Arguments to a template-query function. They carry the macro name and the requested style and `envMode`; the query implementation returns the corresponding style’s LaTeX or text template string."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-syntax-tree/query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+interface\\s+SnlMacroTemplateQueryArgs\\b"
-    }
-  },
-  {
-    "id": "st.iface.snl-macro-template-query",
-    "kind": "interface",
-    "title": "SNL Macro Template Query",
-    "content": {
-      "snl": "Type.judge(SnlMacroTemplateQuery,api.code(%(args: SnlMacroTemplateQueryArgs) => Promise<string>%))",
-      "markdown": "The function-signature type alias for a template query: `(args: SnlMacroTemplateQueryArgs) => Promise<string>`. The rendering pipeline uses it to obtain the template for a specific style asynchronously."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-syntax-tree/query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+type\\s+SnlMacroTemplateQuery\\b"
     }
   },
   {
@@ -343,26 +313,11 @@
     }
   },
   {
-    "id": "mac.iface.snl-macro-db",
-    "kind": "interface",
-    "title": "SNL Macro Database",
-    "content": {
-      "snl": "Type.judge(SnlMacroDb,Type.record(string,SnlMacro))",
-      "markdown": "**The type of the entire macro pool**, namely `Record<string, SnlMacro>`. Each key is a globally unique `SnlMacro.name`, and each value is the macro itself. The renderer’s `macroDb` parameter has this type."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-macro/types.ts",
-      "mode": "regex",
-      "pattern": "export\\s+type\\s+SnlMacroDb\\b"
-    }
-  },
-  {
     "id": "mac.iface.snl-macro-style",
     "kind": "interface",
     "title": "SNL Macro Style",
     "content": {
-      "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.tag,string),Type.judge(SnlMacroStyle.mode,Type.union(Type.literal($\\texttt{formula\\_inline}$),Type.literal($\\texttt{formula\\_display}$),Type.literal($\\texttt{text}$),Type.literal($\\texttt{block}$))),Type.judge(SnlMacroStyle.template,string),Type.judge(SnlMacroStyle.variadic_left,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_join,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_right,Type.opt(string)),Type.judge(SnlMacroStyle.react_renderer_key,Type.opt(string)),Type.judge(SnlMacroStyle.tags,Type.opt(Type.array(string)))))",
+      "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.style_name,string),Type.judge(SnlMacroStyle.mode,Type.union(Type.literal($\\texttt{formula\\_inline}$),Type.literal($\\texttt{formula\\_display}$),Type.literal($\\texttt{text}$),Type.literal($\\texttt{block}$))),Type.judge(SnlMacroStyle.template,string),Type.judge(SnlMacroStyle.separator,Type.opt(string)),Type.judge(SnlMacroStyle.block_template_name,Type.opt(string)),Type.judge(SnlMacroStyle.tags,Type.array(string))))",
       "markdown": "One rendering style of a macro. All styles share the macro-level arity and change only the **rendered output**. `styles[0]` is the implicit default."
     },
     "contribution_info": null,
@@ -407,8 +362,8 @@
     "kind": "component",
     "title": "SNL Syntax Tree View",
     "content": {
-      "snl": "%The main rendering component. It accepts tree, macroDb, templateQuery, hooks, and palette, and produces an interactive KaTeX-in-React tree. It supports hover popovers, bvar-scope highlighting, block-renderer dispatch, and themeable palettes.%",
-      "markdown": "The main rendering component. It accepts `tree`, `macroDb`, `templateQuery`, `hooks`, and `palette`, and produces an interactive KaTeX-in-React tree. It supports hover popovers, `bvar`-scope highlighting, block-renderer dispatch, and themeable palettes."
+      "snl": "%The main rendering component. It accepts a tree and one MacroDataDriver as its macro data source, plus optional interaction, hooks, and palette customization. It supports hover popovers, bvar-scope highlighting, block-renderer dispatch, and themeable palettes.%",
+      "markdown": "The main rendering component. It accepts a tree and one `MacroDataDriver` as its macro data source, plus optional interaction, hooks, and palette customization. It supports hover popovers, `bvar`-scope highlighting, block-renderer dispatch, and themeable palettes."
     },
     "contribution_info": null,
     "pointer": {
@@ -437,7 +392,7 @@
     "kind": "interface",
     "title": "SNL Syntax Tree View Properties",
     "content": {
-      "snl": "interface(SnlSyntaxTreeViewProps,enumerate(Type.judge(SnlSyntaxTreeViewProps.tree,SnlSyntaxTree),Type.judge(SnlSyntaxTreeViewProps.query,SnlMacroTemplateQuery),Type.judge(SnlSyntaxTreeViewProps.macroDb,SnlMacroDb),Type.judge(SnlSyntaxTreeViewProps.katexOptions,Type.opt(KatexOptions)),Type.judge(SnlSyntaxTreeViewProps.kindPalette,Type.opt(KindPalette)),Type.judge(SnlSyntaxTreeViewProps.onResolved,Type.opt(api.code(%(latexSource: string) => void%))),Type.judge(SnlSyntaxTreeViewProps.hooks,Type.opt(SnlRenderHooks))))",
+      "snl": "interface(SnlSyntaxTreeViewProps,enumerate(Type.judge(SnlSyntaxTreeViewProps.tree,SnlSyntaxTree),Type.judge(SnlSyntaxTreeViewProps.macro_data_driver,MacroDataDriver),Type.judge(SnlSyntaxTreeViewProps.interaction_driver,Type.opt(SnlInteractionDriver)),Type.judge(SnlSyntaxTreeViewProps.katexOptions,Type.opt(KatexOptions)),Type.judge(SnlSyntaxTreeViewProps.kindPalette,Type.opt(KindPalette)),Type.judge(SnlSyntaxTreeViewProps.onResolved,Type.opt(api.code(%(latexSource: string) => void%))),Type.judge(SnlSyntaxTreeViewProps.hooks,Type.opt(SnlRenderHooks))))",
       "markdown": "The props interface for the `SnlSyntaxTreeView` component. See the Property subentries attached to `SnlSyntaxTreeView` for individual props. The source interface declaration is authoritative for their count; Phase 3 will verify and complete them one by one."
     },
     "contribution_info": null,
@@ -558,7 +513,7 @@
     "title": "SNL Renderer Registry",
     "content": {
       "snl": "Type.judge(SnlRendererRegistry,Type.record(string,SnlBlockRenderer))",
-      "markdown": "The block-renderer registry type, `Record<string, SnlBlockRenderer>`. It uses `react_renderer_key` (`list`, `enumerate`, `matrix`, and so on) as the key for dispatch to the corresponding component."
+      "markdown": "The block-renderer registry type, `Record<string, SnlBlockRenderer>`. It uses `block_template_name` (`list`, `enumerate`, `matrix`, and so on) as the key for dispatching a block-mode macro to a React renderer."
     },
     "contribution_info": null,
     "pointer": {
@@ -587,7 +542,7 @@
     "kind": "interface",
     "title": "SNL Block Renderer Properties",
     "content": {
-      "snl": "interface(SnlBlockRendererProps,enumerate(Type.judge(SnlBlockRendererProps.node,SnlSyntaxTree),Type.judge(SnlBlockRendererProps.macroDb,SnlMacroDb),Type.judge(SnlBlockRendererProps.renderChild,api.code(%(child: SnlSyntaxTree) => ReactElement%))))",
+      "snl": "interface(SnlBlockRendererProps,enumerate(Type.judge(SnlBlockRendererProps.node,SnlSyntaxTree),Type.judge(SnlBlockRendererProps.macro_data_driver,MacroDataDriver),Type.judge(SnlBlockRendererProps.renderChild,api.code(%(child: SnlSyntaxTree) => ReactElement%))))",
       "markdown": "The props for a block renderer. They include `node` (the current block node) and `renderChild` (the callback that recursively renders child nodes)."
     },
     "contribution_info": null,
@@ -625,96 +580,6 @@
       "file": "src/snl-react-view/kind-palette.ts",
       "mode": "regex",
       "pattern": "export\\s+interface\\s+KindColoring\\b"
-    }
-  },
-  {
-    "id": "rv.iface.default-macro-template-query-options",
-    "kind": "interface",
-    "title": "Default Macro Template Query Options",
-    "content": {
-      "snl": "interface(DefaultMacroTemplateQueryOptions,enumerate(Type.judge(DefaultMacroTemplateQueryOptions.templateDbUrl,Type.opt(string)),Type.judge(DefaultMacroTemplateQueryOptions.artificialDelayMs,Type.opt(number))))",
-      "markdown": "Optional configuration for `createDefaultMacroTemplateQuery`. It allows the DB URL, caching policy, and related behavior to be specified."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+interface\\s+DefaultMacroTemplateQueryOptions\\b"
-    }
-  },
-  {
-    "id": "rv.fn.load-snl-macro-db",
-    "kind": "function",
-    "title": "Load SNL Macro Database",
-    "content": {
-      "snl": "ts.function(fn.loadSnlMacroDb,ts.function-type(ts.parameters(Type.judge(api.code(%url%),Type.opt(string))),ts.generic(ts.Promise,ts.type-arguments(SnlMacroDb))),ts.ellipsis@remark.rv.fn.load-snl-macro-db)",
-      "markdown": "`loadSnlMacroDb`’s formal TypeScript signature; see the linked Remark for implementation details."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+async\\s+function\\s+loadSnlMacroDb\\b"
-    }
-  },
-  {
-    "id": "rv.fn.set-snl-macro-db-cache",
-    "kind": "function",
-    "title": "Set SNL Macro Database Cache",
-    "content": {
-      "snl": "ts.function(fn.setSnlMacroDbCache,ts.function-type(ts.parameters(Type.judge(api.code(%db%),ts.union(SnlMacroDb,ts.null))),void),ts.ellipsis@remark.rv.fn.set-snl-macro-db-cache)",
-      "markdown": "`setSnlMacroDbCache`’s formal TypeScript signature; see the linked Remark for implementation details."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+function\\s+setSnlMacroDbCache\\b"
-    }
-  },
-  {
-    "id": "rv.fn.clear-snl-macro-db-cache",
-    "kind": "function",
-    "title": "Clear SNL Macro Database Cache",
-    "content": {
-      "snl": "ts.function(fn.clearSnlMacroDbCache,ts.function-type(ts.parameters(),void),ts.ellipsis@remark.rv.fn.clear-snl-macro-db-cache)",
-      "markdown": "`clearSnlMacroDbCache`’s formal TypeScript signature; see the linked Remark for implementation details."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+function\\s+clearSnlMacroDbCache\\b"
-    }
-  },
-  {
-    "id": "rv.fn.create-default-macro-template-query",
-    "kind": "function",
-    "title": "Create Default Macro Template Query",
-    "content": {
-      "snl": "ts.function(fn.createDefaultMacroTemplateQuery,ts.function-type(ts.parameters(Type.judge(api.code(%options%),Type.opt(DefaultMacroTemplateQueryOptions))),SnlMacroTemplateQuery),ts.ellipsis@remark.rv.fn.create-default-macro-template-query)",
-      "markdown": "`createDefaultMacroTemplateQuery`’s formal TypeScript signature; see the linked Remark for implementation details."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+function\\s+createDefaultMacroTemplateQuery\\b"
-    }
-  },
-  {
-    "id": "rv.fn.create-macro-template-query-from-db",
-    "kind": "function",
-    "title": "Create Macro Template Query from Database",
-    "content": {
-      "snl": "ts.function(fn.createMacroTemplateQueryFromDb,ts.function-type(ts.parameters(Type.judge(api.code(%db%),SnlMacroDb)),SnlMacroTemplateQuery),ts.ellipsis@remark.rv.fn.create-macro-template-query-from-db)",
-      "markdown": "`createMacroTemplateQueryFromDb`’s formal TypeScript signature; see the linked Remark for implementation details."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+function\\s+createMacroTemplateQueryFromDb\\b"
     }
   },
   {
@@ -820,21 +685,6 @@
       "file": "src/snl-react-view/kind-palette.ts",
       "mode": "regex",
       "pattern": "export\\s+const\\s+DEFAULT_KIND_PALETTE\\b"
-    }
-  },
-  {
-    "id": "rv.const.default-snl-macro-db-url",
-    "kind": "constant",
-    "title": "Default SNL Macro Database URL",
-    "content": {
-      "snl": "%The default URL for loadSnlMacroDb, with the value /snl-macro-db.json. It assumes the host serves the shipped JSON at the site root. A host with a different URL structure should pass the url argument explicitly.%",
-      "markdown": "The default URL for `loadSnlMacroDb`, with the value `/snl-macro-db.json`. It assumes the host serves the shipped JSON at the site root. A host with a different URL structure should pass the `url` argument explicitly."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+const\\s+DEFAULT_SNL_MACRO_DB_URL\\b"
     }
   },
   {
@@ -1010,7 +860,7 @@
   {
     "id": "mac.iface.snl-macro.kind",
     "kind": "field",
-    "title": "$\\texttt{kind}$",
+    "title": "$\\texttt{kind}$ [REMOVED v0.10.0]",
     "content": {
       "markdown": "Semantic kind (rule / const / bvar / binder / fvar / custom). If unset, nodes rendered for this macro get `data-kind=\"fvar\"`. (There is no more `'default'` kind — un-classified = fvar.)"
     },
@@ -1020,7 +870,8 @@
       "mode": "regex",
       "pattern": "^\\s*kind\\??\\s*(?::|\\()",
       "flags": "m"
-    }
+    },
+    "deprecated": true
   },
   {
     "id": "mac.iface.snl-macro.dynamic_arity",
@@ -1069,19 +920,20 @@
     }
   },
   {
-    "id": "mac.iface.snl-macro-style.tag",
+    "id": "mac.iface.snl-macro-style.style_name",
     "kind": "field",
-    "title": "$\\texttt{tag}$",
+    "title": "$\\texttt{style\\_name}$",
     "content": {
-      "markdown": "Style tag — the token used in `foo[tag](…)`. `[A-Za-z_][A-Za-z0-9_]*` (parser IDENT rules). Must be unique within a macro's `styles` array."
+      "markdown": "Style identifier — the token used in `foo[style_name](…)`. Must be unique within a macro's `styles` array. Renamed from `tag` in v0.10.0."
     },
     "contribution_info": null,
     "pointer": {
       "file": "src/snl-macro/types.ts",
       "mode": "regex",
-      "pattern": "^\\s*tag\\??\\s*(?::|\\()",
+      "pattern": "^\\s*style_name\\??\\s*(?::|\\()",
       "flags": "m"
-    }
+    },
+    "body": "Unique style identifier within the macro. Renamed from `tag` in v0.10.0."
   },
   {
     "id": "mac.iface.snl-macro-style.mode",
@@ -1114,54 +966,9 @@
     }
   },
   {
-    "id": "mac.iface.snl-macro-style.variadic_left",
+    "id": "mac.iface.snl-macro-style.block_template_name",
     "kind": "field",
-    "title": "$\\texttt{variadic\\_left}$",
-    "content": {
-      "markdown": "`variadic_left` is an optional field of `SnlMacroStyle`. Its declared TypeScript type is `string`."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-macro/types.ts",
-      "mode": "regex",
-      "pattern": "^\\s*variadic_left\\??\\s*(?::|\\()",
-      "flags": "m"
-    }
-  },
-  {
-    "id": "mac.iface.snl-macro-style.variadic_join",
-    "kind": "field",
-    "title": "$\\texttt{variadic\\_join}$",
-    "content": {
-      "markdown": "`variadic_join` is an optional field of `SnlMacroStyle`. Its declared TypeScript type is `string`."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-macro/types.ts",
-      "mode": "regex",
-      "pattern": "^\\s*variadic_join\\??\\s*(?::|\\()",
-      "flags": "m"
-    }
-  },
-  {
-    "id": "mac.iface.snl-macro-style.variadic_right",
-    "kind": "field",
-    "title": "$\\texttt{variadic\\_right}$",
-    "content": {
-      "markdown": "`variadic_right` is an optional field of `SnlMacroStyle`. Its declared TypeScript type is `string`."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-macro/types.ts",
-      "mode": "regex",
-      "pattern": "^\\s*variadic_right\\??\\s*(?::|\\()",
-      "flags": "m"
-    }
-  },
-  {
-    "id": "mac.iface.snl-macro-style.react_renderer_key",
-    "kind": "field",
-    "title": "$\\texttt{react\\_renderer\\_key}$",
+    "title": "$\\texttt{block\\_template\\_name}$",
     "content": {
       "markdown": "Block/text mode dispatch key — see hooks.tsx / block-renderers.tsx. Only applies when mode is 'block' or 'text'."
     },
@@ -1169,9 +976,10 @@
     "pointer": {
       "file": "src/snl-macro/types.ts",
       "mode": "regex",
-      "pattern": "^\\s*react_renderer_key\\??\\s*(?::|\\()",
+      "pattern": "^\\s*block_template_name\\??\\s*(?::|\\()",
       "flags": "m"
-    }
+    },
+    "body": "Key for a custom React block renderer; valid only for block mode."
   },
   {
     "id": "mac.iface.snl-macro-style.tags",
@@ -1478,7 +1286,7 @@
     "kind": "function",
     "title": "Resolve Node Display",
     "content": {
-      "snl": "ts.function(fn.nodeDisplay,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%db%),SnlMacroDb)),ts.union(api.code(%\"inline\"%),api.code(%\"block\"%))),ts.ellipsis@remark.rv.fn.node-display)",
+      "snl": "ts.function(fn.nodeDisplay,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%macro%),ts.union(SnlMacro,ts.null))),ts.union(api.code(%\"inline\"%),api.code(%\"block\"%))),ts.ellipsis@remark.rv.fn.node-display)",
       "markdown": "`nodeDisplay`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
@@ -1493,7 +1301,7 @@
     "kind": "function",
     "title": "Resolve Node Mode",
     "content": {
-      "snl": "ts.function(fn.nodeMode,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%db%),SnlMacroDb)),api.code(%SnlMacroStyle[\"mode\"]%)),ts.ellipsis@remark.rv.fn.node-mode)",
+      "snl": "ts.function(fn.nodeMode,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%macro%),ts.union(SnlMacro,ts.null))),api.code(%SnlMacroStyle[\"mode\"]%)),ts.ellipsis@remark.rv.fn.node-mode)",
       "markdown": "`nodeMode`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
@@ -1508,7 +1316,7 @@
     "kind": "function",
     "title": "Resolve Node LaTeX",
     "content": {
-      "snl": "ts.function(fn.resolveNodeLatex,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%query%),SnlMacroTemplateQuery),Type.judge(api.code(%cache%),ts.generic(api.code(%Map%),ts.type-arguments(string,string))),Type.judge(api.code(%macroDb%),SnlMacroDb)),ts.generic(ts.Promise,ts.type-arguments(string))),ts.ellipsis@remark.rv.fn.resolve-node-latex)",
+      "snl": "ts.function(fn.resolveNodeLatex,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%driver%),MacroDataDriver),Type.judge(api.code(%treePath%),Type.opt(TreePath))),ts.generic(ts.Promise,ts.type-arguments(string))),ts.ellipsis@remark.rv.fn.resolve-node-latex)",
       "markdown": "`resolveNodeLatex`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
@@ -1523,7 +1331,7 @@
     "kind": "function",
     "title": "Resolve Root LaTeX",
     "content": {
-      "snl": "ts.function(fn.resolveRootLatex,ts.function-type(ts.parameters(Type.judge(api.code(%root%),SnlSyntaxTree),Type.judge(api.code(%query%),SnlMacroTemplateQuery),Type.judge(api.code(%cache%),ts.generic(api.code(%Map%),ts.type-arguments(string,string))),Type.judge(api.code(%macroDb%),SnlMacroDb)),ts.generic(ts.Promise,ts.type-arguments(string))),ts.ellipsis@remark.rv.fn.resolve-root-latex)",
+      "snl": "ts.function(fn.resolveRootLatex,ts.function-type(ts.parameters(Type.judge(api.code(%root%),SnlSyntaxTree),Type.judge(api.code(%driver%),MacroDataDriver)),ts.generic(ts.Promise,ts.type-arguments(string))),ts.ellipsis@remark.rv.fn.resolve-root-latex)",
       "markdown": "`resolveRootLatex`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
@@ -1583,7 +1391,7 @@
     "kind": "function",
     "title": "Wrap HTML Data",
     "content": {
-      "snl": "ts.function(fn.wrapHtmlData,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%inner%),string),Type.judge(api.code(%macroDb%),SnlMacroDb),Type.judge(api.code(%kindOverride%),Type.opt(string))),string),ts.ellipsis@remark.rv.fn.wrap-html-data)",
+      "snl": "ts.function(fn.wrapHtmlData,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%inner%),string),Type.judge(api.code(%macro%),ts.union(SnlMacro,ts.null)),Type.judge(api.code(%treePath%),Type.opt(TreePath)),Type.judge(api.code(%kindOverride%),Type.opt(string))),string),ts.ellipsis@remark.rv.fn.wrap-html-data)",
       "markdown": "`wrapHtmlData`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
@@ -1696,81 +1504,6 @@
       "file": "src/snl-syntax-tree/source-metrics.ts",
       "mode": "regex",
       "pattern": "export\\s+(?:async\\s+)?function\\s+analyzeSnlTreeSources\\b"
-    }
-  },
-  {
-    "id": "remark.rv.fn.load-snl-macro-db",
-    "kind": "remark",
-    "title": "Load SNL Macro Database — Remark",
-    "content": {
-      "snl": "%Loads a Macro Database asynchronously from a URL and reuses a module-level cache.%",
-      "markdown": "Loads a Macro Database asynchronously from a URL and reuses a module-level cache."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+async\\s+function\\s+loadSnlMacroDb\\b"
-    }
-  },
-  {
-    "id": "remark.rv.fn.set-snl-macro-db-cache",
-    "kind": "remark",
-    "title": "Set SNL Macro Database Cache — Remark",
-    "content": {
-      "snl": "%Explicitly sets or clears the module-level Macro Database cache.%",
-      "markdown": "Explicitly sets or clears the module-level Macro Database cache."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+function\\s+setSnlMacroDbCache\\b"
-    }
-  },
-  {
-    "id": "remark.rv.fn.clear-snl-macro-db-cache",
-    "kind": "remark",
-    "title": "Clear SNL Macro Database Cache — Remark",
-    "content": {
-      "snl": "%Clears the module-level Macro Database cache so subsequent loads read the data again.%",
-      "markdown": "Clears the module-level Macro Database cache so subsequent loads read the data again."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+function\\s+clearSnlMacroDbCache\\b"
-    }
-  },
-  {
-    "id": "remark.rv.fn.create-default-macro-template-query",
-    "kind": "remark",
-    "title": "Create Default Macro Template Query — Remark",
-    "content": {
-      "snl": "%Creates an asynchronous template-query function that loads the default database on demand.%",
-      "markdown": "Creates an asynchronous template-query function that loads the default database on demand."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+function\\s+createDefaultMacroTemplateQuery\\b"
-    }
-  },
-  {
-    "id": "remark.rv.fn.create-macro-template-query-from-db",
-    "kind": "remark",
-    "title": "Create Macro Template Query from Database — Remark",
-    "content": {
-      "snl": "%Converts an already loaded Macro Database into a template-query function that performs no network access.%",
-      "markdown": "Converts an already loaded Macro Database into a template-query function that performs no network access."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "export\\s+function\\s+createMacroTemplateQueryFromDb\\b"
     }
   },
   {
@@ -2422,47 +2155,47 @@
     "pointer": null
   },
   {
-    "id": "st.iface.snl-syntax-tree.name",
+    "id": "st.iface.snl-syntax-tree.macro_name",
     "kind": "field",
-    "title": "$\\texttt{name}$",
+    "title": "$\\texttt{macro\\_name}$",
     "content": {
-      "markdown": "Macro name — key into `SnlMacroDb`."
+      "markdown": "Macro name passed to the query backend. Renamed from `name` in tree v2."
     },
     "contribution_info": null,
     "pointer": {
       "file": "src/snl-syntax-tree/types.ts",
       "mode": "regex",
-      "pattern": "^\\s*name\\??\\s*(?::|\\()",
+      "pattern": "^\\s*macro_name\\??\\s*(?::|\\()",
       "flags": "m"
     }
   },
   {
-    "id": "st.iface.snl-syntax-tree.style",
+    "id": "st.iface.snl-syntax-tree.style_name",
     "kind": "field",
-    "title": "$\\texttt{style}$",
+    "title": "$\\texttt{style\\_name}$",
     "content": {
-      "markdown": "Style-tag override from the parser's `[style]` bracket, e.g. `foo[bar]` sets `style = 'bar'`. Undefined when no bracket — the view falls back to the macro's first style (`SnlMacro.styles[0]`)."
+      "markdown": "Style identifier. Renamed from `style` in tree v2."
     },
     "contribution_info": null,
     "pointer": {
       "file": "src/snl-syntax-tree/types.ts",
       "mode": "regex",
-      "pattern": "^\\s*style\\??\\s*(?::|\\()",
+      "pattern": "^\\s*style_name\\??\\s*(?::|\\()",
       "flags": "m"
     }
   },
   {
-    "id": "st.iface.snl-syntax-tree.env-mode",
+    "id": "st.iface.snl-syntax-tree.env_mode",
     "kind": "field",
-    "title": "$\\texttt{envMode}$",
+    "title": "$\\texttt{env\\_mode}$",
     "content": {
-      "markdown": "Synthetic-macro environment mode set by the parser for delimited names: `%…%` → `'text'` `$…$` → `'formula_inline'` `$$…$$` → `'formula_display'` When set, the render pipeline treats this node as a TEMPORARY macro: - The `name` is a literal payload (LaTeX source or raw text) — NOT a macroDb key. - `text` → wrapped in `\\text{escape(name)}`. - `formula_inline` → emitted as raw LaTeX (`name` is expected to be valid LaTeX; if it contains `$…$` KaTeX handles it normally). - `formula_display` → same as formula_inline, but also forces `katex.displayMode = true` at the root. When `envMode` is set the macroDb is NOT consulted for a template. Undefined for regular identifier-form nodes (the vast majority)."
+      "markdown": "Environment mode override. Renamed from `envMode` in tree v2."
     },
     "contribution_info": null,
     "pointer": {
       "file": "src/snl-syntax-tree/types.ts",
       "mode": "regex",
-      "pattern": "^\\s*envMode\\??\\s*(?::|\\()",
+      "pattern": "^\\s*env_mode\\??\\s*(?::|\\()",
       "flags": "m"
     }
   },
@@ -2527,32 +2260,32 @@
     }
   },
   {
-    "id": "st.iface.snl-syntax-tree-base.name",
+    "id": "st.iface.snl-syntax-tree-base.macro_name",
     "kind": "field",
-    "title": "$\\texttt{name}$",
+    "title": "$\\texttt{macro\\_name}$",
     "content": {
-      "markdown": "Macro name — key into SnlMacroDb."
+      "markdown": "Macro name or delimiter payload. Macro metadata is resolved exclusively through MacroDataDriver queries."
     },
     "contribution_info": null,
     "pointer": {
-      "file": "src/snl-syntax-tree/node-types.ts",
+      "file": "src/snl-syntax-tree/types.ts",
       "mode": "regex",
-      "pattern": "^\\s*name\\??\\s*(?::|\\()",
+      "pattern": "^\\s*macro_name\\??\\s*(?::|\\()",
       "flags": "m"
     }
   },
   {
-    "id": "st.iface.snl-syntax-tree-base.style",
+    "id": "st.iface.snl-syntax-tree-base.style_name",
     "kind": "field",
-    "title": "$\\texttt{style}$",
+    "title": "$\\texttt{style\\_name}$",
     "content": {
-      "markdown": "Style-tag override from the parser's `[style]` bracket; picks `SnlMacro.styles[tag]`."
+      "markdown": "Style identifier for the node. Renamed from `style` in tree v2."
     },
     "contribution_info": null,
     "pointer": {
-      "file": "src/snl-syntax-tree/node-types.ts",
+      "file": "src/snl-syntax-tree/types.ts",
       "mode": "regex",
-      "pattern": "^\\s*style\\??\\s*(?::|\\()",
+      "pattern": "^\\s*style_name\\??\\s*(?::|\\()",
       "flags": "m"
     }
   },
@@ -2668,43 +2401,13 @@
     "kind": "field",
     "title": "$\\texttt{block\\_kind}$",
     "content": {
-      "markdown": "Which block renderer to invoke — matches the resolved style's react_renderer_key."
+      "markdown": "Which block renderer to invoke — matches the resolved style's `block_template_name`."
     },
     "contribution_info": null,
     "pointer": {
       "file": "src/snl-syntax-tree/node-types.ts",
       "mode": "regex",
       "pattern": "^\\s*block_kind\\??\\s*(?::|\\()",
-      "flags": "m"
-    }
-  },
-  {
-    "id": "st.iface.snl-macro-template-query-args.name",
-    "kind": "field",
-    "title": "$\\texttt{name}$",
-    "content": {
-      "markdown": "Macro name being resolved."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-syntax-tree/query.ts",
-      "mode": "regex",
-      "pattern": "^\\s*name\\??\\s*(?::|\\()",
-      "flags": "m"
-    }
-  },
-  {
-    "id": "st.iface.snl-macro-template-query-args.node",
-    "kind": "field",
-    "title": "$\\texttt{node}$",
-    "content": {
-      "markdown": "The node requesting a template (for kind/binding-aware fallbacks)."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-syntax-tree/query.ts",
-      "mode": "regex",
-      "pattern": "^\\s*node\\??\\s*(?::|\\()",
       "flags": "m"
     }
   },
@@ -2724,32 +2427,17 @@
     }
   },
   {
-    "id": "rv.iface.snl-syntax-tree-view-props.query",
+    "id": "rv.iface.snl-syntax-tree-view-props.macro_data_driver",
     "kind": "field",
-    "title": "$\\texttt{query}$",
+    "title": "$\\texttt{macro\\_data\\_driver}$",
     "content": {
-      "markdown": "Template query — resolves a macro name to its KaTeX template string."
+      "markdown": "MacroDataDriver instance — sole data source for macro lookups. Replaces the old `query` prop in v0.10.0."
     },
     "contribution_info": null,
     "pointer": {
       "file": "src/components/SnlSyntaxTreeView.tsx",
       "mode": "regex",
-      "pattern": "^\\s*query\\??\\s*(?::|\\()",
-      "flags": "m"
-    }
-  },
-  {
-    "id": "rv.iface.snl-syntax-tree-view-props.macro-db",
-    "kind": "field",
-    "title": "$\\texttt{macroDb}$",
-    "content": {
-      "markdown": "The macro DB, used for mode dispatch and metadata."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/components/SnlSyntaxTreeView.tsx",
-      "mode": "regex",
-      "pattern": "^\\s*macroDb\\??\\s*(?::|\\()",
+      "pattern": "^\\s*macro_data_driver\\??\\s*(?::|\\()",
       "flags": "m"
     }
   },
@@ -2848,7 +2536,7 @@
     "kind": "field",
     "title": "$\\texttt{resolveMacroInfo}$",
     "content": {
-      "markdown": "Async — awaited after hover starts (with a short debounce). Fine to hit a network / disk cache; the view keeps `loading: true` in the tooltip state until it resolves. Default: read macroDb[name].description."
+      "markdown": "Async — awaited after hover starts (with a short debounce). Fine to hit a network or disk cache; the view keeps `loading: true` in the tooltip state until it resolves. The default reads the queried macro description."
     },
     "contribution_info": null,
     "pointer": {
@@ -3360,17 +3048,17 @@
     }
   },
   {
-    "id": "rv.iface.snl-block-renderer-props.macro-db",
+    "id": "rv.iface.snl-block-renderer-props.macro_data_driver",
     "kind": "field",
-    "title": "$\\texttt{macroDb}$",
+    "title": "$\\texttt{macro\\_data\\_driver}$",
     "content": {
-      "markdown": "The macro DB, for looking up child metadata if needed."
+      "markdown": "The query-only macro data driver used for child metadata lookups."
     },
     "contribution_info": null,
     "pointer": {
       "file": "src/snl-react-view/hooks.tsx",
       "mode": "regex",
-      "pattern": "^\\s*macroDb\\??\\s*(?::|\\()",
+      "pattern": "^\\s*macro_data_driver\\??\\s*(?::|\\()",
       "flags": "m"
     }
   },
@@ -3416,36 +3104,6 @@
       "file": "src/snl-react-view/kind-palette.ts",
       "mode": "regex",
       "pattern": "^\\s*background\\??\\s*(?::|\\()",
-      "flags": "m"
-    }
-  },
-  {
-    "id": "rv.iface.default-macro-template-query-options.template-db-url",
-    "kind": "field",
-    "title": "$\\texttt{templateDbUrl}$",
-    "content": {
-      "markdown": "`templateDbUrl` is an optional field of `DefaultMacroTemplateQueryOptions`. Its declared TypeScript type is `string`."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "^\\s*templateDbUrl\\??\\s*(?::|\\()",
-      "flags": "m"
-    }
-  },
-  {
-    "id": "rv.iface.default-macro-template-query-options.artificial-delay-ms",
-    "kind": "field",
-    "title": "$\\texttt{artificialDelayMs}$",
-    "content": {
-      "markdown": "`artificialDelayMs` is an optional field of `DefaultMacroTemplateQueryOptions`. Its declared TypeScript type is `number`."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-react-view/default-query.ts",
-      "mode": "regex",
-      "pattern": "^\\s*artificialDelayMs\\??\\s*(?::|\\()",
       "flags": "m"
     }
   },
@@ -3941,6 +3599,119 @@
       "file": "src/snl-syntax-tree/parser.ts",
       "mode": "regex",
       "pattern": "^\\s*activeBinderIds\\??\\s*(?::|\\()",
+      "flags": "m"
+    }
+  },
+  {
+    "id": "mac.iface.snl-macro-style.separator",
+    "kind": "field",
+    "title": "$\\texttt{separator}$",
+    "body": "Optional string used to join children in dynamic_arity macros when expanding `#*`. Replaces the v6 variadic_left/variadic_join/variadic_right triple. Added in v0.10.0.",
+    "parent": "mac.iface.snl-macro-style",
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "^\\s*separator\\??\\s*(?::|\\()",
+      "flags": "m"
+    }
+  },
+  {
+    "id": "mac.cls.macro-data-driver",
+    "kind": "class",
+    "title": "MacroDataDriver",
+    "body": "Query-only macro data source with bounded LRU cache and in-flight deduplication. All macro lookups go through `query_macro()`. Added in v0.10.0.",
+    "parent": "mod.snl-macro",
+    "pointer": {
+      "file": "src/snl-macro/macro-data-driver.ts",
+      "mode": "regex",
+      "pattern": "export\\s+class\\s+MacroDataDriver\\b"
+    }
+  },
+  {
+    "id": "mac.iface.macro-data-queries",
+    "kind": "interface",
+    "title": "MacroDataQueries",
+    "body": "Injectable backend interface for MacroDataDriver. Consumers implement `query_macro({macro_name, signal?}): Promise<SnlMacro|null>` to plug in their data source.",
+    "parent": "mod.snl-macro",
+    "pointer": {
+      "file": "src/snl-macro/macro-data-driver.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+MacroDataQueries\\b"
+    }
+  },
+  {
+    "id": "mac.iface.macro-data-queries.query_macro",
+    "kind": "field",
+    "title": "$\\texttt{query\\_macro}$",
+    "body": "Asynchronously queries one macro by macro_name and returns null when it is not found.",
+    "parent": "mac.iface.macro-data-queries",
+    "pointer": {
+      "file": "src/snl-macro/macro-data-driver.ts",
+      "mode": "regex",
+      "pattern": "^\\s*query_macro\\??\\s*(?::|\\()",
+      "flags": "m"
+    }
+  },
+  {
+    "id": "rv.cls.snl-interaction-driver",
+    "kind": "class",
+    "title": "SnlInteractionDriver",
+    "body": "Injectable interaction handler for SnlSyntaxTreeView. Class-based, async-capable. Dispatches hover/leave/click/ctrl-click with full modifier key context. ctrl_key means literal Ctrl (NOT macOS Meta). Added in v0.10.0.",
+    "parent": "mod.snl-react-view"
+  },
+  {
+    "id": "rv.iface.snl-interaction-context",
+    "kind": "interface",
+    "title": "SnlInteractionContext",
+    "body": "Full context passed to interaction callbacks: node, tree_path, macro|null, target element, client_x/y, and modifier keys (ctrl_key, meta_key, shift_key, alt_key).",
+    "parent": "mod.snl-react-view"
+  },
+  {
+    "id": "mod.schema",
+    "kind": "module",
+    "title": "Schema Migration Module",
+    "body": "Centralized schema migration chain (src/schema/). Provides lossless v6→v7 macro migration and v1→v2 tree migration with version constants, validation, and CLI tooling."
+  },
+  {
+    "id": "schema.fn.migrate-macro-document",
+    "kind": "function",
+    "title": "migrateMacroDocument",
+    "body": "Migrates an entire macro DB from v6 to v7. Maps tag→style_name, variadic triple→separator+template, react_renderer_key→block_template_name, adds tags:[].",
+    "parent": "mod.schema"
+  },
+  {
+    "id": "schema.fn.migrate-syntax-tree-document",
+    "kind": "function",
+    "title": "migrateSyntaxTreeDocument",
+    "body": "Migrates a syntax tree from v1 to v2 recursively. Maps name→macro_name, style→style_name, envMode→env_mode.",
+    "parent": "mod.schema"
+  },
+  {
+    "id": "schema.const.macro-schema-version",
+    "kind": "constant",
+    "title": "MACRO_SCHEMA_VERSION",
+    "body": "Current macro schema version (7). Used for version detection in migrations.",
+    "parent": "mod.schema"
+  },
+  {
+    "id": "schema.const.tree-schema-version",
+    "kind": "constant",
+    "title": "TREE_SCHEMA_VERSION",
+    "body": "Current syntax tree schema version (2). Used for version detection in migrations.",
+    "parent": "mod.schema"
+  },
+  {
+    "id": "rv.iface.snl-syntax-tree-view-props.interaction_driver",
+    "kind": "field",
+    "title": "$\\texttt{interaction\\\\_driver}$",
+    "content": {
+      "markdown": "Optional delegated interaction driver for hover, leave, click, and Ctrl-click callbacks."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/components/SnlSyntaxTreeView.tsx",
+      "mode": "regex",
+      "pattern": "^\\s*interaction_driver\\??\\s*(?::|\\()",
       "flags": "m"
     }
   }

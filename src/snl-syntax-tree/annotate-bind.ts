@@ -43,7 +43,7 @@ function isLegacyQuantifierName(name: string): boolean {
  */
 function collectBinderNames(node: SnlSyntaxTree): string[] {
   const acc: string[] = []
-  if (node.kind === 'binder') acc.push(node.name)
+  if (node.kind === 'binder') acc.push(node.macro_name)
   for (const child of node.children) {
     acc.push(...collectBinderNames(child))
   }
@@ -79,7 +79,7 @@ export function annotateBindings(
     // --- (a) Legacy FOL.forall / FOL.exists quantifier ---
     // Preserve the existing behavior: first child is the introduction site;
     // subsequent siblings see it in scope.
-    if (isLegacyQuantifierName(node.name)) {
+    if (isLegacyQuantifierName(node.macro_name)) {
       const ref = nextRef()
       const base = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
       node.mdata = { ...base, bindRef: ref }
@@ -96,11 +96,11 @@ export function annotateBindings(
       }
       if (ch.length === 2) {
         walk(ch[0], stack)
-        walk(ch[1], [...stack, { name: ch[0].name, ref }])
+        walk(ch[1], [...stack, { name: ch[0].macro_name, ref }])
       } else if (ch.length >= 3) {
         walk(ch[0], stack)
         walk(ch[1], stack)
-        walk(ch[2], [...stack, { name: ch[0].name, ref }])
+        walk(ch[2], [...stack, { name: ch[0].macro_name, ref }])
       }
       return
     }
@@ -135,7 +135,7 @@ export function annotateBindings(
     // one in scope.
     if (node.children.length === 0) {
       if (node.kind === 'bvar') {
-        const frame = [...stack].reverse().find((f) => f.name === node.name)
+        const frame = [...stack].reverse().find((f) => f.name === node.macro_name)
         const base = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
         if (frame && frame.ref) {
           node.mdata = { ...base, bindRef: frame.ref }
@@ -144,14 +144,14 @@ export function annotateBindings(
         }
         return
       }
-      if (node.kind !== 'binder' && (!node.kind || node.envMode)) {
+      if (node.kind !== 'binder' && (!node.kind || node.env_mode)) {
         // Undecided leaf: consult the stack.
         //
         // 猫猫 spec (2026-07-04-late): for delimited names, "整段代码都当
         // 名字" — the whole delim payload is the lookup key. Complex payloads
         // typically won't match, hence usually fvar. Simple single-token
         // payloads (`$f$`) match cleanly when `f` was introduced as a binder.
-        const frame = [...stack].reverse().find((f) => f.name === node.name)
+        const frame = [...stack].reverse().find((f) => f.name === node.macro_name)
         const base = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
         if (frame) {
           node.kind = 'bvar'
@@ -173,7 +173,7 @@ export function annotateBindings(
           // The one exception is envMode leaves — those bypass the db
           // (synthetic macros), so if the payload isn't bound we DO want
           // to stamp fvar explicitly (there's no db entry to look up).
-          if (node.envMode) {
+          if (node.env_mode) {
             node.kind = 'fvar'
           }
           node.mdata = Object.keys(base).length ? base : null

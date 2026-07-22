@@ -15,11 +15,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{BurntOrange}{\\texttt{#0}}"
+          "template": "\\textcolor{BurntOrange}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     }
   }
 }

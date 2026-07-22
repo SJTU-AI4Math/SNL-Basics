@@ -19,12 +19,13 @@
  * regardless.
  */
 
-import type { SnlMacroTemplateQuery } from '../snl-syntax-tree/query'
-import type { SnlMacro, SnlMacroDb, SnlMacroStyle } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroStyle } from '../snl-macro/types'
+import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { getBindRef, getSrc } from '../snl-syntax-tree/binding'
 import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { encodeTreePath, type TreePath } from './interaction-driver'
 
 /**
  * Sanitize a value for use inside a `\htmlData{key=value,…}` attribute list.
@@ -53,39 +54,40 @@ export function sanitizeHtmlDataAttr(value: string): string {
 
 /**
  * Resolve which {@link SnlMacroStyle} to render a node with. The tag comes from
- * the parser's `[style]` bracket (`node.style`); when missing, `styles[0]` is
+ * the parser's `[style]` bracket (`node.style_name`); when missing, `styles[0]` is
  * the implicit default. Throws if the resolved tag isn't in `macro.styles`.
  */
 export function resolveStyle(node: SnlSyntaxTree, macro: SnlMacro): SnlMacroStyle {
   if (macro.styles.length === 0) {
     throw new Error(`macro "${macro.name}" has no styles`)
   }
-  if (node.style == null) {
+  if (node.style_name == null) {
     return macro.styles[0]
   }
-  const style = macro.styles.find((s) => s.tag === node.style)
+  const style = macro.styles.find((s) => s.style_name === node.style_name)
   if (!style) {
     throw new Error(
-      `unknown style "${node.style}" for macro "${macro.name}" ` +
-        `(available: ${macro.styles.map((s) => s.tag).join(', ') || '(none)'})`,
+      `unknown style "${node.style_name}" for macro "${macro.name}" ` +
+        `(available: ${macro.styles.map((s) => s.style_name).join(', ') || '(none)'})`,
     )
   }
   return style
 }
 
 /**
- * Auto-wrap a rendered node's latex in a single `\htmlData{name,kind[,style][,bindRef]}`.
+ * Auto-wrap a rendered node's latex in a single `\htmlData{name,kind[,style][,bindRef][,treePath]}`.
  * This is the sole place metadata enters the KaTeX output — templates never
- * write `\htmlData` themselves.
+ * write `\htmlData` themselves. Accepts resolved macro (or null) for the node.
  */
 export function wrapHtmlData(
   node: SnlSyntaxTree,
   inner: string,
-  macroDb: SnlMacroDb,
+  macro: SnlMacro | null,
+  treePath?: TreePath,
   kindOverride?: string,
 ): string {
-  const name = sanitizeHtmlDataAttr(node.name)
-  const dbKind = node.name ? macroDb[node.name]?.kind : undefined
+  const name = sanitizeHtmlDataAttr(node.macro_name)
+  const dbKind = macro?.kind
   const kind = sanitizeHtmlDataAttr(
     kindOverride || node.kind || dbKind || 'fvar',
   )
@@ -94,8 +96,9 @@ export function wrapHtmlData(
   const srcVal = getSrc(node)
   const srcFragment = srcVal ? `,src=${sanitizeHtmlDataAttr(srcVal)}` : ''
   const scopeFragment = node.scope ? `,scope=${sanitizeHtmlDataAttr(node.scope)}` : ''
-  const styleFragment = node.style ? `,style=${sanitizeHtmlDataAttr(node.style)}` : ''
-  return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}${srcFragment}}{${inner}}`
+  const styleFragment = node.style_name ? `,style=${sanitizeHtmlDataAttr(node.style_name)}` : ''
+  const pathFragment = treePath ? `,tree-path=${encodeTreePath(treePath)}` : ''
+  return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}${srcFragment}${pathFragment}}{${inner}}`
 }
 
 /**
@@ -140,12 +143,12 @@ export function modeBucket(mode: SnlMacroStyle['mode']): 'formula' | 'text' | 'b
 
 /**
  * Resolve a node's render mode from its macro's resolved style.
- * envMode (delimited-name form) beats the DB; both formula sub-modes
+ * env_mode (delimited-name form) beats queried macro data; both formula sub-modes
  * default to `formula_inline` when unknown.
+ * Accepts a pre-resolved macro (null if not found or not queried yet).
  */
-export function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): SnlMacroStyle['mode'] {
-  if (node.envMode) return node.envMode
-  const macro = db[node.name]
+export function nodeMode(node: SnlSyntaxTree, macro: SnlMacro | null): SnlMacroStyle['mode'] {
+  if (node.env_mode) return node.env_mode
   if (!macro) return 'formula_inline'
   try {
     return resolveStyle(node, macro).mode
@@ -159,8 +162,8 @@ export function nodeMode(node: SnlSyntaxTree, db: SnlMacroDb): SnlMacroStyle['mo
  * itself: `formula_display` → block, everything else → inline. Nested
  * formula nodes' displays are ignored within a single render call.
  */
-export function nodeDisplay(node: SnlSyntaxTree, db: SnlMacroDb): 'inline' | 'block' {
-  return nodeMode(node, db) === 'formula_display' ? 'block' : 'inline'
+export function nodeDisplay(node: SnlSyntaxTree, macro: SnlMacro | null): 'inline' | 'block' {
+  return nodeMode(node, macro) === 'formula_display' ? 'block' : 'inline'
 }
 
 /**
@@ -169,64 +172,58 @@ export function nodeDisplay(node: SnlSyntaxTree, db: SnlMacroDb): 'inline' | 'bl
  * valid; missing macros use the same fallback the react view uses
  * (`\operatorname{…}` head for applied form, `\mathrm{…}` for leaf).
  *
- * `cache` memoizes the template-fetch call for each `name::style::kind`
- * triple — the query is potentially async / expensive. Callers who want
- * fresh templates should pass a new `Map` each time.
+ * `driver` is queried for each unique macro_name encountered. The driver's
+ * internal cache avoids redundant queries.
  */
 export async function resolveNodeLatex(
   node: SnlSyntaxTree,
-  query: SnlMacroTemplateQuery,
-  cache: Map<string, string>,
-  macroDb: SnlMacroDb,
+  driver: MacroDataDriver,
+  treePath: TreePath = [],
+  signal?: AbortSignal,
 ): Promise<string> {
-  const macro = node.name ? macroDb[node.name] : undefined
+  const macro = node.env_mode ? null : await driver.query_macro({ macro_name: node.macro_name, signal })
   const style = macro ? resolveStyle(node, macro) : undefined
-  // Whether the DB knows this macro. A registered macro whose template is
-  // an empty string is still "known" — we should NOT fall through to the
-  // bare-identifier / `\operatorname` fallback. Especially important for
-  // dynamic_arity macros: post-2026-07-14 spec their template is IGNORED
-  // and typically empty, but the render path still routes through the
-  // delimiter-driven variadic branch below.
   const hasDbMacro = Boolean(macro)
 
   const selfMode: SnlMacroStyle['mode'] =
-    node.envMode ?? style?.mode ?? 'formula_inline'
+    node.env_mode ?? style?.mode ?? 'formula_inline'
   const selfBucket = modeBucket(selfMode)
 
   const childRawList = await Promise.all(
-    node.children.map((child) => resolveNodeLatex(child, query, cache, macroDb)),
+    node.children.map((child, i) => resolveNodeLatex(child, driver, [...treePath, i], signal)),
   )
 
-  const wrappedChildren = childRawList.map((latex, index) => {
+  const wrappedChildren = await Promise.all(childRawList.map(async (latex, index) => {
     const child = node.children[index]
-    const childMacro = child?.name ? macroDb[child.name] : undefined
     let cMode: SnlMacroStyle['mode'] = 'formula_inline'
-    if (child?.envMode) {
-      cMode = child.envMode
-    } else if (childMacro) {
-      try {
-        cMode = resolveStyle(child, childMacro).mode
-      } catch {
-        cMode = 'formula_inline'
+    if (child?.env_mode) {
+      cMode = child.env_mode
+    } else {
+      const childMacro = await driver.query_macro({ macro_name: child.macro_name, signal })
+      if (childMacro) {
+        try {
+          cMode = resolveStyle(child, childMacro).mode
+        } catch {
+          cMode = 'formula_inline'
+        }
       }
     }
     return wrapForParent(latex, cMode, selfMode)
-  })
+  }))
 
   // Block descendant inside a formula ancestor: emit a visible warning
-  // rather than silently rendering empty.
   if (selfBucket === 'block') {
     const body =
       '\\text{\\color{red}\\{block macro `' +
-      escapeLatexText(node.name) +
+      escapeLatexText(node.macro_name) +
       '` cannot be used inside a formula\\}}'
-    return wrapHtmlData(node, body, macroDb)
+    return wrapHtmlData(node, body, macro, treePath)
   }
 
   // Synthetic-macro path (delimited-name form).
-  if (node.envMode) {
-    const isText = node.envMode === 'text'
-    const templateBody = isText ? escapeTextButPreservePlaceholders(node.name) : node.name
+  if (node.env_mode) {
+    const isText = node.env_mode === 'text'
+    const templateBody = isText ? escapeTextButPreservePlaceholders(node.macro_name) : node.macro_name
     const childValues = Object.fromEntries(
       wrappedChildren.map((latex, index) => [`child${index}`, latex]),
     )
@@ -236,69 +233,52 @@ export async function resolveNodeLatex(
       isText ? 'text' : 'formula',
     )
     const body = isText ? `\\text{${filled}}` : filled
-    return wrapHtmlData(node, body, macroDb)
+    return wrapHtmlData(node, body, macro, treePath)
   }
 
-  // macroDb-miss fallback for plain-identifier names.
+  // Query-miss fallback for plain-identifier names.
   if (!hasDbMacro) {
-    const bs = node.name.startsWith('\\')
+    const bs = node.macro_name.startsWith('\\')
     if (node.children.length > 0) {
-      const stem = bs ? node.name.slice(1) : node.name
+      const stem = bs ? node.macro_name.slice(1) : node.macro_name
       const head = bs
         ? `\\operatorname{${escapeLatexText(stem)}}`
-        : node.name
+        : node.macro_name
       const argList = wrappedChildren.join(', ')
-      return wrapHtmlData(node, `${head}(${argList})`, macroDb)
+      return wrapHtmlData(node, `${head}(${argList})`, macro, treePath)
     }
     if (bs) {
-      const stem = node.name.slice(1)
-      return wrapHtmlData(node, `\\mathrm{${escapeLatexText(stem)}}`, macroDb)
+      const stem = node.macro_name.slice(1)
+      return wrapHtmlData(node, `\\mathrm{${escapeLatexText(stem)}}`, macro, treePath)
     }
   }
 
-  const key = `${node.name}::${node.style ?? ''}::${node.kind}`
-  let template = cache.get(key)
-  if (!template) {
-    template = await query({ name: node.name, node })
-    cache.set(key, template)
-  }
+  const template = style?.template ?? node.macro_name
 
   const childValues = Object.fromEntries(
     wrappedChildren.map((latex, index) => [`child${index}`, latex]),
   )
-  const defaultJoin = selfBucket === 'text' ? '' : ', '
-  const variadicJoin = style?.variadic_join ?? defaultJoin
-  const variadicLeft = style?.variadic_left ?? ''
-  const variadicRight = style?.variadic_right ?? ''
-  const children_joined =
-    variadicLeft + wrappedChildren.join(variadicJoin) + variadicRight
+  const defaultSep = selfBucket === 'text' ? '' : ', '
+  const separator = style?.separator ?? defaultSep
+  const children_joined = wrappedChildren.join(separator)
 
-  // Cat 2026-07-14 §dynamic_arity-no-template:
-  //   For dynamic_arity macros the template string is meaningless — the
-  //   render is fully determined by (variadic_left, variadic_join,
-  //   variadic_right) + the recursed children. Bypass fillLatexTemplate
-  //   entirely so authors don't have to remember to write `#*`, and so
-  //   accidental template contents don't leak into the output.
+  // Dynamic-arity macro handling
   if (macro?.dynamic_arity) {
-    // A dynamic_arity macro whose variadic_join carries top-level
-    // tabular alignment tokens (`&` / `\\`) must NOT be wrapped in
-    // `\htmlData{...}{...}` — those tokens have to stay ungrouped for
-    // the surrounding LaTeX environment (matrix.row inside a pmatrix,
-    // etc.). Cat 2026-07-04 §4.
-    //
-    // For every other dynamic macro (Type.union with `|`, list with
-    // commas, set with `\{ , \}`, …) we DO wrap so hovering on the
-    // separator glyph walks up to THIS macro rather than to a
-    // grand-ancestor that happens to also enclose the region. Cat
-    // 2026-07-14 §hover-on-separator.
-    const joinIsAlignment =
-      /(?:^|[^\\])&|\\\\/.test(variadicJoin) &&
-      !variadicLeft &&
-      !variadicRight
-    if (joinIsAlignment) {
-      return children_joined
+    // If template contains #*, fill it (this handles \begin{pmatrix}#*\end{pmatrix} etc.)
+    if (template.includes('#*')) {
+      const filled = fillLatexTemplate(
+        template,
+        { ...childValues, children_joined },
+        selfBucket,
+      )
+      // KaTeX environments (\begin{...}...\end{...}) and alignment tokens
+      // (& or \\) cannot be nested inside \htmlData{}{...}, so skip wrapping.
+      if (/\\begin\{/.test(filled) || /(?:^|[^\\])&|\\\\/.test(separator)) {
+        return filled
+      }
+      return wrapHtmlData(node, filled, macro, treePath)
     }
-    return wrapHtmlData(node, children_joined, macroDb)
+    throw new Error(`dynamic macro "${macro.name}" requires #* in its template`)
   }
 
   const filled = fillLatexTemplate(
@@ -306,7 +286,7 @@ export async function resolveNodeLatex(
     { ...childValues, children_joined },
     selfBucket,
   )
-  return wrapHtmlData(node, filled, macroDb)
+  return wrapHtmlData(node, filled, macro, treePath)
 }
 
 /**
@@ -315,27 +295,25 @@ export async function resolveNodeLatex(
  */
 export async function resolveRootLatex(
   root: SnlSyntaxTree,
-  query: SnlMacroTemplateQuery,
-  cache: Map<string, string>,
-  macroDb: SnlMacroDb,
+  driver: MacroDataDriver,
+  signal?: AbortSignal,
+  treePath: TreePath = [],
 ): Promise<string> {
-  const raw = await resolveNodeLatex(root, query, cache, macroDb)
+  const raw = await resolveNodeLatex(root, driver, treePath, signal)
+  const macro = root.env_mode ? null : await driver.query_macro({ macro_name: root.macro_name, signal })
   let rootMode: SnlMacroStyle['mode'] = 'formula_inline'
-  if (root.envMode) {
-    rootMode = root.envMode
-  } else {
-    const macro = macroDb[root.name]
-    if (macro) {
-      try {
-        rootMode = resolveStyle(root, macro).mode
-      } catch {
-        rootMode = 'formula_inline'
-      }
+  if (root.env_mode) {
+    rootMode = root.env_mode
+  } else if (macro) {
+    try {
+      rootMode = resolveStyle(root, macro).mode
+    } catch {
+      rootMode = 'formula_inline'
     }
   }
-  // envMode 'text' path already emitted its own \text{…}; only the
-  // db-driven text root gets wrapped here.
-  if (rootMode === 'text' && !root.envMode) {
+  // env_mode 'text' path already emitted its own \text{…}; only a queried
+  // text root gets wrapped here.
+  if (rootMode === 'text' && !root.env_mode) {
     return `\\text{${raw}}`
   }
   return raw

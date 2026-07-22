@@ -10,8 +10,15 @@ import {
 } from 'react'
 import katex from 'katex'
 import type { KatexOptions } from 'katex'
-import type { SnlMacroTemplateQuery } from '../snl-syntax-tree/query'
-import type { SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
+import { MacroDataDriver } from '../snl-macro/macro-data-driver'
+import {
+  SnlInteractionDriver,
+  decodeTreePath,
+  resolveTreePath,
+  type SnlInteractionContext,
+  type TreePath,
+} from '../snl-react-view/interaction-driver'
 import { getBindRef, getSrc, readBindRefFromDom } from '../snl-syntax-tree/binding'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { tightenHoverBoxes } from '../snl-react-view/tighten-hover-boxes'
@@ -41,14 +48,6 @@ import {
 interface RenderResult {
   latex: string
   html: string
-  /**
-   * Which effect run produced this result. Consumers commit it to the
-   * DOM only when it matches the latest reqId, so stale HTML from a
-   * superseded async run can never replace a fresher render already on
-   * screen — and equally, when a new run starts we clear the DOM up
-   * front rather than letting the old render linger for the ~async
-   * window it takes KaTeX to resolve.
-   */
   reqId: number
 }
 
@@ -56,10 +55,10 @@ interface RenderResult {
 export interface SnlSyntaxTreeViewProps {
   /** The (annotated) syntax tree to render. */
   tree: SnlSyntaxTree
-  /** Template query — resolves a macro name to its KaTeX template string. */
-  query: SnlMacroTemplateQuery
-  /** The macro DB, used for mode dispatch and metadata. */
-  macroDb: SnlMacroDb
+  /** The single macro data source — query-only driver with bounded cache. */
+  macro_data_driver: MacroDataDriver
+  /** Injectable interaction handler (hover/leave/click/ctrl-click via delegated events). */
+  interaction_driver?: SnlInteractionDriver
   /** KaTeX options forwarded to `katex.renderToString`. */
   katexOptions?: KatexOptions
   /**
@@ -84,40 +83,28 @@ type TooltipState = SnlTooltipState & { interactionKey: string }
  */
 function MathSpan({
   node,
-  query,
-  macroDb,
+  driver,
+  treePath,
   katexOptions,
 }: {
   node: SnlSyntaxTree
-  query: SnlMacroTemplateQuery
-  macroDb: SnlMacroDb
+  driver: MacroDataDriver
+  treePath: TreePath
   katexOptions?: KatexOptions
 }): ReactElement {
-  // Cat 2026-07-10 followup2 hover-instability fix: don't use
-  // React's `dangerouslySetInnerHTML` — passing a NEW `{__html}`
-  // object each render causes React to unconditionally re-assign
-  // `.innerHTML`, which tears down the KaTeX DOM subtree and
-  // silently drops the .snl-single-hover class that the hover
-  // machinery added on the last mousemove. Symptom: hover lit
-  // during motion but disappeared the moment the mouse stopped
-  // (parent state change → re-render → innerHTML rewrite → class
-  // gone; next mousemove re-applies).
-  //
-  // Fix: render an empty <span>, and manage innerHTML via a ref
-  // effect that ONLY writes when the rendered HTML actually
-  // changes. React never touches the subtree between writes, so
-  // hover marks survive across parent re-renders.
   const spanRef = useRef<HTMLSpanElement | null>(null)
   const currentHtmlRef = useRef<string>('')
   useEffect(() => {
     let cancelled = false
+    const controller = new AbortController()
     void (async () => {
       try {
-        const latex = await resolveRootLatex(node, query, new Map<string, string>(), macroDb)
+        const latex = await resolveRootLatex(node, driver, controller.signal, treePath)
+        const macro = node.env_mode ? null : await driver.query_macro({ macro_name: node.macro_name, signal: controller.signal })
         const out = katex.renderToString(latex, {
           throwOnError: false,
           ...HTMLDATA_KATEX_DEFAULTS,
-          displayMode: nodeDisplay(node, macroDb) === 'block',
+          displayMode: nodeDisplay(node, macro) === 'block',
           ...katexOptions,
         })
         if (cancelled) return
@@ -132,8 +119,9 @@ function MathSpan({
     })()
     return () => {
       cancelled = true
+      controller.abort()
     }
-  }, [node, query, macroDb, katexOptions])
+  }, [node, driver, treePath, katexOptions])
   return <span className="snl-math-span" ref={spanRef} />
 }
 
@@ -160,40 +148,43 @@ function MathSpan({
  */
 /**
  * Resolve the kind we should stamp on a rendered node's DOM. Mirrors
- * wrapHtmlData's priority: node.kind > macroDb kind > 'fvar'. Kept in
+ * wrapHtmlData's priority: node.kind > queried macro kind > 'fvar'. Kept in
  * sync so TextRun spans hover-highlight exactly like KaTeX \htmlData
  * output. Empty-string kind (createSnlSyntaxTreeNode default) falls
  * through — `||` is deliberate.
  */
-function resolveNodeKind(node: SnlSyntaxTree, macroDb: SnlMacroDb): string {
-  const dbKind = node.name ? macroDb[node.name]?.kind : undefined
+function resolveNodeKind(node: SnlSyntaxTree, macros: SnlMacroRecord): string {
+  const dbKind = node.macro_name ? macros[node.macro_name]?.kind : undefined
   return node.kind || dbKind || 'fvar'
 }
 
 function TextRun({
   node,
-  macroDb,
+  macros,
+  treePath,
   renderChild,
 }: {
   node: SnlSyntaxTree
-  macroDb: SnlMacroDb
-  renderChild: (child: SnlSyntaxTree) => ReactElement
+  macros: SnlMacroRecord
+  treePath: string
+  renderChild: (child: SnlSyntaxTree, index: number) => ReactElement
 }): ReactElement {
   // Envelope semantics — see the block comment below.
-  const envIsText = node.envMode === 'text'
-  const nameHasPlaceholder = /#(\*|\d{1,2})/.test(node.name ?? '')
+  const envIsText = node.env_mode === 'text'
+  const nameHasPlaceholder = /#(\*|\d{1,2})/.test(node.macro_name ?? '')
   const isSyntheticTemplate = envIsText && nameHasPlaceholder
 
   // DOM attribute payload — mirrors wrapHtmlData so hover / palette /
   // popover machinery treats a TextRun span exactly like a KaTeX
   // \htmlData-wrapped node. `data-name` drives hover-root discovery,
   // `data-kind` drives the palette CSS.
-  const kind = resolveNodeKind(node, macroDb)
+  const kind = resolveNodeKind(node, macros)
   const dataAttrs: Record<string, string | undefined> = {
-    'data-name': node.name || undefined,
+    'data-name': node.macro_name || undefined,
     'data-kind': kind,
+    'data-tree-path': treePath,
   }
-  if (node.style) dataAttrs['data-style'] = node.style
+  if (node.style_name) dataAttrs['data-style'] = node.style_name
   if (node.scope) dataAttrs['data-scope'] = node.scope
   const bindRef = getBindRef(node)
   if (bindRef) dataAttrs['data-bindref'] = bindRef
@@ -209,16 +200,16 @@ function TextRun({
   // (a) envMode text leaf with no #N placeholder → literal text (with
   // `$…$` math-island escapes handled by renderTextWithMathIslands).
   if (envIsText && !isSyntheticTemplate && node.children.length === 0) {
-    return wrap(renderTextWithMathIslands(node.name ?? ''))
+    return wrap(renderTextWithMathIslands(node.macro_name ?? ''))
   }
   // (d) plain leaf (no macro) → literal name.
-  if (!envIsText && node.children.length === 0 && !macroDb[node.name]) {
-    return wrap(renderTextWithMathIslands(node.name ?? ''))
+  if (!envIsText && node.children.length === 0 && !macros[node.macro_name]) {
+    return wrap(renderTextWithMathIslands(node.macro_name ?? ''))
   }
 
-  const macro = macroDb[node.name]
+  const macro = macros[node.macro_name]
   const style = macro ? resolveStyle(node, macro) : undefined
-  const template = isSyntheticTemplate ? node.name : (style?.template ?? '')
+  const template = isSyntheticTemplate ? node.macro_name : (style?.template ?? '')
   const children = node.children
 
   // Build the ordered fragment list by scanning the template for
@@ -252,7 +243,7 @@ function TextRun({
     }
   } else {
     // No template: emit every child joined by the style's separator.
-    const sep = style?.variadic_join ?? ''
+    const sep = style?.separator ?? ''
     children.forEach((_, i) => {
       if (i > 0 && sep) parts.push({ kind: 'text', value: sep })
       parts.push({ kind: 'child', index: i })
@@ -269,13 +260,13 @@ function TextRun({
       if (p.index === '*') {
         // Variadic slot — emit every child in order, separated by the
         // style's join (default '' in text mode, matching KaTeX path).
-        const sep = style?.variadic_join ?? ''
+        const sep = style?.separator ?? ''
         return (
           <Fragment key={i}>
             {children.map((child, ci) => (
               <Fragment key={ci}>
                 {ci > 0 && sep ? <span>{sep}</span> : null}
-                {renderChild(child)}
+                {renderChild(child, ci)}
               </Fragment>
             ))}
           </Fragment>
@@ -289,7 +280,7 @@ function TextRun({
           </span>
         )
       }
-      return <Fragment key={i}>{renderChild(child)}</Fragment>
+      return <Fragment key={i}>{renderChild(child, p.index)}</Fragment>
     }),
   )
 }
@@ -419,8 +410,7 @@ function renderTextWithMathIslands(src: string): ReactNode[] {
 
 function useSnlSyntaxTreeRender(
   tree: SnlSyntaxTree,
-  query: SnlMacroTemplateQuery,
-  macroDb: SnlMacroDb,
+  driver: MacroDataDriver,
   katexOptions: KatexOptions | undefined,
   enabled: boolean,
 ) {
@@ -428,7 +418,6 @@ function useSnlSyntaxTreeRender(
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const reqIdRef = useRef(0)
-  const cache = useMemo(() => new Map<string, string>(), [query, macroDb])
 
   useEffect(() => {
     if (!enabled) {
@@ -438,27 +427,22 @@ function useSnlSyntaxTreeRender(
       return
     }
     let cancelled = false
+    const controller = new AbortController()
     const reqId = ++reqIdRef.current
 
     const run = async () => {
       setLoading(true)
       setError(null)
       try {
-        // 先递归算出最终 LaTeX，再统一交给 KaTeX 生成 HTML。
-        const latex = await resolveRootLatex(tree, query, cache, macroDb)
+        const latex = await resolveRootLatex(tree, driver, controller.signal)
+        const rootMacro = tree.env_mode ? null : await driver.query_macro({ macro_name: tree.macro_name, signal: controller.signal })
         const html = katex.renderToString(latex, {
           throwOnError: false,
           ...HTMLDATA_KATEX_DEFAULTS,
-          displayMode: nodeDisplay(tree, macroDb) === 'block',
+          displayMode: nodeDisplay(tree, rootMacro) === 'block',
           ...katexOptions,
         })
         if (!cancelled && reqIdRef.current === reqId) {
-          // Stamp the result with its reqId so the consumer can refuse to
-          // commit stale HTML to the DOM. Without this, a rapidly-typing
-          // user sees the PREVIOUS successful render remain in innerHTML
-          // until the new async run resolves — i.e. typing `d → de → def`
-          // (where `def` is a macro) briefly shows the `de` fvar render
-          // before flipping to the `def` macro render. Cat 2026-07-13.
           setResult({ latex, html, reqId })
         }
       } catch (err) {
@@ -477,8 +461,9 @@ function useSnlSyntaxTreeRender(
     void run()
     return () => {
       cancelled = true
+      controller.abort()
     }
-  }, [cache, enabled, katexOptions, query, macroDb, tree])
+  }, [enabled, katexOptions, driver, tree])
 
   return { loading, error, result, reqIdRef }
 }
@@ -490,31 +475,106 @@ function useSnlSyntaxTreeRender(
  */
 export function SnlSyntaxTreeView({
   tree,
-  query,
-  macroDb,
+  macro_data_driver,
+  interaction_driver: _interaction_driver,
   katexOptions,
   kindPalette,
   onResolved,
   hooks,
 }: SnlSyntaxTreeViewProps) {
+  // Query all macros used by this tree through the single driver backend. The
+  // state is tagged with the exact tree+driver identities, so a prop change
+  // immediately makes the previous projection stale — it is never rendered
+  // while the replacement query is in flight.
+  const [macroState, setMacroState] = useState<{
+    tree: SnlSyntaxTree
+    driver: MacroDataDriver
+    values: Record<string, SnlMacro | null>
+    status: 'pending' | 'ready' | 'error'
+    error: string | null
+  }>(() => ({
+    tree,
+    driver: macro_data_driver,
+    values: {},
+    status: 'pending',
+    error: null,
+  }))
+
+  const macroStateIsCurrent = macroState.tree === tree && macroState.driver === macro_data_driver
+  const macroCache = macroStateIsCurrent ? macroState.values : {}
+  const macroStatus = macroStateIsCurrent ? macroState.status : 'pending'
+  const macroError = macroStateIsCurrent ? macroState.error : null
+
+  useEffect(() => {
+    let cancelled = false
+    const controller = new AbortController()
+    function collectMacroNames(node: SnlSyntaxTree, names: Set<string>): void {
+      if (!node.env_mode && node.macro_name) names.add(node.macro_name)
+      for (const child of node.children) collectMacroNames(child, names)
+    }
+    const names = new Set<string>()
+    collectMacroNames(tree, names)
+
+    void (async () => {
+      try {
+        const resolved: Record<string, SnlMacro | null> = {}
+        await Promise.all(
+          [...names].map(async (name) => {
+            resolved[name] = await macro_data_driver.query_macro({ macro_name: name, signal: controller.signal })
+          }),
+        )
+        if (!cancelled) {
+          setMacroState({ tree, driver: macro_data_driver, values: resolved, status: 'ready', error: null })
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setMacroState({
+            tree,
+            driver: macro_data_driver,
+            values: {},
+            status: 'error',
+            error: err instanceof Error ? err.message : String(err),
+          })
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [tree, macro_data_driver])
+
   const mergedHooks = useMemo(() => ({ ...defaultRenderHooks, ...hooks }), [hooks])
   const paletteCss = useMemo(
     () => paletteToCss({ ...DEFAULT_KIND_PALETTE, ...kindPalette }),
     [kindPalette],
   )
-  // Cat 2026-07-10 refactor: a node goes through the KaTeX pipeline
-  // ONLY when it's rooted in FORMULA mode. Text roots (and text
-  // subtrees free of any formula ancestor) render via React so a text
-  // macro can contain block-mode children (enumerate, list, table…).
-  // Block roots keep their React path. resolveNodeLatex still exists
-  // for the "text inside formula" case (\text{...} splicing) but is
-  // no longer entered from the top for text roots.
-  const rootBucket = modeBucket(nodeMode(tree, macroDb))
-  const isKatexRoot = rootBucket === 'formula'
+  // Derive a SnlMacroRecord-compatible view from the cache (filters out nulls)
+  const resolvedMacros: SnlMacroRecord = useMemo(() => {
+    const db: SnlMacroRecord = {}
+    for (const [k, v] of Object.entries(macroCache)) {
+      if (v) db[k] = v
+    }
+    return db
+  }, [macroCache])
+
+  const treePaths = useMemo(() => {
+    const paths = new WeakMap<SnlSyntaxTree, string>()
+    const visit = (node: SnlSyntaxTree, path: string): void => {
+      paths.set(node, path)
+      node.children.forEach((child, index) => visit(child, path ? `${path}.${index}` : `${index}`))
+    }
+    visit(tree, '')
+    return paths
+  }, [tree])
+
+  // Determine root mode from the cache
+  const rootMacro = macroCache[tree.macro_name] ?? null
+  const rootBucket = macroStatus === 'ready' ? modeBucket(nodeMode(tree, rootMacro)) : 'formula'
+  const isKatexRoot = macroStatus === 'ready' && rootBucket === 'formula'
   const { loading, error, result } = useSnlSyntaxTreeRender(
     tree,
-    query,
-    macroDb,
+    macro_data_driver,
     katexOptions,
     isKatexRoot,
   )
@@ -598,7 +658,7 @@ export function SnlSyntaxTreeView({
     bindingHint: string,
   ) => {
     await new Promise((resolve) => window.setTimeout(resolve, 120))
-    const macro = macroDb[name]
+    const macro = resolvedMacros[name]
     const base = await mergedHooks.resolveMacroInfo!(name, macro)
     let description = base.description
 
@@ -616,10 +676,16 @@ export function SnlSyntaxTreeView({
     container: HTMLElement,
     x: number,
     y: number,
+    modifiers: { ctrl_key: boolean; meta_key: boolean; shift_key: boolean; alt_key: boolean },
   ) => {
+    const tooltipX = x + 12
+    const tooltipY = y + 12
     const name = target.dataset.name ?? ''
     const kind = target.dataset.kind ?? ''
     const bindRef = readBindRefFromDom(target)
+    const pathAttr = target.getAttribute('data-tree-path')
+    const treePath = pathAttr == null ? null : decodeTreePath(pathAttr)
+    const actualNode = treePath == null ? undefined : resolveTreePath(tree, treePath)
 
     let variableRole: 'bvar' | 'fvar' | 'none' = 'none'
     let bindingHint = ''
@@ -653,27 +719,44 @@ export function SnlSyntaxTreeView({
       bindingHint = '自由变量 occurrence。'
     }
 
-    const key = `${name}|${kind}|${bindRef}`
+    const key = `${pathAttr ?? 'unresolved'}|${name}|${kind}|${bindRef}`
 
-    // 消费者拦截钩子：在内部状态机之外额外通知
-    mergedHooks.onHover?.({
-      name,
-      kind,
-      node: { name, kind, mdata: bindRef ? { bindRef } : null, children: [] },
-      bindingHint,
-      variableRole,
-      target,
-      clientX: x,
-      clientY: y,
-    })
+    const interactionMacro = actualNode ? (resolvedMacros[actualNode.macro_name] ?? null) : null
+    if (actualNode && treePath) {
+      // Legacy hook receives the actual tree node (never a reconstructed leaf).
+      mergedHooks.onHover?.({
+        name: actualNode.macro_name,
+        kind,
+        node: actualNode,
+        bindingHint,
+        variableRole,
+        target,
+        clientX: x,
+        clientY: y,
+      })
+      if (_interaction_driver) {
+        void _interaction_driver.dispatch_hover({
+          node: actualNode,
+          tree_path: treePath,
+          macro: interactionMacro,
+          target,
+          client_x: x,
+          client_y: y,
+          ctrl_key: modifiers.ctrl_key,
+          meta_key: modifiers.meta_key,
+          shift_key: modifiers.shift_key,
+          alt_key: modifiers.alt_key,
+        }).catch(() => {})
+      }
+    }
 
     if (hoverKey === key) {
       // 同一元素内移动：仅更新位置（不重新解析说明）
-      setTooltip((prev) => (prev && prev.interactionKey === key ? { ...prev, x, y } : prev))
+      setTooltip((prev) => (prev && prev.interactionKey === key ? { ...prev, x: tooltipX, y: tooltipY } : prev))
       return
     }
 
-    const macro = macroDb[name]
+    const macro = resolvedMacros[name]
     const source: SnlResolvedSource | null = macro
       ? (mergedHooks.resolveSource?.(macro.source) ?? null)
       : null
@@ -682,8 +765,8 @@ export function SnlSyntaxTreeView({
     clearHoverTimers()
     setTooltip({
       visible: false,
-      x,
-      y,
+      x: tooltipX,
+      y: tooltipY,
       loading: true,
       interactionKey: key,
       name,
@@ -792,7 +875,12 @@ export function SnlSyntaxTreeView({
     }
 
     applyHoverHighlight(hasName, container)
-    activateHoverTarget(hasName, container, event.clientX + 12, event.clientY + 12)
+    activateHoverTarget(hasName, container, event.clientX, event.clientY, {
+      ctrl_key: event.ctrlKey,
+      meta_key: event.metaKey,
+      shift_key: event.shiftKey,
+      alt_key: event.altKey,
+    })
   }
 
   const handleKaTeXMouseLeave = () => {
@@ -801,6 +889,40 @@ export function SnlSyntaxTreeView({
     clearHoverTimers()
     setTooltip((prev) => (prev ? { ...prev, visible: false } : null))
     mergedHooks.onLeave?.()
+    if (_interaction_driver) {
+      void _interaction_driver.dispatch_leave().catch(() => {})
+    }
+  }
+
+  // Delegated click handler — resolves data-tree-path → actual node → dispatch
+  const handleClick: MouseEventHandler<HTMLDivElement> = (event) => {
+    if (!_interaction_driver) return
+    const container = containerRef.current
+    if (!container) return
+    // Walk up from target to find the nearest element with data-tree-path
+    let el: HTMLElement | null = event.target as HTMLElement
+    while (el && el !== container && !el.hasAttribute('data-tree-path')) {
+      el = el.parentElement
+    }
+    if (!el || !el.hasAttribute('data-tree-path')) return
+    const pathStr = el.getAttribute('data-tree-path')!
+    const path = decodeTreePath(pathStr)
+    const node = resolveTreePath(tree, path)
+    if (!node) return
+    const macro = resolvedMacros[node.macro_name] ?? null
+    const ctx: SnlInteractionContext = {
+      node,
+      tree_path: path,
+      macro,
+      target: el,
+      client_x: event.clientX,
+      client_y: event.clientY,
+      ctrl_key: event.ctrlKey,
+      meta_key: event.metaKey,
+      shift_key: event.shiftKey,
+      alt_key: event.altKey,
+    }
+    void _interaction_driver.dispatch_click(ctx).catch(() => {})
   }
 
   // Mode-aware React dispatch (used for non-KaTeX roots — text and
@@ -821,46 +943,66 @@ export function SnlSyntaxTreeView({
   //   - formula descendant of a text parent → MathSpan (from here
   //     down we're in KaTeX; block descendants get the "cannot use
   //     block inside formula" placeholder in resolveNodeLatex)
-  const renderNode = (node: SnlSyntaxTree): ReactElement => {
-    const mode = nodeMode(node, macroDb)
+  const renderNode = (node: SnlSyntaxTree, pathStr = ''): ReactElement => {
+    const macro = resolvedMacros[node.macro_name] ?? null
+    const mode = nodeMode(node, macro)
     if (mode === 'block') {
-      const macro = macroDb[node.name]
-      const key = macro ? resolveStyle(node, macro).react_renderer_key : undefined
+      const key = macro ? resolveStyle(node, macro).block_template_name : undefined
       const Renderer = key ? mergedHooks.renderers?.[key] : undefined
+      const blockDataAttrs: Record<string, string | undefined> = {
+        'data-name': node.macro_name || undefined,
+        'data-kind': resolveNodeKind(node, resolvedMacros),
+        'data-tree-path': pathStr,
+        'data-style': node.style_name,
+        'data-scope': node.scope,
+        'data-bindref': getBindRef(node) ?? undefined,
+        'data-src': getSrc(node) ?? undefined,
+      }
       if (Renderer) {
-        return <Renderer node={node} macroDb={macroDb} renderChild={renderNode} />
+        return (
+          <div className="snl-block-host" {...blockDataAttrs}>
+            <Renderer
+              node={node}
+              macro_data_driver={macro_data_driver}
+              renderChild={(child) => renderNode(child, treePaths.get(child) ?? '')}
+            />
+          </div>
+        )
       }
       return (
-        <div className="snl-block">
+        <div className="snl-block" {...blockDataAttrs}>
           {node.children.map((child, index) => (
-            <Fragment key={index}>{renderNode(child)}</Fragment>
+            <Fragment key={index}>{renderNode(child, pathStr ? `${pathStr}.${index}` : `${index}`)}</Fragment>
           ))}
         </div>
       )
     }
     if (mode === 'text') {
-      // Consumer-declared React renderer wins if a text macro asks for one.
-      const macro = macroDb[node.name]
-      const style = macro ? resolveStyle(node, macro) : undefined
-      const key = style?.react_renderer_key
-      const Renderer = key ? mergedHooks.renderers?.[key] : undefined
-      if (Renderer) {
-        return <Renderer node={node} macroDb={macroDb} renderChild={renderNode} />
-      }
       return (
         <TextRun
           node={node}
-          macroDb={macroDb}
-          renderChild={renderNode}
+          macros={resolvedMacros}
+          treePath={pathStr}
+          renderChild={(child, idx) => renderNode(child, pathStr ? `${pathStr}.${idx}` : `${idx}`)}
         />
       )
     }
-    // formula descendant of a text/block parent: KaTeX pipeline takes
-    // over from HERE down. resolveNodeLatex handles the "\text{...}"
-    // wrapping of any text child re-entering formula context.
+    // formula descendant of a text/block parent: KaTeX pipeline takes over
     return (
-      <MathSpan node={node} query={query} macroDb={macroDb} katexOptions={katexOptions} />
+      <MathSpan
+        node={node}
+        driver={macro_data_driver}
+        treePath={decodeTreePath(pathStr)}
+        katexOptions={katexOptions}
+      />
     )
+  }
+
+  if (macroStatus === 'pending') {
+    return <div className="katex-panel">Loading macro data ...</div>
+  }
+  if (macroStatus === 'error') {
+    return <div className="katex-panel katex-error">Macro query failed: {macroError}</div>
   }
 
   if (isKatexRoot) {
@@ -894,6 +1036,7 @@ export function SnlSyntaxTreeView({
         className="katex-html"
         onMouseMove={handleKaTeXMouseMove}
         onMouseLeave={handleKaTeXMouseLeave}
+        onClick={handleClick}
       >
         {isKatexRoot ? null : renderNode(tree)}
       </div>

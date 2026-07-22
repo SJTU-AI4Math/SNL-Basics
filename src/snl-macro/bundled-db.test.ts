@@ -3,7 +3,7 @@ import { bundledMacroDb } from './bundled-db'
 
 test('bundledMacroDb has expected macros', () => {
   expect(bundledMacroDb['FOL.implies']).toBeDefined()
-  const infix = bundledMacroDb['FOL.implies'].styles.find((s) => s.tag === 'infix')
+  const infix = bundledMacroDb['FOL.implies'].styles.find((s) => s.style_name === 'infix')
   expect(infix).toBeDefined()
   expect(infix!.template).toContain('#0')
   expect(infix!.template).not.toContain('@CHILD')
@@ -23,8 +23,10 @@ test('every macro has at least one style with a mode', () => {
     expect(Array.isArray(macro.styles)).toBe(true)
     expect(macro.styles.length).toBeGreaterThan(0)
     for (const s of macro.styles) {
-      expect(typeof s.tag).toBe('string')
+      expect(typeof s.style_name).toBe('string')
       expect(['formula_inline', 'formula_display', 'text', 'block']).toContain(s.mode)
+      if (s.mode !== 'block') expect(s.block_template_name).toBeUndefined()
+      if (macro.dynamic_arity) expect(s.template).toContain('#*')
     }
   }
 })

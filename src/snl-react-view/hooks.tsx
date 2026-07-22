@@ -1,5 +1,6 @@
 import type { FC, ReactElement } from 'react'
-import type { SnlMacro, SnlMacroDb, SnlMacroSource } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroSource } from '../snl-macro/types'
+import type { MacroDataDriver } from '../snl-macro/macro-data-driver'
 // NOTE: the runtime tree produced by the parser is the flat SnlSyntaxTree from
 // snl-syntax-tree/types (no `mode` discriminant yet). We type hook payloads
 // against it so consumers receive exactly what the view has. The forward-looking
@@ -9,7 +10,6 @@ import type { BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { readBindRefFromDom } from '../snl-syntax-tree/binding'
 import { CenteredRenderer, EnumerateRenderer, ListRenderer, TableRenderer } from './block-renderers'
 
-export type { SnlMacroDb }
 
 /** Payload passed to onHover. */
 export interface SnlHoverEvent {
@@ -152,8 +152,8 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
 export interface SnlBlockRendererProps {
   /** The block node to render. */
   node: SnlSyntaxTree
-  /** The macro DB, for looking up child metadata if needed. */
-  macroDb: SnlMacroDb
+  /** The macro data driver, for looking up child metadata if needed. */
+  macro_data_driver: MacroDataDriver
   /** Render a child of any mode as a React element. */
   renderChild: (child: SnlSyntaxTree) => ReactElement
 }
@@ -162,13 +162,13 @@ export interface SnlBlockRendererProps {
 export type SnlBlockRenderer = FC<SnlBlockRendererProps>
 
 /**
- * Registry mapping a macro style's `react_renderer_key` to a block
+ * Registry mapping a macro style's `block_template_name` to a block
  * renderer. Consumers may add their own custom keys.
  */
 export type SnlRendererRegistry = Record<string, SnlBlockRenderer>
 
 /**
- * Built-in block renderers keyed by `react_renderer_key`:
+ * Built-in block renderers keyed by `block_template_name`:
  *   `"list"`      — unordered list (LaTeX `\begin{itemize}` → `<ul>`).
  *   `"enumerate"` — ordered list   (LaTeX `\begin{enumerate}` → `<ol>`).
  *                   Honours `mdata.start` (starting counter) and
@@ -205,7 +205,7 @@ export interface SnlRenderHooks {
   /**
    * Async — awaited after hover starts (with a short debounce). Fine to hit
    * a network / disk cache; the view keeps `loading: true` in the tooltip
-   * state until it resolves. Default: read macroDb[name].description.
+   * state until it resolves. The default reads the queried macro description.
    */
   resolveMacroInfo?: (name: string, macro: SnlMacro | undefined) => Promise<SnlMacroInfo>
 
@@ -231,7 +231,7 @@ export interface SnlRenderHooks {
   highlightStrategy?: SnlHighlightStrategy
 
   /**
-   * Block/text renderers keyed by `react_renderer_key`. Default:
+   * Block/text renderers keyed by `block_template_name`. Default:
    * {@link defaultRenderers}. Merged (spread) over the defaults by the view.
    */
   renderers?: SnlRendererRegistry

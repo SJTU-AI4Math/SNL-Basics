@@ -2,40 +2,31 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
-import { createMacroTemplateQueryFromDb } from './default-query'
 import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
-import type { SnlMacro, SnlMacroDb } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { testDriver } from '../snl-react-view/test-helpers'
 
 function mathMacro(
   name: string,
-  opts: { variadic_left?: string; variadic_join?: string; variadic_right?: string } = {},
+  opts: { separator?: string; template?: string } = {},
 ): SnlMacro {
-  const style: any = { tag: 'default', mode: 'formula_inline', template: '' }
-  if (opts.variadic_left !== undefined) style.variadic_left = opts.variadic_left
-  if (opts.variadic_join !== undefined) style.variadic_join = opts.variadic_join
-  if (opts.variadic_right !== undefined) style.variadic_right = opts.variadic_right
   return {
     name,
     description: '',
     source: { entries: [], urls: [] },
     dynamic_arity: true,
-    styles: [style],
+    tags: [],
+    styles: [{ style_name: 'default', mode: 'formula_inline', template: opts.template ?? '#*', separator: opts.separator, tags: [] }],
   }
 }
 
-// Cat 2026-07-14 §dynamic_arity-no-template: template is IGNORED for
-// dynamic_arity macros. The pmatrix envelope moves to variadic_left /
-// variadic_right, and matrix.row is a pure `& `-joined pass-through.
-const db: SnlMacroDb = {
-  pmatrix: mathMacro('pmatrix', {
-    variadic_left: '\\begin{pmatrix}',
-    variadic_join: ' \\\\ ',
-    variadic_right: '\\end{pmatrix}',
-  }),
-  'matrix.row': mathMacro('matrix.row', { variadic_join: ' & ' }),
+// Cat 2026-07-14 §dynamic_arity-no-template: dynamic_arity macros use #*
+// with separator for joining children.
+const db: SnlMacroRecord = {
+  pmatrix: mathMacro('pmatrix', { template: '\\begin{pmatrix}#*\\end{pmatrix}', separator: ' \\\\ ' }),
+  'matrix.row': mathMacro('matrix.row', { separator: ' & ' }),
 }
-const query = createMacroTemplateQueryFromDb(db)
 
 function leaf(name: string): SnlSyntaxTree {
   return createSnlSyntaxTreeNode(name, { kind: 'fvar' })
@@ -52,7 +43,7 @@ describe('variadic pmatrix / matrix.row', () => {
     const tree = createSnlSyntaxTreeNode('pmatrix', {
       children: [row('a', 'b'), row('c', 'd')],
     })
-    const { container } = render(<SnlSyntaxTreeView tree={tree} query={query} macroDb={db} />)
+    const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
     await waitFor(() => {
       // Math root → KaTeX innerHTML. \begin{pmatrix}…\end{pmatrix} renders as .mtable.
       expect(container.querySelector('.mtable')).not.toBeNull()
@@ -66,9 +57,7 @@ describe('variadic pmatrix / matrix.row', () => {
     let latex = ''
     render(
       <SnlSyntaxTreeView
-        tree={tree}
-        query={query}
-        macroDb={db}
+        tree={tree} macro_data_driver={testDriver(db)}
         onResolved={(l) => {
           latex = l
         }}

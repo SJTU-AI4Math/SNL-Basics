@@ -4,9 +4,9 @@ import { createSnlSyntaxTreeNode, type SnlSyntaxTree } from './types'
 // 2026-07-04-late 猫猫 spec 2 — Parser supports `%`, `$`, `$$`, `@` delimited
 // name-forms in addition to the plain identifier form.
 //
-//   %text%   → name = text between %s, envMode = 'text'
-//   $expr$   → name = LaTeX between $s, envMode = 'formula_inline'
-//   $$expr$$ → name = LaTeX between $$s, envMode = 'formula_display'
+//   %text%   → name = text between %s, env_mode = 'text'
+//   $expr$   → name = LaTeX between $s, env_mode = 'formula_inline'
+//   $$expr$$ → name = LaTeX between $$s, env_mode = 'formula_display'
 //   @<name>  → node kind = 'binder' (recursively — the whole subtree, so all
 //              descendants are binders too). Compatible with any of the above:
 //              @foo, @$x + y$, @%my binder%. Bare `@` is equivalent to `@$`
@@ -268,15 +268,15 @@ class Parser {
     } else if (nameTok.type === 'PERCENT_DELIMITED') {
       this.consume('PERCENT_DELIMITED')
       node = createSnlSyntaxTreeNode(nameTok.value)
-      node.envMode = 'text'
+      node.env_mode = 'text'
     } else if (nameTok.type === 'DOLLAR_DELIMITED') {
       this.consume('DOLLAR_DELIMITED')
       node = createSnlSyntaxTreeNode(nameTok.value)
-      node.envMode = 'formula_inline'
+      node.env_mode = 'formula_inline'
     } else if (nameTok.type === 'DOLLAR2_DELIMITED') {
       this.consume('DOLLAR2_DELIMITED')
       node = createSnlSyntaxTreeNode(nameTok.value)
-      node.envMode = 'formula_display'
+      node.env_mode = 'formula_display'
     } else {
       throw new SnlSyntaxTreeParseError(
         `Expected macro name (IDENT or %…% / $…$ / $$…$$)` +
@@ -301,7 +301,7 @@ class Parser {
     if (this.peek().type === 'LBRACKET') {
       this.consume('LBRACKET')
       const styleTok = this.expect('IDENT')
-      node.style = styleTok.value
+      node.style_name = styleTok.value
       this.expect('RBRACKET')
     }
 

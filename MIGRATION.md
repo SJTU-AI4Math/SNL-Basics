@@ -58,11 +58,11 @@ automatic wrapping.
 **v2 (current):**
 
 - `#0` / `#1` / … — 0-indexed children
-- `#*` — variadic children (joined by `variadic_join`)
+- `#*` — variadic children (joined by `separator`)
 - `\#` — literal `#`
 - Node metadata (`name`, `kind`, `bindRef`) is **no longer** written in
   templates. The view layer auto-wraps every rendered node in a single
-  `\htmlData{name=<macro>,kind=<node.kind>[,bindRef=<ref>]}{…}`.
+  `\htmlData{name=<macro>,kind=<node.kind>[,bindRef=<ref>][,tree-path=<path>]}{…}`.
 
 Run `npm run migrate-db-v2` (`scripts/migrate-macro-db-v2.mjs`, `--dry-run`
 supported) to transform a v1 DB: it strips **all** `\htmlData` wrappers with a
@@ -70,3 +70,74 @@ balanced-brace parser and rewrites `@CHILDn@ → #n` / `@CHILDREN@ → #*`.
 
 This is a schema break — the migrated DB is not compatible with library
 versions `< 0.3.0`.
+
+## Schema v7 + Tree v2 (0.10.0, 2026-07-18)
+
+Major rename of all schema and tree fields to snake_case for consistency.
+The View API also changes from dual `query`/`macroDb` props to a single
+`macro_data_driver` prop.
+
+### Macro schema renames (v5 → v7)
+
+| Old (0.9.x)           | New (0.10.0)          |
+|-----------------------|-----------------------|
+| `SnlMacroStyle.tag`   | `SnlMacroStyle.style_name` |
+| `SnlMacroStyle.react_renderer_key` | `SnlMacroStyle.block_template_name` |
+| `SnlMacroStyle.variadic_left/join/right` | Removed; use `separator` + `#*` template |
+| (n/a)                 | `SnlMacro.tags: string[]` (required) |
+| (n/a)                 | `SnlMacroStyle.tags: string[]` (required) |
+
+Note: `SnlMacro.name` stays as `name` (NOT renamed to `macro_name`).
+
+### Syntax tree renames (v1 → v2)
+
+| Old (0.9.x)       | New (0.10.0)       |
+|-------------------|--------------------|
+| `node.name`       | `node.macro_name`  |
+| `node.style`      | `node.style_name`  |
+| `node.envMode`    | `node.env_mode`    |
+
+### View API changes
+
+| Old (0.9.x)                        | New (0.10.0)            |
+|-------------------------------------|-------------------------|
+| `<View query={q} macroDb={db} …>`  | `<View macro_data_driver={driver} …>` |
+| `createMacroTemplateQueryFromDb(db)` (public) | Removed |
+| `bundledMacroDb` (direct import)    | Import JSON and implement `MacroDataQueries` |
+| `loadSnlMacroDb(url)` (public)      | Removed — implement custom `MacroDataQueries` |
+| `createDefaultMacroTemplateQuery()` (public) | Removed |
+| `SnlMacroTemplateQuery` type (public) | Removed |
+| `SnlMacroDb` type (public)          | Removed; internal alias renamed to `SnlMacroRecord` |
+
+### New exports
+
+- `MacroDataDriver` (class) — query-only data-access layer with LRU cache + in-flight dedup
+- `MacroDataQueries` (interface) — `{ query_macro({macro_name, signal?}): Promise<SnlMacro|null> }`
+- `SnlInteractionDriver` (class) — injectable event driver (hover/leave/click/ctrl-click)
+- `SnlInteractionContext` — full event context (node, tree_path, macro, modifiers)
+- `TreePath` — tree path type for interaction events
+- `encodeTreePath` / `decodeTreePath` / `resolveTreePath` — path utilities
+- `src/schema/` migration module — `migrateMacroDocument`, `migrateSyntaxTreeDocument`
+
+### Migration CLI
+
+```bash
+node scripts/migrate-schema.mjs             # preview changes (default dry-run)
+node scripts/migrate-schema.mjs --write     # back up and apply migration
+```
+
+Idempotent — skips documents already in v7 shape.
+
+### Consumer upgrade path
+
+```diff
+- import { createMacroTemplateQueryFromDb, bundledMacroDb, SnlSyntaxTreeView } from '@snl-basics/react'
+- const query = createMacroTemplateQueryFromDb(bundledMacroDb)
+- <SnlSyntaxTreeView tree={tree} query={query} macroDb={bundledMacroDb} />
++ import { MacroDataDriver, SnlSyntaxTreeView } from '@snl-basics/react'
++ import macroDb from './path/to/snl-macro-db.json'
++ const driver = new MacroDataDriver({
++   queries: { query_macro: async ({ macro_name }) => macroDb[macro_name] ?? null },
++ })
++ <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} />
+```

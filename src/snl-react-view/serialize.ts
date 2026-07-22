@@ -6,5 +6,5 @@ export function serializeSnlSyntaxTree(node: SnlSyntaxTree): string {
     node.children.length > 0
       ? `(${node.children.map((child) => serializeSnlSyntaxTree(child)).join(',')})`
       : ''
-  return `${node.name}${childrenPart}`
+  return `${node.macro_name}${childrenPart}`
 }

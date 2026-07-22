@@ -5,12 +5,12 @@ import type { SnlMacro } from '../snl-macro/types'
 import type { SnlTooltipState } from './hooks'
 
 const macro: SnlMacro = {
-  name: 'Add.add',
-  description: '加法运算',
+  name: 'Add.add', description: '加法运算',
   source: { entries: [], urls: [] },
   kind: 'const',
   dynamic_arity: false,
-  styles: [{ tag: 'infix', mode: 'formula_inline', template: '#0 + #1' }],
+  tags: [],
+  styles: [{ style_name: 'infix', mode: 'formula_inline', template: '#0 + #1', tags: [] }],
 }
 
 describe('defaultRenderHooks', () => {

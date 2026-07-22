@@ -1,5 +1,5 @@
 /**
- * SNL syntax tree node types (v1). Discriminated union on `mode`.
+ * SNL syntax tree node types (v2). Discriminated union on `mode`.
  *
  * The parser produces nodes with `mode` derived from the referenced
  * macro's `mode` field. If no macro is found in the DB, the
@@ -8,10 +8,10 @@
 
 /** Common fields shared by all node modes. */
 export interface SnlSyntaxTreeBase {
-  /** Macro name — key into SnlMacroDb. */
-  name: string
-  /** Style-tag override from the parser's `[style]` bracket; picks `SnlMacro.styles[tag]`. */
-  style?: string
+  /** Macro name — key into SnlMacroRecord. */
+  macro_name: string
+  /** Style-name override from the parser's `[style_name]` bracket; picks `SnlMacro.styles[style_name]`. */
+  style_name?: string
   /** Semantic kind: 'rule' | 'const' | 'binder' | 'bvar' | 'fvar' | ... */
   kind: string
   /** Structural scope marker (e.g. 'binder'), emitted as `data-scope`. */
@@ -35,7 +35,7 @@ export interface SnlSyntaxTreeTextNode extends SnlSyntaxTreeBase {
 /** A node rendered as a block element via a registered block renderer. */
 export interface SnlSyntaxTreeBlockNode extends SnlSyntaxTreeBase {
   mode: 'block'
-  /** Which block renderer to invoke — matches the resolved style's react_renderer_key. */
+  /** Which block renderer to invoke — matches the resolved style's block_template_name. */
   block_kind: 'list' | 'table' | 'centered' | 'custom'
 }
 

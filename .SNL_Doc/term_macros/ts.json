@@ -15,11 +15,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+          "template": "\\textcolor{Purple}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.type-alias": {
       "description": "TypeScript `type` alias — names a type expression.",
@@ -33,11 +35,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+          "template": "\\textcolor{Purple}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.union": {
       "description": "TypeScript union type.",
@@ -51,14 +55,14 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "",
-          "variadic_left": "",
-          "variadic_join": "\\texttt{ | }",
-          "variadic_right": ""
+          "template": "#*",
+          "style_name": "default",
+          "tags": [],
+          "separator": "\\texttt{ | }"
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.record": {
       "description": "TypeScript `Record<K,V>` utility type — an object whose keys are of type K and values of type V.",
@@ -72,11 +76,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+          "template": "\\textcolor{Purple}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.readonly": {
       "description": "TypeScript `Readonly<T>` utility type — marks all properties of T as readonly.",
@@ -90,11 +96,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+          "template": "\\textcolor{Purple}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.promise": {
       "description": "JavaScript `Promise` — represents the eventual completion (or failure) of an async operation.",
@@ -108,11 +116,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+          "template": "\\textcolor{Purple}{\\texttt{#0}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.function-type": {
       "description": "TypeScript arrow function type.",
@@ -126,11 +136,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "#0\\texttt{ => }#1"
+          "template": "#0\\texttt{ => }#1",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.function": {
       "description": "TypeScript function declaration.",
@@ -144,11 +156,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "{\\color{569CD6}\\texttt{function }}#0\\texttt{: }#1\\texttt{ \\{}#2\\texttt{\\}}"
+          "template": "{\\color{569CD6}\\texttt{function }}#0\\texttt{: }#1\\texttt{ \\{}#2\\texttt{\\}}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.parameters": {
       "description": "TypeScript parameter list.",
@@ -162,14 +176,14 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "",
-          "variadic_left": "\\texttt{(}",
-          "variadic_join": "\\texttt{, }",
-          "variadic_right": "\\texttt{)}"
+          "template": "\\texttt{(}#*\\texttt{)}",
+          "style_name": "default",
+          "tags": [],
+          "separator": "\\texttt{, }"
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.type-arguments": {
       "description": "TypeScript generic type argument list.",
@@ -183,14 +197,14 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "",
-          "variadic_left": "\\texttt{<}",
-          "variadic_join": "\\texttt{, }",
-          "variadic_right": "\\texttt{>}"
+          "template": "\\texttt{<}#*\\texttt{>}",
+          "style_name": "default",
+          "tags": [],
+          "separator": "\\texttt{, }"
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.generic": {
       "description": "TypeScript generic type application.",
@@ -204,11 +218,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "#0#1"
+          "template": "#0#1",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.null": {
       "description": "TypeScript null type.",
@@ -222,11 +238,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}null}"
+          "template": "\\texttt{\\color{4EC9A2}null}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.Promise": {
       "description": "TypeScript Promise type used by async APIs.",
@@ -240,11 +258,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{\\color{4EC9A2}Promise}"
+          "template": "\\texttt{\\color{4EC9A2}Promise}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "ts.ellipsis": {
       "description": "Elided function implementation; the node source points to its Remark entry.",
@@ -258,11 +278,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\ldots"
+          "template": "\\ldots",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.createSnlSyntaxTreeNode": {
       "description": "Public function createSnlSyntaxTreeNode.",
@@ -276,11 +298,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{createSnlSyntaxTreeNode}"
+          "template": "\\texttt{createSnlSyntaxTreeNode}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.isSnlSyntaxTree": {
       "description": "Public function isSnlSyntaxTree.",
@@ -294,11 +318,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{isSnlSyntaxTree}"
+          "template": "\\texttt{isSnlSyntaxTree}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.parseSnlSyntaxTree": {
       "description": "Public function parseSnlSyntaxTree.",
@@ -312,11 +338,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{parseSnlSyntaxTree}"
+          "template": "\\texttt{parseSnlSyntaxTree}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.tryParseSnlSyntaxTree": {
       "description": "Public function tryParseSnlSyntaxTree.",
@@ -330,11 +358,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{tryParseSnlSyntaxTree}"
+          "template": "\\texttt{tryParseSnlSyntaxTree}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.serializeSnlSyntaxTree": {
       "description": "Public function serializeSnlSyntaxTree.",
@@ -348,11 +378,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{serializeSnlSyntaxTree}"
+          "template": "\\texttt{serializeSnlSyntaxTree}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.annotateBindings": {
       "description": "Public function annotateBindings.",
@@ -366,11 +398,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{annotateBindings}"
+          "template": "\\texttt{annotateBindings}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.analyzeSnlTreeSources": {
       "description": "Public function analyzeSnlTreeSources.",
@@ -384,101 +418,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{analyzeSnlTreeSources}"
+          "template": "\\texttt{analyzeSnlTreeSources}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
-    },
-    "fn.loadSnlMacroDb": {
-      "description": "Public function loadSnlMacroDb.",
-      "kind": "const",
-      "dynamic_arity": false,
-      "source": {
-        "entries": [
-          "rv.fn.load-snl-macro-db"
-        ],
-        "urls": []
-      },
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{loadSnlMacroDb}"
-        }
-      ]
-    },
-    "fn.setSnlMacroDbCache": {
-      "description": "Public function setSnlMacroDbCache.",
-      "kind": "const",
-      "dynamic_arity": false,
-      "source": {
-        "entries": [
-          "rv.fn.set-snl-macro-db-cache"
-        ],
-        "urls": []
-      },
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{setSnlMacroDbCache}"
-        }
-      ]
-    },
-    "fn.clearSnlMacroDbCache": {
-      "description": "Public function clearSnlMacroDbCache.",
-      "kind": "const",
-      "dynamic_arity": false,
-      "source": {
-        "entries": [
-          "rv.fn.clear-snl-macro-db-cache"
-        ],
-        "urls": []
-      },
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{clearSnlMacroDbCache}"
-        }
-      ]
-    },
-    "fn.createDefaultMacroTemplateQuery": {
-      "description": "Public function createDefaultMacroTemplateQuery.",
-      "kind": "const",
-      "dynamic_arity": false,
-      "source": {
-        "entries": [
-          "rv.fn.create-default-macro-template-query"
-        ],
-        "urls": []
-      },
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{createDefaultMacroTemplateQuery}"
-        }
-      ]
-    },
-    "fn.createMacroTemplateQueryFromDb": {
-      "description": "Public function createMacroTemplateQueryFromDb.",
-      "kind": "const",
-      "dynamic_arity": false,
-      "source": {
-        "entries": [
-          "rv.fn.create-macro-template-query-from-db"
-        ],
-        "urls": []
-      },
-      "styles": [
-        {
-          "tag": "default",
-          "mode": "formula_inline",
-          "template": "\\texttt{createMacroTemplateQueryFromDb}"
-        }
-      ]
+      ],
+      "tags": []
     },
     "fn.alpha": {
       "description": "Public function alpha.",
@@ -492,11 +438,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{alpha}"
+          "template": "\\texttt{alpha}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.paletteToCss": {
       "description": "Public function paletteToCss.",
@@ -510,11 +458,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{paletteToCss}"
+          "template": "\\texttt{paletteToCss}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.assertSafeKindName": {
       "description": "Public function assertSafeKindName.",
@@ -528,11 +478,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{assertSafeKindName}"
+          "template": "\\texttt{assertSafeKindName}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.clampPopoverPosition": {
       "description": "Public function clampPopoverPosition.",
@@ -546,11 +498,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{clampPopoverPosition}"
+          "template": "\\texttt{clampPopoverPosition}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.collectPopoverSubtree": {
       "description": "Public function collectPopoverSubtree.",
@@ -564,11 +518,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{collectPopoverSubtree}"
+          "template": "\\texttt{collectPopoverSubtree}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.expandPopoverAncestors": {
       "description": "Public function expandPopoverAncestors.",
@@ -582,11 +538,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{expandPopoverAncestors}"
+          "template": "\\texttt{expandPopoverAncestors}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.findPopoverBounds": {
       "description": "Public function findPopoverBounds.",
@@ -600,11 +558,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{findPopoverBounds}"
+          "template": "\\texttt{findPopoverBounds}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.useCurrentPopoverId": {
       "description": "Public function useCurrentPopoverId.",
@@ -618,11 +578,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{useCurrentPopoverId}"
+          "template": "\\texttt{useCurrentPopoverId}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.useHoverPopovers": {
       "description": "Public function useHoverPopovers.",
@@ -636,11 +598,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{useHoverPopovers}"
+          "template": "\\texttt{useHoverPopovers}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.fillLatexTemplate": {
       "description": "Public function fillLatexTemplate.",
@@ -654,11 +618,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{fillLatexTemplate}"
+          "template": "\\texttt{fillLatexTemplate}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.modeBucket": {
       "description": "Public function modeBucket.",
@@ -672,11 +638,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{modeBucket}"
+          "template": "\\texttt{modeBucket}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.nodeDisplay": {
       "description": "Public function nodeDisplay.",
@@ -690,11 +658,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{nodeDisplay}"
+          "template": "\\texttt{nodeDisplay}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.nodeMode": {
       "description": "Public function nodeMode.",
@@ -708,11 +678,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{nodeMode}"
+          "template": "\\texttt{nodeMode}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.resolveNodeLatex": {
       "description": "Public function resolveNodeLatex.",
@@ -726,11 +698,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{resolveNodeLatex}"
+          "template": "\\texttt{resolveNodeLatex}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.resolveRootLatex": {
       "description": "Public function resolveRootLatex.",
@@ -744,11 +718,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{resolveRootLatex}"
+          "template": "\\texttt{resolveRootLatex}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.resolveStyle": {
       "description": "Public function resolveStyle.",
@@ -762,11 +738,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{resolveStyle}"
+          "template": "\\texttt{resolveStyle}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.sanitizeHtmlDataAttr": {
       "description": "Public function sanitizeHtmlDataAttr.",
@@ -780,11 +758,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{sanitizeHtmlDataAttr}"
+          "template": "\\texttt{sanitizeHtmlDataAttr}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.wrapForParent": {
       "description": "Public function wrapForParent.",
@@ -798,11 +778,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{wrapForParent}"
+          "template": "\\texttt{wrapForParent}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     },
     "fn.wrapHtmlData": {
       "description": "Public function wrapHtmlData.",
@@ -816,11 +798,13 @@
       },
       "styles": [
         {
-          "tag": "default",
           "mode": "formula_inline",
-          "template": "\\texttt{wrapHtmlData}"
+          "template": "\\texttt{wrapHtmlData}",
+          "style_name": "default",
+          "tags": []
         }
-      ]
+      ],
+      "tags": []
     }
   }
 }

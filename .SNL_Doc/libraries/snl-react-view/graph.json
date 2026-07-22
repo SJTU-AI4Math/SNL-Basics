@@ -155,48 +155,6 @@
       }
     },
     {
-      "id": "c5ff0b9f-ca08-4a5e-bce5-bec172d14d5f",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.iface.default-macro-template-query-options"
-      }
-    },
-    {
-      "id": "3da441c7-6a9c-43b3-a041-ea656af6043a",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.fn.load-snl-macro-db"
-      }
-    },
-    {
-      "id": "6c471448-37bb-4b73-8cc8-6a7cf3749f9f",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.fn.set-snl-macro-db-cache"
-      }
-    },
-    {
-      "id": "e8f38fcb-936f-44b9-b5f6-e62558b86f2a",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.fn.clear-snl-macro-db-cache"
-      }
-    },
-    {
-      "id": "1f1f64b4-9bbe-4bf8-bd9d-1acfd5c09276",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.fn.create-default-macro-template-query"
-      }
-    },
-    {
-      "id": "ea76de9f-a82f-4f01-baab-f606bdcf604c",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.fn.create-macro-template-query-from-db"
-      }
-    },
-    {
       "id": "5e508e02-fb29-4d5d-89d5-f779a5380829",
       "label": "Entry",
       "props": {
@@ -246,52 +204,10 @@
       }
     },
     {
-      "id": "0f9553f2-c80a-4605-9ef7-9e202e91f3d4",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.const.default-snl-macro-db-url"
-      }
-    },
-    {
       "id": "dca3a47b-c93e-41c8-99d3-1b064a0edc54",
       "label": "Entry",
       "props": {
         "entryId": "rv.const.htmldata-katex-defaults"
-      }
-    },
-    {
-      "id": "3827ff4e-60ab-5b03-bc45-084b7f508424",
-      "label": "Entry",
-      "props": {
-        "entryId": "remark.rv.fn.load-snl-macro-db"
-      }
-    },
-    {
-      "id": "7f53a5b1-fa47-5a27-bd00-2af6c786a319",
-      "label": "Entry",
-      "props": {
-        "entryId": "remark.rv.fn.set-snl-macro-db-cache"
-      }
-    },
-    {
-      "id": "152d1a12-597e-5a53-94f1-61fcc6248afa",
-      "label": "Entry",
-      "props": {
-        "entryId": "remark.rv.fn.clear-snl-macro-db-cache"
-      }
-    },
-    {
-      "id": "dcfdfd30-0b86-5e86-aae3-50f21a43d233",
-      "label": "Entry",
-      "props": {
-        "entryId": "remark.rv.fn.create-default-macro-template-query"
-      }
-    },
-    {
-      "id": "7cbc51bf-e6d0-5245-b947-88a561d89fcf",
-      "label": "Entry",
-      "props": {
-        "entryId": "remark.rv.fn.create-macro-template-query-from-db"
       }
     },
     {
@@ -582,17 +498,10 @@
       }
     },
     {
-      "id": "field-rv-iface-snl-syntax-tree-view-props-query",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.iface.snl-syntax-tree-view-props.query"
-      }
-    },
-    {
       "id": "field-rv-iface-snl-syntax-tree-view-props-macro-db",
       "label": "Entry",
       "props": {
-        "entryId": "rv.iface.snl-syntax-tree-view-props.macro-db"
+        "entryId": "rv.iface.snl-syntax-tree-view-props.macro_data_driver"
       }
     },
     {
@@ -879,7 +788,7 @@
       "id": "field-rv-iface-snl-block-renderer-props-macro-db",
       "label": "Entry",
       "props": {
-        "entryId": "rv.iface.snl-block-renderer-props.macro-db"
+        "entryId": "rv.iface.snl-block-renderer-props.macro_data_driver"
       }
     },
     {
@@ -901,20 +810,6 @@
       "label": "Entry",
       "props": {
         "entryId": "rv.iface.kind-coloring.background"
-      }
-    },
-    {
-      "id": "field-rv-iface-default-macro-template-query-options-template-db-url",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.iface.default-macro-template-query-options.template-db-url"
-      }
-    },
-    {
-      "id": "field-rv-iface-default-macro-template-query-options-artificial-delay-ms",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.iface.default-macro-template-query-options.artificial-delay-ms"
       }
     },
     {
@@ -1112,6 +1007,13 @@
       "props": {
         "entryId": "rv.iface.hover-popover-provider-props.portal-target"
       }
+    },
+    {
+      "id": "entry-rv-iface-snl-syntax-tree-view-props-interaction-driver",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-syntax-tree-view-props.interaction_driver"
+      }
     }
   ],
   "relationships": [
@@ -1201,43 +1103,8 @@
       "label": "branch"
     },
     {
-      "from": "sec-react-interfaces",
-      "to": "c5ff0b9f-ca08-4a5e-bce5-bec172d14d5f",
-      "label": "branch"
-    },
-    {
       "from": "9b2c9258-a34e-488a-9606-61d2de49003d",
       "to": "sec-react-macro-db",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-macro-db",
-      "to": "3da441c7-6a9c-43b3-a041-ea656af6043a",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-macro-db",
-      "to": "6c471448-37bb-4b73-8cc8-6a7cf3749f9f",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-macro-db",
-      "to": "e8f38fcb-936f-44b9-b5f6-e62558b86f2a",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-macro-db",
-      "to": "1f1f64b4-9bbe-4bf8-bd9d-1acfd5c09276",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-macro-db",
-      "to": "ea76de9f-a82f-4f01-baab-f606bdcf604c",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-macro-db",
-      "to": "0f9553f2-c80a-4605-9ef7-9e202e91f3d4",
       "label": "branch"
     },
     {
@@ -1406,41 +1273,6 @@
       "label": "branch"
     },
     {
-      "id": "416d66e5-6d6e-5f45-9e83-9d66ccb82d84",
-      "from": "3da441c7-6a9c-43b3-a041-ea656af6043a",
-      "to": "3827ff4e-60ab-5b03-bc45-084b7f508424",
-      "label": "branch",
-      "props": {}
-    },
-    {
-      "id": "509f6465-6d8a-587b-9c8b-60a2b6f1545a",
-      "from": "6c471448-37bb-4b73-8cc8-6a7cf3749f9f",
-      "to": "7f53a5b1-fa47-5a27-bd00-2af6c786a319",
-      "label": "branch",
-      "props": {}
-    },
-    {
-      "id": "93f41f66-32a5-500d-927c-8da74faca726",
-      "from": "e8f38fcb-936f-44b9-b5f6-e62558b86f2a",
-      "to": "152d1a12-597e-5a53-94f1-61fcc6248afa",
-      "label": "branch",
-      "props": {}
-    },
-    {
-      "id": "bdea36d8-02f9-5bbf-9020-b28a2149402b",
-      "from": "1f1f64b4-9bbe-4bf8-bd9d-1acfd5c09276",
-      "to": "dcfdfd30-0b86-5e86-aae3-50f21a43d233",
-      "label": "branch",
-      "props": {}
-    },
-    {
-      "id": "595b4278-63b6-5050-9fb4-6ef5eefc0502",
-      "from": "ea76de9f-a82f-4f01-baab-f606bdcf604c",
-      "to": "7cbc51bf-e6d0-5245-b947-88a561d89fcf",
-      "label": "branch",
-      "props": {}
-    },
-    {
       "id": "0ac1ba19-3f4d-525c-8e41-128fe3f50771",
       "from": "5e508e02-fb29-4d5d-89d5-f779a5380829",
       "to": "29f53206-c948-508f-94ea-96fcf16fc5a9",
@@ -1569,11 +1401,6 @@
     {
       "from": "6e437da1-562a-482a-aa19-6d734178337b",
       "to": "field-rv-iface-snl-syntax-tree-view-props-tree",
-      "label": "branch"
-    },
-    {
-      "from": "6e437da1-562a-482a-aa19-6d734178337b",
-      "to": "field-rv-iface-snl-syntax-tree-view-props-query",
       "label": "branch"
     },
     {
@@ -1802,16 +1629,6 @@
       "label": "branch"
     },
     {
-      "from": "c5ff0b9f-ca08-4a5e-bce5-bec172d14d5f",
-      "to": "field-rv-iface-default-macro-template-query-options-template-db-url",
-      "label": "branch"
-    },
-    {
-      "from": "c5ff0b9f-ca08-4a5e-bce5-bec172d14d5f",
-      "to": "field-rv-iface-default-macro-template-query-options-artificial-delay-ms",
-      "label": "branch"
-    },
-    {
       "from": "a9b4bffa-f5bf-5076-8fe8-6695f4d32596",
       "to": "field-rv-iface-hover-popover-id",
       "label": "branch"
@@ -1949,6 +1766,11 @@
     {
       "from": "1f73aadf-6f60-5dfc-8f6b-8e0c4d02132e",
       "to": "field-rv-iface-hover-popover-provider-props-portal-target",
+      "label": "branch"
+    },
+    {
+      "from": "6e437da1-562a-482a-aa19-6d734178337b",
+      "to": "entry-rv-iface-snl-syntax-tree-view-props-interaction-driver",
       "label": "branch"
     }
   ]

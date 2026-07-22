@@ -85,20 +85,6 @@
       }
     },
     {
-      "id": "3b170a06-c2c1-47d8-b949-15f9b1972b3e",
-      "label": "Entry",
-      "props": {
-        "entryId": "st.iface.snl-macro-template-query-args"
-      }
-    },
-    {
-      "id": "290af949-0efe-4d43-a83c-10cee0d932e1",
-      "label": "Entry",
-      "props": {
-        "entryId": "st.iface.snl-macro-template-query"
-      }
-    },
-    {
       "id": "22df72b2-8ca1-43fe-89dd-8c357d75dcca",
       "label": "Entry",
       "props": {
@@ -256,21 +242,21 @@
       "id": "field-st-iface-snl-syntax-tree-name",
       "label": "Entry",
       "props": {
-        "entryId": "st.iface.snl-syntax-tree.name"
+        "entryId": "st.iface.snl-syntax-tree.macro_name"
       }
     },
     {
       "id": "field-st-iface-snl-syntax-tree-style",
       "label": "Entry",
       "props": {
-        "entryId": "st.iface.snl-syntax-tree.style"
+        "entryId": "st.iface.snl-syntax-tree.style_name"
       }
     },
     {
       "id": "field-st-iface-snl-syntax-tree-env-mode",
       "label": "Entry",
       "props": {
-        "entryId": "st.iface.snl-syntax-tree.env-mode"
+        "entryId": "st.iface.snl-syntax-tree.env_mode"
       }
     },
     {
@@ -305,14 +291,14 @@
       "id": "field-st-iface-snl-syntax-tree-base-name",
       "label": "Entry",
       "props": {
-        "entryId": "st.iface.snl-syntax-tree-base.name"
+        "entryId": "st.iface.snl-syntax-tree-base.macro_name"
       }
     },
     {
       "id": "field-st-iface-snl-syntax-tree-base-style",
       "label": "Entry",
       "props": {
-        "entryId": "st.iface.snl-syntax-tree-base.style"
+        "entryId": "st.iface.snl-syntax-tree-base.style_name"
       }
     },
     {
@@ -369,20 +355,6 @@
       "label": "Entry",
       "props": {
         "entryId": "st.iface.snl-syntax-tree-block-node.block_kind"
-      }
-    },
-    {
-      "id": "field-st-iface-snl-macro-template-query-args-name",
-      "label": "Entry",
-      "props": {
-        "entryId": "st.iface.snl-macro-template-query-args.name"
-      }
-    },
-    {
-      "id": "field-st-iface-snl-macro-template-query-args-node",
-      "label": "Entry",
-      "props": {
-        "entryId": "st.iface.snl-macro-template-query-args.node"
       }
     },
     {
@@ -450,16 +422,6 @@
     {
       "from": "sec-syntax-interfaces",
       "to": "e1f01505-4180-4962-8a69-c1b89040fb00",
-      "label": "branch"
-    },
-    {
-      "from": "sec-syntax-interfaces",
-      "to": "3b170a06-c2c1-47d8-b949-15f9b1972b3e",
-      "label": "branch"
-    },
-    {
-      "from": "sec-syntax-interfaces",
-      "to": "290af949-0efe-4d43-a83c-10cee0d932e1",
       "label": "branch"
     },
     {
@@ -696,16 +658,6 @@
     {
       "from": "e1f01505-4180-4962-8a69-c1b89040fb00",
       "to": "field-st-iface-snl-syntax-tree-block-node-block-kind",
-      "label": "branch"
-    },
-    {
-      "from": "3b170a06-c2c1-47d8-b949-15f9b1972b3e",
-      "to": "field-st-iface-snl-macro-template-query-args-name",
-      "label": "branch"
-    },
-    {
-      "from": "3b170a06-c2c1-47d8-b949-15f9b1972b3e",
-      "to": "field-st-iface-snl-macro-template-query-args-node",
       "label": "branch"
     },
     {

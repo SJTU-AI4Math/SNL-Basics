@@ -30,7 +30,7 @@ function metadata(node: SnlSyntaxTree): Record<string, unknown> {
  */
 export function analyzeSnlTreeSources(
   root: SnlSyntaxTree | null | undefined,
-  macroDb: SnlMacroSourceLookup,
+  macroLookup: SnlMacroSourceLookup,
   accessibleEntryIds: ReadonlySet<string>,
 ): SnlSourceMetrics {
   if (!root) {
@@ -39,7 +39,7 @@ export function analyzeSnlTreeSources(
 
   const binderNames = new Set<string>()
   const collectBinders = (node: SnlSyntaxTree): void => {
-    if (node.kind === 'binder') binderNames.add(node.name)
+    if (node.kind === 'binder') binderNames.add(node.macro_name)
     for (const child of node.children) collectBinders(child)
   }
   collectBinders(root)
@@ -57,10 +57,10 @@ export function analyzeSnlTreeSources(
       const bindRef = typeof meta.bindRef === 'string' ? meta.bindRef : ''
       const src = typeof meta.src === 'string' ? meta.src : ''
       sourced =
-        (bindRef.length > 0 && binderNames.has(node.name)) ||
+        (bindRef.length > 0 && binderNames.has(node.macro_name)) ||
         (src.length > 0 && accessibleEntryIds.has(src))
     } else {
-      const macro = macroDb[node.name]
+      const macro = macroLookup[node.macro_name]
       if (macro) {
         const entries = Array.isArray(macro.source?.entries) ? macro.source.entries : []
         const urls = Array.isArray(macro.source?.urls) ? macro.source.urls : []
