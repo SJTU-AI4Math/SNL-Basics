@@ -57,119 +57,119 @@
       }
     },
     {
-      "id": "n_1",
+      "id": "field-mac-iface-snl-macro-name",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro.name"
       }
     },
     {
-      "id": "n_2",
+      "id": "field-mac-iface-snl-macro-description",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro.description"
       }
     },
     {
-      "id": "n_3",
+      "id": "field-mac-iface-snl-macro-source",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro.source"
       }
     },
     {
-      "id": "n_4",
+      "id": "field-mac-iface-snl-macro-kind",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro.kind"
       }
     },
     {
-      "id": "n_5",
+      "id": "field-mac-iface-snl-macro-dynamic-arity",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro.dynamic_arity"
       }
     },
     {
-      "id": "n_6",
+      "id": "field-mac-iface-snl-macro-styles",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro.styles"
       }
     },
     {
-      "id": "n_7",
+      "id": "field-mac-iface-snl-macro-tags",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro.tags"
       }
     },
     {
-      "id": "n_8",
+      "id": "field-mac-iface-snl-macro-style-tag",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-style.tag"
       }
     },
     {
-      "id": "n_9",
+      "id": "field-mac-iface-snl-macro-style-mode",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-style.mode"
       }
     },
     {
-      "id": "n_10",
+      "id": "field-mac-iface-snl-macro-style-template",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-style.template"
       }
     },
     {
-      "id": "n_11",
+      "id": "field-mac-iface-snl-macro-style-variadic-left",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-style.variadic_left"
       }
     },
     {
-      "id": "n_12",
+      "id": "field-mac-iface-snl-macro-style-variadic-join",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-style.variadic_join"
       }
     },
     {
-      "id": "n_13",
+      "id": "field-mac-iface-snl-macro-style-variadic-right",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-style.variadic_right"
       }
     },
     {
-      "id": "n_14",
+      "id": "field-mac-iface-snl-macro-style-react-renderer-key",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-style.react_renderer_key"
       }
     },
     {
-      "id": "n_15",
+      "id": "field-mac-iface-snl-macro-style-tags",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-style.tags"
       }
     },
     {
-      "id": "n_16",
+      "id": "field-mac-iface-snl-macro-source-entries",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-source.entries"
       }
     },
     {
-      "id": "n_17",
+      "id": "field-mac-iface-snl-macro-source-urls",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-source.urls"
@@ -214,87 +214,87 @@
     },
     {
       "from": "b5b10656-6b0d-4cb5-925b-f444331767f6",
-      "to": "n_1",
+      "to": "field-mac-iface-snl-macro-name",
       "label": "branch"
     },
     {
       "from": "b5b10656-6b0d-4cb5-925b-f444331767f6",
-      "to": "n_2",
+      "to": "field-mac-iface-snl-macro-description",
       "label": "branch"
     },
     {
       "from": "b5b10656-6b0d-4cb5-925b-f444331767f6",
-      "to": "n_3",
+      "to": "field-mac-iface-snl-macro-source",
       "label": "branch"
     },
     {
       "from": "b5b10656-6b0d-4cb5-925b-f444331767f6",
-      "to": "n_4",
+      "to": "field-mac-iface-snl-macro-kind",
       "label": "branch"
     },
     {
       "from": "b5b10656-6b0d-4cb5-925b-f444331767f6",
-      "to": "n_5",
+      "to": "field-mac-iface-snl-macro-dynamic-arity",
       "label": "branch"
     },
     {
       "from": "b5b10656-6b0d-4cb5-925b-f444331767f6",
-      "to": "n_6",
+      "to": "field-mac-iface-snl-macro-styles",
       "label": "branch"
     },
     {
       "from": "b5b10656-6b0d-4cb5-925b-f444331767f6",
-      "to": "n_7",
+      "to": "field-mac-iface-snl-macro-tags",
       "label": "branch"
     },
     {
       "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "n_8",
+      "to": "field-mac-iface-snl-macro-style-tag",
       "label": "branch"
     },
     {
       "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "n_9",
+      "to": "field-mac-iface-snl-macro-style-mode",
       "label": "branch"
     },
     {
       "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "n_10",
+      "to": "field-mac-iface-snl-macro-style-template",
       "label": "branch"
     },
     {
       "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "n_11",
+      "to": "field-mac-iface-snl-macro-style-variadic-left",
       "label": "branch"
     },
     {
       "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "n_12",
+      "to": "field-mac-iface-snl-macro-style-variadic-join",
       "label": "branch"
     },
     {
       "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "n_13",
+      "to": "field-mac-iface-snl-macro-style-variadic-right",
       "label": "branch"
     },
     {
       "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "n_14",
+      "to": "field-mac-iface-snl-macro-style-react-renderer-key",
       "label": "branch"
     },
     {
       "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "n_15",
+      "to": "field-mac-iface-snl-macro-style-tags",
       "label": "branch"
     },
     {
       "from": "a504abbd-facb-455f-9bb2-79a4ba303901",
-      "to": "n_16",
+      "to": "field-mac-iface-snl-macro-source-entries",
       "label": "branch"
     },
     {
       "from": "a504abbd-facb-455f-9bb2-79a4ba303901",
-      "to": "n_17",
+      "to": "field-mac-iface-snl-macro-source-urls",
       "label": "branch"
     }
   ]

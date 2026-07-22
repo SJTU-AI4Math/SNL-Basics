@@ -1,4 +1,4 @@
 {
   "title": "snl-syntax-tree",
-  "description": "纯 TS 语法树模块的所有导出 (interfaces / class / functions)."
+  "description": "All exports from the pure TypeScript syntax-tree module: interfaces, classes, and functions."
 }

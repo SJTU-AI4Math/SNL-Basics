@@ -251,6 +251,174 @@
       "props": {
         "entryId": "st.iface.snl-syntax-tree-parse-options"
       }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-name",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree.name"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-style",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree.style"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-env-mode",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree.env-mode"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-kind",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree.kind"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-scope",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree.scope"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-mdata",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree.mdata"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-children",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree.children"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-base-name",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-base.name"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-base-style",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-base.style"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-base-kind",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-base.kind"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-base-scope",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-base.scope"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-base-mdata",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-base.mdata"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-base-children",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-base.children"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-formula-node-mode",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-formula-node.mode"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-text-node-mode",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-text-node.mode"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-block-node-mode",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-block-node.mode"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-block-node-block-kind",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-block-node.block_kind"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-macro-template-query-args-name",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-macro-template-query-args.name"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-macro-template-query-args-node",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-macro-template-query-args.node"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-source-metrics-total-nodes",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-source-metrics.total-nodes"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-source-metrics-sourced-nodes",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-source-metrics.sourced-nodes"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-source-metrics-semantic-freedom",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-source-metrics.semantic-freedom"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-source-metrics-structured-ratio",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-source-metrics.structured-ratio"
+      }
+    },
+    {
+      "id": "field-st-iface-snl-syntax-tree-parse-options-active-binder-ids",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-parse-options.active-binder-ids"
+      }
     }
   ],
   "relationships": [
@@ -444,6 +612,126 @@
       "to": "70063eb1-19ba-5b64-a74f-00e730ae7875",
       "label": "branch",
       "props": {}
+    },
+    {
+      "from": "123214d0-a257-4803-bdd2-4329b9329f07",
+      "to": "field-st-iface-snl-syntax-tree-name",
+      "label": "branch"
+    },
+    {
+      "from": "123214d0-a257-4803-bdd2-4329b9329f07",
+      "to": "field-st-iface-snl-syntax-tree-style",
+      "label": "branch"
+    },
+    {
+      "from": "123214d0-a257-4803-bdd2-4329b9329f07",
+      "to": "field-st-iface-snl-syntax-tree-env-mode",
+      "label": "branch"
+    },
+    {
+      "from": "123214d0-a257-4803-bdd2-4329b9329f07",
+      "to": "field-st-iface-snl-syntax-tree-kind",
+      "label": "branch"
+    },
+    {
+      "from": "123214d0-a257-4803-bdd2-4329b9329f07",
+      "to": "field-st-iface-snl-syntax-tree-scope",
+      "label": "branch"
+    },
+    {
+      "from": "123214d0-a257-4803-bdd2-4329b9329f07",
+      "to": "field-st-iface-snl-syntax-tree-mdata",
+      "label": "branch"
+    },
+    {
+      "from": "123214d0-a257-4803-bdd2-4329b9329f07",
+      "to": "field-st-iface-snl-syntax-tree-children",
+      "label": "branch"
+    },
+    {
+      "from": "03560e2a-0030-49e5-a19c-7dae6be65ff1",
+      "to": "field-st-iface-snl-syntax-tree-base-name",
+      "label": "branch"
+    },
+    {
+      "from": "03560e2a-0030-49e5-a19c-7dae6be65ff1",
+      "to": "field-st-iface-snl-syntax-tree-base-style",
+      "label": "branch"
+    },
+    {
+      "from": "03560e2a-0030-49e5-a19c-7dae6be65ff1",
+      "to": "field-st-iface-snl-syntax-tree-base-kind",
+      "label": "branch"
+    },
+    {
+      "from": "03560e2a-0030-49e5-a19c-7dae6be65ff1",
+      "to": "field-st-iface-snl-syntax-tree-base-scope",
+      "label": "branch"
+    },
+    {
+      "from": "03560e2a-0030-49e5-a19c-7dae6be65ff1",
+      "to": "field-st-iface-snl-syntax-tree-base-mdata",
+      "label": "branch"
+    },
+    {
+      "from": "03560e2a-0030-49e5-a19c-7dae6be65ff1",
+      "to": "field-st-iface-snl-syntax-tree-base-children",
+      "label": "branch"
+    },
+    {
+      "from": "1f30a66b-9ef0-4a99-bb10-59a879fdd3a8",
+      "to": "field-st-iface-snl-syntax-tree-formula-node-mode",
+      "label": "branch"
+    },
+    {
+      "from": "c54f5eca-e957-43d9-b606-e6284517f244",
+      "to": "field-st-iface-snl-syntax-tree-text-node-mode",
+      "label": "branch"
+    },
+    {
+      "from": "e1f01505-4180-4962-8a69-c1b89040fb00",
+      "to": "field-st-iface-snl-syntax-tree-block-node-mode",
+      "label": "branch"
+    },
+    {
+      "from": "e1f01505-4180-4962-8a69-c1b89040fb00",
+      "to": "field-st-iface-snl-syntax-tree-block-node-block-kind",
+      "label": "branch"
+    },
+    {
+      "from": "3b170a06-c2c1-47d8-b949-15f9b1972b3e",
+      "to": "field-st-iface-snl-macro-template-query-args-name",
+      "label": "branch"
+    },
+    {
+      "from": "3b170a06-c2c1-47d8-b949-15f9b1972b3e",
+      "to": "field-st-iface-snl-macro-template-query-args-node",
+      "label": "branch"
+    },
+    {
+      "from": "a09a6759-b1ae-5adf-9fe0-56fb43c4954d",
+      "to": "field-st-iface-snl-source-metrics-total-nodes",
+      "label": "branch"
+    },
+    {
+      "from": "a09a6759-b1ae-5adf-9fe0-56fb43c4954d",
+      "to": "field-st-iface-snl-source-metrics-sourced-nodes",
+      "label": "branch"
+    },
+    {
+      "from": "a09a6759-b1ae-5adf-9fe0-56fb43c4954d",
+      "to": "field-st-iface-snl-source-metrics-semantic-freedom",
+      "label": "branch"
+    },
+    {
+      "from": "a09a6759-b1ae-5adf-9fe0-56fb43c4954d",
+      "to": "field-st-iface-snl-source-metrics-structured-ratio",
+      "label": "branch"
+    },
+    {
+      "from": "f42b2118-165b-519b-96b2-4b23399f0356",
+      "to": "field-st-iface-snl-syntax-tree-parse-options-active-binder-ids",
+      "label": "branch"
     }
   ]
 }

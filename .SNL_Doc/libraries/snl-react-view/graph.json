@@ -57,48 +57,6 @@
       }
     },
     {
-      "id": "e0fa3fec-df6f-440f-893f-37636b648be2",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.comp.snl-syntax-tree-view.prop.tree"
-      }
-    },
-    {
-      "id": "6fb0231c-178b-48b7-a48d-755226934da9",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.comp.snl-syntax-tree-view.prop.macro-db"
-      }
-    },
-    {
-      "id": "7b5f692c-0bfb-4a14-aad4-9ceef77fe4ea",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.comp.snl-syntax-tree-view.prop.query"
-      }
-    },
-    {
-      "id": "6c86a146-f645-488b-a491-466d992438bc",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.comp.snl-syntax-tree-view.prop.hooks"
-      }
-    },
-    {
-      "id": "12a9cc1e-8c9c-45c3-a248-a0ef5bc99d20",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.comp.snl-syntax-tree-view.prop.kind-palette"
-      }
-    },
-    {
-      "id": "f7b4964a-2c2b-4514-9159-6be65219edb6",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.comp.snl-syntax-tree-view.prop.katex-options"
-      }
-    },
-    {
       "id": "f27cb559-2171-4d8d-a672-4e626ef05da3",
       "label": "Entry",
       "props": {
@@ -299,13 +257,6 @@
       "label": "Entry",
       "props": {
         "entryId": "rv.const.htmldata-katex-defaults"
-      }
-    },
-    {
-      "id": "e51ea298-0090-507e-9df8-b0437a4b756a",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.comp.snl-syntax-tree-view.prop.on-resolved"
       }
     },
     {
@@ -622,6 +573,545 @@
       "props": {
         "entryId": "remark.rv.fn.wrap-html-data"
       }
+    },
+    {
+      "id": "field-rv-iface-snl-syntax-tree-view-props-tree",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-syntax-tree-view-props.tree"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-syntax-tree-view-props-query",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-syntax-tree-view-props.query"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-syntax-tree-view-props-macro-db",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-syntax-tree-view-props.macro-db"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-syntax-tree-view-props-katex-options",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-syntax-tree-view-props.katex-options"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-syntax-tree-view-props-kind-palette",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-syntax-tree-view-props.kind-palette"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-syntax-tree-view-props-on-resolved",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-syntax-tree-view-props.on-resolved"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-syntax-tree-view-props-hooks",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-syntax-tree-view-props.hooks"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-render-hooks-on-hover",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-render-hooks.on-hover"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-render-hooks-on-leave",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-render-hooks.on-leave"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-render-hooks-resolve-macro-info",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-render-hooks.resolve-macro-info"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-render-hooks-resolve-source",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-render-hooks.resolve-source"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-render-hooks-render-tooltip",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-render-hooks.render-tooltip"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-render-hooks-highlight-strategy",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-render-hooks.highlight-strategy"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-render-hooks-renderers",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-render-hooks.renderers"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-hover-event-name",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-hover-event.name"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-hover-event-kind",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-hover-event.kind"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-hover-event-node",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-hover-event.node"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-hover-event-binding-hint",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-hover-event.binding-hint"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-hover-event-variable-role",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-hover-event.variable-role"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-hover-event-target",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-hover-event.target"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-hover-event-client-x",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-hover-event.client-x"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-hover-event-client-y",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-hover-event.client-y"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-macro-info-description",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-macro-info.description"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-macro-info-extra",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-macro-info.extra"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-resolved-source-kind",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-resolved-source.kind"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-resolved-source-ref",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-resolved-source.ref"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-resolved-source-display-name",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-resolved-source.display-name"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-resolved-source-href",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-resolved-source.href"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-tooltip-state-visible",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-tooltip-state.visible"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-tooltip-state-x",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-tooltip-state.x"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-tooltip-state-y",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-tooltip-state.y"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-tooltip-state-name",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-tooltip-state.name"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-tooltip-state-kind",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-tooltip-state.kind"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-tooltip-state-variable-role",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-tooltip-state.variable-role"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-tooltip-state-binding-hint",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-tooltip-state.binding-hint"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-tooltip-state-info",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-tooltip-state.info"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-tooltip-state-loading",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-tooltip-state.loading"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-tooltip-state-source",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-tooltip-state.source"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-highlight-strategy-compute-highlight-set",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-highlight-strategy.compute-highlight-set"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-highlight-set-single-hover",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-highlight-set.single-hover"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-highlight-set-bvar-scope",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-highlight-set.bvar-scope"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-highlight-set-binder-decl",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-highlight-set.binder-decl"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-block-renderer-props-node",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-block-renderer-props.node"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-block-renderer-props-macro-db",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-block-renderer-props.macro-db"
+      }
+    },
+    {
+      "id": "field-rv-iface-snl-block-renderer-props-render-child",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.snl-block-renderer-props.render-child"
+      }
+    },
+    {
+      "id": "field-rv-iface-kind-coloring-stroke",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.kind-coloring.stroke"
+      }
+    },
+    {
+      "id": "field-rv-iface-kind-coloring-background",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.kind-coloring.background"
+      }
+    },
+    {
+      "id": "field-rv-iface-default-macro-template-query-options-template-db-url",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.default-macro-template-query-options.template-db-url"
+      }
+    },
+    {
+      "id": "field-rv-iface-default-macro-template-query-options-artificial-delay-ms",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.default-macro-template-query-options.artificial-delay-ms"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-id",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover.id"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-subject",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover.subject"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-origin-rect",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover.origin-rect"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-x",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover.x"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-y",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover.y"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-parent-id",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover.parent-id"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-frozen",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover.frozen"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-phase",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover.phase"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-api-spawn",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-api.spawn"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-api-update-pointer",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-api.update-pointer"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-api-freeze",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-api.freeze"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-api-cancel-unfrozen",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-api.cancel-unfrozen"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-api-dismiss-all",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-api.dismiss-all"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-api-is-alive",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-api.is-alive"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-options-offset",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-options.offset"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-options-hit-padding",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-options.hit-padding"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-options-viewport-margin",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-options.viewport-margin"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-options-open-delay-ms",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-options.open-delay-ms"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-options-fade-ms",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-options.fade-ms"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-options-freeze-delay-ms",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-options.freeze-delay-ms"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-options-max-z-index-base",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-options.max-z-index-base"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-provider-props-children",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-provider-props.children"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-provider-props-render-popover",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-provider-props.render-popover"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-provider-props-options",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-provider-props.options"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-provider-props-class-name",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-provider-props.class-name"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-provider-props-style",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-provider-props.style"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-provider-props-resolve-bounds",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-provider-props.resolve-bounds"
+      }
+    },
+    {
+      "id": "field-rv-iface-hover-popover-provider-props-portal-target",
+      "label": "Entry",
+      "props": {
+        "entryId": "rv.iface.hover-popover-provider-props.portal-target"
+      }
     }
   ],
   "relationships": [
@@ -633,36 +1123,6 @@
     {
       "from": "sec-react-components",
       "to": "e865542e-c58f-4a78-bb2e-967971a703f4",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-components",
-      "to": "e0fa3fec-df6f-440f-893f-37636b648be2",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-components",
-      "to": "6fb0231c-178b-48b7-a48d-755226934da9",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-components",
-      "to": "7b5f692c-0bfb-4a14-aad4-9ceef77fe4ea",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-components",
-      "to": "6c86a146-f645-488b-a491-466d992438bc",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-components",
-      "to": "12a9cc1e-8c9c-45c3-a248-a0ef5bc99d20",
-      "label": "branch"
-    },
-    {
-      "from": "sec-react-components",
-      "to": "f7b4964a-2c2b-4514-9159-6be65219edb6",
       "label": "branch"
     },
     {
@@ -946,13 +1406,6 @@
       "label": "branch"
     },
     {
-      "id": "4f3cf2c1-963f-5c35-863f-30be15ceb168",
-      "from": "e865542e-c58f-4a78-bb2e-967971a703f4",
-      "to": "e51ea298-0090-507e-9df8-b0437a4b756a",
-      "label": "branch",
-      "props": {}
-    },
-    {
       "id": "416d66e5-6d6e-5f45-9e83-9d66ccb82d84",
       "from": "3da441c7-6a9c-43b3-a041-ea656af6043a",
       "to": "3827ff4e-60ab-5b03-bc45-084b7f508424",
@@ -1112,6 +1565,391 @@
       "to": "da133819-e817-543a-b8cb-65c7bed5d467",
       "label": "branch",
       "props": {}
+    },
+    {
+      "from": "6e437da1-562a-482a-aa19-6d734178337b",
+      "to": "field-rv-iface-snl-syntax-tree-view-props-tree",
+      "label": "branch"
+    },
+    {
+      "from": "6e437da1-562a-482a-aa19-6d734178337b",
+      "to": "field-rv-iface-snl-syntax-tree-view-props-query",
+      "label": "branch"
+    },
+    {
+      "from": "6e437da1-562a-482a-aa19-6d734178337b",
+      "to": "field-rv-iface-snl-syntax-tree-view-props-macro-db",
+      "label": "branch"
+    },
+    {
+      "from": "6e437da1-562a-482a-aa19-6d734178337b",
+      "to": "field-rv-iface-snl-syntax-tree-view-props-katex-options",
+      "label": "branch"
+    },
+    {
+      "from": "6e437da1-562a-482a-aa19-6d734178337b",
+      "to": "field-rv-iface-snl-syntax-tree-view-props-kind-palette",
+      "label": "branch"
+    },
+    {
+      "from": "6e437da1-562a-482a-aa19-6d734178337b",
+      "to": "field-rv-iface-snl-syntax-tree-view-props-on-resolved",
+      "label": "branch"
+    },
+    {
+      "from": "6e437da1-562a-482a-aa19-6d734178337b",
+      "to": "field-rv-iface-snl-syntax-tree-view-props-hooks",
+      "label": "branch"
+    },
+    {
+      "from": "8eb1cec0-9e83-4e43-a316-62fe4ec49aef",
+      "to": "field-rv-iface-snl-render-hooks-on-hover",
+      "label": "branch"
+    },
+    {
+      "from": "8eb1cec0-9e83-4e43-a316-62fe4ec49aef",
+      "to": "field-rv-iface-snl-render-hooks-on-leave",
+      "label": "branch"
+    },
+    {
+      "from": "8eb1cec0-9e83-4e43-a316-62fe4ec49aef",
+      "to": "field-rv-iface-snl-render-hooks-resolve-macro-info",
+      "label": "branch"
+    },
+    {
+      "from": "8eb1cec0-9e83-4e43-a316-62fe4ec49aef",
+      "to": "field-rv-iface-snl-render-hooks-resolve-source",
+      "label": "branch"
+    },
+    {
+      "from": "8eb1cec0-9e83-4e43-a316-62fe4ec49aef",
+      "to": "field-rv-iface-snl-render-hooks-render-tooltip",
+      "label": "branch"
+    },
+    {
+      "from": "8eb1cec0-9e83-4e43-a316-62fe4ec49aef",
+      "to": "field-rv-iface-snl-render-hooks-highlight-strategy",
+      "label": "branch"
+    },
+    {
+      "from": "8eb1cec0-9e83-4e43-a316-62fe4ec49aef",
+      "to": "field-rv-iface-snl-render-hooks-renderers",
+      "label": "branch"
+    },
+    {
+      "from": "dd025448-e9ce-45fa-8a3f-560cbe82f27c",
+      "to": "field-rv-iface-snl-hover-event-name",
+      "label": "branch"
+    },
+    {
+      "from": "dd025448-e9ce-45fa-8a3f-560cbe82f27c",
+      "to": "field-rv-iface-snl-hover-event-kind",
+      "label": "branch"
+    },
+    {
+      "from": "dd025448-e9ce-45fa-8a3f-560cbe82f27c",
+      "to": "field-rv-iface-snl-hover-event-node",
+      "label": "branch"
+    },
+    {
+      "from": "dd025448-e9ce-45fa-8a3f-560cbe82f27c",
+      "to": "field-rv-iface-snl-hover-event-binding-hint",
+      "label": "branch"
+    },
+    {
+      "from": "dd025448-e9ce-45fa-8a3f-560cbe82f27c",
+      "to": "field-rv-iface-snl-hover-event-variable-role",
+      "label": "branch"
+    },
+    {
+      "from": "dd025448-e9ce-45fa-8a3f-560cbe82f27c",
+      "to": "field-rv-iface-snl-hover-event-target",
+      "label": "branch"
+    },
+    {
+      "from": "dd025448-e9ce-45fa-8a3f-560cbe82f27c",
+      "to": "field-rv-iface-snl-hover-event-client-x",
+      "label": "branch"
+    },
+    {
+      "from": "dd025448-e9ce-45fa-8a3f-560cbe82f27c",
+      "to": "field-rv-iface-snl-hover-event-client-y",
+      "label": "branch"
+    },
+    {
+      "from": "e07d1ec8-5533-464a-af1d-a44114a8dc76",
+      "to": "field-rv-iface-snl-macro-info-description",
+      "label": "branch"
+    },
+    {
+      "from": "e07d1ec8-5533-464a-af1d-a44114a8dc76",
+      "to": "field-rv-iface-snl-macro-info-extra",
+      "label": "branch"
+    },
+    {
+      "from": "16a4131b-6459-415e-a714-75a2b144597a",
+      "to": "field-rv-iface-snl-resolved-source-kind",
+      "label": "branch"
+    },
+    {
+      "from": "16a4131b-6459-415e-a714-75a2b144597a",
+      "to": "field-rv-iface-snl-resolved-source-ref",
+      "label": "branch"
+    },
+    {
+      "from": "16a4131b-6459-415e-a714-75a2b144597a",
+      "to": "field-rv-iface-snl-resolved-source-display-name",
+      "label": "branch"
+    },
+    {
+      "from": "16a4131b-6459-415e-a714-75a2b144597a",
+      "to": "field-rv-iface-snl-resolved-source-href",
+      "label": "branch"
+    },
+    {
+      "from": "2c4eda1a-a714-45c3-81ec-eb5d1e9d6990",
+      "to": "field-rv-iface-snl-tooltip-state-visible",
+      "label": "branch"
+    },
+    {
+      "from": "2c4eda1a-a714-45c3-81ec-eb5d1e9d6990",
+      "to": "field-rv-iface-snl-tooltip-state-x",
+      "label": "branch"
+    },
+    {
+      "from": "2c4eda1a-a714-45c3-81ec-eb5d1e9d6990",
+      "to": "field-rv-iface-snl-tooltip-state-y",
+      "label": "branch"
+    },
+    {
+      "from": "2c4eda1a-a714-45c3-81ec-eb5d1e9d6990",
+      "to": "field-rv-iface-snl-tooltip-state-name",
+      "label": "branch"
+    },
+    {
+      "from": "2c4eda1a-a714-45c3-81ec-eb5d1e9d6990",
+      "to": "field-rv-iface-snl-tooltip-state-kind",
+      "label": "branch"
+    },
+    {
+      "from": "2c4eda1a-a714-45c3-81ec-eb5d1e9d6990",
+      "to": "field-rv-iface-snl-tooltip-state-variable-role",
+      "label": "branch"
+    },
+    {
+      "from": "2c4eda1a-a714-45c3-81ec-eb5d1e9d6990",
+      "to": "field-rv-iface-snl-tooltip-state-binding-hint",
+      "label": "branch"
+    },
+    {
+      "from": "2c4eda1a-a714-45c3-81ec-eb5d1e9d6990",
+      "to": "field-rv-iface-snl-tooltip-state-info",
+      "label": "branch"
+    },
+    {
+      "from": "2c4eda1a-a714-45c3-81ec-eb5d1e9d6990",
+      "to": "field-rv-iface-snl-tooltip-state-loading",
+      "label": "branch"
+    },
+    {
+      "from": "2c4eda1a-a714-45c3-81ec-eb5d1e9d6990",
+      "to": "field-rv-iface-snl-tooltip-state-source",
+      "label": "branch"
+    },
+    {
+      "from": "ec6c0783-dcf5-4eb5-af08-9f9a2b6a964e",
+      "to": "field-rv-iface-snl-highlight-strategy-compute-highlight-set",
+      "label": "branch"
+    },
+    {
+      "from": "ae000d10-de3a-4541-9d6c-d456db15efb0",
+      "to": "field-rv-iface-snl-highlight-set-single-hover",
+      "label": "branch"
+    },
+    {
+      "from": "ae000d10-de3a-4541-9d6c-d456db15efb0",
+      "to": "field-rv-iface-snl-highlight-set-bvar-scope",
+      "label": "branch"
+    },
+    {
+      "from": "ae000d10-de3a-4541-9d6c-d456db15efb0",
+      "to": "field-rv-iface-snl-highlight-set-binder-decl",
+      "label": "branch"
+    },
+    {
+      "from": "9d391e73-65c6-4284-994b-a5e6a0edd5bf",
+      "to": "field-rv-iface-snl-block-renderer-props-node",
+      "label": "branch"
+    },
+    {
+      "from": "9d391e73-65c6-4284-994b-a5e6a0edd5bf",
+      "to": "field-rv-iface-snl-block-renderer-props-macro-db",
+      "label": "branch"
+    },
+    {
+      "from": "9d391e73-65c6-4284-994b-a5e6a0edd5bf",
+      "to": "field-rv-iface-snl-block-renderer-props-render-child",
+      "label": "branch"
+    },
+    {
+      "from": "9ba004dd-20c9-428c-a9ec-60394f064216",
+      "to": "field-rv-iface-kind-coloring-stroke",
+      "label": "branch"
+    },
+    {
+      "from": "9ba004dd-20c9-428c-a9ec-60394f064216",
+      "to": "field-rv-iface-kind-coloring-background",
+      "label": "branch"
+    },
+    {
+      "from": "c5ff0b9f-ca08-4a5e-bce5-bec172d14d5f",
+      "to": "field-rv-iface-default-macro-template-query-options-template-db-url",
+      "label": "branch"
+    },
+    {
+      "from": "c5ff0b9f-ca08-4a5e-bce5-bec172d14d5f",
+      "to": "field-rv-iface-default-macro-template-query-options-artificial-delay-ms",
+      "label": "branch"
+    },
+    {
+      "from": "a9b4bffa-f5bf-5076-8fe8-6695f4d32596",
+      "to": "field-rv-iface-hover-popover-id",
+      "label": "branch"
+    },
+    {
+      "from": "a9b4bffa-f5bf-5076-8fe8-6695f4d32596",
+      "to": "field-rv-iface-hover-popover-subject",
+      "label": "branch"
+    },
+    {
+      "from": "a9b4bffa-f5bf-5076-8fe8-6695f4d32596",
+      "to": "field-rv-iface-hover-popover-origin-rect",
+      "label": "branch"
+    },
+    {
+      "from": "a9b4bffa-f5bf-5076-8fe8-6695f4d32596",
+      "to": "field-rv-iface-hover-popover-x",
+      "label": "branch"
+    },
+    {
+      "from": "a9b4bffa-f5bf-5076-8fe8-6695f4d32596",
+      "to": "field-rv-iface-hover-popover-y",
+      "label": "branch"
+    },
+    {
+      "from": "a9b4bffa-f5bf-5076-8fe8-6695f4d32596",
+      "to": "field-rv-iface-hover-popover-parent-id",
+      "label": "branch"
+    },
+    {
+      "from": "a9b4bffa-f5bf-5076-8fe8-6695f4d32596",
+      "to": "field-rv-iface-hover-popover-frozen",
+      "label": "branch"
+    },
+    {
+      "from": "a9b4bffa-f5bf-5076-8fe8-6695f4d32596",
+      "to": "field-rv-iface-hover-popover-phase",
+      "label": "branch"
+    },
+    {
+      "from": "82d9a977-63de-5a22-a0b2-57b141dc5ecc",
+      "to": "field-rv-iface-hover-popover-api-spawn",
+      "label": "branch"
+    },
+    {
+      "from": "82d9a977-63de-5a22-a0b2-57b141dc5ecc",
+      "to": "field-rv-iface-hover-popover-api-update-pointer",
+      "label": "branch"
+    },
+    {
+      "from": "82d9a977-63de-5a22-a0b2-57b141dc5ecc",
+      "to": "field-rv-iface-hover-popover-api-freeze",
+      "label": "branch"
+    },
+    {
+      "from": "82d9a977-63de-5a22-a0b2-57b141dc5ecc",
+      "to": "field-rv-iface-hover-popover-api-cancel-unfrozen",
+      "label": "branch"
+    },
+    {
+      "from": "82d9a977-63de-5a22-a0b2-57b141dc5ecc",
+      "to": "field-rv-iface-hover-popover-api-dismiss-all",
+      "label": "branch"
+    },
+    {
+      "from": "82d9a977-63de-5a22-a0b2-57b141dc5ecc",
+      "to": "field-rv-iface-hover-popover-api-is-alive",
+      "label": "branch"
+    },
+    {
+      "from": "8bc57d65-2d6c-5061-a1d5-46e0af435d60",
+      "to": "field-rv-iface-hover-popover-options-offset",
+      "label": "branch"
+    },
+    {
+      "from": "8bc57d65-2d6c-5061-a1d5-46e0af435d60",
+      "to": "field-rv-iface-hover-popover-options-hit-padding",
+      "label": "branch"
+    },
+    {
+      "from": "8bc57d65-2d6c-5061-a1d5-46e0af435d60",
+      "to": "field-rv-iface-hover-popover-options-viewport-margin",
+      "label": "branch"
+    },
+    {
+      "from": "8bc57d65-2d6c-5061-a1d5-46e0af435d60",
+      "to": "field-rv-iface-hover-popover-options-open-delay-ms",
+      "label": "branch"
+    },
+    {
+      "from": "8bc57d65-2d6c-5061-a1d5-46e0af435d60",
+      "to": "field-rv-iface-hover-popover-options-fade-ms",
+      "label": "branch"
+    },
+    {
+      "from": "8bc57d65-2d6c-5061-a1d5-46e0af435d60",
+      "to": "field-rv-iface-hover-popover-options-freeze-delay-ms",
+      "label": "branch"
+    },
+    {
+      "from": "8bc57d65-2d6c-5061-a1d5-46e0af435d60",
+      "to": "field-rv-iface-hover-popover-options-max-z-index-base",
+      "label": "branch"
+    },
+    {
+      "from": "1f73aadf-6f60-5dfc-8f6b-8e0c4d02132e",
+      "to": "field-rv-iface-hover-popover-provider-props-children",
+      "label": "branch"
+    },
+    {
+      "from": "1f73aadf-6f60-5dfc-8f6b-8e0c4d02132e",
+      "to": "field-rv-iface-hover-popover-provider-props-render-popover",
+      "label": "branch"
+    },
+    {
+      "from": "1f73aadf-6f60-5dfc-8f6b-8e0c4d02132e",
+      "to": "field-rv-iface-hover-popover-provider-props-options",
+      "label": "branch"
+    },
+    {
+      "from": "1f73aadf-6f60-5dfc-8f6b-8e0c4d02132e",
+      "to": "field-rv-iface-hover-popover-provider-props-class-name",
+      "label": "branch"
+    },
+    {
+      "from": "1f73aadf-6f60-5dfc-8f6b-8e0c4d02132e",
+      "to": "field-rv-iface-hover-popover-provider-props-style",
+      "label": "branch"
+    },
+    {
+      "from": "1f73aadf-6f60-5dfc-8f6b-8e0c4d02132e",
+      "to": "field-rv-iface-hover-popover-provider-props-resolve-bounds",
+      "label": "branch"
+    },
+    {
+      "from": "1f73aadf-6f60-5dfc-8f6b-8e0c4d02132e",
+      "to": "field-rv-iface-hover-popover-provider-props-portal-target",
+      "label": "branch"
     }
   ]
 }

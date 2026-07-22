@@ -1,4 +1,4 @@
 {
   "title": "Public API",
-  "description": "@snl-basics/react package-root 的完整公开接口视图。此 library 只引用 canonical Entry；节点与 src/snl-react-view/index.ts 的 76 个 named exports 一一对应。"
+  "description": "Complete package-root API view for @snl-basics/react. This library references canonical Entries only; its nodes correspond one-to-one with the 75 named exports from src/snl-react-view/index.ts."
 }
