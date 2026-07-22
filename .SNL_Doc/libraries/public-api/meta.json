@@ -1,4 +1,4 @@
 {
-  "title": "public-api",
-  "description": "SNL-Basics 的 Schema 接口视图。library 仅引用全局 Entry，不复制或拥有 Entry；同一接口可同时出现在模块 library 与本视图。snl-macro 接口以经审计的 mac.* Entry 为准。"
+  "title": "Public API",
+  "description": "@snl-basics/react package-root 的完整公开接口视图。此 library 只引用 canonical Entry；节点与 src/snl-react-view/index.ts 的 76 个 named exports 一一对应。"
 }

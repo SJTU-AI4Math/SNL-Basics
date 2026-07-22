@@ -40,9 +40,9 @@
       ]
     },
     "ts.union": {
-      "description": "TypeScript union type `A | B` — a value that is one of several types.",
-      "kind": "const",
-      "dynamic_arity": false,
+      "description": "TypeScript union type.",
+      "kind": "Syntax",
+      "dynamic_arity": true,
       "source": {
         "entries": [],
         "urls": [
@@ -53,7 +53,10 @@
         {
           "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+          "template": "",
+          "variadic_left": "",
+          "variadic_join": "\\texttt{ | }",
+          "variadic_right": ""
         }
       ]
     },
@@ -112,20 +115,710 @@
       ]
     },
     "ts.function-type": {
-      "description": "TypeScript function type `(params) => ReturnType`.",
-      "kind": "const",
+      "description": "TypeScript arrow function type.",
+      "kind": "Syntax",
       "dynamic_arity": false,
       "source": {
         "entries": [],
         "urls": [
-          "https://www.typescriptlang.org/docs/handbook/2/functions.html#function-type-expressions"
+          "https://www.typescriptlang.org/docs/handbook/2/functions.html"
         ]
       },
       "styles": [
         {
           "tag": "default",
           "mode": "formula_inline",
-          "template": "\\textcolor{Purple}{\\texttt{#0}}"
+          "template": "#0\\texttt{ => }#1"
+        }
+      ]
+    },
+    "ts.function": {
+      "description": "TypeScript function declaration.",
+      "kind": "Syntax",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/functions.html"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "{\\color{569CD6}\\texttt{function }}#0\\texttt{: }#1\\texttt{ \\{}#2\\texttt{\\}}"
+        }
+      ]
+    },
+    "ts.parameters": {
+      "description": "TypeScript parameter list.",
+      "kind": "Syntax",
+      "dynamic_arity": true,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/functions.html"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "",
+          "variadic_left": "\\texttt{(}",
+          "variadic_join": "\\texttt{, }",
+          "variadic_right": "\\texttt{)}"
+        }
+      ]
+    },
+    "ts.type-arguments": {
+      "description": "TypeScript generic type argument list.",
+      "kind": "Syntax",
+      "dynamic_arity": true,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/generics.html"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "",
+          "variadic_left": "\\texttt{<}",
+          "variadic_join": "\\texttt{, }",
+          "variadic_right": "\\texttt{>}"
+        }
+      ]
+    },
+    "ts.generic": {
+      "description": "TypeScript generic type application.",
+      "kind": "Syntax",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/generics.html"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "#0#1"
+        }
+      ]
+    },
+    "ts.null": {
+      "description": "TypeScript null type.",
+      "kind": "class",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/tsconfig/strictNullChecks.html"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}null}"
+        }
+      ]
+    },
+    "ts.Promise": {
+      "description": "TypeScript Promise type used by async APIs.",
+      "kind": "class",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/release-notes/typescript-1-7.html#asyncawait-support-in-es6-targets-node-v4"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}Promise}"
+        }
+      ]
+    },
+    "ts.ellipsis": {
+      "description": "Elided function implementation; the node source points to its Remark entry.",
+      "kind": "Syntax",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [],
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/functions.html"
+        ]
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\ldots"
+        }
+      ]
+    },
+    "fn.createSnlSyntaxTreeNode": {
+      "description": "Public function createSnlSyntaxTreeNode.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "st.fn.create-snl-syntax-tree-node"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{createSnlSyntaxTreeNode}"
+        }
+      ]
+    },
+    "fn.isSnlSyntaxTree": {
+      "description": "Public function isSnlSyntaxTree.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "st.fn.is-snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{isSnlSyntaxTree}"
+        }
+      ]
+    },
+    "fn.parseSnlSyntaxTree": {
+      "description": "Public function parseSnlSyntaxTree.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "st.fn.parse-snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{parseSnlSyntaxTree}"
+        }
+      ]
+    },
+    "fn.tryParseSnlSyntaxTree": {
+      "description": "Public function tryParseSnlSyntaxTree.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "st.fn.try-parse-snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{tryParseSnlSyntaxTree}"
+        }
+      ]
+    },
+    "fn.serializeSnlSyntaxTree": {
+      "description": "Public function serializeSnlSyntaxTree.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "st.fn.serialize-snl-syntax-tree"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{serializeSnlSyntaxTree}"
+        }
+      ]
+    },
+    "fn.annotateBindings": {
+      "description": "Public function annotateBindings.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "st.fn.annotate-bindings"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{annotateBindings}"
+        }
+      ]
+    },
+    "fn.analyzeSnlTreeSources": {
+      "description": "Public function analyzeSnlTreeSources.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "st.fn.analyze-snl-tree-sources"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{analyzeSnlTreeSources}"
+        }
+      ]
+    },
+    "fn.loadSnlMacroDb": {
+      "description": "Public function loadSnlMacroDb.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.load-snl-macro-db"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{loadSnlMacroDb}"
+        }
+      ]
+    },
+    "fn.setSnlMacroDbCache": {
+      "description": "Public function setSnlMacroDbCache.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.set-snl-macro-db-cache"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{setSnlMacroDbCache}"
+        }
+      ]
+    },
+    "fn.clearSnlMacroDbCache": {
+      "description": "Public function clearSnlMacroDbCache.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.clear-snl-macro-db-cache"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{clearSnlMacroDbCache}"
+        }
+      ]
+    },
+    "fn.createDefaultMacroTemplateQuery": {
+      "description": "Public function createDefaultMacroTemplateQuery.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.create-default-macro-template-query"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{createDefaultMacroTemplateQuery}"
+        }
+      ]
+    },
+    "fn.createMacroTemplateQueryFromDb": {
+      "description": "Public function createMacroTemplateQueryFromDb.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.create-macro-template-query-from-db"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{createMacroTemplateQueryFromDb}"
+        }
+      ]
+    },
+    "fn.alpha": {
+      "description": "Public function alpha.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.alpha"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{alpha}"
+        }
+      ]
+    },
+    "fn.paletteToCss": {
+      "description": "Public function paletteToCss.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.palette-to-css"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{paletteToCss}"
+        }
+      ]
+    },
+    "fn.assertSafeKindName": {
+      "description": "Public function assertSafeKindName.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.assert-safe-kind-name"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{assertSafeKindName}"
+        }
+      ]
+    },
+    "fn.clampPopoverPosition": {
+      "description": "Public function clampPopoverPosition.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.clamp-popover-position"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{clampPopoverPosition}"
+        }
+      ]
+    },
+    "fn.collectPopoverSubtree": {
+      "description": "Public function collectPopoverSubtree.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.collect-popover-subtree"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{collectPopoverSubtree}"
+        }
+      ]
+    },
+    "fn.expandPopoverAncestors": {
+      "description": "Public function expandPopoverAncestors.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.expand-popover-ancestors"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{expandPopoverAncestors}"
+        }
+      ]
+    },
+    "fn.findPopoverBounds": {
+      "description": "Public function findPopoverBounds.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.find-popover-bounds"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{findPopoverBounds}"
+        }
+      ]
+    },
+    "fn.useCurrentPopoverId": {
+      "description": "Public function useCurrentPopoverId.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.use-current-popover-id"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{useCurrentPopoverId}"
+        }
+      ]
+    },
+    "fn.useHoverPopovers": {
+      "description": "Public function useHoverPopovers.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.use-hover-popovers"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{useHoverPopovers}"
+        }
+      ]
+    },
+    "fn.fillLatexTemplate": {
+      "description": "Public function fillLatexTemplate.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "st.fn.fill-latex-template"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{fillLatexTemplate}"
+        }
+      ]
+    },
+    "fn.modeBucket": {
+      "description": "Public function modeBucket.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.mode-bucket"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{modeBucket}"
+        }
+      ]
+    },
+    "fn.nodeDisplay": {
+      "description": "Public function nodeDisplay.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.node-display"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{nodeDisplay}"
+        }
+      ]
+    },
+    "fn.nodeMode": {
+      "description": "Public function nodeMode.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.node-mode"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{nodeMode}"
+        }
+      ]
+    },
+    "fn.resolveNodeLatex": {
+      "description": "Public function resolveNodeLatex.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.resolve-node-latex"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{resolveNodeLatex}"
+        }
+      ]
+    },
+    "fn.resolveRootLatex": {
+      "description": "Public function resolveRootLatex.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.resolve-root-latex"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{resolveRootLatex}"
+        }
+      ]
+    },
+    "fn.resolveStyle": {
+      "description": "Public function resolveStyle.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.resolve-style"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{resolveStyle}"
+        }
+      ]
+    },
+    "fn.sanitizeHtmlDataAttr": {
+      "description": "Public function sanitizeHtmlDataAttr.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.sanitize-html-data-attr"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{sanitizeHtmlDataAttr}"
+        }
+      ]
+    },
+    "fn.wrapForParent": {
+      "description": "Public function wrapForParent.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.wrap-for-parent"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{wrapForParent}"
+        }
+      ]
+    },
+    "fn.wrapHtmlData": {
+      "description": "Public function wrapHtmlData.",
+      "kind": "const",
+      "dynamic_arity": false,
+      "source": {
+        "entries": [
+          "rv.fn.wrap-html-data"
+        ],
+        "urls": []
+      },
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{wrapHtmlData}"
         }
       ]
     }

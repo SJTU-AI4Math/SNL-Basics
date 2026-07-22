@@ -125,6 +125,83 @@
       "props": {
         "entryId": "st.fn.fill-latex-template"
       }
+    },
+    {
+      "id": "4d1c5d45-d5a3-5114-8007-9bcb927563c3",
+      "label": "Entry",
+      "props": {
+        "entryId": "remark.st.fn.create-snl-syntax-tree-node"
+      }
+    },
+    {
+      "id": "173e2642-7922-581a-bbc8-84c7bca87150",
+      "label": "Entry",
+      "props": {
+        "entryId": "remark.st.fn.is-snl-syntax-tree"
+      }
+    },
+    {
+      "id": "414ccfd2-78da-55d0-ace0-996d144d9ec8",
+      "label": "Entry",
+      "props": {
+        "entryId": "remark.st.fn.parse-snl-syntax-tree"
+      }
+    },
+    {
+      "id": "7b3735ac-68f3-5431-b4ad-b1d963245fed",
+      "label": "Entry",
+      "props": {
+        "entryId": "remark.st.fn.try-parse-snl-syntax-tree"
+      }
+    },
+    {
+      "id": "9be6c99d-d31e-538d-ae88-4cc362cd10c5",
+      "label": "Entry",
+      "props": {
+        "entryId": "remark.st.fn.serialize-snl-syntax-tree"
+      }
+    },
+    {
+      "id": "be09301f-d892-5945-a572-c7fc722313c6",
+      "label": "Entry",
+      "props": {
+        "entryId": "remark.st.fn.annotate-bindings"
+      }
+    },
+    {
+      "id": "70cbcbb2-0e45-595e-a4c8-61d63c130710",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.fn.analyze-snl-tree-sources"
+      }
+    },
+    {
+      "id": "fea2e752-98e7-58b3-9aee-355bd02d0bb4",
+      "label": "Entry",
+      "props": {
+        "entryId": "remark.st.fn.analyze-snl-tree-sources"
+      }
+    },
+    {
+      "id": "265a61e0-2483-5026-8885-4fc4ea120d45",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-macro-source-lookup"
+      }
+    },
+    {
+      "id": "a09a6759-b1ae-5adf-9fe0-56fb43c4954d",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-source-metrics"
+      }
+    },
+    {
+      "id": "70063eb1-19ba-5b64-a74f-00e730ae7875",
+      "label": "Entry",
+      "props": {
+        "entryId": "remark.st.fn.fill-latex-template"
+      }
     }
   ],
   "relationships": [
@@ -244,6 +321,83 @@
       "id": "68c9b594-3df7-4231-aa0d-139c9d0e7b09",
       "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
       "to": "9b7606ed-1ebb-4436-a6c6-cf2a883fe261",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "ba2ffd69-28e1-5fb5-9d23-8bd3e2ddf6dc",
+      "from": "6df9b33c-96d0-48eb-935f-d5e183c5c4ee",
+      "to": "4d1c5d45-d5a3-5114-8007-9bcb927563c3",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "65be3298-d8e2-5d14-9044-8ed08e38ae24",
+      "from": "afaffa82-c9fe-4147-a132-4dfcdc7c77ef",
+      "to": "173e2642-7922-581a-bbc8-84c7bca87150",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "5bdfdb07-8e27-5716-808f-9dacfac32838",
+      "from": "832df0d7-450a-4fae-98a0-5169d2fa64e7",
+      "to": "414ccfd2-78da-55d0-ace0-996d144d9ec8",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "af0f0fc9-c984-5c77-8694-5cdf0153815d",
+      "from": "e32f8b72-a5b6-4841-9d94-1e847704606f",
+      "to": "7b3735ac-68f3-5431-b4ad-b1d963245fed",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "fda7c703-7125-500c-8c83-7ac705517e3f",
+      "from": "e3550f55-748a-45d9-828d-8d8ee30532ed",
+      "to": "9be6c99d-d31e-538d-ae88-4cc362cd10c5",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "e96e774b-c1db-55a6-8753-4213c3023cf0",
+      "from": "cb5da934-0c3e-47e2-8b78-086324e00310",
+      "to": "be09301f-d892-5945-a572-c7fc722313c6",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "98ad065f-2b74-583d-8350-afe6c56f121a",
+      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "to": "70cbcbb2-0e45-595e-a4c8-61d63c130710",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "b2d4d555-8465-590d-9eed-a56c473ec8d4",
+      "from": "70cbcbb2-0e45-595e-a4c8-61d63c130710",
+      "to": "fea2e752-98e7-58b3-9aee-355bd02d0bb4",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "24c6746f-0282-56b5-b727-2168cdf96d4e",
+      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "to": "265a61e0-2483-5026-8885-4fc4ea120d45",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "1580510b-b9f7-50de-a2e7-a25c8a81e343",
+      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "to": "a09a6759-b1ae-5adf-9fe0-56fb43c4954d",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "07f6c5e5-eaff-5667-9bcd-d1b9e09ed737",
+      "from": "9b7606ed-1ebb-4436-a6c6-cf2a883fe261",
+      "to": "70063eb1-19ba-5b64-a74f-00e730ae7875",
       "label": "branch",
       "props": {}
     }

@@ -473,7 +473,9 @@
       "description": "",
       "source": {
         "entries": [],
-        "urls": []
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html"
+        ]
       },
       "kind": "class",
       "dynamic_arity": false,
@@ -668,7 +670,9 @@
       "description": "",
       "source": {
         "entries": [],
-        "urls": []
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html"
+        ]
       },
       "dynamic_arity": false,
       "styles": [
@@ -700,7 +704,9 @@
       "description": "",
       "source": {
         "entries": [],
-        "urls": []
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html"
+        ]
       },
       "dynamic_arity": false,
       "styles": [
@@ -764,7 +770,9 @@
       "description": "",
       "source": {
         "entries": [],
-        "urls": []
+        "urls": [
+          "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html"
+        ]
       },
       "dynamic_arity": false,
       "styles": [
@@ -3101,6 +3109,726 @@
           "tag": "default",
           "mode": "formula_inline",
           "template": "\\texttt{artificialDelayMs}"
+        }
+      ]
+    },
+    "SnlMacroSourceLookup": {
+      "description": "Public TypeScript schema SnlMacroSourceLookup.",
+      "source": {
+        "entries": [
+          "st.iface.snl-macro-source-lookup"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlMacroSourceLookup}"
+        }
+      ]
+    },
+    "SnlSourceMetrics": {
+      "description": "Public TypeScript schema SnlSourceMetrics.",
+      "source": {
+        "entries": [
+          "st.iface.snl-source-metrics"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlSourceMetrics}"
+        }
+      ]
+    },
+    "SnlSourceMetrics.totalNodes": {
+      "description": "Schema member SnlSourceMetrics.totalNodes.",
+      "source": {
+        "entries": [
+          "st.iface.snl-source-metrics"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{totalNodes}"
+        }
+      ]
+    },
+    "SnlSourceMetrics.sourcedNodes": {
+      "description": "Schema member SnlSourceMetrics.sourcedNodes.",
+      "source": {
+        "entries": [
+          "st.iface.snl-source-metrics"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{sourcedNodes}"
+        }
+      ]
+    },
+    "SnlSourceMetrics.semanticFreedom": {
+      "description": "Schema member SnlSourceMetrics.semanticFreedom.",
+      "source": {
+        "entries": [
+          "st.iface.snl-source-metrics"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{semanticFreedom}"
+        }
+      ]
+    },
+    "SnlSourceMetrics.structuredRatio": {
+      "description": "Schema member SnlSourceMetrics.structuredRatio.",
+      "source": {
+        "entries": [
+          "st.iface.snl-source-metrics"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{structuredRatio}"
+        }
+      ]
+    },
+    "HoverPopover": {
+      "description": "Public TypeScript schema HoverPopover.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}HoverPopover}"
+        }
+      ]
+    },
+    "HoverPopover.id": {
+      "description": "Schema member HoverPopover.id.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{id}"
+        }
+      ]
+    },
+    "HoverPopover.subject": {
+      "description": "Schema member HoverPopover.subject.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{subject}"
+        }
+      ]
+    },
+    "HoverPopover.originRect": {
+      "description": "Schema member HoverPopover.originRect.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{originRect}"
+        }
+      ]
+    },
+    "HoverPopover.x": {
+      "description": "Schema member HoverPopover.x.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{x}"
+        }
+      ]
+    },
+    "HoverPopover.y": {
+      "description": "Schema member HoverPopover.y.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{y}"
+        }
+      ]
+    },
+    "HoverPopover.parentId": {
+      "description": "Schema member HoverPopover.parentId.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{parentId}"
+        }
+      ]
+    },
+    "HoverPopover.frozen": {
+      "description": "Schema member HoverPopover.frozen.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{frozen}"
+        }
+      ]
+    },
+    "HoverPopover.phase": {
+      "description": "Schema member HoverPopover.phase.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{phase}"
+        }
+      ]
+    },
+    "HoverPopoverApi": {
+      "description": "Public TypeScript schema HoverPopoverApi.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-api"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}HoverPopoverApi}"
+        }
+      ]
+    },
+    "HoverPopoverApi.spawn": {
+      "description": "Schema member HoverPopoverApi.spawn.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-api"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{spawn}"
+        }
+      ]
+    },
+    "HoverPopoverApi.updatePointer": {
+      "description": "Schema member HoverPopoverApi.updatePointer.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-api"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{updatePointer}"
+        }
+      ]
+    },
+    "HoverPopoverApi.freeze": {
+      "description": "Schema member HoverPopoverApi.freeze.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-api"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{freeze}"
+        }
+      ]
+    },
+    "HoverPopoverApi.cancelUnfrozen": {
+      "description": "Schema member HoverPopoverApi.cancelUnfrozen.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-api"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{cancelUnfrozen}"
+        }
+      ]
+    },
+    "HoverPopoverApi.dismissAll": {
+      "description": "Schema member HoverPopoverApi.dismissAll.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-api"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{dismissAll}"
+        }
+      ]
+    },
+    "HoverPopoverApi.isAlive": {
+      "description": "Schema member HoverPopoverApi.isAlive.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-api"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{isAlive}"
+        }
+      ]
+    },
+    "HoverPopoverOptions": {
+      "description": "Public TypeScript schema HoverPopoverOptions.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-options"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}HoverPopoverOptions}"
+        }
+      ]
+    },
+    "HoverPopoverOptions.offset": {
+      "description": "Schema member HoverPopoverOptions.offset.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{offset}"
+        }
+      ]
+    },
+    "HoverPopoverOptions.hitPadding": {
+      "description": "Schema member HoverPopoverOptions.hitPadding.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{hitPadding}"
+        }
+      ]
+    },
+    "HoverPopoverOptions.viewportMargin": {
+      "description": "Schema member HoverPopoverOptions.viewportMargin.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{viewportMargin}"
+        }
+      ]
+    },
+    "HoverPopoverOptions.openDelayMs": {
+      "description": "Schema member HoverPopoverOptions.openDelayMs.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{openDelayMs}"
+        }
+      ]
+    },
+    "HoverPopoverOptions.fadeMs": {
+      "description": "Schema member HoverPopoverOptions.fadeMs.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{fadeMs}"
+        }
+      ]
+    },
+    "HoverPopoverOptions.freezeDelayMs": {
+      "description": "Schema member HoverPopoverOptions.freezeDelayMs.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{freezeDelayMs}"
+        }
+      ]
+    },
+    "HoverPopoverOptions.maxZIndexBase": {
+      "description": "Schema member HoverPopoverOptions.maxZIndexBase.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{maxZIndexBase}"
+        }
+      ]
+    },
+    "HoverPopoverProviderProps": {
+      "description": "Public TypeScript schema HoverPopoverProviderProps.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-provider-props"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}HoverPopoverProviderProps}"
+        }
+      ]
+    },
+    "HoverPopoverProviderProps.children": {
+      "description": "Schema member HoverPopoverProviderProps.children.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-provider-props"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{children}"
+        }
+      ]
+    },
+    "HoverPopoverProviderProps.renderPopover": {
+      "description": "Schema member HoverPopoverProviderProps.renderPopover.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-provider-props"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{renderPopover}"
+        }
+      ]
+    },
+    "HoverPopoverProviderProps.options": {
+      "description": "Schema member HoverPopoverProviderProps.options.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-provider-props"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{options}"
+        }
+      ]
+    },
+    "HoverPopoverProviderProps.className": {
+      "description": "Schema member HoverPopoverProviderProps.className.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-provider-props"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{className}"
+        }
+      ]
+    },
+    "HoverPopoverProviderProps.style": {
+      "description": "Schema member HoverPopoverProviderProps.style.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-provider-props"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{style}"
+        }
+      ]
+    },
+    "HoverPopoverProviderProps.resolveBounds": {
+      "description": "Schema member HoverPopoverProviderProps.resolveBounds.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-provider-props"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{resolveBounds}"
+        }
+      ]
+    },
+    "HoverPopoverProviderProps.portalTarget": {
+      "description": "Schema member HoverPopoverProviderProps.portalTarget.",
+      "source": {
+        "entries": [
+          "rv.iface.hover-popover-provider-props"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{portalTarget}"
+        }
+      ]
+    },
+    "PopoverPhase": {
+      "description": "Public TypeScript schema PopoverPhase.",
+      "source": {
+        "entries": [
+          "rv.iface.popover-phase"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}PopoverPhase}"
+        }
+      ]
+    },
+    "ViewportBounds": {
+      "description": "Public TypeScript schema ViewportBounds.",
+      "source": {
+        "entries": [
+          "rv.iface.viewport-bounds"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}ViewportBounds}"
         }
       ]
     }

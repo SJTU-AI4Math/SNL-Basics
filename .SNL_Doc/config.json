@@ -100,6 +100,16 @@
       },
       "numbering": "1",
       "style": ""
+    },
+    {
+      "id": "remark",
+      "name": "Remark",
+      "coloring": {
+        "stroke": "#64748b",
+        "background": "#f1f5f9"
+      },
+      "numbering": "1",
+      "style": ""
     }
   ],
   "macro_kinds": [
