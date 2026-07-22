@@ -235,7 +235,7 @@
       "source": {
         "entries": [],
         "urls": [
-          "https://www.typescriptlang.org/docs/handbook/release-notes/typescript-1-7.html#asyncawait-support-in-es6-targets-node-v4"
+          "https://www.typescriptlang.org/tsconfig/lib.html"
         ]
       },
       "styles": [

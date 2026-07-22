@@ -3831,6 +3831,42 @@
           "template": "\\texttt{\\color{4EC9A2}ViewportBounds}"
         }
       ]
+    },
+    "SnlSyntaxTreeParseOptions": {
+      "description": "Options for parsing an SNL fragment.",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-parse-options"
+        ],
+        "urls": []
+      },
+      "kind": "class",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeParseOptions}"
+        }
+      ]
+    },
+    "SnlSyntaxTreeParseOptions.activeBinderIds": {
+      "description": "Binder names already active outside the parsed fragment.",
+      "source": {
+        "entries": [
+          "st.iface.snl-syntax-tree-parse-options"
+        ],
+        "urls": []
+      },
+      "kind": "const",
+      "dynamic_arity": false,
+      "styles": [
+        {
+          "tag": "default",
+          "mode": "formula_inline",
+          "template": "\\texttt{activeBinderIds}"
+        }
+      ]
     }
   },
   "description": "Term macros for the SNL-Basics dogfood API doc (Phase 2). Inline-term references (api.iface, api.fn, api.class, api.const, api.prop, api.comp, api.mod, api.pkg, api.concept, api.kw, api.file, api.code), connector punctuation (api.slash, api.plus, api.arrow, api.list), and one structural macro (api.para) for prose paragraphs."

@@ -165,6 +165,21 @@
     }
   },
   {
+    "id": "st.iface.snl-syntax-tree-parse-options",
+    "kind": "interface",
+    "title": "SNL Syntax Tree Parse Options",
+    "content": {
+      "snl": "interface(SnlSyntaxTreeParseOptions,enumerate(Type.judge(SnlSyntaxTreeParseOptions.activeBinderIds,Type.opt(Type.array(string)))))",
+      "markdown": "片段解析时传入的外层 binder 名称集合。"
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/parser.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlSyntaxTreeParseOptions\\b"
+    }
+  },
+  {
     "id": "st.cls.parse-error",
     "kind": "class",
     "title": "SNL Syntax Tree Parse Error",
@@ -214,7 +229,7 @@
     "kind": "function",
     "title": "Parse SNL Syntax Tree",
     "content": {
-      "snl": "ts.function(fn.parseSnlSyntaxTree,ts.function-type(ts.parameters(Type.judge(api.code(%input%),string),Type.judge(api.code(%options%),Type.opt(api.code(%SnlSyntaxTreeParseOptions%)))),SnlSyntaxTree),ts.ellipsis@remark.st.fn.parse-snl-syntax-tree)",
+      "snl": "ts.function(fn.parseSnlSyntaxTree,ts.function-type(ts.parameters(Type.judge(api.code(%input%),string),Type.judge(api.code(%options%),Type.opt(SnlSyntaxTreeParseOptions))),SnlSyntaxTree),ts.ellipsis@remark.st.fn.parse-snl-syntax-tree)",
       "markdown": "`parseSnlSyntaxTree` 的正式 TypeScript 签名；实现说明见关联 Remark。"
     },
     "contribution_info": null,
@@ -1804,8 +1819,8 @@
     "kind": "remark",
     "title": "Serialize SNL Syntax Tree — Remark",
     "content": {
-      "snl": "%把运行时语法树重新序列化为 SNL 源码。%",
-      "markdown": "把运行时语法树重新序列化为 SNL 源码。"
+      "snl": "%当前实现只序列化 name 与 children；style、envMode、binder 前缀、kind、scope 和 mdata 不会写回，因此它不是一般性的无损 roundtrip。%",
+      "markdown": "当前实现只序列化 name 与 children；style、envMode、binder 前缀、kind、scope 和 mdata 不会写回，因此它不是一般性的无损 roundtrip。"
     },
     "contribution_info": null,
     "pointer": {

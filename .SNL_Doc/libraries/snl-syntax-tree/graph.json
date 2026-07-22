@@ -202,6 +202,13 @@
       "props": {
         "entryId": "remark.st.fn.fill-latex-template"
       }
+    },
+    {
+      "id": "f42b2118-165b-519b-96b2-4b23399f0356",
+      "label": "Entry",
+      "props": {
+        "entryId": "st.iface.snl-syntax-tree-parse-options"
+      }
     }
   ],
   "relationships": [
@@ -398,6 +405,13 @@
       "id": "07f6c5e5-eaff-5667-9bcd-d1b9e09ed737",
       "from": "9b7606ed-1ebb-4436-a6c6-cf2a883fe261",
       "to": "70063eb1-19ba-5b64-a74f-00e730ae7875",
+      "label": "branch",
+      "props": {}
+    },
+    {
+      "id": "08efeb48-22c0-57d4-af11-7c41e446edb1",
+      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "to": "f42b2118-165b-519b-96b2-4b23399f0356",
       "label": "branch",
       "props": {}
     }
