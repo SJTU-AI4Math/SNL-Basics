@@ -250,6 +250,11 @@ render error.
   and in-flight dedup. Created with `new MacroDataDriver({ queries })` where
   queries implements `MacroDataQueries`; storage and transport adaptation stays
   in the consumer.
+- **ReaderRuntime / ReaderM** — the standard for locale, theme, motion,
+  preferences, and every other consumer-owned runtime dependency. Pure
+  calculations are Readers; a query-initialized `ReaderRuntime` supplies the
+  fresh environment without Basics assuming VS Code, browser globals, files,
+  or any other backend. See [Query-injected runtime standard](docs/query-injected-runtime.md).
 - **Hooks** — every interaction is customizable via `SnlRenderHooks`: supply your
   own `renderTooltip`, `onHover` / `onLeave`, `resolveMacroInfo`, `resolveSource`,
   `highlightStrategy`, or `renderers`. Anything you omit falls back to

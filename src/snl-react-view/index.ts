@@ -7,6 +7,22 @@
  * Styles: `import '@snl-basics/react/style.css'` and `import 'katex/dist/katex.min.css'`.
  */
 
+// === Runtime environment / ReaderM ===
+export {
+  ReaderRuntime,
+  flat_map_reader,
+  is_i18n,
+  map_reader,
+  pure_reader,
+  read_localized,
+  type I18n,
+  type LanguageEnvironment,
+  type Localized,
+  type ReaderM,
+  type ReaderRuntimeOptions,
+  type ReaderRuntimeQueries,
+} from '../runtime'
+
 // === Core types ===
 export type { SnlMacro, SnlMacroStyle, SnlMacroSource } from '../snl-macro/types'
 export type { SnlSyntaxTree } from '../snl-syntax-tree/types'
