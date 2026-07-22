@@ -75,12 +75,14 @@ export interface LanguageEnvironment<Language extends string> {
 export function is_i18n<Language extends string, Value>(
   value: Localized<Language, Value>,
 ): value is I18n<Language, Value> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
+  const candidate = value as unknown as Record<string, unknown>
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    'type' in value &&
-    (value as { type?: unknown }).type === 'i18n' &&
-    'values' in value
+    candidate.type === 'i18n' &&
+    typeof candidate.default_language === 'string' &&
+    typeof candidate.values === 'object' &&
+    candidate.values !== null &&
+    !Array.isArray(candidate.values)
   )
 }
 

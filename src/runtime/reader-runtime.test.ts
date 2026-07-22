@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   ReaderRuntime,
+  is_i18n,
   map_reader,
   read_localized,
   type I18n,
@@ -59,5 +60,10 @@ describe('read_localized', () => {
       values: {},
     }
     expect(() => read_localized(empty)({ language: 'zh-CN' })).toThrow(/no values/)
+  })
+
+  it('does not classify malformed JSON objects as I18n', () => {
+    expect(is_i18n({ type: 'i18n', default_language: 'en', values: null } as never)).toBe(false)
+    expect(is_i18n({ type: 'i18n', default_language: 1, values: {} } as never)).toBe(false)
   })
 })
