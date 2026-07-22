@@ -8,6 +8,20 @@
       }
     },
     {
+      "id": "sec-macro-interfaces",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.macro.interfaces"
+      }
+    },
+    {
+      "id": "sec-macro-databases",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.macro.databases"
+      }
+    },
+    {
       "id": "b5b10656-6b0d-4cb5-925b-f444331767f6",
       "label": "Entry",
       "props": {
@@ -172,31 +186,41 @@
   "relationships": [
     {
       "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
+      "to": "sec-macro-interfaces",
+      "label": "branch"
+    },
+    {
+      "from": "sec-macro-interfaces",
       "to": "b5b10656-6b0d-4cb5-925b-f444331767f6",
       "label": "branch"
     },
     {
-      "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
+      "from": "sec-macro-interfaces",
       "to": "1ce09716-5762-47d0-a0e9-f4dd38f363fa",
       "label": "branch"
     },
     {
-      "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
+      "from": "sec-macro-interfaces",
       "to": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
       "label": "branch"
     },
     {
-      "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
+      "from": "sec-macro-interfaces",
       "to": "a504abbd-facb-455f-9bb2-79a4ba303901",
       "label": "branch"
     },
     {
       "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
+      "to": "sec-macro-databases",
+      "label": "branch"
+    },
+    {
+      "from": "sec-macro-databases",
       "to": "a7e5cf72-8f62-4f00-b14d-f96c2729dbf2",
       "label": "branch"
     },
     {
-      "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
+      "from": "sec-macro-databases",
       "to": "797f3aa4-bbd7-4934-9b39-19ae7a6d21fb",
       "label": "branch"
     },

@@ -8,6 +8,48 @@
       }
     },
     {
+      "id": "sec-syntax-interfaces",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.interfaces"
+      }
+    },
+    {
+      "id": "sec-syntax-parsing",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.parsing"
+      }
+    },
+    {
+      "id": "sec-syntax-construction",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.construction"
+      }
+    },
+    {
+      "id": "sec-syntax-serialization",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.serialization"
+      }
+    },
+    {
+      "id": "sec-syntax-sources",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.sources"
+      }
+    },
+    {
+      "id": "sec-syntax-templates",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.templates"
+      }
+    },
+    {
       "id": "123214d0-a257-4803-bdd2-4329b9329f07",
       "label": "Entry",
       "props": {
@@ -213,123 +255,139 @@
   ],
   "relationships": [
     {
-      "id": "4d4329ba-dc64-4590-98a7-1e147222f7c5",
       "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "to": "sec-syntax-interfaces",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-interfaces",
       "to": "123214d0-a257-4803-bdd2-4329b9329f07",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "cc720511-663f-43c3-9bdd-3fde4846e5b4",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-interfaces",
       "to": "03560e2a-0030-49e5-a19c-7dae6be65ff1",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "fe48d84b-f2fe-46c7-aa83-5a8bc6752f6a",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-interfaces",
       "to": "1f30a66b-9ef0-4a99-bb10-59a879fdd3a8",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "5c6b15f9-c51e-406f-b640-b332551eeb7a",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-interfaces",
       "to": "c54f5eca-e957-43d9-b606-e6284517f244",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "075a0271-68bb-4672-b4ba-d4b2de2afd03",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-interfaces",
       "to": "e1f01505-4180-4962-8a69-c1b89040fb00",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "55dab87d-116a-4d08-9cb1-80367c575b6e",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-interfaces",
       "to": "3b170a06-c2c1-47d8-b949-15f9b1972b3e",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "e728dc30-2726-4db2-8efc-ec77c7ef24ce",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-interfaces",
       "to": "290af949-0efe-4d43-a83c-10cee0d932e1",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "ac3d2078-b9d6-4d05-add3-2c46719ffbc6",
       "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "to": "sec-syntax-parsing",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-parsing",
       "to": "22df72b2-8ca1-43fe-89dd-8c357d75dcca",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "2ce0439d-0e40-4af8-a577-f92c3b70aaf8",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-parsing",
       "to": "e69c5457-6de6-4011-a279-229828a5773d",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "32a20d90-cefb-45ad-b6e2-86d778b46faf",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-parsing",
       "to": "a6859075-36cb-4157-8a7e-a2392a440cf2",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "c8edf300-3ba1-4933-98ec-a6aefd8e7983",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-parsing",
       "to": "832df0d7-450a-4fae-98a0-5169d2fa64e7",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "f45f8b28-c6d7-4d8a-a28a-75958b66b8aa",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-parsing",
       "to": "e32f8b72-a5b6-4841-9d94-1e847704606f",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "5e53246d-a6b8-4293-8252-44a2002d0dec",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
-      "to": "e3550f55-748a-45d9-828d-8d8ee30532ed",
-      "label": "branch",
-      "props": {}
+      "from": "sec-syntax-parsing",
+      "to": "f42b2118-165b-519b-96b2-4b23399f0356",
+      "label": "branch"
     },
     {
-      "id": "c1038cf1-63d0-4ad0-8186-748f13129c66",
       "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
-      "to": "cb5da934-0c3e-47e2-8b78-086324e00310",
-      "label": "branch",
-      "props": {}
+      "to": "sec-syntax-construction",
+      "label": "branch"
     },
     {
-      "id": "e9e4ac36-ae3a-4c13-a111-01f1d219bf54",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-construction",
       "to": "6df9b33c-96d0-48eb-935f-d5e183c5c4ee",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "e6421955-903e-4d42-8c26-3f633fcfb4a4",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "from": "sec-syntax-construction",
       "to": "afaffa82-c9fe-4147-a132-4dfcdc7c77ef",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
-      "id": "68c9b594-3df7-4231-aa0d-139c9d0e7b09",
       "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "to": "sec-syntax-serialization",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-serialization",
+      "to": "e3550f55-748a-45d9-828d-8d8ee30532ed",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-serialization",
+      "to": "cb5da934-0c3e-47e2-8b78-086324e00310",
+      "label": "branch"
+    },
+    {
+      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "to": "sec-syntax-sources",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-sources",
+      "to": "70cbcbb2-0e45-595e-a4c8-61d63c130710",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-sources",
+      "to": "265a61e0-2483-5026-8885-4fc4ea120d45",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-sources",
+      "to": "a09a6759-b1ae-5adf-9fe0-56fb43c4954d",
+      "label": "branch"
+    },
+    {
+      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
+      "to": "sec-syntax-templates",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-templates",
       "to": "9b7606ed-1ebb-4436-a6c6-cf2a883fe261",
-      "label": "branch",
-      "props": {}
+      "label": "branch"
     },
     {
       "id": "ba2ffd69-28e1-5fb5-9d23-8bd3e2ddf6dc",
@@ -374,13 +432,6 @@
       "props": {}
     },
     {
-      "id": "98ad065f-2b74-583d-8350-afe6c56f121a",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
-      "to": "70cbcbb2-0e45-595e-a4c8-61d63c130710",
-      "label": "branch",
-      "props": {}
-    },
-    {
       "id": "b2d4d555-8465-590d-9eed-a56c473ec8d4",
       "from": "70cbcbb2-0e45-595e-a4c8-61d63c130710",
       "to": "fea2e752-98e7-58b3-9aee-355bd02d0bb4",
@@ -388,30 +439,9 @@
       "props": {}
     },
     {
-      "id": "24c6746f-0282-56b5-b727-2168cdf96d4e",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
-      "to": "265a61e0-2483-5026-8885-4fc4ea120d45",
-      "label": "branch",
-      "props": {}
-    },
-    {
-      "id": "1580510b-b9f7-50de-a2e7-a25c8a81e343",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
-      "to": "a09a6759-b1ae-5adf-9fe0-56fb43c4954d",
-      "label": "branch",
-      "props": {}
-    },
-    {
       "id": "07f6c5e5-eaff-5667-9bcd-d1b9e09ed737",
       "from": "9b7606ed-1ebb-4436-a6c6-cf2a883fe261",
       "to": "70063eb1-19ba-5b64-a74f-00e730ae7875",
-      "label": "branch",
-      "props": {}
-    },
-    {
-      "id": "08efeb48-22c0-57d4-af11-7c41e446edb1",
-      "from": "c3f443ac-d64a-4cd5-9101-628a42de3940",
-      "to": "f42b2118-165b-519b-96b2-4b23399f0356",
       "label": "branch",
       "props": {}
     }

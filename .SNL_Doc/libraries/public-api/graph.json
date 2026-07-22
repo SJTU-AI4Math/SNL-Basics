@@ -1,6 +1,104 @@
 {
   "nodes": [
     {
+      "id": "root-public-api",
+      "label": "Entry",
+      "props": {
+        "entryId": "npm.snl-basics-react"
+      }
+    },
+    {
+      "id": "sec-macro-interfaces",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.macro.interfaces"
+      }
+    },
+    {
+      "id": "sec-macro-databases",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.macro.databases"
+      }
+    },
+    {
+      "id": "sec-syntax-interfaces",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.interfaces"
+      }
+    },
+    {
+      "id": "sec-syntax-parsing",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.parsing"
+      }
+    },
+    {
+      "id": "sec-syntax-construction",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.construction"
+      }
+    },
+    {
+      "id": "sec-syntax-serialization",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.serialization"
+      }
+    },
+    {
+      "id": "sec-syntax-sources",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.sources"
+      }
+    },
+    {
+      "id": "sec-syntax-templates",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.syntax.templates"
+      }
+    },
+    {
+      "id": "sec-react-components",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.react.components"
+      }
+    },
+    {
+      "id": "sec-react-macro-db",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.react.macro-db"
+      }
+    },
+    {
+      "id": "sec-react-rendering",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.react.rendering"
+      }
+    },
+    {
+      "id": "sec-react-popovers",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.react.popovers"
+      }
+    },
+    {
+      "id": "sec-react-pipeline",
+      "label": "Entry",
+      "props": {
+        "entryId": "sec.react.pipeline"
+      }
+    },
+    {
       "id": "0eeed668-d7e2-5c4e-8980-4f9264aa2dcb",
       "label": "Entry",
       "props": {
@@ -533,5 +631,451 @@
       }
     }
   ],
-  "relationships": []
+  "relationships": [
+    {
+      "from": "root-public-api",
+      "to": "sec-macro-interfaces",
+      "label": "branch"
+    },
+    {
+      "from": "sec-macro-interfaces",
+      "to": "0eeed668-d7e2-5c4e-8980-4f9264aa2dcb",
+      "label": "branch"
+    },
+    {
+      "from": "sec-macro-interfaces",
+      "to": "015edb11-3371-5e39-8566-933987ebdf9a",
+      "label": "branch"
+    },
+    {
+      "from": "sec-macro-interfaces",
+      "to": "ac0a0f9b-e255-5ca9-b11b-0ead35f4dd93",
+      "label": "branch"
+    },
+    {
+      "from": "sec-macro-interfaces",
+      "to": "dd7374b9-13e1-5463-934f-14c8a5bbc962",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-macro-databases",
+      "label": "branch"
+    },
+    {
+      "from": "sec-macro-databases",
+      "to": "0089c3ab-f22d-5408-8d9e-5a8f818ac49c",
+      "label": "branch"
+    },
+    {
+      "from": "sec-macro-databases",
+      "to": "edcefde8-d5db-5ba8-9193-70fec058d08e",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-syntax-interfaces",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-interfaces",
+      "to": "f4b892f5-1533-5542-a8bf-b0dbafaf8189",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-interfaces",
+      "to": "918ae5bf-46fc-5920-9b68-6961b1dff481",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-interfaces",
+      "to": "475421f3-3fdb-544d-9c58-e575f3c1de69",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-interfaces",
+      "to": "9dc14394-9616-51d4-9bdf-ceeaf60c3aa6",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-interfaces",
+      "to": "4f5fff8d-808e-54fd-8e64-75e9a03a26b3",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-interfaces",
+      "to": "9ab7bea1-56ea-5381-943f-dc65eb1b2bae",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-interfaces",
+      "to": "27b56e0c-c87f-5014-a90f-5cc875e37fcf",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-syntax-parsing",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-parsing",
+      "to": "fda99163-fb8e-52f8-8f58-994f46125bd5",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-parsing",
+      "to": "d02e8705-bb1b-5bd8-aa21-0a2f486f4f97",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-parsing",
+      "to": "7b7e07b4-58a0-5a1d-ad6f-b843407c0908",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-syntax-construction",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-construction",
+      "to": "2d39a05a-c958-5b87-aa96-d84fc407f101",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-construction",
+      "to": "0cfb52cb-4e98-5450-a01b-b530d7b9a95a",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-syntax-serialization",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-serialization",
+      "to": "85a4b363-b1a8-5e61-b835-1fcc812d659d",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-serialization",
+      "to": "ed07864b-a2aa-5dc4-a084-dab2c92d2d89",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-syntax-sources",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-sources",
+      "to": "9b9fc8d3-b296-5698-abdc-200882e331de",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-sources",
+      "to": "b55723b8-83c2-5090-b66a-e138c8f82988",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-sources",
+      "to": "1614fb62-058b-5e7d-838e-5313d81f56a7",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-syntax-templates",
+      "label": "branch"
+    },
+    {
+      "from": "sec-syntax-templates",
+      "to": "cc3f9cb6-a134-56e5-ba17-e6318db709e2",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-react-components",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-components",
+      "to": "626b97cf-79d3-530d-9166-6b7e1fb69bd8",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-components",
+      "to": "d8c3ca73-eef7-5b59-8254-4dbbbfb99ba9",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-react-macro-db",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-macro-db",
+      "to": "e0ea567e-a260-55bc-8eba-900f8e7b860f",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-macro-db",
+      "to": "8c706360-e1c3-5b4e-ba74-98febad58d8e",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-macro-db",
+      "to": "1a9a0026-c11a-565a-bec5-21907a36d58e",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-macro-db",
+      "to": "4c5da6c0-00cd-57f8-b3ec-eb563d17e796",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-macro-db",
+      "to": "76c5a440-4fba-558b-bc91-c885e83a9170",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-macro-db",
+      "to": "a734bba6-8a8f-5fcb-946a-bac3e6e443a6",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-macro-db",
+      "to": "604abf5f-d2b8-5313-a8aa-9a3225ce394f",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-react-rendering",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "856e42bc-c790-5588-b9aa-711114e2b693",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "709635ee-1fc5-52c1-99d1-16f4c8b5fbb1",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "6fc037be-d0aa-5b99-a999-18d4ea61f584",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "165165f6-2bce-56bc-84df-1add7f460857",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "6f15fc9a-a6cf-58e4-87cf-53d91c9baba1",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "3d9fcca1-d0d0-5ceb-8e4c-16727e034803",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "eb6ceb07-29ea-530f-8caf-424543098497",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "2fff3973-c013-57a7-b662-4bc81f105ddb",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "fe76d893-ed6d-5ee1-8ad8-5ca4939682e6",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "cc0d2e80-ccf4-573d-9179-6114c36f7fac",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "71957fed-4151-514d-8592-73daff781b6e",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "ac13b6b4-1a8c-5ea0-8fba-a2bc9c15d72f",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "e452886d-07bb-57f3-b09c-a49ba8917d5f",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "89590c6a-7a7f-58d9-b72a-59ec075fd846",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "20a2cb34-96db-52ee-bd3c-cc93fb6e1728",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "cc17b734-049a-5c36-8411-e7122f8ff299",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "be2424b5-11b9-5db2-8e11-f1b9210b3475",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "ec7ceead-8b21-59ea-bf6c-1caa40927933",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "0c654a4f-235a-55be-bc62-8e925bbe25b7",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "8f3e4710-9b9a-54f8-9d32-3286cbc924ce",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-rendering",
+      "to": "7b40cae0-110d-58c1-9892-ceeb41ebe8fd",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-react-popovers",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "19bc573a-01bb-5371-b027-8a8ceb4649ba",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "8af87c27-d35a-5941-b2fb-4a295c962d51",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "3705a7b4-fa9d-539e-92f7-926bba568be8",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "3029ed50-1f3c-5d4a-85e3-b2490d0ac0a5",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "f4b88ba3-a835-56c2-9b42-70073abc5ab2",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "04c7668d-746d-5b7f-bbd2-2d80edee23a6",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "6a5188f0-b5d5-5682-a985-fcbdd4421b91",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "d56f0bdf-9749-593c-9f7e-70b3e6d369e6",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "fd33f7a6-10fe-5bda-81ba-8331afad97f0",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "131c3c62-5dfd-50ae-ab43-4c92398b8d6a",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "936762d6-ef16-566e-a351-90cd32c56ab5",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "97e90394-a193-57b9-bbbb-3915544562f7",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-popovers",
+      "to": "5d35c67c-5c70-541e-bc5a-a3bd47228f75",
+      "label": "branch"
+    },
+    {
+      "from": "root-public-api",
+      "to": "sec-react-pipeline",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-pipeline",
+      "to": "fb466052-c821-5d34-82ff-138d8be9c553",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-pipeline",
+      "to": "18614537-6bd3-54c1-88bb-2c21be306331",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-pipeline",
+      "to": "74eda351-f8b0-5983-9426-22a5c46888b2",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-pipeline",
+      "to": "65e5af92-8b35-5a3a-ac7b-72121235a0a9",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-pipeline",
+      "to": "1afa2582-3a2f-57a7-93c1-faf64236801e",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-pipeline",
+      "to": "de64293e-09a3-5c5a-8aec-463a3aae4501",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-pipeline",
+      "to": "4c68a624-f904-5cf4-83e5-cb2fe542afb9",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-pipeline",
+      "to": "bdfcc17a-8d05-5d48-b207-e0af668163f4",
+      "label": "branch"
+    },
+    {
+      "from": "sec-react-pipeline",
+      "to": "8f016194-be40-527e-9f54-b8afe6e5c994",
+      "label": "branch"
+    }
+  ]
 }

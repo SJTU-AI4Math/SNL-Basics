@@ -22,6 +22,16 @@
       "style": ""
     },
     {
+      "id": "section",
+      "name": "Section",
+      "coloring": {
+        "stroke": "#475569",
+        "background": "#e2e8f0"
+      },
+      "numbering": "1",
+      "style": ""
+    },
+    {
       "id": "interface",
       "name": "Interface",
       "coloring": {

@@ -2218,5 +2218,159 @@
       "mode": "regex",
       "pattern": "export\\s+(?:async\\s+)?function\\s+wrapHtmlData\\b"
     }
+  },
+  {
+    "id": "sec.macro.interfaces",
+    "kind": "section",
+    "title": "Interfaces",
+    "content": {
+      "snl": "%SNL macro data model interfaces.%",
+      "markdown": "SNL macro data model interfaces."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.macro.databases",
+    "kind": "section",
+    "title": "Bundled Databases",
+    "content": {
+      "snl": "%Bundled macro database constants.%",
+      "markdown": "Bundled macro database constants."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.syntax.interfaces",
+    "kind": "section",
+    "title": "Interfaces",
+    "content": {
+      "snl": "%SNL syntax-tree data model and callback interfaces.%",
+      "markdown": "SNL syntax-tree data model and callback interfaces."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.syntax.parsing",
+    "kind": "section",
+    "title": "Parsing",
+    "content": {
+      "snl": "%SNL source parsing APIs, options, and parse errors.%",
+      "markdown": "SNL source parsing APIs, options, and parse errors."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.syntax.construction",
+    "kind": "section",
+    "title": "Construction and Validation",
+    "content": {
+      "snl": "%Syntax-tree construction and validation utilities.%",
+      "markdown": "Syntax-tree construction and validation utilities."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.syntax.serialization",
+    "kind": "section",
+    "title": "Serialization and Binding",
+    "content": {
+      "snl": "%Syntax-tree serialization and binding annotation utilities.%",
+      "markdown": "Syntax-tree serialization and binding annotation utilities."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.syntax.sources",
+    "kind": "section",
+    "title": "Source Analysis",
+    "content": {
+      "snl": "%Source-reference analysis interfaces and utilities.%",
+      "markdown": "Source-reference analysis interfaces and utilities."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.syntax.templates",
+    "kind": "section",
+    "title": "Template Resolution",
+    "content": {
+      "snl": "%LaTeX template filling utilities.%",
+      "markdown": "LaTeX template filling utilities."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.react.components",
+    "kind": "section",
+    "title": "Components",
+    "content": {
+      "snl": "%Public React components and their properties.%",
+      "markdown": "Public React components and their properties."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.react.interfaces",
+    "kind": "section",
+    "title": "Interfaces",
+    "content": {
+      "snl": "%React rendering contracts, hooks, palettes, and renderer interfaces.%",
+      "markdown": "React rendering contracts, hooks, palettes, and renderer interfaces."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.react.macro-db",
+    "kind": "section",
+    "title": "Macro Database and Queries",
+    "content": {
+      "snl": "%Macro database loading, caching, and template-query APIs.%",
+      "markdown": "Macro database loading, caching, and template-query APIs."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.react.rendering",
+    "kind": "section",
+    "title": "Rendering Configuration",
+    "content": {
+      "snl": "%Rendering defaults, palettes, and public configuration helpers.%",
+      "markdown": "Rendering defaults, palettes, and public configuration helpers."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.react.popovers",
+    "kind": "section",
+    "title": "Hover Popovers",
+    "content": {
+      "snl": "%Hover-popover component, hooks, geometry helpers, and data interfaces.%",
+      "markdown": "Hover-popover component, hooks, geometry helpers, and data interfaces."
+    },
+    "contribution_info": null,
+    "pointer": null
+  },
+  {
+    "id": "sec.react.pipeline",
+    "kind": "section",
+    "title": "Render Pipeline",
+    "content": {
+      "snl": "%Low-level node-mode, LaTeX, style, and HTML-data resolution utilities.%",
+      "markdown": "Low-level node-mode, LaTeX, style, and HTML-data resolution utilities."
+    },
+    "contribution_info": null,
+    "pointer": null
   }
 ]
