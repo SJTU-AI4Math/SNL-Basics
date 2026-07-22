@@ -3714,5 +3714,102 @@
       "pattern": "^\\s*interaction_driver\\??\\s*(?::|\\()",
       "flags": "m"
     }
+  },
+  {
+    "id": "mod.entry-react",
+    "kind": "module",
+    "title": "Generic Entry React Module",
+    "content": {
+      "markdown": "The tree-shakeable `@snl-basics/react/entry` route. It renders complete query-backed Entry cards while keeping Markdown dependencies outside the package-root import graph."
+    },
+    "pointer": {
+      "file": "src/entry-react/index.ts",
+      "mode": "regex",
+      "pattern": "Tree-shakeable"
+    }
+  },
+  {
+    "id": "entry.cls.entry-data-driver",
+    "kind": "class",
+    "title": "EntryDataDriver",
+    "content": {
+      "markdown": "Query-only Entry and EntryKind access with a bounded hit-and-miss LRU, unsignalled in-flight deduplication, independent caller cancellation, and epoch-safe cache clearing."
+    },
+    "parent": "mod.entry-react",
+    "pointer": {
+      "file": "src/entry-react/entry-data-driver.ts",
+      "mode": "regex",
+      "pattern": "export\\s+class\\s+EntryDataDriver\\b"
+    }
+  },
+  {
+    "id": "entry.iface.entry-data-queries",
+    "kind": "interface",
+    "title": "EntryDataQueries",
+    "content": {
+      "markdown": "The injected storage-neutral backend: `query_entry` and `query_entry_kind`, each with an optional AbortSignal."
+    },
+    "parent": "mod.entry-react",
+    "pointer": {
+      "file": "src/entry-react/entry-data-driver.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+EntryDataQueries\\b"
+    }
+  },
+  {
+    "id": "entry.comp.entry-surface",
+    "kind": "component",
+    "title": "EntrySurface",
+    "content": {
+      "markdown": "Renders a loaded Entry as a kind-colored card. Body precedence is nonblank SNL, Markdown, LaTeX, text, then header-only empty state."
+    },
+    "parent": "mod.entry-react",
+    "pointer": {
+      "file": "src/entry-react/entry-render.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+function\\s+EntrySurface\\b"
+    }
+  },
+  {
+    "id": "entry.comp.entry-view",
+    "kind": "component",
+    "title": "EntryView",
+    "content": {
+      "markdown": "Queries one Entry and its EntryKind, aborts stale work, and renders loading, missing, error, or ready state without projecting a prior driver identity."
+    },
+    "parent": "mod.entry-react",
+    "pointer": {
+      "file": "src/entry-react/entry-render.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+function\\s+EntryView\\b"
+    }
+  },
+  {
+    "id": "entry.comp.entry-preview-provider",
+    "kind": "component",
+    "title": "EntryPreviewProvider",
+    "content": {
+      "markdown": "Provides recursive, dismissible Entry previews derived from queried macro `source.entries`, reusing the same Entry and Macro drivers."
+    },
+    "parent": "mod.entry-react",
+    "pointer": {
+      "file": "src/entry-react/entry-render.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+function\\s+EntryPreviewProvider\\b"
+    }
+  },
+  {
+    "id": "entry.fn.resolve-entry-context-sources",
+    "kind": "function",
+    "title": "Resolve Entry Context Sources",
+    "content": {
+      "markdown": "Queries every unique `mdata.src` Entry, upgrades matching source-bound variables to `bvar`, and records `dangling` or `srcResolvedNoDecl` status without storage assumptions."
+    },
+    "parent": "mod.entry-react",
+    "pointer": {
+      "file": "src/entry-react/context-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+async\\s+function\\s+resolveEntryContextSources\\b"
+    }
   }
 ]

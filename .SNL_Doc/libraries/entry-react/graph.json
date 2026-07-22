@@ -1,0 +1,19 @@
+{
+  "nodes": [
+    { "id": "entry-module", "label": "Entry", "props": { "entryId": "mod.entry-react" } },
+    { "id": "entry-driver", "label": "Entry", "props": { "entryId": "entry.cls.entry-data-driver" } },
+    { "id": "entry-queries", "label": "Entry", "props": { "entryId": "entry.iface.entry-data-queries" } },
+    { "id": "entry-surface", "label": "Entry", "props": { "entryId": "entry.comp.entry-surface" } },
+    { "id": "entry-view", "label": "Entry", "props": { "entryId": "entry.comp.entry-view" } },
+    { "id": "entry-preview", "label": "Entry", "props": { "entryId": "entry.comp.entry-preview-provider" } },
+    { "id": "entry-context", "label": "Entry", "props": { "entryId": "entry.fn.resolve-entry-context-sources" } }
+  ],
+  "relationships": [
+    { "from": "entry-module", "to": "entry-driver", "label": "branch" },
+    { "from": "entry-module", "to": "entry-queries", "label": "branch" },
+    { "from": "entry-module", "to": "entry-surface", "label": "branch" },
+    { "from": "entry-module", "to": "entry-view", "label": "branch" },
+    { "from": "entry-module", "to": "entry-preview", "label": "branch" },
+    { "from": "entry-module", "to": "entry-context", "label": "branch" }
+  ]
+}

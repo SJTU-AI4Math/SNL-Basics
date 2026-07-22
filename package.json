@@ -4,12 +4,21 @@
   "version": "0.10.0",
   "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
   "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
   "exports": {
     ".": {
       "types": "./dist-lib/index.d.ts",
       "import": "./dist-lib/index.js",
       "default": "./dist-lib/index.js"
     },
+    "./entry": {
+      "types": "./dist-lib/entry.d.ts",
+      "import": "./dist-lib/entry.js",
+      "default": "./dist-lib/entry.js"
+    },
+    "./entry/style.css": "./dist-lib/entry.css",
     "./style.css": "./dist-lib/style.css",
     "./snl-macro-db.json": "./dist-lib/snl-macro-db.json"
   },
@@ -20,7 +29,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:lib": "vite build --config vite.lib.config.ts && node scripts/copy-lib-assets.mjs",
+    "build:lib": "vite build --config vite.lib.config.ts && vite build --config vite.entry.config.ts && tsc -p tsconfig.entry.json && node scripts/copy-lib-assets.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "migrate-db-v1": "node scripts/migrate-macro-db-v1.mjs",
@@ -48,6 +57,10 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "katex": "^0.16.0"
+    "katex": "^0.16.0",
+    "react-markdown": "^10.1.0",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0"
   }
 }

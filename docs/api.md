@@ -147,3 +147,25 @@ Import the required styles once:
 import '@snl-basics/react/style.css'
 import 'katex/dist/katex.min.css'
 ```
+
+## Optional Entry subpath
+
+The complete Entry renderer is deliberately isolated from the root API:
+
+```ts
+import {
+  EntryDataDriver,
+  EntrySurface,
+  EntryView,
+  EntryPreviewProvider,
+  resolveEntryContextSources,
+} from '@snl-basics/react/entry'
+import '@snl-basics/react/entry/style.css'
+```
+
+`EntryDataDriver` accepts only `query_entry` and `query_entry_kind` functions.
+It applies the same bounded cache, cancellation, in-flight deduplication, and
+cache-clear race guarantees as `MacroDataDriver`. `EntryView` queries both the
+Entry and its kind, while `EntrySurface` dispatches SNL, Markdown, LaTeX, and
+text bodies. See [`entry-rendering.md`](entry-rendering.md) for the complete
+rendering and host-port contract.

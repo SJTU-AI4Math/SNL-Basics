@@ -93,6 +93,33 @@ const driver = new MacroDataDriver({
 })
 ```
 
+## Optional complete Entry renderer
+
+Complete Entry cards are available only from the tree-shakeable
+`@snl-basics/react/entry` subpath. The package root does not import its Markdown
+dependencies.
+
+```tsx
+import { EntryDataDriver, EntryPreviewProvider, EntryView } from '@snl-basics/react/entry'
+import '@snl-basics/react/entry/style.css'
+
+const entries = new EntryDataDriver({
+  queries: {
+    query_entry: async ({ entry_id, signal }) => fetchEntry(entry_id, signal),
+    query_entry_kind: async ({ kind_id, signal }) => fetchEntryKind(kind_id, signal),
+  },
+})
+
+<EntryPreviewProvider entry_data_driver={entries} macro_data_driver={driver}>
+  <EntryView entry_id="definition.ring" entry_data_driver={entries} macro_data_driver={driver} />
+</EntryPreviewProvider>
+```
+
+The renderer selects nonblank SNL, Markdown, LaTeX, or text in that order,
+handles empty/error cards and title math, queries context-bound sources, and
+supports recursive macro-source previews. Storage, pointers, and host actions
+remain injected adapters. See [Generic Entry rendering](docs/entry-rendering.md).
+
 ### KaTeX options — hover requires `trust: true` / `strict: false` ⚠️
 
 **`SnlSyntaxTreeView` merges `{ trust: true, strict: false }` into
