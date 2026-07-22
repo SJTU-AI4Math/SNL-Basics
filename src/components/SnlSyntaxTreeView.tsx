@@ -322,12 +322,21 @@ function renderTextWithMathIslands(src: string): ReactNode[] {
   const flushLiteral = (end: number, keyOffset: number): void => {
     if (end <= literalStart) return
     const piece = src.slice(literalStart, end)
-    // Strip \$ → $ AFTER we've decided this is literal (we still needed
+    // Strip \\$ → $ AFTER we've decided this is literal (we still needed
     // the backslash to prevent math opening earlier in the scan).
     const withDollar = piece.replace(/\\\$/g, '$')
-    parts.push(
-      <Fragment key={`t-${keyOffset}`}>{unescapeTextLiterals(withDollar)}</Fragment>,
-    )
+    const lines = unescapeTextLiterals(withDollar).split(/\r\n?|\n/)
+    lines.forEach((line, lineIndex) => {
+      if (line.length > 0) {
+        parts.push(<Fragment key={`t-${keyOffset}-${lineIndex}`}>{line}</Fragment>)
+      }
+      // Native HTML collapses literal newlines inside a span. Materialize
+      // authored line breaks explicitly so text templates such as
+      // `interface(...):\n#1` keep the break before a block child.
+      if (lineIndex < lines.length - 1) {
+        parts.push(<br key={`br-${keyOffset}-${lineIndex}`} />)
+      }
+    })
   }
   while (i < src.length) {
     const ch = src[i]

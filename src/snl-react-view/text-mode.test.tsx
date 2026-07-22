@@ -48,9 +48,44 @@ const listAllPeople: SnlMacro = {
   ],
 }
 
+const interfaceMacro: SnlMacro = {
+  name: 'interface', description: 'interface documentation block',
+  source: { entries: [], urls: [] },
+  kind: 'Syntax',
+  dynamic_arity: false,
+  tags: [],
+  styles: [
+    {
+      style_name: 'default',
+      mode: 'text',
+      template: 'interface #0 consists of the following data:\n#1',
+      tags: [],
+    },
+  ],
+}
+
+const enumerateMacro: SnlMacro = {
+  name: 'enumerate', description: 'ordered partial block',
+  source: { entries: [], urls: [] },
+  kind: 'partial',
+  dynamic_arity: true,
+  tags: [],
+  styles: [
+    {
+      style_name: 'default',
+      mode: 'block',
+      template: '#*',
+      block_template_name: 'enumerate',
+      tags: [],
+    },
+  ],
+}
+
 const db: SnlMacroRecord = {
   'Eq.eq': eqDualMode,
   'ListPeople.all': listAllPeople,
+  interface: interfaceMacro,
+  enumerate: enumerateMacro,
 }
 
 afterEach(cleanup)
@@ -132,6 +167,29 @@ describe('text-mode template splicing (regression)', () => {
       expect(raw).toContain('Cara')
       // 、 separator lands between children (2 separators for 3 children).
       expect(raw.split('、').length).toBeGreaterThanOrEqual(3)
+    })
+  })
+
+  it('preserves a literal newline before interface #1 and marks enumerate as partial', async () => {
+    const fields = createSnlSyntaxTreeNode('enumerate', {
+      children: [leaf('name'), leaf('kind')],
+    })
+    const tree = createSnlSyntaxTreeNode('interface', {
+      children: [leaf('SnlMacro'), fields],
+    })
+    const { container } = render(
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />,
+    )
+    await waitFor(() => {
+      const root = container.querySelector('.snl-text[data-name="interface"]')
+      const lineBreak = root?.querySelector('br')
+      const enumerateHost = root?.querySelector<HTMLElement>('[data-name="enumerate"]')
+      expect(lineBreak).not.toBeNull()
+      expect(enumerateHost).not.toBeNull()
+      expect(enumerateHost?.dataset.kind).toBe('partial')
+      expect(lineBreak!.compareDocumentPosition(enumerateHost!)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      )
     })
   })
 

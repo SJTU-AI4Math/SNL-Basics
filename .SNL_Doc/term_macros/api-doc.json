@@ -432,7 +432,8 @@
           "block_template_name": "enumerate"
         }
       ],
-      "tags": []
+      "tags": [],
+      "kind": "partial"
     },
     "Type.judge": {
       "description": "",

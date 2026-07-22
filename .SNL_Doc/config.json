@@ -159,6 +159,15 @@
         "stroke": "#888888",
         "background": "#eeeeee"
       }
+    },
+    {
+      "id": "partial",
+      "name": "Partial",
+      "description": "Structural partial-output macros that organize child content without denoting a complete semantic term.",
+      "coloring": {
+        "stroke": "#64748b",
+        "background": "#f1f5f9"
+      }
     }
   ],
   "active_macro_packages": [
