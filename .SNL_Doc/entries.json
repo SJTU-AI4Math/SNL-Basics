@@ -199,7 +199,6 @@
     "kind": "field",
     "title": "$\\texttt{position}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeParseError.position,number)",
       "markdown": "The zero-based character offset of the error in the source. It is non-negative and points to the start of the first ambiguous or failing token."
     },
     "contribution_info": null,
@@ -214,7 +213,6 @@
     "kind": "field",
     "title": "$\\texttt{message}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeParseError.message,string)",
       "markdown": "The error description inherited from `Error`. Its wording is not a stable API; use `position` and the surrounding source context for programmatic diagnostics."
     },
     "contribution_info": null,
@@ -969,7 +967,6 @@
     "kind": "field",
     "title": "$\\texttt{name}$",
     "content": {
-      "snl": "Type.judge(SnlMacro.name,api.code(%string%))",
       "markdown": "Globally unique name, e.g. \"FOL.eq\", \"FOL.forall\", \"FOL.forall.typed\""
     },
     "contribution_info": null,
@@ -985,7 +982,6 @@
     "kind": "field",
     "title": "$\\texttt{description}$",
     "content": {
-      "snl": "Type.judge(SnlMacro.description,api.code(%string%))",
       "markdown": "Human-readable description shown in tooltips / docs."
     },
     "contribution_info": null,
@@ -1001,7 +997,6 @@
     "kind": "field",
     "title": "$\\texttt{source}$",
     "content": {
-      "snl": "Type.judge(SnlMacro.source,api.code(%SnlMacroSource%))",
       "markdown": "Source-of-truth binding. Resolver: entries[0..] first valid, else urls[0], else null."
     },
     "contribution_info": null,
@@ -1017,7 +1012,6 @@
     "kind": "field",
     "title": "$\\texttt{kind}$",
     "content": {
-      "snl": "Type.judge(SnlMacro.kind,Type.opt(api.code(%string%)))",
       "markdown": "Semantic kind (rule / const / bvar / binder / fvar / custom). If unset, nodes rendered for this macro get `data-kind=\"fvar\"`. (There is no more `'default'` kind — un-classified = fvar.)"
     },
     "contribution_info": null,
@@ -1033,7 +1027,6 @@
     "kind": "field",
     "title": "$\\texttt{dynamic\\_arity}$",
     "content": {
-      "snl": "Type.judge(SnlMacro.dynamic_arity,api.code(%boolean%))",
       "markdown": "True when the macro's child count is not fixed by its template — its default (styles[0]) template must contain `#*`. All styles must agree on this flag; it's a macro-level invariant so switching styles never changes the arity contract at the call site."
     },
     "contribution_info": null,
@@ -1049,7 +1042,6 @@
     "kind": "field",
     "title": "$\\texttt{styles}$",
     "content": {
-      "snl": "Type.judge(SnlMacro.styles,api.code(%SnlMacroStyle[]%))",
       "markdown": "All render styles in order. `styles[0]` is the **implicit default** used when the SNL source omits `[style]`. In `foo[bar](x)`, the parser picks the style whose `tag === \"bar\"`; unknown tags are a render-time error. Every macro has at least one style. Style tags follow `[A-Za-z_][A-Za-z0-9_]*` (parser IDENT rules) and must be unique within this array."
     },
     "contribution_info": null,
@@ -1065,7 +1057,6 @@
     "kind": "field",
     "title": "$\\texttt{tags}$",
     "content": {
-      "snl": "Type.judge(SnlMacro.tags,Type.opt(api.code(%string[]%)))",
       "markdown": "Free-text labels attached to the macro itself — used by downstream search indices. Backslashes are forbidden. Optional."
     },
     "contribution_info": null,
@@ -1082,7 +1073,6 @@
     "kind": "field",
     "title": "$\\texttt{tag}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.tag,api.code(%string%))",
       "markdown": "Style tag — the token used in `foo[tag](…)`. `[A-Za-z_][A-Za-z0-9_]*` (parser IDENT rules). Must be unique within a macro's `styles` array."
     },
     "contribution_info": null,
@@ -1098,7 +1088,6 @@
     "kind": "field",
     "title": "$\\texttt{mode}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.mode,api.code(%'formula_inline' | 'formula_display' | 'text' | 'block'%))",
       "markdown": "Semantic render mode. Four flat parallel values (v3): - `formula_inline` — KaTeX inline math ($...$) - `formula_display` — KaTeX display math ($$...$$) - `text` — KaTeX `\\text{...}`; may host formulas via `$...$` - `block` — React-rendered block (list / table / centered / …)"
     },
     "contribution_info": null,
@@ -1114,7 +1103,6 @@
     "kind": "field",
     "title": "$\\texttt{template}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.template,api.code(%string%))",
       "markdown": "LaTeX-native template. See fillLatexTemplate for placeholders: #0, #1, #* (variadic), \\# (literal)."
     },
     "contribution_info": null,
@@ -1130,7 +1118,6 @@
     "kind": "field",
     "title": "$\\texttt{variadic\\_left}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.variadic_left,Type.opt(api.code(%string%)))",
       "markdown": "`variadic_left` is an optional field of `SnlMacroStyle`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -1146,7 +1133,6 @@
     "kind": "field",
     "title": "$\\texttt{variadic\\_join}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.variadic_join,Type.opt(api.code(%string%)))",
       "markdown": "`variadic_join` is an optional field of `SnlMacroStyle`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -1162,7 +1148,6 @@
     "kind": "field",
     "title": "$\\texttt{variadic\\_right}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.variadic_right,Type.opt(api.code(%string%)))",
       "markdown": "`variadic_right` is an optional field of `SnlMacroStyle`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -1178,7 +1163,6 @@
     "kind": "field",
     "title": "$\\texttt{react\\_renderer\\_key}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.react_renderer_key,Type.opt(api.code(%string%)))",
       "markdown": "Block/text mode dispatch key — see hooks.tsx / block-renderers.tsx. Only applies when mode is 'block' or 'text'."
     },
     "contribution_info": null,
@@ -1194,7 +1178,6 @@
     "kind": "field",
     "title": "$\\texttt{tags}$",
     "content": {
-      "snl": "Type.judge(SnlMacroStyle.tags,Type.opt(api.code(%string[]%)))",
       "markdown": "Free-text labels attached to this style — used by downstream search indices. Backslashes are forbidden. Optional."
     },
     "contribution_info": null,
@@ -1210,7 +1193,6 @@
     "kind": "field",
     "title": "$\\texttt{entries}$",
     "content": {
-      "snl": "Type.judge(SnlMacroSource.entries,api.code(%string[]%))",
       "markdown": "`entries` is an field of `SnlMacroSource`. Its declared TypeScript type is `string[]`."
     },
     "contribution_info": null,
@@ -1226,7 +1208,6 @@
     "kind": "field",
     "title": "$\\texttt{urls}$",
     "content": {
-      "snl": "Type.judge(SnlMacroSource.urls,api.code(%string[]%))",
       "markdown": "`urls` is an field of `SnlMacroSource`. Its declared TypeScript type is `string[]`."
     },
     "contribution_info": null,
@@ -2445,7 +2426,6 @@
     "kind": "field",
     "title": "$\\texttt{name}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTree.name,api.code(%string%))",
       "markdown": "Macro name — key into `SnlMacroDb`."
     },
     "contribution_info": null,
@@ -2461,7 +2441,6 @@
     "kind": "field",
     "title": "$\\texttt{style}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTree.style,Type.opt(api.code(%string%)))",
       "markdown": "Style-tag override from the parser's `[style]` bracket, e.g. `foo[bar]` sets `style = 'bar'`. Undefined when no bracket — the view falls back to the macro's first style (`SnlMacro.styles[0]`)."
     },
     "contribution_info": null,
@@ -2477,7 +2456,6 @@
     "kind": "field",
     "title": "$\\texttt{envMode}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTree.envMode,Type.opt(api.code(%'formula_inline' | 'formula_display' | 'text'%)))",
       "markdown": "Synthetic-macro environment mode set by the parser for delimited names: `%…%` → `'text'` `$…$` → `'formula_inline'` `$$…$$` → `'formula_display'` When set, the render pipeline treats this node as a TEMPORARY macro: - The `name` is a literal payload (LaTeX source or raw text) — NOT a macroDb key. - `text` → wrapped in `\\text{escape(name)}`. - `formula_inline` → emitted as raw LaTeX (`name` is expected to be valid LaTeX; if it contains `$…$` KaTeX handles it normally). - `formula_display` → same as formula_inline, but also forces `katex.displayMode = true` at the root. When `envMode` is set the macroDb is NOT consulted for a template. Undefined for regular identifier-form nodes (the vast majority)."
     },
     "contribution_info": null,
@@ -2493,7 +2471,6 @@
     "kind": "field",
     "title": "$\\texttt{kind}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTree.kind,api.code(%string%))",
       "markdown": "Semantic kind (rule / const / binder / bvar / fvar / …)."
     },
     "contribution_info": null,
@@ -2509,7 +2486,6 @@
     "kind": "field",
     "title": "$\\texttt{scope}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTree.scope,Type.opt(api.code(%string%)))",
       "markdown": "Structural scope marker (out of the kind namespace). annotate-bind sets `scope = 'binder'` on quantifier nodes; the view emits `data-scope` from it."
     },
     "contribution_info": null,
@@ -2525,7 +2501,6 @@
     "kind": "field",
     "title": "$\\texttt{mdata}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTree.mdata,api.code(%unknown%))",
       "markdown": "Meta data (e.g. `{ bindRef }`) written by binding annotation."
     },
     "contribution_info": null,
@@ -2541,7 +2516,6 @@
     "kind": "field",
     "title": "$\\texttt{children}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTree.children,api.code(%SnlSyntaxTree[]%))",
       "markdown": "Child nodes."
     },
     "contribution_info": null,
@@ -2557,7 +2531,6 @@
     "kind": "field",
     "title": "$\\texttt{name}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeBase.name,api.code(%string%))",
       "markdown": "Macro name — key into SnlMacroDb."
     },
     "contribution_info": null,
@@ -2573,7 +2546,6 @@
     "kind": "field",
     "title": "$\\texttt{style}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeBase.style,Type.opt(api.code(%string%)))",
       "markdown": "Style-tag override from the parser's `[style]` bracket; picks `SnlMacro.styles[tag]`."
     },
     "contribution_info": null,
@@ -2589,7 +2561,6 @@
     "kind": "field",
     "title": "$\\texttt{kind}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeBase.kind,api.code(%string%))",
       "markdown": "Semantic kind: 'rule' | 'const' | 'binder' | 'bvar' | 'fvar' | ..."
     },
     "contribution_info": null,
@@ -2605,7 +2576,6 @@
     "kind": "field",
     "title": "$\\texttt{scope}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeBase.scope,Type.opt(api.code(%string%)))",
       "markdown": "Structural scope marker (e.g. 'binder'), emitted as `data-scope`."
     },
     "contribution_info": null,
@@ -2621,7 +2591,6 @@
     "kind": "field",
     "title": "$\\texttt{mdata}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeBase.mdata,api.code(%unknown%))",
       "markdown": "Meta data (bindRef etc)."
     },
     "contribution_info": null,
@@ -2637,7 +2606,6 @@
     "kind": "field",
     "title": "$\\texttt{children}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeBase.children,api.code(%SnlSyntaxTree[]%))",
       "markdown": "Children — semantics depends on mode + macro.arity."
     },
     "contribution_info": null,
@@ -2653,7 +2621,6 @@
     "kind": "field",
     "title": "$\\texttt{mode}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeFormulaNode.mode,api.code(%'formula'%))",
       "markdown": "`mode` is an field of `SnlSyntaxTreeFormulaNode`. Its declared TypeScript type is `'formula'`."
     },
     "contribution_info": null,
@@ -2669,7 +2636,6 @@
     "kind": "field",
     "title": "$\\texttt{mode}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeTextNode.mode,api.code(%'text'%))",
       "markdown": "`mode` is an field of `SnlSyntaxTreeTextNode`. Its declared TypeScript type is `'text'`."
     },
     "contribution_info": null,
@@ -2686,7 +2652,6 @@
     "kind": "field",
     "title": "$\\texttt{mode}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeBlockNode.mode,api.code(%'block'%))",
       "markdown": "`mode` is an field of `SnlSyntaxTreeBlockNode`. Its declared TypeScript type is `'block'`."
     },
     "contribution_info": null,
@@ -2703,7 +2668,6 @@
     "kind": "field",
     "title": "$\\texttt{block\\_kind}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeBlockNode.block_kind,api.code(%'list' | 'table' | 'centered' | 'custom'%))",
       "markdown": "Which block renderer to invoke — matches the resolved style's react_renderer_key."
     },
     "contribution_info": null,
@@ -2719,7 +2683,6 @@
     "kind": "field",
     "title": "$\\texttt{name}$",
     "content": {
-      "snl": "Type.judge(SnlMacroTemplateQueryArgs.name,api.code(%string%))",
       "markdown": "Macro name being resolved."
     },
     "contribution_info": null,
@@ -2735,7 +2698,6 @@
     "kind": "field",
     "title": "$\\texttt{node}$",
     "content": {
-      "snl": "Type.judge(SnlMacroTemplateQueryArgs.node,api.code(%SnlSyntaxTree%))",
       "markdown": "The node requesting a template (for kind/binding-aware fallbacks)."
     },
     "contribution_info": null,
@@ -2751,7 +2713,6 @@
     "kind": "field",
     "title": "$\\texttt{tree}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeViewProps.tree,api.code(%SnlSyntaxTree%))",
       "markdown": "The (annotated) syntax tree to render."
     },
     "contribution_info": null,
@@ -2767,7 +2728,6 @@
     "kind": "field",
     "title": "$\\texttt{query}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeViewProps.query,api.code(%SnlMacroTemplateQuery%))",
       "markdown": "Template query — resolves a macro name to its KaTeX template string."
     },
     "contribution_info": null,
@@ -2783,7 +2743,6 @@
     "kind": "field",
     "title": "$\\texttt{macroDb}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeViewProps.macroDb,api.code(%SnlMacroDb%))",
       "markdown": "The macro DB, used for mode dispatch and metadata."
     },
     "contribution_info": null,
@@ -2799,7 +2758,6 @@
     "kind": "field",
     "title": "$\\texttt{katexOptions}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeViewProps.katexOptions,Type.opt(api.code(%KatexOptions%)))",
       "markdown": "KaTeX options forwarded to `katex.renderToString`."
     },
     "contribution_info": null,
@@ -2815,7 +2773,6 @@
     "kind": "field",
     "title": "$\\texttt{kindPalette}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeViewProps.kindPalette,Type.opt(api.code(%KindPalette%)))",
       "markdown": "`kindPalette` is an optional field of `SnlSyntaxTreeViewProps`. Its declared TypeScript type is `KindPalette`."
     },
     "contribution_info": null,
@@ -2831,7 +2788,6 @@
     "kind": "field",
     "title": "$\\texttt{onResolved}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeViewProps.onResolved,Type.opt(api.code(%(latexSource: string) => void%)))",
       "markdown": "Called with the resolved LaTeX source (formula root only)."
     },
     "contribution_info": null,
@@ -2847,7 +2803,6 @@
     "kind": "field",
     "title": "$\\texttt{hooks}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeViewProps.hooks,Type.opt(api.code(%SnlRenderHooks%)))",
       "markdown": "Override tooltip / hover / description / renderer behavior. Merged over defaults."
     },
     "contribution_info": null,
@@ -2863,7 +2818,6 @@
     "kind": "field",
     "title": "$\\texttt{onHover}$",
     "content": {
-      "snl": "Type.judge(SnlRenderHooks.onHover,Type.opt(api.code(%(event: SnlHoverEvent) => void%)))",
       "markdown": "Fire-and-forget — NOT awaited. Called on hover start / move for consumer side effects (logging, host messaging). The view's internal hover state machine runs regardless. Default: undefined."
     },
     "contribution_info": null,
@@ -2879,7 +2833,6 @@
     "kind": "field",
     "title": "$\\texttt{onLeave}$",
     "content": {
-      "snl": "Type.judge(SnlRenderHooks.onLeave,Type.opt(api.code(%() => void%)))",
       "markdown": "Fire-and-forget — NOT awaited. Called when the pointer leaves the render container. Default: undefined."
     },
     "contribution_info": null,
@@ -2895,7 +2848,6 @@
     "kind": "field",
     "title": "$\\texttt{resolveMacroInfo}$",
     "content": {
-      "snl": "Type.judge(SnlRenderHooks.resolveMacroInfo,Type.opt(api.code(%(name: string, macro: SnlMacro | undefined) => Promise<SnlMacroInfo>%)))",
       "markdown": "Async — awaited after hover starts (with a short debounce). Fine to hit a network / disk cache; the view keeps `loading: true` in the tooltip state until it resolves. Default: read macroDb[name].description."
     },
     "contribution_info": null,
@@ -2911,7 +2863,6 @@
     "kind": "field",
     "title": "$\\texttt{resolveSource}$",
     "content": {
-      "snl": "Type.judge(SnlRenderHooks.resolveSource,Type.opt(api.code(%(source: SnlMacroSource) => SnlResolvedSource | null%)))",
       "markdown": "Sync — called during render on every hover to enrich the tooltip payload. Return null when no source is resolvable. If you need async lookup, cache results in a React state / memo before construction and read synchronously here. Default: return null."
     },
     "contribution_info": null,
@@ -2927,7 +2878,6 @@
     "kind": "field",
     "title": "$\\texttt{renderTooltip}$",
     "content": {
-      "snl": "Type.judge(SnlRenderHooks.renderTooltip,Type.opt(api.code(%(state: SnlTooltipState) => ReactElement | null%)))",
       "markdown": "Sync React render — called during render, must be pure (no side effects). Default: SNL-Basics's built-in tooltip DOM. Return null to suppress the tooltip entirely."
     },
     "contribution_info": null,
@@ -2943,7 +2893,6 @@
     "kind": "field",
     "title": "$\\texttt{highlightStrategy}$",
     "content": {
-      "snl": "Type.judge(SnlRenderHooks.highlightStrategy,Type.opt(api.code(%SnlHighlightStrategy%)))",
       "markdown": "`highlightStrategy` is an optional field of `SnlRenderHooks`. Its declared TypeScript type is `SnlHighlightStrategy`."
     },
     "contribution_info": null,
@@ -2959,7 +2908,6 @@
     "kind": "field",
     "title": "$\\texttt{renderers}$",
     "content": {
-      "snl": "Type.judge(SnlRenderHooks.renderers,Type.opt(api.code(%SnlRendererRegistry%)))",
       "markdown": "`renderers` is an optional field of `SnlRenderHooks`. Its declared TypeScript type is `SnlRendererRegistry`."
     },
     "contribution_info": null,
@@ -2975,7 +2923,6 @@
     "kind": "field",
     "title": "$\\texttt{name}$",
     "content": {
-      "snl": "Type.judge(SnlHoverEvent.name,api.code(%string%))",
       "markdown": "`name` is an field of `SnlHoverEvent`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -2991,7 +2938,6 @@
     "kind": "field",
     "title": "$\\texttt{kind}$",
     "content": {
-      "snl": "Type.judge(SnlHoverEvent.kind,api.code(%string%))",
       "markdown": "`kind` is an field of `SnlHoverEvent`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3007,7 +2953,6 @@
     "kind": "field",
     "title": "$\\texttt{node}$",
     "content": {
-      "snl": "Type.judge(SnlHoverEvent.node,api.code(%SnlSyntaxTree%))",
       "markdown": "`node` is an field of `SnlHoverEvent`. Its declared TypeScript type is `SnlSyntaxTree`."
     },
     "contribution_info": null,
@@ -3023,7 +2968,6 @@
     "kind": "field",
     "title": "$\\texttt{bindingHint}$",
     "content": {
-      "snl": "Type.judge(SnlHoverEvent.bindingHint,api.code(%string%))",
       "markdown": "`bindingHint` is an field of `SnlHoverEvent`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3039,7 +2983,6 @@
     "kind": "field",
     "title": "$\\texttt{variableRole}$",
     "content": {
-      "snl": "Type.judge(SnlHoverEvent.variableRole,api.code(%'bvar' | 'fvar' | 'none'%))",
       "markdown": "`variableRole` is an field of `SnlHoverEvent`. Its declared TypeScript type is `'bvar' | 'fvar' | 'none'`."
     },
     "contribution_info": null,
@@ -3055,7 +2998,6 @@
     "kind": "field",
     "title": "$\\texttt{target}$",
     "content": {
-      "snl": "Type.judge(SnlHoverEvent.target,api.code(%HTMLElement%))",
       "markdown": "`target` is an field of `SnlHoverEvent`. Its declared TypeScript type is `HTMLElement`."
     },
     "contribution_info": null,
@@ -3071,7 +3013,6 @@
     "kind": "field",
     "title": "$\\texttt{clientX}$",
     "content": {
-      "snl": "Type.judge(SnlHoverEvent.clientX,api.code(%number%))",
       "markdown": "`clientX` is an field of `SnlHoverEvent`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3087,7 +3028,6 @@
     "kind": "field",
     "title": "$\\texttt{clientY}$",
     "content": {
-      "snl": "Type.judge(SnlHoverEvent.clientY,api.code(%number%))",
       "markdown": "`clientY` is an field of `SnlHoverEvent`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3103,7 +3043,6 @@
     "kind": "field",
     "title": "$\\texttt{description}$",
     "content": {
-      "snl": "Type.judge(SnlMacroInfo.description,api.code(%string%))",
       "markdown": "`description` is an field of `SnlMacroInfo`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3119,7 +3058,6 @@
     "kind": "field",
     "title": "$\\texttt{extra}$",
     "content": {
-      "snl": "Type.judge(SnlMacroInfo.extra,Type.opt(api.code(%string%)))",
       "markdown": "`extra` is an optional field of `SnlMacroInfo`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3135,7 +3073,6 @@
     "kind": "field",
     "title": "$\\texttt{kind}$",
     "content": {
-      "snl": "Type.judge(SnlResolvedSource.kind,api.code(%'entry' | 'url'%))",
       "markdown": "`kind` is an field of `SnlResolvedSource`. Its declared TypeScript type is `'entry' | 'url'`."
     },
     "contribution_info": null,
@@ -3152,7 +3089,6 @@
     "kind": "field",
     "title": "$\\texttt{ref}$",
     "content": {
-      "snl": "Type.judge(SnlResolvedSource.ref,api.code(%string%))",
       "markdown": "`ref` is an field of `SnlResolvedSource`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3168,7 +3104,6 @@
     "kind": "field",
     "title": "$\\texttt{displayName}$",
     "content": {
-      "snl": "Type.judge(SnlResolvedSource.displayName,Type.opt(api.code(%string%)))",
       "markdown": "`displayName` is an optional field of `SnlResolvedSource`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3184,7 +3119,6 @@
     "kind": "field",
     "title": "$\\texttt{href}$",
     "content": {
-      "snl": "Type.judge(SnlResolvedSource.href,Type.opt(api.code(%string%)))",
       "markdown": "`href` is an optional field of `SnlResolvedSource`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3200,7 +3134,6 @@
     "kind": "field",
     "title": "$\\texttt{visible}$",
     "content": {
-      "snl": "Type.judge(SnlTooltipState.visible,api.code(%boolean%))",
       "markdown": "`visible` is an field of `SnlTooltipState`. Its declared TypeScript type is `boolean`."
     },
     "contribution_info": null,
@@ -3216,7 +3149,6 @@
     "kind": "field",
     "title": "$\\texttt{x}$",
     "content": {
-      "snl": "Type.judge(SnlTooltipState.x,api.code(%number%))",
       "markdown": "`x` is an field of `SnlTooltipState`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3232,7 +3164,6 @@
     "kind": "field",
     "title": "$\\texttt{y}$",
     "content": {
-      "snl": "Type.judge(SnlTooltipState.y,api.code(%number%))",
       "markdown": "`y` is an field of `SnlTooltipState`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3248,7 +3179,6 @@
     "kind": "field",
     "title": "$\\texttt{name}$",
     "content": {
-      "snl": "Type.judge(SnlTooltipState.name,api.code(%string%))",
       "markdown": "`name` is an field of `SnlTooltipState`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3265,7 +3195,6 @@
     "kind": "field",
     "title": "$\\texttt{kind}$",
     "content": {
-      "snl": "Type.judge(SnlTooltipState.kind,api.code(%string%))",
       "markdown": "`kind` is an field of `SnlTooltipState`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3282,7 +3211,6 @@
     "kind": "field",
     "title": "$\\texttt{variableRole}$",
     "content": {
-      "snl": "Type.judge(SnlTooltipState.variableRole,api.code(%'bvar' | 'fvar' | 'none'%))",
       "markdown": "`variableRole` is an field of `SnlTooltipState`. Its declared TypeScript type is `'bvar' | 'fvar' | 'none'`."
     },
     "contribution_info": null,
@@ -3299,7 +3227,6 @@
     "kind": "field",
     "title": "$\\texttt{bindingHint}$",
     "content": {
-      "snl": "Type.judge(SnlTooltipState.bindingHint,api.code(%string%))",
       "markdown": "`bindingHint` is an field of `SnlTooltipState`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3316,7 +3243,6 @@
     "kind": "field",
     "title": "$\\texttt{info}$",
     "content": {
-      "snl": "Type.judge(SnlTooltipState.info,api.code(%SnlMacroInfo | null%))",
       "markdown": "`info` is an field of `SnlTooltipState`. Its declared TypeScript type is `SnlMacroInfo | null`."
     },
     "contribution_info": null,
@@ -3332,7 +3258,6 @@
     "kind": "field",
     "title": "$\\texttt{loading}$",
     "content": {
-      "snl": "Type.judge(SnlTooltipState.loading,api.code(%boolean%))",
       "markdown": "`loading` is an field of `SnlTooltipState`. Its declared TypeScript type is `boolean`."
     },
     "contribution_info": null,
@@ -3348,7 +3273,6 @@
     "kind": "field",
     "title": "$\\texttt{source}$",
     "content": {
-      "snl": "Type.judge(SnlTooltipState.source,api.code(%SnlResolvedSource | null%))",
       "markdown": "`source` is an field of `SnlTooltipState`. Its declared TypeScript type is `SnlResolvedSource | null`."
     },
     "contribution_info": null,
@@ -3364,7 +3288,6 @@
     "kind": "field",
     "title": "$\\texttt{computeHighlightSet}$",
     "content": {
-      "snl": "Type.judge(SnlHighlightStrategy.computeHighlightSet,api.code(%( target: HTMLElement, container: HTMLElement, bvarScopeIndex: Map<string, BvarScopeEntry>, ): SnlHighlightSet%))",
       "markdown": "`computeHighlightSet` is an method of `SnlHighlightStrategy`. Its declared TypeScript type is `( target: HTMLElement, container: HTMLElement, bvarScopeIndex: Map<string, BvarScopeEntry>, ): SnlHighlightSet`."
     },
     "contribution_info": null,
@@ -3380,7 +3303,6 @@
     "kind": "field",
     "title": "$\\texttt{singleHover}$",
     "content": {
-      "snl": "Type.judge(SnlHighlightSet.singleHover,api.code(%HTMLElement | null%))",
       "markdown": "Gets `.snl-single-hover` — the one element directly under the pointer."
     },
     "contribution_info": null,
@@ -3396,7 +3318,6 @@
     "kind": "field",
     "title": "$\\texttt{bvarScope}$",
     "content": {
-      "snl": "Type.judge(SnlHighlightSet.bvarScope,api.code(%HTMLElement[]%))",
       "markdown": "Gets `.snl-bvar-scope` — bound-variable occurrences in scope."
     },
     "contribution_info": null,
@@ -3412,7 +3333,6 @@
     "kind": "field",
     "title": "$\\texttt{binderDecl}$",
     "content": {
-      "snl": "Type.judge(SnlHighlightSet.binderDecl,api.code(%HTMLElement[]%))",
       "markdown": "Gets `.snl-binder-decl` — binder declaration sites."
     },
     "contribution_info": null,
@@ -3428,7 +3348,6 @@
     "kind": "field",
     "title": "$\\texttt{node}$",
     "content": {
-      "snl": "Type.judge(SnlBlockRendererProps.node,api.code(%SnlSyntaxTree%))",
       "markdown": "The block node to render."
     },
     "contribution_info": null,
@@ -3445,7 +3364,6 @@
     "kind": "field",
     "title": "$\\texttt{macroDb}$",
     "content": {
-      "snl": "Type.judge(SnlBlockRendererProps.macroDb,api.code(%SnlMacroDb%))",
       "markdown": "The macro DB, for looking up child metadata if needed."
     },
     "contribution_info": null,
@@ -3461,7 +3379,6 @@
     "kind": "field",
     "title": "$\\texttt{renderChild}$",
     "content": {
-      "snl": "Type.judge(SnlBlockRendererProps.renderChild,api.code(%(child: SnlSyntaxTree) => ReactElement%))",
       "markdown": "Render a child of any mode as a React element."
     },
     "contribution_info": null,
@@ -3477,7 +3394,6 @@
     "kind": "field",
     "title": "$\\texttt{stroke}$",
     "content": {
-      "snl": "Type.judge(KindColoring.stroke,api.code(%string%))",
       "markdown": "Border + hover text color (also the base text color)."
     },
     "contribution_info": null,
@@ -3493,7 +3409,6 @@
     "kind": "field",
     "title": "$\\texttt{background}$",
     "content": {
-      "snl": "Type.judge(KindColoring.background,api.code(%string%))",
       "markdown": "Background base + hover border; hover background = this color @ 50% alpha."
     },
     "contribution_info": null,
@@ -3509,7 +3424,6 @@
     "kind": "field",
     "title": "$\\texttt{templateDbUrl}$",
     "content": {
-      "snl": "Type.judge(DefaultMacroTemplateQueryOptions.templateDbUrl,Type.opt(api.code(%string%)))",
       "markdown": "`templateDbUrl` is an optional field of `DefaultMacroTemplateQueryOptions`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3525,7 +3439,6 @@
     "kind": "field",
     "title": "$\\texttt{artificialDelayMs}$",
     "content": {
-      "snl": "Type.judge(DefaultMacroTemplateQueryOptions.artificialDelayMs,Type.opt(api.code(%number%)))",
       "markdown": "`artificialDelayMs` is an optional field of `DefaultMacroTemplateQueryOptions`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3541,7 +3454,6 @@
     "kind": "field",
     "title": "$\\texttt{totalNodes}$",
     "content": {
-      "snl": "Type.judge(SnlSourceMetrics.totalNodes,api.code(%number%))",
       "markdown": "`totalNodes` is an field of `SnlSourceMetrics`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3557,7 +3469,6 @@
     "kind": "field",
     "title": "$\\texttt{sourcedNodes}$",
     "content": {
-      "snl": "Type.judge(SnlSourceMetrics.sourcedNodes,api.code(%number%))",
       "markdown": "`sourcedNodes` is an field of `SnlSourceMetrics`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3573,7 +3484,6 @@
     "kind": "field",
     "title": "$\\texttt{semanticFreedom}$",
     "content": {
-      "snl": "Type.judge(SnlSourceMetrics.semanticFreedom,api.code(%number%))",
       "markdown": "Number of nodes that do not satisfy any source rule."
     },
     "contribution_info": null,
@@ -3589,7 +3499,6 @@
     "kind": "field",
     "title": "$\\texttt{structuredRatio}$",
     "content": {
-      "snl": "Type.judge(SnlSourceMetrics.structuredRatio,api.code(%number%))",
       "markdown": "`sourcedNodes / totalNodes`, or 0 for an absent tree."
     },
     "contribution_info": null,
@@ -3605,7 +3514,6 @@
     "kind": "field",
     "title": "$\\texttt{id}$",
     "content": {
-      "snl": "Type.judge(HoverPopover.id,api.code(%string%))",
       "markdown": "`id` is an field of `HoverPopover`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -3621,7 +3529,6 @@
     "kind": "field",
     "title": "$\\texttt{subject}$",
     "content": {
-      "snl": "Type.judge(HoverPopover.subject,api.code(%TSubject%))",
       "markdown": "`subject` is an field of `HoverPopover`. Its declared TypeScript type is `TSubject`."
     },
     "contribution_info": null,
@@ -3637,7 +3544,6 @@
     "kind": "field",
     "title": "$\\texttt{originRect}$",
     "content": {
-      "snl": "Type.judge(HoverPopover.originRect,api.code(%DOMRect%))",
       "markdown": "`originRect` is an field of `HoverPopover`. Its declared TypeScript type is `DOMRect`."
     },
     "contribution_info": null,
@@ -3653,7 +3559,6 @@
     "kind": "field",
     "title": "$\\texttt{x}$",
     "content": {
-      "snl": "Type.judge(HoverPopover.x,api.code(%number%))",
       "markdown": "`x` is an field of `HoverPopover`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3669,7 +3574,6 @@
     "kind": "field",
     "title": "$\\texttt{y}$",
     "content": {
-      "snl": "Type.judge(HoverPopover.y,api.code(%number%))",
       "markdown": "`y` is an field of `HoverPopover`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3685,7 +3589,6 @@
     "kind": "field",
     "title": "$\\texttt{parentId}$",
     "content": {
-      "snl": "Type.judge(HoverPopover.parentId,api.code(%string | null%))",
       "markdown": "`parentId` is an field of `HoverPopover`. Its declared TypeScript type is `string | null`."
     },
     "contribution_info": null,
@@ -3701,7 +3604,6 @@
     "kind": "field",
     "title": "$\\texttt{frozen}$",
     "content": {
-      "snl": "Type.judge(HoverPopover.frozen,api.code(%boolean%))",
       "markdown": "`frozen` is an field of `HoverPopover`. Its declared TypeScript type is `boolean`."
     },
     "contribution_info": null,
@@ -3717,7 +3619,6 @@
     "kind": "field",
     "title": "$\\texttt{phase}$",
     "content": {
-      "snl": "Type.judge(HoverPopover.phase,api.code(%PopoverPhase%))",
       "markdown": "`phase` is an field of `HoverPopover`. Its declared TypeScript type is `PopoverPhase`."
     },
     "contribution_info": null,
@@ -3733,7 +3634,6 @@
     "kind": "field",
     "title": "$\\texttt{spawn}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverApi.spawn,api.code(%( subject: TSubject, origin: HTMLElement | DOMRect, pointerX: number, pointerY: number, parentId: string | null, ): string%))",
       "markdown": "`spawn` is an method of `HoverPopoverApi`. Its declared TypeScript type is `( subject: TSubject, origin: HTMLElement | DOMRect, pointerX: number, pointerY: number, parentId: string | null, ): string`."
     },
     "contribution_info": null,
@@ -3749,7 +3649,6 @@
     "kind": "field",
     "title": "$\\texttt{updatePointer}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverApi.updatePointer,api.code(%(id: string, pointerX: number, pointerY: number): void%))",
       "markdown": "`updatePointer` is an method of `HoverPopoverApi`. Its declared TypeScript type is `(id: string, pointerX: number, pointerY: number): void`."
     },
     "contribution_info": null,
@@ -3765,7 +3664,6 @@
     "kind": "field",
     "title": "$\\texttt{freeze}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverApi.freeze,api.code(%(id: string): void%))",
       "markdown": "`freeze` is an method of `HoverPopoverApi`. Its declared TypeScript type is `(id: string): void`."
     },
     "contribution_info": null,
@@ -3781,7 +3679,6 @@
     "kind": "field",
     "title": "$\\texttt{cancelUnfrozen}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverApi.cancelUnfrozen,api.code(%(id: string): void%))",
       "markdown": "`cancelUnfrozen` is an method of `HoverPopoverApi`. Its declared TypeScript type is `(id: string): void`."
     },
     "contribution_info": null,
@@ -3797,7 +3694,6 @@
     "kind": "field",
     "title": "$\\texttt{dismissAll}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverApi.dismissAll,api.code(%(): void%))",
       "markdown": "`dismissAll` is an method of `HoverPopoverApi`. Its declared TypeScript type is `(): void`."
     },
     "contribution_info": null,
@@ -3813,7 +3709,6 @@
     "kind": "field",
     "title": "$\\texttt{isAlive}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverApi.isAlive,api.code(%(id: string): boolean%))",
       "markdown": "`isAlive` is an method of `HoverPopoverApi`. Its declared TypeScript type is `(id: string): boolean`."
     },
     "contribution_info": null,
@@ -3829,7 +3724,6 @@
     "kind": "field",
     "title": "$\\texttt{offset}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverOptions.offset,Type.opt(api.code(%number%)))",
       "markdown": "`offset` is an optional field of `HoverPopoverOptions`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3845,7 +3739,6 @@
     "kind": "field",
     "title": "$\\texttt{hitPadding}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverOptions.hitPadding,Type.opt(api.code(%number%)))",
       "markdown": "`hitPadding` is an optional field of `HoverPopoverOptions`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3861,7 +3754,6 @@
     "kind": "field",
     "title": "$\\texttt{viewportMargin}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverOptions.viewportMargin,Type.opt(api.code(%number%)))",
       "markdown": "`viewportMargin` is an optional field of `HoverPopoverOptions`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3877,7 +3769,6 @@
     "kind": "field",
     "title": "$\\texttt{openDelayMs}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverOptions.openDelayMs,Type.opt(api.code(%number%)))",
       "markdown": "`openDelayMs` is an optional field of `HoverPopoverOptions`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3893,7 +3784,6 @@
     "kind": "field",
     "title": "$\\texttt{fadeMs}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverOptions.fadeMs,Type.opt(api.code(%number%)))",
       "markdown": "`fadeMs` is an optional field of `HoverPopoverOptions`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3909,7 +3799,6 @@
     "kind": "field",
     "title": "$\\texttt{freezeDelayMs}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverOptions.freezeDelayMs,Type.opt(api.code(%number | null%)))",
       "markdown": "`freezeDelayMs` is an optional field of `HoverPopoverOptions`. Its declared TypeScript type is `number | null`."
     },
     "contribution_info": null,
@@ -3925,7 +3814,6 @@
     "kind": "field",
     "title": "$\\texttt{maxZIndexBase}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverOptions.maxZIndexBase,Type.opt(api.code(%number%)))",
       "markdown": "`maxZIndexBase` is an optional field of `HoverPopoverOptions`. Its declared TypeScript type is `number`."
     },
     "contribution_info": null,
@@ -3941,7 +3829,6 @@
     "kind": "field",
     "title": "$\\texttt{children}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverProviderProps.children,api.code(%ReactNode%))",
       "markdown": "`children` is an field of `HoverPopoverProviderProps`. Its declared TypeScript type is `ReactNode`."
     },
     "contribution_info": null,
@@ -3957,7 +3844,6 @@
     "kind": "field",
     "title": "$\\texttt{renderPopover}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverProviderProps.renderPopover,api.code(%(popover: HoverPopover<TSubject>): ReactNode%))",
       "markdown": "`renderPopover` is an method of `HoverPopoverProviderProps`. Its declared TypeScript type is `(popover: HoverPopover<TSubject>): ReactNode`."
     },
     "contribution_info": null,
@@ -3973,7 +3859,6 @@
     "kind": "field",
     "title": "$\\texttt{options}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverProviderProps.options,Type.opt(api.code(%HoverPopoverOptions%)))",
       "markdown": "`options` is an optional field of `HoverPopoverProviderProps`. Its declared TypeScript type is `HoverPopoverOptions`."
     },
     "contribution_info": null,
@@ -3989,7 +3874,6 @@
     "kind": "field",
     "title": "$\\texttt{className}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverProviderProps.className,Type.opt(api.code(%string%)))",
       "markdown": "`className` is an optional field of `HoverPopoverProviderProps`. Its declared TypeScript type is `string`."
     },
     "contribution_info": null,
@@ -4005,7 +3889,6 @@
     "kind": "field",
     "title": "$\\texttt{style}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverProviderProps.style,Type.opt(api.code(%CSSProperties | ((popover: HoverPopover<TSubject>, index: number) => CSSProperties)%)))",
       "markdown": "`style` is an optional field of `HoverPopoverProviderProps`. Its declared TypeScript type is `CSSProperties | ((popover: HoverPopover<TSubject>, index: number) => CSSProperties)`."
     },
     "contribution_info": null,
@@ -4021,7 +3904,6 @@
     "kind": "field",
     "title": "$\\texttt{resolveBounds}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverProviderProps.resolveBounds,Type.opt(api.code(%(origin: HTMLElement) => ViewportBounds%)))",
       "markdown": "`resolveBounds` is an optional field of `HoverPopoverProviderProps`. Its declared TypeScript type is `(origin: HTMLElement) => ViewportBounds`."
     },
     "contribution_info": null,
@@ -4037,7 +3919,6 @@
     "kind": "field",
     "title": "$\\texttt{portalTarget}$",
     "content": {
-      "snl": "Type.judge(HoverPopoverProviderProps.portalTarget,Type.opt(api.code(%HTMLElement%)))",
       "markdown": "`portalTarget` is an optional field of `HoverPopoverProviderProps`. Its declared TypeScript type is `HTMLElement`."
     },
     "contribution_info": null,
@@ -4053,7 +3934,6 @@
     "kind": "field",
     "title": "$\\texttt{activeBinderIds}$",
     "content": {
-      "snl": "Type.judge(SnlSyntaxTreeParseOptions.activeBinderIds,Type.opt(api.code(%string[]%)))",
       "markdown": "Binder names already in scope OUTSIDE this fragment — used by annotate-bind to decide bvar vs fvar for delimited-name leaves whose name matches an enclosing binder. Defaults to empty (context-free). Consumers that parse a subtree in isolation (e.g. an incremental editor re-parsing one node) should pass the enclosing tree's currently-active binder names here so the sub-parse resolves bvar/fvar correctly."
     },
     "contribution_info": null,
