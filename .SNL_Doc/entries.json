@@ -4,8 +4,8 @@
     "kind": "npm-package",
     "title": "SNL Basics React Package",
     "content": {
-      "snl": "%SNL-Basics 的 npm 分发单元, 版本 0.7.0 (当前 private=true). 对外暴露 SNL 语法树解析 + KaTeX-in-React 渲染 + macro DB. 包含三个源码模块: snl-syntax-tree, snl-macro, snl-react-view. tarball 通过 package.json#files 白名单限定为 dist-lib/ 内容, ~29 kB.%",
-      "markdown": "SNL-Basics 的 npm 分发单元, 版本 0.7.0 (当前 private=true). 对外暴露 SNL 语法树解析 + KaTeX-in-React 渲染 + macro DB. 包含三个源码模块: snl-syntax-tree, snl-macro, snl-react-view. tarball 通过 package.json#files 白名单限定为 dist-lib/ 内容, ~29 kB."
+      "snl": "%The npm distribution unit for SNL-Basics, version 0.9.0 (currently private=true). It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, and the macro DB. It contains three source modules: snl-syntax-tree, snl-macro, and snl-react-view. The package.json#files allowlist restricts the tarball to the contents of dist-lib/, approximately 29 kB.%",
+      "markdown": "The npm distribution unit for SNL-Basics, version 0.9.0 (currently `private=true`). It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, and the macro DB. It contains three source modules: snl-syntax-tree, snl-macro, and snl-react-view. The `package.json#files` allowlist restricts the tarball to the contents of `dist-lib/`, approximately 29 kB."
     },
     "contribution_info": null,
     "pointer": {
@@ -19,8 +19,8 @@
     "kind": "module",
     "title": "SNL Syntax Tree Module",
     "content": {
-      "snl": "%纯 TS 的语法树模块, 无 React / KaTeX / DOM 依赖. 承担 SNL 源码到 SnlSyntaxTree 的 parse + serialize + annotate 三个职责. SNL-Agent-Toolkit 走深路径直接 import 这个模块的 parser 与 types.%",
-      "markdown": "纯 TS 的语法树模块, 无 React / KaTeX / DOM 依赖. 承担 SNL 源码到 SnlSyntaxTree 的 parse + serialize + annotate 三个职责. SNL-Agent-Toolkit 走深路径直接 import 这个模块的 parser 与 types."
+      "snl": "%A pure-TypeScript syntax-tree module with no React, KaTeX, or DOM dependencies. It is responsible for parsing, serializing, and annotating SNL source as SnlSyntaxTree. SNL-Agent-Toolkit imports this module’s parser and types directly through a deep path.%",
+      "markdown": "A pure-TypeScript syntax-tree module with no React, KaTeX, or DOM dependencies. It is responsible for parsing, serializing, and annotating SNL source as `SnlSyntaxTree`. SNL-Agent-Toolkit imports this module’s parser and types directly through a deep path."
     },
     "contribution_info": null,
     "pointer": {
@@ -34,8 +34,8 @@
     "kind": "module",
     "title": "SNL Macro Module",
     "content": {
-      "snl": "%macro DB 的数据模型定义与内置 macro 数据. 定义 SnlMacro / SnlMacroDb / SnlMacroStyle / SnlMacroSource 四种类型, 并提供 bundledMacroDb 作为内置核心 macro DB.%",
-      "markdown": "macro DB 的数据模型定义与内置 macro 数据. 定义 SnlMacro / SnlMacroDb / SnlMacroStyle / SnlMacroSource 四种类型, 并提供 bundledMacroDb 作为内置核心 macro DB."
+      "snl": "%Data-model definitions and bundled data for the macro DB. It defines the four types SnlMacro, SnlMacroDb, SnlMacroStyle, and SnlMacroSource, and provides bundledMacroDb as the bundled core macro DB.%",
+      "markdown": "Data-model definitions and bundled data for the macro DB. It defines the four types `SnlMacro`, `SnlMacroDb`, `SnlMacroStyle`, and `SnlMacroSource`, and provides `bundledMacroDb` as the bundled core macro DB."
     },
     "contribution_info": null,
     "pointer": {
@@ -49,8 +49,8 @@
     "kind": "module",
     "title": "SNL React View Module",
     "content": {
-      "snl": "%React 组件层, 依赖 KaTeX + React. 提供 SnlSyntaxTreeView 主渲染组件 + SnlSyntaxTreeEditor 编辑器, 以及 hooks / palette / DB loader / block-renderer 注册表等一整套渲染基础设施.%",
-      "markdown": "React 组件层, 依赖 KaTeX + React. 提供 SnlSyntaxTreeView 主渲染组件 + SnlSyntaxTreeEditor 编辑器, 以及 hooks / palette / DB loader / block-renderer 注册表等一整套渲染基础设施."
+      "snl": "%The React component layer, which depends on KaTeX and React. It provides the main SnlSyntaxTreeView rendering component, the SnlSyntaxTreeEditor editor, and a complete rendering infrastructure including hooks, a palette, a DB loader, and a block-renderer registry.%",
+      "markdown": "The React component layer, which depends on KaTeX and React. It provides the main `SnlSyntaxTreeView` rendering component, the `SnlSyntaxTreeEditor` editor, and a complete rendering infrastructure including hooks, a palette, a DB loader, and a block-renderer registry."
     },
     "contribution_info": null,
     "pointer": {
@@ -65,7 +65,7 @@
     "title": "SNL Syntax Tree",
     "content": {
       "snl": "interface(SnlSyntaxTree,enumerate(Type.judge(SnlSyntaxTree.name,string),Type.judge(SnlSyntaxTree.style,Type.opt(string)),Type.judge(SnlSyntaxTree.envMode,Type.opt(Type.union(Type.literal(formula_inline),Type.literal(formula_display),Type.literal(text)))),Type.judge(SnlSyntaxTree.kind,string),Type.judge(SnlSyntaxTree.scope,Type.opt(string)),Type.judge(SnlSyntaxTree.mdata,unknown),Type.judge(SnlSyntaxTree.children,Type.array(SnlSyntaxTree))))",
-      "markdown": "SNL 语法树的主类型. 一个节点带有 name, kind, children, mdata, envMode, style, scope 等字段, 是 union 类型 (formula / text / block 三种 envMode 分支的合并). 所有 parser 输出 / serializer 输入 / 渲染消费 都走这个类型."
+      "markdown": "The principal type for an SNL syntax tree. A node has fields including `name`, `kind`, `children`, `mdata`, `envMode`, `style`, and `scope`. It is a union type combining the three `envMode` branches: formula, text, and block. All parser output, serializer input, and renderer consumption use this type."
     },
     "contribution_info": null,
     "pointer": {
@@ -80,7 +80,7 @@
     "title": "SNL Syntax Tree Base",
     "content": {
       "snl": "interface(SnlSyntaxTreeBase,enumerate(Type.judge(SnlSyntaxTreeBase.name,string),Type.judge(SnlSyntaxTreeBase.style,Type.opt(string)),Type.judge(SnlSyntaxTreeBase.kind,string),Type.judge(SnlSyntaxTreeBase.scope,Type.opt(string)),Type.judge(SnlSyntaxTreeBase.mdata,unknown),Type.judge(SnlSyntaxTreeBase.children,Type.array(SnlSyntaxTree))))",
-      "markdown": "SnlSyntaxTree union 三个分支的共同字段基类. 包含 name (macro 名或 delim payload), kind (bvar / fvar / binder / rule / ... 或空), children (子节点数组), mdata (自由 metadata bag), style (可选样式变体名), scope (结构性作用域标记)."
+      "markdown": "The base containing the fields common to all three branches of the `SnlSyntaxTree` union: `name` (a macro name or delimiter payload), `kind` (`bvar`, `fvar`, `binder`, `rule`, and so on, or empty), `children` (an array of child nodes), `mdata` (a free-form metadata bag), `style` (an optional style-variant name), and `scope` (a structural scope marker)."
     },
     "contribution_info": null,
     "pointer": {
@@ -95,7 +95,7 @@
     "title": "Formula SNL Syntax Tree Node",
     "content": {
       "snl": "interface(SnlSyntaxTreeFormulaNode,enumerate(Type.judge(SnlSyntaxTreeFormulaNode.mode,Type.literal(formula))))",
-      "markdown": "envMode 为 formula_inline 或 formula_display 的分支. 此时 name 字段承载 LaTeX 源码, 直接进 KaTeX 渲染."
+      "markdown": "The branch whose `envMode` is `formula_inline` or `formula_display`. In this branch, `name` carries LaTeX source and is rendered directly by KaTeX."
     },
     "contribution_info": null,
     "pointer": {
@@ -110,7 +110,7 @@
     "title": "Text SNL Syntax Tree Node",
     "content": {
       "snl": "interface(SnlSyntaxTreeTextNode,enumerate(Type.judge(SnlSyntaxTreeTextNode.mode,Type.literal(text))))",
-      "markdown": "envMode 为 text 的分支. name 字段承载文本内容, 走 React text-run 渲染 (不进 KaTeX 数学模式)."
+      "markdown": "The branch whose `envMode` is `text`. The `name` field carries text content, which is rendered as a React text run rather than in KaTeX math mode."
     },
     "contribution_info": null,
     "pointer": {
@@ -125,7 +125,7 @@
     "title": "Block SNL Syntax Tree Node",
     "content": {
       "snl": "interface(SnlSyntaxTreeBlockNode,enumerate(Type.judge(SnlSyntaxTreeBlockNode.mode,Type.literal(block)),Type.judge(SnlSyntaxTreeBlockNode.block_kind,Type.union(Type.literal(list),Type.literal(table),Type.literal(centered),Type.literal(custom)))))",
-      "markdown": "envMode 为 block 的分支. 通过 react_renderer_key 派发到具体的 block renderer, 如 list / enumerate / matrix / table 等."
+      "markdown": "The branch whose `envMode` is `block`. It dispatches through `react_renderer_key` to a specific block renderer, such as `list`, `enumerate`, `matrix`, or `table`."
     },
     "contribution_info": null,
     "pointer": {
@@ -140,7 +140,7 @@
     "title": "SNL Macro Template Query Arguments",
     "content": {
       "snl": "interface(SnlMacroTemplateQueryArgs,enumerate(Type.judge(SnlMacroTemplateQueryArgs.name,string),Type.judge(SnlMacroTemplateQueryArgs.node,SnlSyntaxTree)))",
-      "markdown": "template query 函数的入参. 携带 macro name + 请求的 style + envMode, 由 query 实现返回相应 style 的 LaTeX / text template 字符串."
+      "markdown": "Arguments to a template-query function. They carry the macro name and the requested style and `envMode`; the query implementation returns the corresponding style’s LaTeX or text template string."
     },
     "contribution_info": null,
     "pointer": {
@@ -155,7 +155,7 @@
     "title": "SNL Macro Template Query",
     "content": {
       "snl": "Type.judge(SnlMacroTemplateQuery,api.code(%(args: SnlMacroTemplateQueryArgs) => Promise<string>%))",
-      "markdown": "template query 的函数签名类型 (type alias). 签名: (args: SnlMacroTemplateQueryArgs) => Promise<string>. 渲染管线通过它异步取到具体 style 的 template."
+      "markdown": "The function-signature type alias for a template query: `(args: SnlMacroTemplateQueryArgs) => Promise<string>`. The rendering pipeline uses it to obtain the template for a specific style asynchronously."
     },
     "contribution_info": null,
     "pointer": {
@@ -170,7 +170,7 @@
     "title": "SNL Syntax Tree Parse Options",
     "content": {
       "snl": "interface(SnlSyntaxTreeParseOptions,enumerate(Type.judge(SnlSyntaxTreeParseOptions.activeBinderIds,Type.opt(Type.array(string)))))",
-      "markdown": "片段解析时传入的外层 binder 名称集合。"
+      "markdown": "The set of enclosing binder names passed when parsing a fragment."
     },
     "contribution_info": null,
     "pointer": {
@@ -184,8 +184,8 @@
     "kind": "class",
     "title": "SNL Syntax Tree Parse Error",
     "content": {
-      "snl": "%parser 遇到语法错误时抛出的异常类, 继承自 Error. 携带 position 字段, 指向源码中的字符位置 (0-indexed), 方便宿主定位错误.%",
-      "markdown": "parser 遇到语法错误时抛出的异常类, 继承自 Error. 携带 position 字段, 指向源码中的字符位置 (0-indexed), 方便宿主定位错误."
+      "snl": "%The exception class thrown by the parser on a syntax error. It extends Error and carries a position field identifying the character position in the source (zero-based), allowing the host to locate the error.%",
+      "markdown": "The exception class thrown by the parser on a syntax error. It extends `Error` and carries a `position` field identifying the character position in the source (zero-based), allowing the host to locate the error."
     },
     "contribution_info": null,
     "pointer": {
@@ -230,7 +230,7 @@
     "title": "Parse SNL Syntax Tree",
     "content": {
       "snl": "ts.function(fn.parseSnlSyntaxTree,ts.function-type(ts.parameters(Type.judge(api.code(%input%),string),Type.judge(api.code(%options%),Type.opt(SnlSyntaxTreeParseOptions))),SnlSyntaxTree),ts.ellipsis@remark.st.fn.parse-snl-syntax-tree)",
-      "markdown": "`parseSnlSyntaxTree` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`parseSnlSyntaxTree`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -245,7 +245,7 @@
     "title": "Try Parsing SNL Syntax Tree",
     "content": {
       "snl": "ts.function(fn.tryParseSnlSyntaxTree,ts.function-type(ts.parameters(Type.judge(api.code(%input%),string)),ts.union(api.code(%{ ok: true; tree: SnlSyntaxTree; }%),api.code(%{ ok: false; error: string; position?: number; }%))),ts.ellipsis@remark.st.fn.try-parse-snl-syntax-tree)",
-      "markdown": "`tryParseSnlSyntaxTree` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`tryParseSnlSyntaxTree`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -260,7 +260,7 @@
     "title": "Serialize SNL Syntax Tree",
     "content": {
       "snl": "ts.function(fn.serializeSnlSyntaxTree,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree)),string),ts.ellipsis@remark.st.fn.serialize-snl-syntax-tree)",
-      "markdown": "`serializeSnlSyntaxTree` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`serializeSnlSyntaxTree`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -275,7 +275,7 @@
     "title": "Annotate Bindings",
     "content": {
       "snl": "ts.function(fn.annotateBindings,ts.function-type(ts.parameters(Type.judge(api.code(%root%),SnlSyntaxTree),Type.judge(api.code(%initialStack%),Type.opt(Type.array(string)))),void),ts.ellipsis@remark.st.fn.annotate-bindings)",
-      "markdown": "`annotateBindings` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`annotateBindings`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -290,7 +290,7 @@
     "title": "Create SNL Syntax Tree Node",
     "content": {
       "snl": "ts.function(fn.createSnlSyntaxTreeNode,ts.function-type(ts.parameters(Type.judge(api.code(%name%),string),Type.judge(api.code(%options%),Type.opt(ts.generic(api.code(%Partial%),ts.type-arguments(ts.generic(api.code(%Pick%),ts.type-arguments(SnlSyntaxTree,ts.union(api.code(%\"kind\"%),api.code(%\"mdata\"%),api.code(%\"children\"%))))))))),SnlSyntaxTree),ts.ellipsis@remark.st.fn.create-snl-syntax-tree-node)",
-      "markdown": "`createSnlSyntaxTreeNode` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`createSnlSyntaxTreeNode`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -305,7 +305,7 @@
     "title": "Recognize SNL Syntax Tree",
     "content": {
       "snl": "ts.function(fn.isSnlSyntaxTree,ts.function-type(ts.parameters(Type.judge(api.code(%value%),api.code(%unknown%))),api.code(%value is SnlSyntaxTree%)),ts.ellipsis@remark.st.fn.is-snl-syntax-tree)",
-      "markdown": "`isSnlSyntaxTree` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`isSnlSyntaxTree`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -320,7 +320,7 @@
     "title": "Fill LaTeX Template",
     "content": {
       "snl": "ts.function(fn.fillLatexTemplate,ts.function-type(ts.parameters(Type.judge(api.code(%template%),string),Type.judge(api.code(%values%),ts.generic(api.code(%Record%),ts.type-arguments(string,ts.union(string,number,api.code(%undefined%))))),Type.judge(api.code(%mode%),Type.opt(ts.union(api.code(%\"formula\"%),api.code(%\"text\"%))))),string),ts.ellipsis@remark.st.fn.fill-latex-template)",
-      "markdown": "`fillLatexTemplate` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`fillLatexTemplate`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -335,7 +335,7 @@
     "title": "SNL Macro",
     "content": {
       "snl": "interface(SnlMacro,enumerate(Type.judge(SnlMacro.name,string),Type.judge(SnlMacro.description,string),Type.judge(SnlMacro.source,SnlMacroSource),Type.judge(SnlMacro.kind,Type.opt(string)),Type.judge(SnlMacro.dynamic_arity,boolean),Type.judge(SnlMacro.styles,Type.array(SnlMacroStyle)),Type.judge(SnlMacro.tags,Type.opt(Type.array(string)))))",
-      "markdown": "单个 macro 的完整定义. 全局唯一 `name` 是主 id; `styles[]` 承载所有渲染变体; `source` 绑定语义来源 entry / URL; `kind` 驱动调色板; `dynamic_arity` 决定 `#*` 是否可用."
+      "markdown": "The complete definition of one macro. The globally unique `name` is its primary ID; `styles[]` contains every rendering variant; `source` binds semantic source entries or URLs; `kind` drives the palette; and `dynamic_arity` determines whether `#*` may be used."
     },
     "contribution_info": null,
     "pointer": {
@@ -350,7 +350,7 @@
     "title": "SNL Macro Database",
     "content": {
       "snl": "Type.judge(SnlMacroDb,Type.record(string,SnlMacro))",
-      "markdown": "**整个 macro 池的类型**, 即 `Record<string, SnlMacro>`. Key 是 `SnlMacro.name` (全局唯一), value 是 macro 本体. 提供给渲染器的 `macroDb` 参数就是这个类型."
+      "markdown": "**The type of the entire macro pool**, namely `Record<string, SnlMacro>`. Each key is a globally unique `SnlMacro.name`, and each value is the macro itself. The renderer’s `macroDb` parameter has this type."
     },
     "contribution_info": null,
     "pointer": {
@@ -365,7 +365,7 @@
     "title": "SNL Macro Style",
     "content": {
       "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.tag,string),Type.judge(SnlMacroStyle.mode,Type.union(Type.literal($\\texttt{formula\\_inline}$),Type.literal($\\texttt{formula\\_display}$),Type.literal($\\texttt{text}$),Type.literal($\\texttt{block}$))),Type.judge(SnlMacroStyle.template,string),Type.judge(SnlMacroStyle.variadic_left,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_join,Type.opt(string)),Type.judge(SnlMacroStyle.variadic_right,Type.opt(string)),Type.judge(SnlMacroStyle.react_renderer_key,Type.opt(string)),Type.judge(SnlMacroStyle.tags,Type.opt(Type.array(string)))))",
-      "markdown": "单个 macro 的一个渲染 style. 所有 style 共享 macro 级 arity, 只改变**渲染输出**. `styles[0]` 是隐式默认."
+      "markdown": "One rendering style of a macro. All styles share the macro-level arity and change only the **rendered output**. `styles[0]` is the implicit default."
     },
     "contribution_info": null,
     "pointer": {
@@ -380,7 +380,7 @@
     "title": "SNL Macro Source",
     "content": {
       "snl": "interface(SnlMacroSource,enumerate(Type.judge(SnlMacroSource.entries,Type.array(string)),Type.judge(SnlMacroSource.urls,Type.array(string))))",
-      "markdown": "macro 的**语义来源引用**. Resolver 顺序: `entries[0..]` 中第一个能被 host 解析出的; 都解析不了则退回 `urls[0]`; 再无则 `null`."
+      "markdown": "A macro’s **semantic-source references**. Resolution selects the first host-resolvable item in `entries[0..]`; if none resolves, it falls back to `urls[0]`, and if that is absent, to `null`."
     },
     "contribution_info": null,
     "pointer": {
@@ -394,8 +394,8 @@
     "kind": "constant",
     "title": "Bundled Macro Database",
     "content": {
-      "snl": "%SNL-Basics 内置的核心数学 macro DB. 覆盖代数 / 分析 / 拓扑 / 逻辑 等基础符号 (如 \\forall, \\exists, \\in, R, plus, div, 等). 运行时可与用户 macro DB 合并 (mergeMacroDb) 组成最终渲染用 DB.%",
-      "markdown": "SNL-Basics 内置的核心数学 macro DB. 覆盖代数 / 分析 / 拓扑 / 逻辑 等基础符号 (如 \\forall, \\exists, \\in, R, plus, div, 等). 运行时可与用户 macro DB 合并 (mergeMacroDb) 组成最终渲染用 DB."
+      "snl": "%The core mathematical macro DB bundled with SNL-Basics. It covers foundational symbols from algebra, analysis, topology, logic, and other areas, such as \\forall, \\exists, \\in, R, plus, and div. At runtime it can be combined with a user macro DB using mergeMacroDb to form the final rendering DB.%",
+      "markdown": "The core mathematical macro DB bundled with SNL-Basics. It covers foundational symbols from algebra, analysis, topology, logic, and other areas, such as `\\forall`, `\\exists`, `\\in`, `R`, `plus`, and `div`. At runtime it can be combined with a user macro DB using `mergeMacroDb` to form the final rendering DB."
     },
     "contribution_info": null,
     "pointer": {
@@ -409,8 +409,8 @@
     "kind": "component",
     "title": "SNL Syntax Tree View",
     "content": {
-      "snl": "%主渲染组件. 输入 tree + macroDb + templateQuery + hooks + palette, 输出 KaTeX-in-React 的可交互树. 支持悬浮 popover / 高亮 bvar 作用域 / block renderer 派发 / 主题化 palette.%",
-      "markdown": "主渲染组件. 输入 tree + macroDb + templateQuery + hooks + palette, 输出 KaTeX-in-React 的可交互树. 支持悬浮 popover / 高亮 bvar 作用域 / block renderer 派发 / 主题化 palette."
+      "snl": "%The main rendering component. It accepts tree, macroDb, templateQuery, hooks, and palette, and produces an interactive KaTeX-in-React tree. It supports hover popovers, bvar-scope highlighting, block-renderer dispatch, and themeable palettes.%",
+      "markdown": "The main rendering component. It accepts `tree`, `macroDb`, `templateQuery`, `hooks`, and `palette`, and produces an interactive KaTeX-in-React tree. It supports hover popovers, `bvar`-scope highlighting, block-renderer dispatch, and themeable palettes."
     },
     "contribution_info": null,
     "pointer": {
@@ -424,8 +424,8 @@
     "kind": "component",
     "title": "SNL Syntax Tree Editor",
     "content": {
-      "snl": "%GUI 语法树编辑器 (Inductive). 允许用户以结构化方式编辑 SnlSyntaxTree, 而不是纯文本 SNL 源码. 目前被 CreateEntryApp 用作 SNL 输入的备选 UI.%",
-      "markdown": "GUI 语法树编辑器 (Inductive). 允许用户以结构化方式编辑 SnlSyntaxTree, 而不是纯文本 SNL 源码. 目前被 CreateEntryApp 用作 SNL 输入的备选 UI."
+      "snl": "%A GUI syntax-tree editor (Inductive). It lets users edit a SnlSyntaxTree structurally rather than editing plain-text SNL source. CreateEntryApp currently uses it as an alternative UI for SNL input.%",
+      "markdown": "A GUI syntax-tree editor (Inductive). It lets users edit a `SnlSyntaxTree` structurally rather than editing plain-text SNL source. `CreateEntryApp` currently uses it as an alternative UI for SNL input."
     },
     "contribution_info": null,
     "pointer": {
@@ -440,7 +440,7 @@
     "title": "SNL Syntax Tree View Properties",
     "content": {
       "snl": "interface(SnlSyntaxTreeViewProps,enumerate(Type.judge(SnlSyntaxTreeViewProps.tree,SnlSyntaxTree),Type.judge(SnlSyntaxTreeViewProps.query,SnlMacroTemplateQuery),Type.judge(SnlSyntaxTreeViewProps.macroDb,SnlMacroDb),Type.judge(SnlSyntaxTreeViewProps.katexOptions,Type.opt(KatexOptions)),Type.judge(SnlSyntaxTreeViewProps.kindPalette,Type.opt(KindPalette)),Type.judge(SnlSyntaxTreeViewProps.onResolved,Type.opt(api.code(%(latexSource: string) => void%))),Type.judge(SnlSyntaxTreeViewProps.hooks,Type.opt(SnlRenderHooks))))",
-      "markdown": "SnlSyntaxTreeView 组件的 props interface. 具体 prop 见挂在 SnlSyntaxTreeView 组件下的 Property sub-entries; 数量以源码 interface 声明为准, 待 Phase 3 逐一对照补齐."
+      "markdown": "The props interface for the `SnlSyntaxTreeView` component. See the Property subentries attached to `SnlSyntaxTreeView` for individual props. The source interface declaration is authoritative for their count; Phase 3 will verify and complete them one by one."
     },
     "contribution_info": null,
     "pointer": {
@@ -455,7 +455,7 @@
     "title": "SNL Render Hooks",
     "content": {
       "snl": "interface(SnlRenderHooks,enumerate(Type.judge(SnlRenderHooks.onHover,Type.opt(api.code(%(event: SnlHoverEvent) => void%))),Type.judge(SnlRenderHooks.onLeave,Type.opt(api.code(%() => void%))),Type.judge(SnlRenderHooks.resolveMacroInfo,Type.opt(api.code(%(name: string, macro: SnlMacro | undefined) => Promise<SnlMacroInfo>%))),Type.judge(SnlRenderHooks.resolveSource,Type.opt(api.code(%(source: SnlMacroSource) => SnlResolvedSource | null%))),Type.judge(SnlRenderHooks.renderTooltip,Type.opt(api.code(%(state: SnlTooltipState) => ReactElement | null%))),Type.judge(SnlRenderHooks.highlightStrategy,Type.opt(SnlHighlightStrategy)),Type.judge(SnlRenderHooks.renderers,Type.opt(SnlRendererRegistry))))",
-      "markdown": "渲染钩子集合. 定义 onHover / resolveMacroInfo / resolveSource / macroPopover 等回调, 宿主可通过覆盖任意子集来定制交互行为. 默认实现由 defaultRenderHooks 提供."
+      "markdown": "The collection of rendering hooks. It defines callbacks such as `onHover`, `resolveMacroInfo`, `resolveSource`, and `macroPopover`; a host can customize interaction by overriding any subset. `defaultRenderHooks` supplies the default implementation."
     },
     "contribution_info": null,
     "pointer": {
@@ -470,7 +470,7 @@
     "title": "SNL Hover Event",
     "content": {
       "snl": "interface(SnlHoverEvent,enumerate(Type.judge(SnlHoverEvent.name,string),Type.judge(SnlHoverEvent.kind,string),Type.judge(SnlHoverEvent.node,SnlSyntaxTree),Type.judge(SnlHoverEvent.bindingHint,string),Type.judge(SnlHoverEvent.variableRole,Type.union(Type.literal(bvar),Type.literal(fvar),Type.literal(none))),Type.judge(SnlHoverEvent.target,HTMLElement),Type.judge(SnlHoverEvent.clientX,number),Type.judge(SnlHoverEvent.clientY,number)))",
-      "markdown": "onHover 钩子的 payload. 携带 name / kind / node 快照 / bindingHint / variableRole / target 元素 / clientX,Y."
+      "markdown": "The payload of the `onHover` hook. It carries `name`, `kind`, a `node` snapshot, `bindingHint`, `variableRole`, the target element, and `clientX` and `clientY`."
     },
     "contribution_info": null,
     "pointer": {
@@ -485,7 +485,7 @@
     "title": "SNL Macro Information",
     "content": {
       "snl": "interface(SnlMacroInfo,enumerate(Type.judge(SnlMacroInfo.description,string),Type.judge(SnlMacroInfo.extra,Type.opt(string))))",
-      "markdown": "resolveMacroInfo 返回的 tooltip 显示 payload. 包含 description 主文与 extra 附加字段, 显示在悬浮框内."
+      "markdown": "The tooltip-display payload returned by `resolveMacroInfo`. It contains the primary `description` text and an additional `extra` field, both displayed in the popover."
     },
     "contribution_info": null,
     "pointer": {
@@ -500,7 +500,7 @@
     "title": "SNL Resolved Source",
     "content": {
       "snl": "interface(SnlResolvedSource,enumerate(Type.judge(SnlResolvedSource.kind,Type.union(Type.literal(entry),Type.literal(url))),Type.judge(SnlResolvedSource.ref,string),Type.judge(SnlResolvedSource.displayName,Type.opt(string)),Type.judge(SnlResolvedSource.href,Type.opt(string))))",
-      "markdown": "resolveSource 返回的 macro 来源解析结果, 用于 tooltip 内展示 macro 定义所在 entry / URL 链接."
+      "markdown": "The resolved macro-source result returned by `resolveSource`, used to display the entry or URL containing the macro definition in a tooltip."
     },
     "contribution_info": null,
     "pointer": {
@@ -515,7 +515,7 @@
     "title": "SNL Tooltip State",
     "content": {
       "snl": "interface(SnlTooltipState,enumerate(Type.judge(SnlTooltipState.visible,boolean),Type.judge(SnlTooltipState.x,number),Type.judge(SnlTooltipState.y,number),Type.judge(SnlTooltipState.name,string),Type.judge(SnlTooltipState.kind,string),Type.judge(SnlTooltipState.variableRole,Type.union(Type.literal(bvar),Type.literal(fvar),Type.literal(none))),Type.judge(SnlTooltipState.bindingHint,string),Type.judge(SnlTooltipState.info,Type.union(SnlMacroInfo,null)),Type.judge(SnlTooltipState.loading,boolean),Type.judge(SnlTooltipState.source,Type.union(SnlResolvedSource,null))))",
-      "markdown": "组件内部的 tooltip 状态类型. 一般消费者不直接使用, 但导出以便高级定制."
+      "markdown": "The component’s internal tooltip-state type. Ordinary consumers generally do not use it directly, but it is exported for advanced customization."
     },
     "contribution_info": null,
     "pointer": {
@@ -530,7 +530,7 @@
     "title": "SNL Highlight Strategy",
     "content": {
       "snl": "interface(SnlHighlightStrategy,enumerate(Type.judge(SnlHighlightStrategy.computeHighlightSet,api.code(%(target: HTMLElement, container: HTMLElement, bvarScopeIndex: Map<string, BvarScopeEntry>) => SnlHighlightSet%))))",
-      "markdown": "bvar 作用域高亮策略接口. 决定 hover 时哪些同 bindRef 的兄弟节点被联动高亮. 默认实现是 defaultHighlightStrategy."
+      "markdown": "The interface for a `bvar`-scope highlighting strategy. It determines which sibling nodes with the same `bindRef` are highlighted together on hover. The default implementation is `defaultHighlightStrategy`."
     },
     "contribution_info": null,
     "pointer": {
@@ -545,7 +545,7 @@
     "title": "SNL Highlight Set",
     "content": {
       "snl": "interface(SnlHighlightSet,enumerate(Type.judge(SnlHighlightSet.singleHover,Type.union(HTMLElement,null)),Type.judge(SnlHighlightSet.bvarScope,Type.array(HTMLElement)),Type.judge(SnlHighlightSet.binderDecl,Type.array(HTMLElement))))",
-      "markdown": "HighlightStrategy 返回的高亮结果集合. 包含 singleHover / bvarScope / binderDecl 三类候选."
+      "markdown": "The highlighting result returned by `HighlightStrategy`. It contains three candidate groups: `singleHover`, `bvarScope`, and `binderDecl`."
     },
     "contribution_info": null,
     "pointer": {
@@ -560,7 +560,7 @@
     "title": "SNL Renderer Registry",
     "content": {
       "snl": "Type.judge(SnlRendererRegistry,Type.record(string,SnlBlockRenderer))",
-      "markdown": "block-renderer 注册表类型, Record<string, SnlBlockRenderer>. 以 react_renderer_key (list / enumerate / matrix / ...) 为 key, 派发到对应组件."
+      "markdown": "The block-renderer registry type, `Record<string, SnlBlockRenderer>`. It uses `react_renderer_key` (`list`, `enumerate`, `matrix`, and so on) as the key for dispatch to the corresponding component."
     },
     "contribution_info": null,
     "pointer": {
@@ -575,7 +575,7 @@
     "title": "SNL Block Renderer",
     "content": {
       "snl": "Type.judge(SnlBlockRenderer,api.code(%FC<SnlBlockRendererProps>%))",
-      "markdown": "单个 block renderer 的函数组件类型: FC<SnlBlockRendererProps>. 接受 node + renderChild, 决定该 block macro 的 HTML 输出结构."
+      "markdown": "The function-component type for one block renderer: `FC<SnlBlockRendererProps>`. It receives `node` and `renderChild` and determines the HTML output structure of that block macro."
     },
     "contribution_info": null,
     "pointer": {
@@ -590,7 +590,7 @@
     "title": "SNL Block Renderer Properties",
     "content": {
       "snl": "interface(SnlBlockRendererProps,enumerate(Type.judge(SnlBlockRendererProps.node,SnlSyntaxTree),Type.judge(SnlBlockRendererProps.macroDb,SnlMacroDb),Type.judge(SnlBlockRendererProps.renderChild,api.code(%(child: SnlSyntaxTree) => ReactElement%))))",
-      "markdown": "block renderer 的 props. 包含 node (当前 block 节点) 与 renderChild (递归渲染子节点的回调)."
+      "markdown": "The props for a block renderer. They include `node` (the current block node) and `renderChild` (the callback that recursively renders child nodes)."
     },
     "contribution_info": null,
     "pointer": {
@@ -605,7 +605,7 @@
     "title": "Kind Palette",
     "content": {
       "snl": "Type.judge(KindPalette,Type.record(string,KindColoring))",
-      "markdown": "整份 kind 配色表, Record<string, KindColoring>. 内置 bvar (紫) / fvar (红) / rule / const / binder / rewrite 等 kind."
+      "markdown": "The complete kind-color palette, `Record<string, KindColoring>`. Built-in kinds include `bvar` (purple), `fvar` (red), `rule`, `const`, `binder`, and `rewrite`."
     },
     "contribution_info": null,
     "pointer": {
@@ -620,7 +620,7 @@
     "title": "Kind Coloring",
     "content": {
       "snl": "interface(KindColoring,enumerate(Type.judge(KindColoring.stroke,string),Type.judge(KindColoring.background,string)))",
-      "markdown": "单个 kind 的配色 pair: { stroke, background }. stroke 用作边框 + 文字色, background 用作悬浮高亮底."
+      "markdown": "The color pair for one kind: `{ stroke, background }`. `stroke` is used for the border and text color, while `background` is used for the hover-highlight background."
     },
     "contribution_info": null,
     "pointer": {
@@ -635,7 +635,7 @@
     "title": "Default Macro Template Query Options",
     "content": {
       "snl": "interface(DefaultMacroTemplateQueryOptions,enumerate(Type.judge(DefaultMacroTemplateQueryOptions.templateDbUrl,Type.opt(string)),Type.judge(DefaultMacroTemplateQueryOptions.artificialDelayMs,Type.opt(number))))",
-      "markdown": "createDefaultMacroTemplateQuery 的可选配置. 允许指定 DB URL / 缓存策略等."
+      "markdown": "Optional configuration for `createDefaultMacroTemplateQuery`. It allows the DB URL, caching policy, and related behavior to be specified."
     },
     "contribution_info": null,
     "pointer": {
@@ -650,7 +650,7 @@
     "title": "Load SNL Macro Database",
     "content": {
       "snl": "ts.function(fn.loadSnlMacroDb,ts.function-type(ts.parameters(Type.judge(api.code(%url%),Type.opt(string))),ts.generic(ts.Promise,ts.type-arguments(SnlMacroDb))),ts.ellipsis@remark.rv.fn.load-snl-macro-db)",
-      "markdown": "`loadSnlMacroDb` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`loadSnlMacroDb`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -665,7 +665,7 @@
     "title": "Set SNL Macro Database Cache",
     "content": {
       "snl": "ts.function(fn.setSnlMacroDbCache,ts.function-type(ts.parameters(Type.judge(api.code(%db%),ts.union(SnlMacroDb,ts.null))),void),ts.ellipsis@remark.rv.fn.set-snl-macro-db-cache)",
-      "markdown": "`setSnlMacroDbCache` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`setSnlMacroDbCache`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -680,7 +680,7 @@
     "title": "Clear SNL Macro Database Cache",
     "content": {
       "snl": "ts.function(fn.clearSnlMacroDbCache,ts.function-type(ts.parameters(),void),ts.ellipsis@remark.rv.fn.clear-snl-macro-db-cache)",
-      "markdown": "`clearSnlMacroDbCache` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`clearSnlMacroDbCache`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -695,7 +695,7 @@
     "title": "Create Default Macro Template Query",
     "content": {
       "snl": "ts.function(fn.createDefaultMacroTemplateQuery,ts.function-type(ts.parameters(Type.judge(api.code(%options%),Type.opt(DefaultMacroTemplateQueryOptions))),SnlMacroTemplateQuery),ts.ellipsis@remark.rv.fn.create-default-macro-template-query)",
-      "markdown": "`createDefaultMacroTemplateQuery` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`createDefaultMacroTemplateQuery`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -710,7 +710,7 @@
     "title": "Create Macro Template Query from Database",
     "content": {
       "snl": "ts.function(fn.createMacroTemplateQueryFromDb,ts.function-type(ts.parameters(Type.judge(api.code(%db%),SnlMacroDb)),SnlMacroTemplateQuery),ts.ellipsis@remark.rv.fn.create-macro-template-query-from-db)",
-      "markdown": "`createMacroTemplateQueryFromDb` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`createMacroTemplateQueryFromDb`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -725,7 +725,7 @@
     "title": "Apply Color Alpha",
     "content": {
       "snl": "ts.function(fn.alpha,ts.function-type(ts.parameters(Type.judge(api.code(%color%),string),Type.judge(api.code(%a%),number)),string),ts.ellipsis@remark.rv.fn.alpha)",
-      "markdown": "`alpha` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`alpha`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -740,7 +740,7 @@
     "title": "Convert Palette to CSS",
     "content": {
       "snl": "ts.function(fn.paletteToCss,ts.function-type(ts.parameters(Type.judge(api.code(%palette%),KindPalette)),string),ts.ellipsis@remark.rv.fn.palette-to-css)",
-      "markdown": "`paletteToCss` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`paletteToCss`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -755,7 +755,7 @@
     "title": "Validate Kind Name",
     "content": {
       "snl": "ts.function(fn.assertSafeKindName,ts.function-type(ts.parameters(Type.judge(api.code(%name%),string)),void),ts.ellipsis@remark.rv.fn.assert-safe-kind-name)",
-      "markdown": "`assertSafeKindName` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`assertSafeKindName`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -769,8 +769,8 @@
     "kind": "constant",
     "title": "Default Render Hooks",
     "content": {
-      "snl": "%SnlRenderHooks 的默认实现. 覆盖 onHover / resolveMacroInfo / resolveSource 等所有钩子, 提供无宿主定制时的正常交互. 宿主通常 partial merge ({ ...defaultRenderHooks, onHover: mine }) 而不是完全替换.%",
-      "markdown": "SnlRenderHooks 的默认实现. 覆盖 onHover / resolveMacroInfo / resolveSource 等所有钩子, 提供无宿主定制时的正常交互. 宿主通常 partial merge (`{ ...defaultRenderHooks, onHover: mine }`) 而不是完全替换."
+      "snl": "%The default implementation of SnlRenderHooks. It covers all hooks, including onHover, resolveMacroInfo, and resolveSource, and provides normal interaction when the host does not customize them. A host normally performs a partial merge ({ ...defaultRenderHooks, onHover: mine }) rather than replacing the object completely.%",
+      "markdown": "The default implementation of `SnlRenderHooks`. It covers all hooks, including `onHover`, `resolveMacroInfo`, and `resolveSource`, and provides normal interaction when the host does not customize them. A host normally performs a partial merge (`{ ...defaultRenderHooks, onHover: mine }`) rather than replacing the object completely."
     },
     "contribution_info": null,
     "pointer": {
@@ -784,8 +784,8 @@
     "kind": "constant",
     "title": "Default Highlight Strategy",
     "content": {
-      "snl": "%默认 bvar-scope 高亮策略. 悬浮到一个 bvar 时, 会一并高亮同 bindRef 的兄弟 bvar 与 binder decl. 非纯常量 — 是一个实现了 SnlHighlightStrategy 的 object.%",
-      "markdown": "默认 bvar-scope 高亮策略. 悬浮到一个 bvar 时, 会一并高亮同 bindRef 的兄弟 bvar 与 binder decl. 非纯常量 — 是一个实现了 SnlHighlightStrategy 的 object."
+      "snl": "%The default bvar-scope highlighting strategy. Hovering over a bvar also highlights sibling bvar nodes with the same bindRef and the binder declaration. This is not a primitive constant; it is an object implementing SnlHighlightStrategy.%",
+      "markdown": "The default `bvar`-scope highlighting strategy. Hovering over a `bvar` also highlights sibling `bvar` nodes with the same `bindRef` and the binder declaration. This is not a primitive constant; it is an object implementing `SnlHighlightStrategy`."
     },
     "contribution_info": null,
     "pointer": {
@@ -799,8 +799,8 @@
     "kind": "constant",
     "title": "Default Renderers",
     "content": {
-      "snl": "%默认的 block renderer 注册表. 包含内置的 list / enumerate / matrix / table / centered 等 renderer. 宿主可通过展开语法 { ...defaultRenderers, custom: MyRenderer } 扩展.%",
-      "markdown": "默认的 block renderer 注册表. 包含内置的 list / enumerate / matrix / table / centered 等 renderer. 宿主可通过展开语法 `{ ...defaultRenderers, custom: MyRenderer }` 扩展."
+      "snl": "%The default block-renderer registry. It includes built-in renderers such as list, enumerate, matrix, table, and centered. A host can extend it with spread syntax: { ...defaultRenderers, custom: MyRenderer }.%",
+      "markdown": "The default block-renderer registry. It includes built-in renderers such as `list`, `enumerate`, `matrix`, `table`, and `centered`. A host can extend it with spread syntax: `{ ...defaultRenderers, custom: MyRenderer }`."
     },
     "contribution_info": null,
     "pointer": {
@@ -814,8 +814,8 @@
     "kind": "constant",
     "title": "Default Kind Palette",
     "content": {
-      "snl": "%内置 kind 配色表. bvar 紫 / fvar 红 / rule 绿 / const 蓝 / binder 深紫 / rewrite 黄. 宿主可整份替换或按需覆盖单个 kind.%",
-      "markdown": "内置 kind 配色表. bvar 紫 / fvar 红 / rule 绿 / const 蓝 / binder 深紫 / rewrite 黄. 宿主可整份替换或按需覆盖单个 kind."
+      "snl": "%The built-in kind-color palette: bvar purple, fvar red, rule green, const blue, binder dark purple, and rewrite yellow. A host can replace the entire palette or override individual kinds as needed.%",
+      "markdown": "The built-in kind-color palette: `bvar` purple, `fvar` red, `rule` green, `const` blue, `binder` dark purple, and `rewrite` yellow. A host can replace the entire palette or override individual kinds as needed."
     },
     "contribution_info": null,
     "pointer": {
@@ -829,8 +829,8 @@
     "kind": "constant",
     "title": "Default SNL Macro Database URL",
     "content": {
-      "snl": "%loadSnlMacroDb 的默认 URL, 值为 '/snl-macro-db.json'. 假设宿主把 ship 的 JSON 挂在站点根. 宿主 URL 结构不同时应显式传 url 参数.%",
-      "markdown": "loadSnlMacroDb 的默认 URL, 值为 '/snl-macro-db.json'. 假设宿主把 ship 的 JSON 挂在站点根. 宿主 URL 结构不同时应显式传 url 参数."
+      "snl": "%The default URL for loadSnlMacroDb, with the value /snl-macro-db.json. It assumes the host serves the shipped JSON at the site root. A host with a different URL structure should pass the url argument explicitly.%",
+      "markdown": "The default URL for `loadSnlMacroDb`, with the value `/snl-macro-db.json`. It assumes the host serves the shipped JSON at the site root. A host with a different URL structure should pass the `url` argument explicitly."
     },
     "contribution_info": null,
     "pointer": {
@@ -844,8 +844,8 @@
     "kind": "constant",
     "title": "HTML Data KaTeX Defaults",
     "content": {
-      "snl": "%KaTeX 的 \\htmlData 允许属性名白名单默认值. 包含 name / kind / style / scope / bindRef / src 等, 组件调用 katex.renderToString 时会 pass 进去让这些属性能通过 KaTeX 的 sanitizer.%",
-      "markdown": "KaTeX 的 \\htmlData 允许属性名白名单默认值. 包含 name / kind / style / scope / bindRef / src 等, 组件调用 katex.renderToString 时会 pass 进去让这些属性能通过 KaTeX 的 sanitizer."
+      "snl": "%The default allowlist of attribute names permitted by KaTeX \\htmlData. It includes name, kind, style, scope, bindRef, src, and others. The component passes it to katex.renderToString so these attributes pass KaTeX’s sanitizer.%",
+      "markdown": "The default allowlist of attribute names permitted by KaTeX `\\htmlData`. It includes `name`, `kind`, `style`, `scope`, `bindRef`, `src`, and others. The component passes it to `katex.renderToString` so these attributes pass KaTeX’s sanitizer."
     },
     "contribution_info": null,
     "pointer": {
@@ -857,10 +857,10 @@
   {
     "id": "con.surface-a-npm",
     "kind": "concept",
-    "title": "Surface A — @snl-basics/react npm 入口",
+    "title": "Surface A — @snl-basics/react npm Entry Point",
     "content": {
-      "snl": "%React + KaTeX 依赖的对外表面. 面向能跑 React 的宿主 (VS Code webview, 一般前端应用). 编译产物 dist-lib/index.js, 从 src/snl-react-view/index.ts re-export.%",
-      "markdown": "React + KaTeX 依赖的对外表面. 面向能跑 React 的宿主 (VS Code webview, 一般前端应用). 编译产物 dist-lib/index.js, 从 src/snl-react-view/index.ts re-export."
+      "snl": "%The public surface that depends on React and KaTeX. It targets hosts capable of running React, such as VS Code webviews and ordinary frontend applications. Its compiled artifact is dist-lib/index.js, which re-exports from src/snl-react-view/index.ts.%",
+      "markdown": "The public surface that depends on React and KaTeX. It targets hosts capable of running React, such as VS Code webviews and ordinary frontend applications. Its compiled artifact is `dist-lib/index.js`, which re-exports from `src/snl-react-view/index.ts`."
     },
     "contribution_info": null,
     "pointer": null
@@ -868,10 +868,10 @@
   {
     "id": "con.surface-b-deep-path",
     "kind": "concept",
-    "title": "Surface B — Toolkit 深路径 (parser-only)",
+    "title": "Surface B — Toolkit Deep Path (Parser Only)",
     "content": {
-      "snl": "%SNL-Agent-Toolkit 目前通过 git submodule 直接 import external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts. 纯 TS, 无 React / KaTeX / DOM 依赖, 可在 Node CLI 里跑. 是否正规化为 subpath export 见相关决策 concept.%",
-      "markdown": "SNL-Agent-Toolkit 目前通过 git submodule 直接 import external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts. 纯 TS, 无 React / KaTeX / DOM 依赖, 可在 Node CLI 里跑. 是否正规化为 subpath export 见相关决策 concept."
+      "snl": "%SNL-Agent-Toolkit currently imports external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts directly through a git submodule. This is pure TypeScript with no React, KaTeX, or DOM dependencies and can run in a Node CLI. See the related decision concept for whether to formalize it as a subpath export.%",
+      "markdown": "SNL-Agent-Toolkit currently imports `external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts` directly through a git submodule. This is pure TypeScript with no React, KaTeX, or DOM dependencies and can run in a Node CLI. See the related decision concept for whether to formalize it as a subpath export."
     },
     "contribution_info": null,
     "pointer": null
@@ -879,10 +879,10 @@
   {
     "id": "con.stability-stable",
     "kind": "concept",
-    "title": "稳定级别 — Stable",
+    "title": "Stability Level — Stable",
     "content": {
-      "snl": "%语义 + 签名冻结, 变更走 semver-major. Extension / Toolkit 已经在用的 symbol 默认走这一档.%",
-      "markdown": "语义 + 签名冻结, 变更走 semver-major. Extension / Toolkit 已经在用的 symbol 默认走这一档."
+      "snl": "%Semantics and signatures are frozen; changes require a semver-major release. Symbols already used by Extension or Toolkit belong to this level by default.%",
+      "markdown": "Semantics and signatures are frozen; changes require a semver-major release. Symbols already used by Extension or Toolkit belong to this level by default."
     },
     "contribution_info": null,
     "pointer": null
@@ -890,10 +890,10 @@
   {
     "id": "con.stability-experimental",
     "kind": "concept",
-    "title": "稳定级别 — Experimental",
+    "title": "Stability Level — Experimental",
     "content": {
-      "snl": "%对外可用但保留改动权, 变更只在 minor 里公告. 已导出但目前无下游 import 的高级 API 默认走这一档.%",
-      "markdown": "对外可用但保留改动权, 变更只在 minor 里公告. 已导出但目前无下游 import 的高级 API 默认走这一档."
+      "snl": "%Publicly usable, but subject to change; changes are announced only in minor releases. Advanced APIs that are exported but currently have no downstream imports belong to this level by default.%",
+      "markdown": "Publicly usable, but subject to change; changes are announced only in minor releases. Advanced APIs that are exported but currently have no downstream imports belong to this level by default."
     },
     "contribution_info": null,
     "pointer": null
@@ -901,10 +901,10 @@
   {
     "id": "con.stability-internal",
     "kind": "concept",
-    "title": "稳定级别 — Internal",
+    "title": "Stability Level — Internal",
     "content": {
-      "snl": "%编译产物里意外泄漏, 不承诺任何兼容. 下一次 minor 可以从 index.ts 撤掉. 候选撤除名单见 public-api-draft.md v1 §4 (v2 已迁到 entries).%",
-      "markdown": "编译产物里意外泄漏, 不承诺任何兼容. 下一次 minor 可以从 index.ts 撤掉. 候选撤除名单见 public-api-draft.md v1 §4 (v2 已迁到 entries)."
+      "snl": "%Accidentally exposed in compiled artifacts, with no compatibility guarantee. It may be removed from index.ts in the next minor release. See public-api-draft.md v1 §4 for the candidate-removal list (v2 has moved to entries).%",
+      "markdown": "Accidentally exposed in compiled artifacts, with no compatibility guarantee. It may be removed from `index.ts` in the next minor release. See `public-api-draft.md` v1 §4 for the candidate-removal list (v2 has moved to entries)."
     },
     "contribution_info": null,
     "pointer": null
@@ -914,8 +914,8 @@
     "kind": "concept",
     "title": "Consumer — SNL-Doc-Extension",
     "content": {
-      "snl": "%通过 npm-alias @snl-basics/react 引用. webview 端 8 处 import 站点, 实际用了约 15 个 symbol.%",
-      "markdown": "通过 npm-alias @snl-basics/react 引用. webview 端 8 处 import 站点, 实际用了约 15 个 symbol."
+      "snl": "%References @snl-basics/react through an npm alias. The webview has eight import sites and actually uses approximately 15 symbols.%",
+      "markdown": "References `@snl-basics/react` through an npm alias. The webview has eight import sites and actually uses approximately 15 symbols."
     },
     "contribution_info": null,
     "pointer": null
@@ -925,8 +925,8 @@
     "kind": "concept",
     "title": "Consumer — SNL-Agent-Toolkit",
     "content": {
-      "snl": "%通过深路径 import external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts. 只用 parseSnlSyntaxTree / SnlSyntaxTreeParseError / SnlSyntaxTree 三样.%",
-      "markdown": "通过深路径 import external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts. 只用 parseSnlSyntaxTree / SnlSyntaxTreeParseError / SnlSyntaxTree 三样."
+      "snl": "%Imports external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts through a deep path. It uses only parseSnlSyntaxTree, SnlSyntaxTreeParseError, and SnlSyntaxTree.%",
+      "markdown": "Imports `external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts` through a deep path. It uses only `parseSnlSyntaxTree`, `SnlSyntaxTreeParseError`, and `SnlSyntaxTree`."
     },
     "contribution_info": null,
     "pointer": null
@@ -934,10 +934,10 @@
   {
     "id": "con.npm-distribution",
     "kind": "concept",
-    "title": "npm 分发面 (files 白名单)",
+    "title": "npm Distribution Surface (files Allowlist)",
     "content": {
-      "snl": "%package.json#files: ['dist-lib'] 锁死 tarball 内容. npm pack --dry-run 显示当前 tarball 只 7 个文件 / 29 kB. 仓库里 docs/, .SNLDoc/, spike-.mjs 等都不进包.%",
-      "markdown": "package.json#files: ['dist-lib'] 锁死 tarball 内容. npm pack --dry-run 显示当前 tarball 只 7 个文件 / 29 kB. 仓库里 docs/, .SNL_Doc/, spike-*.mjs 等都不进包."
+      "snl": "%package.json#files: ['dist-lib'] fixes the tarball contents. npm pack --dry-run shows that the current tarball contains only seven files and is 29 kB. Repository paths such as docs/, .SNL_Doc/, and spike-*.mjs are not included in the package.%",
+      "markdown": "`package.json#files: ['dist-lib']` fixes the tarball contents. `npm pack --dry-run` shows that the current tarball contains only seven files and is 29 kB. Repository paths such as `docs/`, `.SNL_Doc/`, and `spike-*.mjs` are not included in the package."
     },
     "contribution_info": null,
     "pointer": null
@@ -945,10 +945,10 @@
   {
     "id": "con.deep-path-import-decision",
     "kind": "concept",
-    "title": "深路径 import 的正规化决策 (未决)",
+    "title": "Formalization Decision for Deep-Path Imports (Pending)",
     "content": {
-      "snl": "%三个选项: (a) 保留深路径不动, (b) 加 subpath export @snl-basics/parser, (c) 拆包为 @snl-basics/core + @snl-basics/react. 短期倾向 (a), 中期 (b), 依赖 SNL-Basics 是否真发 public npm 的时间表.%",
-      "markdown": "三个选项: (a) 保留深路径不动, (b) 加 subpath export @snl-basics/parser, (c) 拆包为 @snl-basics/core + @snl-basics/react. 短期倾向 (a), 中期 (b), 依赖 SNL-Basics 是否真发 public npm 的时间表."
+      "snl": "%Three options exist: (a) retain the deep-path imports unchanged, (b) add the @snl-basics/parser subpath export, or (c) split the package into @snl-basics/core and @snl-basics/react. The short-term preference is (a), and the medium-term preference is (b), depending on the schedule for actually publishing SNL-Basics as a public npm package.%",
+      "markdown": "Three options exist: (a) retain the deep-path imports unchanged, (b) add the `@snl-basics/parser` subpath export, or (c) split the package into `@snl-basics/core` and `@snl-basics/react`. The short-term preference is (a), and the medium-term preference is (b), depending on the schedule for actually publishing SNL-Basics as a public npm package."
     },
     "contribution_info": null,
     "pointer": null
@@ -956,10 +956,10 @@
   {
     "id": "con.entry-kinds-catalogue",
     "kind": "concept",
-    "title": "本文档的 entry_kinds 决策 (元文档)",
+    "title": "Entry-Kinds Decision for This Document (Metadocumentation)",
     "content": {
-      "snl": "%10 个 kind: NpmPackage / Module / Interface / Class / Field / Function / ReactComponent / Property / Constant / Concept. Interface 成员不独立成 entry (写在 content 内), Class 成员独立成 sub-entry, method 复用 Function, Property 用全称避 Lean 里 Prop=Proposition 歧义, 默认实现复用 Constant.%",
-      "markdown": "10 个 kind: NpmPackage / Module / Interface / Class / Field / Function / ReactComponent / Property / Constant / Concept. Interface 成员不独立成 entry (写在 content 内), Class 成员独立成 sub-entry, method 复用 Function, Property 用全称避 Lean 里 Prop=Proposition 歧义, 默认实现复用 Constant."
+      "snl": "%Ten kinds are used: NpmPackage, Module, Interface, Class, Field, Function, ReactComponent, Property, Constant, and Concept. Interface members are documented within content rather than as separate entries. Class members receive separate subentries. Methods reuse Function; the full name Property avoids ambiguity with Lean’s Prop = Proposition; and default implementations reuse Constant.%",
+      "markdown": "Ten kinds are used: `NpmPackage`, `Module`, `Interface`, `Class`, `Field`, `Function`, `ReactComponent`, `Property`, `Constant`, and `Concept`. Interface members are documented within `content` rather than as separate entries. Class members receive separate subentries. Methods reuse `Function`; the full name `Property` avoids ambiguity with Lean’s `Prop = Proposition`; and default implementations reuse `Constant`."
     },
     "contribution_info": null,
     "pointer": null
@@ -1243,7 +1243,7 @@
     "title": "Analyze SNL Tree Sources",
     "content": {
       "snl": "ts.function(fn.analyzeSnlTreeSources,ts.function-type(ts.parameters(Type.judge(api.code(%root%),ts.union(SnlSyntaxTree,ts.null,api.code(%undefined%))),Type.judge(api.code(%macroDb%),SnlMacroSourceLookup),Type.judge(api.code(%accessibleEntryIds%),ts.generic(api.code(%ReadonlySet%),ts.type-arguments(string)))),SnlSourceMetrics),ts.ellipsis@remark.st.fn.analyze-snl-tree-sources)",
-      "markdown": "`analyzeSnlTreeSources` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`analyzeSnlTreeSources`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1258,7 +1258,7 @@
     "title": "SNL Macro Source Lookup",
     "content": {
       "snl": "Type.judge(SnlMacroSourceLookup,Type.record(string,api.code(%{ source: SnlMacroSource }%)))",
-      "markdown": "SNL Macro Source Lookup 的公开 TypeScript Schema。"
+      "markdown": "The public TypeScript schema for SNL Macro Source Lookup."
     },
     "contribution_info": null,
     "pointer": {
@@ -1273,7 +1273,7 @@
     "title": "SNL Source Metrics",
     "content": {
       "snl": "interface(SnlSourceMetrics,enumerate(Type.judge(SnlSourceMetrics.totalNodes,number),Type.judge(SnlSourceMetrics.sourcedNodes,number),Type.judge(SnlSourceMetrics.semanticFreedom,number),Type.judge(SnlSourceMetrics.structuredRatio,number)))",
-      "markdown": "SNL Source Metrics 的公开 TypeScript Schema。"
+      "markdown": "The public TypeScript schema for SNL Source Metrics."
     },
     "contribution_info": null,
     "pointer": {
@@ -1303,7 +1303,7 @@
     "title": "Clamp Popover Position",
     "content": {
       "snl": "ts.function(fn.clampPopoverPosition,ts.function-type(ts.parameters(Type.judge(api.code(%x%),number),Type.judge(api.code(%y%),number),Type.judge(api.code(%size%),api.code(%{ width: number; height: number; }%)),Type.judge(api.code(%bounds%),ViewportBounds),Type.judge(api.code(%margin%),Type.opt(number))),api.code(%{ x: number; y: number; }%)),ts.ellipsis@remark.rv.fn.clamp-popover-position)",
-      "markdown": "`clampPopoverPosition` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`clampPopoverPosition`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1318,7 +1318,7 @@
     "title": "Collect Popover Subtree",
     "content": {
       "snl": "ts.function(fn.collectPopoverSubtree,ts.function-type(ts.parameters(Type.judge(api.code(%rootId%),string),Type.judge(api.code(%list%),Type.array(api.code(%readonly PopoverNode%)))),ts.generic(api.code(%Set%),ts.type-arguments(string))),ts.ellipsis@remark.rv.fn.collect-popover-subtree)",
-      "markdown": "`collectPopoverSubtree` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`collectPopoverSubtree`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1333,7 +1333,7 @@
     "title": "Expand Popover Ancestors",
     "content": {
       "snl": "ts.function(fn.expandPopoverAncestors,ts.function-type(ts.parameters(Type.judge(api.code(%initial%),ts.generic(api.code(%ReadonlySet%),ts.type-arguments(string))),Type.judge(api.code(%list%),Type.array(api.code(%readonly PopoverNode%)))),ts.generic(api.code(%Set%),ts.type-arguments(string))),ts.ellipsis@remark.rv.fn.expand-popover-ancestors)",
-      "markdown": "`expandPopoverAncestors` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`expandPopoverAncestors`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1348,7 +1348,7 @@
     "title": "Find Popover Bounds",
     "content": {
       "snl": "ts.function(fn.findPopoverBounds,ts.function-type(ts.parameters(Type.judge(api.code(%origin%),api.code(%HTMLElement%))),ViewportBounds),ts.ellipsis@remark.rv.fn.find-popover-bounds)",
-      "markdown": "`findPopoverBounds` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`findPopoverBounds`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1363,7 +1363,7 @@
     "title": "Read Current Popover ID",
     "content": {
       "snl": "ts.function(fn.useCurrentPopoverId,ts.function-type(ts.parameters(),ts.union(string,ts.null)),ts.ellipsis@remark.rv.fn.use-current-popover-id)",
-      "markdown": "`useCurrentPopoverId` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`useCurrentPopoverId`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1378,7 +1378,7 @@
     "title": "Use Hover Popovers",
     "content": {
       "snl": "ts.function(ts.generic(fn.useHoverPopovers,ts.type-arguments(api.code(%TSubject%))),ts.function-type(ts.parameters(),ts.generic(api.code(%HoverPopoverApi%),ts.type-arguments(api.code(%TSubject%)))),ts.ellipsis@remark.rv.fn.use-hover-popovers)",
-      "markdown": "`useHoverPopovers` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`useHoverPopovers`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1393,7 +1393,7 @@
     "title": "Hover Popover",
     "content": {
       "snl": "interface(HoverPopover,enumerate(Type.judge(HoverPopover.id,string),Type.judge(HoverPopover.subject,TSubject),Type.judge(HoverPopover.originRect,DOMRect),Type.judge(HoverPopover.x,number),Type.judge(HoverPopover.y,number),Type.judge(HoverPopover.parentId,ts.union(string,ts.null)),Type.judge(HoverPopover.frozen,boolean),Type.judge(HoverPopover.phase,PopoverPhase)))",
-      "markdown": "Hover Popover 的公开 TypeScript Schema。"
+      "markdown": "The public TypeScript schema for Hover Popover."
     },
     "contribution_info": null,
     "pointer": {
@@ -1408,7 +1408,7 @@
     "title": "Hover Popover API",
     "content": {
       "snl": "interface(HoverPopoverApi,enumerate(Type.judge(HoverPopoverApi.spawn,api.code(%method%)),Type.judge(HoverPopoverApi.updatePointer,api.code(%method%)),Type.judge(HoverPopoverApi.freeze,api.code(%method%)),Type.judge(HoverPopoverApi.cancelUnfrozen,api.code(%method%)),Type.judge(HoverPopoverApi.dismissAll,api.code(%method%)),Type.judge(HoverPopoverApi.isAlive,api.code(%method%))))",
-      "markdown": "Hover Popover API 的公开 TypeScript Schema。"
+      "markdown": "The public TypeScript schema for Hover Popover API."
     },
     "contribution_info": null,
     "pointer": {
@@ -1423,7 +1423,7 @@
     "title": "Hover Popover Options",
     "content": {
       "snl": "interface(HoverPopoverOptions,enumerate(Type.judge(HoverPopoverOptions.offset,Type.opt(number)),Type.judge(HoverPopoverOptions.hitPadding,Type.opt(number)),Type.judge(HoverPopoverOptions.viewportMargin,Type.opt(number)),Type.judge(HoverPopoverOptions.openDelayMs,Type.opt(number)),Type.judge(HoverPopoverOptions.fadeMs,Type.opt(number)),Type.judge(HoverPopoverOptions.freezeDelayMs,Type.opt(ts.union(number,ts.null))),Type.judge(HoverPopoverOptions.maxZIndexBase,Type.opt(number))))",
-      "markdown": "Hover Popover Options 的公开 TypeScript Schema。"
+      "markdown": "The public TypeScript schema for Hover Popover Options."
     },
     "contribution_info": null,
     "pointer": {
@@ -1438,7 +1438,7 @@
     "title": "Hover Popover Provider Properties",
     "content": {
       "snl": "interface(HoverPopoverProviderProps,enumerate(Type.judge(HoverPopoverProviderProps.children,ReactNode),Type.judge(HoverPopoverProviderProps.renderPopover,api.code(%method%)),Type.judge(HoverPopoverProviderProps.options,Type.opt(HoverPopoverOptions)),Type.judge(HoverPopoverProviderProps.className,Type.opt(string)),Type.judge(HoverPopoverProviderProps.style,Type.opt(api.code(%CSSProperties | ((popover, index) => CSSProperties)%))),Type.judge(HoverPopoverProviderProps.resolveBounds,Type.opt(api.code(%method%))),Type.judge(HoverPopoverProviderProps.portalTarget,Type.opt(HTMLElement))))",
-      "markdown": "Hover Popover Provider Properties 的公开 TypeScript Schema。"
+      "markdown": "The public TypeScript schema for Hover Popover Provider Properties."
     },
     "contribution_info": null,
     "pointer": {
@@ -1453,7 +1453,7 @@
     "title": "Popover Phase",
     "content": {
       "snl": "Type.judge(PopoverPhase,ts.union(Type.literal($\\texttt{opening}$),Type.literal($\\texttt{visible}$),Type.literal($\\texttt{closing}$)))",
-      "markdown": "Popover Phase 的公开 TypeScript Schema。"
+      "markdown": "The public TypeScript schema for Popover Phase."
     },
     "contribution_info": null,
     "pointer": {
@@ -1468,7 +1468,7 @@
     "title": "Viewport Bounds",
     "content": {
       "snl": "Type.judge(ViewportBounds,api.code(%{ left: number; top: number; right: number; bottom: number }%))",
-      "markdown": "Viewport Bounds 的公开 TypeScript Schema。"
+      "markdown": "The public TypeScript schema for Viewport Bounds."
     },
     "contribution_info": null,
     "pointer": {
@@ -1483,7 +1483,7 @@
     "title": "Classify Render Mode",
     "content": {
       "snl": "ts.function(fn.modeBucket,ts.function-type(ts.parameters(Type.judge(api.code(%mode%),api.code(%SnlMacroStyle[\"mode\"]%))),ts.union(api.code(%\"formula\"%),api.code(%\"text\"%),api.code(%\"block\"%))),ts.ellipsis@remark.rv.fn.mode-bucket)",
-      "markdown": "`modeBucket` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`modeBucket`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1498,7 +1498,7 @@
     "title": "Resolve Node Display",
     "content": {
       "snl": "ts.function(fn.nodeDisplay,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%db%),SnlMacroDb)),ts.union(api.code(%\"inline\"%),api.code(%\"block\"%))),ts.ellipsis@remark.rv.fn.node-display)",
-      "markdown": "`nodeDisplay` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`nodeDisplay`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1513,7 +1513,7 @@
     "title": "Resolve Node Mode",
     "content": {
       "snl": "ts.function(fn.nodeMode,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%db%),SnlMacroDb)),api.code(%SnlMacroStyle[\"mode\"]%)),ts.ellipsis@remark.rv.fn.node-mode)",
-      "markdown": "`nodeMode` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`nodeMode`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1528,7 +1528,7 @@
     "title": "Resolve Node LaTeX",
     "content": {
       "snl": "ts.function(fn.resolveNodeLatex,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%query%),SnlMacroTemplateQuery),Type.judge(api.code(%cache%),ts.generic(api.code(%Map%),ts.type-arguments(string,string))),Type.judge(api.code(%macroDb%),SnlMacroDb)),ts.generic(ts.Promise,ts.type-arguments(string))),ts.ellipsis@remark.rv.fn.resolve-node-latex)",
-      "markdown": "`resolveNodeLatex` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`resolveNodeLatex`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1543,7 +1543,7 @@
     "title": "Resolve Root LaTeX",
     "content": {
       "snl": "ts.function(fn.resolveRootLatex,ts.function-type(ts.parameters(Type.judge(api.code(%root%),SnlSyntaxTree),Type.judge(api.code(%query%),SnlMacroTemplateQuery),Type.judge(api.code(%cache%),ts.generic(api.code(%Map%),ts.type-arguments(string,string))),Type.judge(api.code(%macroDb%),SnlMacroDb)),ts.generic(ts.Promise,ts.type-arguments(string))),ts.ellipsis@remark.rv.fn.resolve-root-latex)",
-      "markdown": "`resolveRootLatex` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`resolveRootLatex`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1558,7 +1558,7 @@
     "title": "Resolve Macro Style",
     "content": {
       "snl": "ts.function(fn.resolveStyle,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%macro%),SnlMacro)),SnlMacroStyle),ts.ellipsis@remark.rv.fn.resolve-style)",
-      "markdown": "`resolveStyle` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`resolveStyle`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1573,7 +1573,7 @@
     "title": "Sanitize HTML Data Attribute",
     "content": {
       "snl": "ts.function(fn.sanitizeHtmlDataAttr,ts.function-type(ts.parameters(Type.judge(api.code(%value%),string)),string),ts.ellipsis@remark.rv.fn.sanitize-html-data-attr)",
-      "markdown": "`sanitizeHtmlDataAttr` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`sanitizeHtmlDataAttr`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1588,7 +1588,7 @@
     "title": "Wrap Child for Parent",
     "content": {
       "snl": "ts.function(fn.wrapForParent,ts.function-type(ts.parameters(Type.judge(api.code(%childLatex%),string),Type.judge(api.code(%childMode%),api.code(%SnlMacroStyle[\"mode\"]%)),Type.judge(api.code(%parentMode%),api.code(%SnlMacroStyle[\"mode\"]%))),string),ts.ellipsis@remark.rv.fn.wrap-for-parent)",
-      "markdown": "`wrapForParent` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`wrapForParent`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1603,7 +1603,7 @@
     "title": "Wrap HTML Data",
     "content": {
       "snl": "ts.function(fn.wrapHtmlData,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%inner%),string),Type.judge(api.code(%macroDb%),SnlMacroDb),Type.judge(api.code(%kindOverride%),Type.opt(string))),string),ts.ellipsis@remark.rv.fn.wrap-html-data)",
-      "markdown": "`wrapHtmlData` 的正式 TypeScript 签名；实现说明见关联 Remark。"
+      "markdown": "`wrapHtmlData`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
     "pointer": {
@@ -1617,8 +1617,8 @@
     "kind": "remark",
     "title": "Create SNL Syntax Tree Node — Remark",
     "content": {
-      "snl": "%创建字段已补默认值的运行时语法树节点；适合编辑器、测试与程序化构树。%",
-      "markdown": "创建字段已补默认值的运行时语法树节点；适合编辑器、测试与程序化构树。"
+      "snl": "%Creates a runtime syntax-tree node with defaults filled in for its fields; suitable for editors, tests, and programmatic tree construction.%",
+      "markdown": "Creates a runtime syntax-tree node with defaults filled in for its fields; suitable for editors, tests, and programmatic tree construction."
     },
     "contribution_info": null,
     "pointer": {
@@ -1632,8 +1632,8 @@
     "kind": "remark",
     "title": "Recognize SNL Syntax Tree — Remark",
     "content": {
-      "snl": "%对未知值做运行时结构检查，并在 TypeScript 中收窄为 SNL 语法树。%",
-      "markdown": "对未知值做运行时结构检查，并在 TypeScript 中收窄为 SNL 语法树。"
+      "snl": "%Performs a runtime structural check on an unknown value and narrows it to an SNL syntax tree in TypeScript.%",
+      "markdown": "Performs a runtime structural check on an unknown value and narrows it to an SNL syntax tree in TypeScript."
     },
     "contribution_info": null,
     "pointer": {
@@ -1647,8 +1647,8 @@
     "kind": "remark",
     "title": "Parse SNL Syntax Tree — Remark",
     "content": {
-      "snl": "%把 SNL 源码解析成语法树并完成绑定标注；语法错误会抛出带字符位置的解析异常。%",
-      "markdown": "把 SNL 源码解析成语法树并完成绑定标注；语法错误会抛出带字符位置的解析异常。"
+      "snl": "%Parses SNL source into a syntax tree and annotates its bindings; syntax errors throw a parse exception carrying a character position.%",
+      "markdown": "Parses SNL source into a syntax tree and annotates its bindings; syntax errors throw a parse exception carrying a character position."
     },
     "contribution_info": null,
     "pointer": {
@@ -1662,8 +1662,8 @@
     "kind": "remark",
     "title": "Try Parsing SNL Syntax Tree — Remark",
     "content": {
-      "snl": "%解析 SNL，但把失败编码到返回值中而不是抛异常；适合编辑器和 linter。%",
-      "markdown": "解析 SNL，但把失败编码到返回值中而不是抛异常；适合编辑器和 linter。"
+      "snl": "%Parses SNL but encodes failure in the return value instead of throwing an exception; suitable for editors and linters.%",
+      "markdown": "Parses SNL but encodes failure in the return value instead of throwing an exception; suitable for editors and linters."
     },
     "contribution_info": null,
     "pointer": {
@@ -1677,8 +1677,8 @@
     "kind": "remark",
     "title": "Serialize SNL Syntax Tree — Remark",
     "content": {
-      "snl": "%当前实现只序列化 name 与 children；style、envMode、binder 前缀、kind、scope 和 mdata 不会写回，因此它不是一般性的无损 roundtrip。%",
-      "markdown": "当前实现只序列化 name 与 children；style、envMode、binder 前缀、kind、scope 和 mdata 不会写回，因此它不是一般性的无损 roundtrip。"
+      "snl": "%The current implementation serializes only name and children. It does not write back style, envMode, binder prefixes, kind, scope, or mdata, so it is not a general lossless round trip.%",
+      "markdown": "The current implementation serializes only `name` and `children`. It does not write back `style`, `envMode`, binder prefixes, `kind`, `scope`, or `mdata`, so it is not a general lossless round trip."
     },
     "contribution_info": null,
     "pointer": {
@@ -1692,8 +1692,8 @@
     "kind": "remark",
     "title": "Annotate Bindings — Remark",
     "content": {
-      "snl": "%原地标注 binder、bound variable、free variable 与绑定引用；可传入外层已有的 binder 栈。%",
-      "markdown": "原地标注 binder、bound variable、free variable 与绑定引用；可传入外层已有的 binder 栈。"
+      "snl": "%Annotates binders, bound variables, free variables, and binding references in place; an existing enclosing binder stack may be supplied.%",
+      "markdown": "Annotates binders, bound variables, free variables, and binding references in place; an existing enclosing binder stack may be supplied."
     },
     "contribution_info": null,
     "pointer": {
@@ -1707,8 +1707,8 @@
     "kind": "remark",
     "title": "Analyze SNL Tree Sources — Remark",
     "content": {
-      "snl": "%统计树中拥有可解析语义来源的节点，并给出结构化比例与语义自由度。%",
-      "markdown": "统计树中拥有可解析语义来源的节点，并给出结构化比例与语义自由度。"
+      "snl": "%Counts nodes in the tree that have resolvable semantic sources and reports the structured ratio and semantic freedom.%",
+      "markdown": "Counts nodes in the tree that have resolvable semantic sources and reports the structured ratio and semantic freedom."
     },
     "contribution_info": null,
     "pointer": {
@@ -1722,8 +1722,8 @@
     "kind": "remark",
     "title": "Load SNL Macro Database — Remark",
     "content": {
-      "snl": "%从 URL 异步加载 Macro Database，并复用模块级缓存。%",
-      "markdown": "从 URL 异步加载 Macro Database，并复用模块级缓存。"
+      "snl": "%Loads a Macro Database asynchronously from a URL and reuses a module-level cache.%",
+      "markdown": "Loads a Macro Database asynchronously from a URL and reuses a module-level cache."
     },
     "contribution_info": null,
     "pointer": {
@@ -1737,8 +1737,8 @@
     "kind": "remark",
     "title": "Set SNL Macro Database Cache — Remark",
     "content": {
-      "snl": "%显式设置或清空模块级 Macro Database 缓存。%",
-      "markdown": "显式设置或清空模块级 Macro Database 缓存。"
+      "snl": "%Explicitly sets or clears the module-level Macro Database cache.%",
+      "markdown": "Explicitly sets or clears the module-level Macro Database cache."
     },
     "contribution_info": null,
     "pointer": {
@@ -1752,8 +1752,8 @@
     "kind": "remark",
     "title": "Clear SNL Macro Database Cache — Remark",
     "content": {
-      "snl": "%清空模块级 Macro Database 缓存，使后续加载重新读取数据。%",
-      "markdown": "清空模块级 Macro Database 缓存，使后续加载重新读取数据。"
+      "snl": "%Clears the module-level Macro Database cache so subsequent loads read the data again.%",
+      "markdown": "Clears the module-level Macro Database cache so subsequent loads read the data again."
     },
     "contribution_info": null,
     "pointer": {
@@ -1767,8 +1767,8 @@
     "kind": "remark",
     "title": "Create Default Macro Template Query — Remark",
     "content": {
-      "snl": "%创建按需加载默认数据库的异步模板查询函数。%",
-      "markdown": "创建按需加载默认数据库的异步模板查询函数。"
+      "snl": "%Creates an asynchronous template-query function that loads the default database on demand.%",
+      "markdown": "Creates an asynchronous template-query function that loads the default database on demand."
     },
     "contribution_info": null,
     "pointer": {
@@ -1782,8 +1782,8 @@
     "kind": "remark",
     "title": "Create Macro Template Query from Database — Remark",
     "content": {
-      "snl": "%把已加载的 Macro Database 转换成无网络访问的模板查询函数。%",
-      "markdown": "把已加载的 Macro Database 转换成无网络访问的模板查询函数。"
+      "snl": "%Converts an already loaded Macro Database into a template-query function that performs no network access.%",
+      "markdown": "Converts an already loaded Macro Database into a template-query function that performs no network access."
     },
     "contribution_info": null,
     "pointer": {
@@ -1797,8 +1797,8 @@
     "kind": "remark",
     "title": "Apply Color Alpha — Remark",
     "content": {
-      "snl": "%把 CSS 颜色转换为指定透明度的 rgba 表示；无法识别的颜色原样返回。%",
-      "markdown": "把 CSS 颜色转换为指定透明度的 rgba 表示；无法识别的颜色原样返回。"
+      "snl": "%Converts a CSS color to an rgba representation with the specified alpha; returns unrecognized colors unchanged.%",
+      "markdown": "Converts a CSS color to an `rgba` representation with the specified alpha; returns unrecognized colors unchanged."
     },
     "contribution_info": null,
     "pointer": {
@@ -1812,8 +1812,8 @@
     "kind": "remark",
     "title": "Convert Palette to CSS — Remark",
     "content": {
-      "snl": "%把 Kind Palette 编译成 hover 与绑定作用域高亮所需的 CSS。%",
-      "markdown": "把 Kind Palette 编译成 hover 与绑定作用域高亮所需的 CSS。"
+      "snl": "%Compiles a Kind Palette into the CSS required for hover and binding-scope highlighting.%",
+      "markdown": "Compiles a Kind Palette into the CSS required for hover and binding-scope highlighting."
     },
     "contribution_info": null,
     "pointer": {
@@ -1827,8 +1827,8 @@
     "kind": "remark",
     "title": "Validate Kind Name — Remark",
     "content": {
-      "snl": "%检查 kind 名能否安全嵌入 CSS 属性选择器；非法值会抛异常。%",
-      "markdown": "检查 kind 名能否安全嵌入 CSS 属性选择器；非法值会抛异常。"
+      "snl": "%Checks whether a kind name can be embedded safely in a CSS attribute selector; throws on an invalid value.%",
+      "markdown": "Checks whether a kind name can be embedded safely in a CSS attribute selector; throws on an invalid value."
     },
     "contribution_info": null,
     "pointer": {
@@ -1842,8 +1842,8 @@
     "kind": "remark",
     "title": "Clamp Popover Position — Remark",
     "content": {
-      "snl": "%把浮层坐标限制在给定视口边界与留白范围内。%",
-      "markdown": "把浮层坐标限制在给定视口边界与留白范围内。"
+      "snl": "%Clamps popover coordinates to the specified viewport bounds and margin.%",
+      "markdown": "Clamps popover coordinates to the specified viewport bounds and margin."
     },
     "contribution_info": null,
     "pointer": {
@@ -1857,8 +1857,8 @@
     "kind": "remark",
     "title": "Collect Popover Subtree — Remark",
     "content": {
-      "snl": "%从指定浮层开始，收集它及全部后代浮层的 ID。%",
-      "markdown": "从指定浮层开始，收集它及全部后代浮层的 ID。"
+      "snl": "%Starting at the specified popover, collects its ID and the IDs of all descendant popovers.%",
+      "markdown": "Starting at the specified popover, collects its ID and the IDs of all descendant popovers."
     },
     "contribution_info": null,
     "pointer": {
@@ -1872,8 +1872,8 @@
     "kind": "remark",
     "title": "Expand Popover Ancestors — Remark",
     "content": {
-      "snl": "%给定一组浮层 ID，补齐它们的全部祖先浮层。%",
-      "markdown": "给定一组浮层 ID，补齐它们的全部祖先浮层。"
+      "snl": "%Given a set of popover IDs, adds all of their ancestor popovers.%",
+      "markdown": "Given a set of popover IDs, adds all of their ancestor popovers."
     },
     "contribution_info": null,
     "pointer": {
@@ -1887,8 +1887,8 @@
     "kind": "remark",
     "title": "Find Popover Bounds — Remark",
     "content": {
-      "snl": "%沿 DOM 向上寻找最近的裁剪容器，并计算浮层可用边界。%",
-      "markdown": "沿 DOM 向上寻找最近的裁剪容器，并计算浮层可用边界。"
+      "snl": "%Walks up the DOM to find the nearest clipping container and computes the bounds available to the popover.%",
+      "markdown": "Walks up the DOM to find the nearest clipping container and computes the bounds available to the popover."
     },
     "contribution_info": null,
     "pointer": {
@@ -1902,8 +1902,8 @@
     "kind": "remark",
     "title": "Read Current Popover ID — Remark",
     "content": {
-      "snl": "%读取当前浮层上下文中的 ID；不在浮层内部时返回 null。%",
-      "markdown": "读取当前浮层上下文中的 ID；不在浮层内部时返回 null。"
+      "snl": "%Reads the ID from the current popover context; returns null when not inside a popover.%",
+      "markdown": "Reads the ID from the current popover context; returns `null` when not inside a popover."
     },
     "contribution_info": null,
     "pointer": {
@@ -1917,8 +1917,8 @@
     "kind": "remark",
     "title": "Use Hover Popovers — Remark",
     "content": {
-      "snl": "%读取 Hover Popover API；缺少 Provider 时抛出配置错误。%",
-      "markdown": "读取 Hover Popover API；缺少 Provider 时抛出配置错误。"
+      "snl": "%Reads the Hover Popover API; throws a configuration error when the Provider is missing.%",
+      "markdown": "Reads the Hover Popover API; throws a configuration error when the Provider is missing."
     },
     "contribution_info": null,
     "pointer": {
@@ -1932,8 +1932,8 @@
     "kind": "remark",
     "title": "Fill LaTeX Template — Remark",
     "content": {
-      "snl": "%用命名子节点值填充 LaTeX 模板中的固定与动态占位符。%",
-      "markdown": "用命名子节点值填充 LaTeX 模板中的固定与动态占位符。"
+      "snl": "%Fills fixed and dynamic placeholders in a LaTeX template with named child-node values.%",
+      "markdown": "Fills fixed and dynamic placeholders in a LaTeX template with named child-node values."
     },
     "contribution_info": null,
     "pointer": {
@@ -1947,8 +1947,8 @@
     "kind": "remark",
     "title": "Classify Render Mode — Remark",
     "content": {
-      "snl": "%把四种渲染模式归并为 formula、text 或 block 三个拼接类别。%",
-      "markdown": "把四种渲染模式归并为 formula、text 或 block 三个拼接类别。"
+      "snl": "%Groups the four rendering modes into the three concatenation categories formula, text, and block.%",
+      "markdown": "Groups the four rendering modes into the three concatenation categories `formula`, `text`, and `block`."
     },
     "contribution_info": null,
     "pointer": {
@@ -1962,8 +1962,8 @@
     "kind": "remark",
     "title": "Resolve Node Display — Remark",
     "content": {
-      "snl": "%根据节点的最终模式决定根公式使用 inline 还是 block 展示。%",
-      "markdown": "根据节点的最终模式决定根公式使用 inline 还是 block 展示。"
+      "snl": "%Uses the node’s final mode to determine whether the root formula is displayed inline or as a block.%",
+      "markdown": "Uses the node’s final mode to determine whether the root formula is displayed inline or as a block."
     },
     "contribution_info": null,
     "pointer": {
@@ -1977,8 +1977,8 @@
     "kind": "remark",
     "title": "Resolve Node Mode — Remark",
     "content": {
-      "snl": "%结合临时环境模式、Macro Database 与 style 解析节点的最终渲染模式。%",
-      "markdown": "结合临时环境模式、Macro Database 与 style 解析节点的最终渲染模式。"
+      "snl": "%Resolves a node’s final rendering mode from its temporary environment mode, the Macro Database, and its style.%",
+      "markdown": "Resolves a node’s final rendering mode from its temporary environment mode, the Macro Database, and its style."
     },
     "contribution_info": null,
     "pointer": {
@@ -1992,8 +1992,8 @@
     "kind": "remark",
     "title": "Resolve Node LaTeX — Remark",
     "content": {
-      "snl": "%递归解析一个节点及其子树，生成带来源与绑定元数据的 KaTeX 源码。%",
-      "markdown": "递归解析一个节点及其子树，生成带来源与绑定元数据的 KaTeX 源码。"
+      "snl": "%Recursively resolves a node and its subtree, producing KaTeX source with source and binding metadata.%",
+      "markdown": "Recursively resolves a node and its subtree, producing KaTeX source with source and binding metadata."
     },
     "contribution_info": null,
     "pointer": {
@@ -2007,8 +2007,8 @@
     "kind": "remark",
     "title": "Resolve Root LaTeX — Remark",
     "content": {
-      "snl": "%解析整棵树，并按根节点模式补上最终的 text 或 display 包装。%",
-      "markdown": "解析整棵树，并按根节点模式补上最终的 text 或 display 包装。"
+      "snl": "%Resolves the entire tree and adds the final text or display wrapper according to the root node’s mode.%",
+      "markdown": "Resolves the entire tree and adds the final text or display wrapper according to the root node’s mode."
     },
     "contribution_info": null,
     "pointer": {
@@ -2022,8 +2022,8 @@
     "kind": "remark",
     "title": "Resolve Macro Style — Remark",
     "content": {
-      "snl": "%按节点的 style tag 选择 Macro Style；缺失或未知 style 会按契约处理或报错。%",
-      "markdown": "按节点的 style tag 选择 Macro Style；缺失或未知 style 会按契约处理或报错。"
+      "snl": "%Selects a Macro Style by the node’s style tag; a missing or unknown style is handled according to the contract or reported as an error.%",
+      "markdown": "Selects a Macro Style by the node’s style tag; a missing or unknown style is handled according to the contract or reported as an error."
     },
     "contribution_info": null,
     "pointer": {
@@ -2037,8 +2037,8 @@
     "kind": "remark",
     "title": "Sanitize HTML Data Attribute — Remark",
     "content": {
-      "snl": "%清理写入 KaTeX htmlData 属性的值，并拒绝控制字符。%",
-      "markdown": "清理写入 KaTeX htmlData 属性的值，并拒绝控制字符。"
+      "snl": "%Sanitizes a value written to a KaTeX htmlData attribute and rejects control characters.%",
+      "markdown": "Sanitizes a value written to a KaTeX `htmlData` attribute and rejects control characters."
     },
     "contribution_info": null,
     "pointer": {
@@ -2052,8 +2052,8 @@
     "kind": "remark",
     "title": "Wrap Child for Parent — Remark",
     "content": {
-      "snl": "%按父子渲染模式在公式与文本边界补上必要包装。%",
-      "markdown": "按父子渲染模式在公式与文本边界补上必要包装。"
+      "snl": "%Adds the necessary wrappers at formula/text boundaries according to the child and parent rendering modes.%",
+      "markdown": "Adds the necessary wrappers at formula/text boundaries according to the child and parent rendering modes."
     },
     "contribution_info": null,
     "pointer": {
@@ -2067,8 +2067,8 @@
     "kind": "remark",
     "title": "Wrap HTML Data — Remark",
     "content": {
-      "snl": "%给渲染结果附加 name、kind、style、scope、binding 与 source 元数据。%",
-      "markdown": "给渲染结果附加 name、kind、style、scope、binding 与 source 元数据。"
+      "snl": "%Attaches name, kind, style, scope, binding, and source metadata to the rendered result.%",
+      "markdown": "Attaches `name`, `kind`, `style`, `scope`, binding, and source metadata to the rendered result."
     },
     "contribution_info": null,
     "pointer": {
