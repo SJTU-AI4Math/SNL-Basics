@@ -67,6 +67,21 @@ export type {
   SnlBlockRenderer,
   SnlBlockRendererProps,
 } from './hooks'
+export {
+  HoverPopoverProvider,
+  clampPopoverPosition,
+  collectPopoverSubtree,
+  expandPopoverAncestors,
+  findPopoverBounds,
+  useCurrentPopoverId,
+  useHoverPopovers,
+  type HoverPopover,
+  type HoverPopoverApi,
+  type HoverPopoverOptions,
+  type HoverPopoverProviderProps,
+  type PopoverPhase,
+  type ViewportBounds,
+} from './hover-popovers'
 
 // === Advanced / low-level (kept for downstream consumers) ===
 export { fillLatexTemplate } from '../snl-syntax-tree/template'
