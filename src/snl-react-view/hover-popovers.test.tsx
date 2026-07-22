@@ -56,7 +56,31 @@ function Harness(): ReactElement {
   )
 }
 
+function ApiObserver({ onValue }: { onValue(api: ReturnType<typeof useHoverPopovers<string>>): void }): null {
+  onValue(useHoverPopovers<string>())
+  return null
+}
+
 describe('HoverPopoverProvider', () => {
+  it('keeps the consumer action context stable while the popover stack moves', () => {
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    let renders = 0
+    render(
+      <HoverPopoverProvider<string>
+        renderPopover={() => <div>preview</div>}
+        options={{ openDelayMs: 0, fadeMs: 0 }}
+      >
+        <ApiObserver onValue={(value) => { api = value; renders += 1 }} />
+      </HoverPopoverProvider>,
+    )
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let id = ''
+    act(() => { id = api!.spawn('entry-a', origin, 10, 20, null) })
+    act(() => api!.updatePointer(id, 30, 40))
+    expect(renders).toBe(1)
+  })
+
   it('renders consumer-owned content through a shared portal stack', () => {
     render(
       <HoverPopoverProvider<string>

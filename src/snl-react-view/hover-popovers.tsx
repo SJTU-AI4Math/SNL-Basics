@@ -28,7 +28,6 @@ export interface HoverPopover<TSubject> {
 }
 
 export interface HoverPopoverApi<TSubject> {
-  popovers: HoverPopover<TSubject>[]
   spawn(
     subject: TSubject,
     origin: HTMLElement | DOMRect,
@@ -424,14 +423,13 @@ export function HoverPopoverProvider<TSubject>({
   }, [])
 
   const api = useMemo<HoverPopoverApi<TSubject>>(() => ({
-    popovers,
     spawn,
     updatePointer,
     freeze,
     cancelUnfrozen,
     dismissAll,
     isAlive,
-  }), [popovers, spawn, updatePointer, freeze, cancelUnfrozen, dismissAll, isAlive])
+  }), [spawn, updatePointer, freeze, cancelUnfrozen, dismissAll, isAlive])
 
   const portal = typeof document === 'undefined' ? null : createPortal(
     <>
