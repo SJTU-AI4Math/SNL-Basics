@@ -185,7 +185,7 @@ function PopoverFrame<TSubject>({
   bounds,
   register,
   children,
-}: PopoverFrameProps<TSubject>): ReactElement {
+}: PopoverFrameProps<TSubject>): ReactElement<any> {
   const ref = useRef<HTMLDivElement | null>(null)
   const [position, setPosition] = useState({ x: popover.x, y: popover.y })
 
@@ -238,7 +238,7 @@ export function HoverPopoverProvider<TSubject>({
   style,
   resolveBounds = findPopoverBounds,
   portalTarget,
-}: HoverPopoverProviderProps<TSubject>): ReactElement {
+}: HoverPopoverProviderProps<TSubject>): ReactElement<any> {
   const offset = options?.offset ?? 12
   const hitPadding = options?.hitPadding ?? offset + 8
   const margin = options?.viewportMargin ?? 8
