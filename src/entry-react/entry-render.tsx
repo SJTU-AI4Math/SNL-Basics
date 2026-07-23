@@ -7,6 +7,7 @@ import { tryParseSnlSyntaxTree } from '../snl-react-view/parse'
 import type { KindPalette } from '../snl-react-view/kind-palette'
 import { SnlInteractionDriver, type SnlInteractionContext } from '../snl-react-view/interaction-driver'
 import type { SnlRenderHooks } from '../snl-react-view/hooks'
+import { useCtrlPressed } from '../snl-react-view/use-ctrl-pressed'
 import {
   HoverPopoverProvider,
   useCurrentPopoverId,
@@ -146,15 +147,36 @@ function SnlEntryBody({ source, entry_data_driver, macro_data_driver, reader_run
   return <SnlSyntaxTreeView tree={parsed.tree} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={interaction_driver} hooks={hooks} kindPalette={kind_palette} />
 }
 
+function resolveEntryStroke(raw: string | undefined): string {
+  if (raw === undefined) return '#888888'
+  const value = raw.trim()
+  return value === '' || value === 'auto' ? 'var(--vscode-editor-foreground, #ddd)' : value
+}
+
+function resolveEntryBackground(raw: string | undefined): string {
+  if (raw === undefined) return '#eeeeee'
+  const value = raw.trim()
+  return value === '' || value === 'transparent' || value === 'none' ? 'transparent' : value
+}
+
 export function EntrySurface(props: EntrySurfaceProps): ReactElement {
   const { entry, kind, macro_data_driver, reader_runtime, interaction_driver, interaction_ports, hooks, kind_palette, counter_label } = props
-  const content = resolve_entry_content(entry.content ?? {}, reader_runtime)
-  const bodySurface = surface(content)
+  let content: ResolvedEntryContent = {}
+  let contentError: string | null = null
+  try {
+    content = resolve_entry_content(entry.content ?? {}, reader_runtime)
+  } catch (value) {
+    contentError = value instanceof Error ? value.message : String(value)
+  }
+  const bodySurface = contentError ? 'error' : surface(content)
   const html = useMemo(() => titleHtml(entry.title ?? ''), [entry.title])
-  const stroke = kind?.coloring?.stroke?.trim() || '#888888'
-  const background = kind?.coloring?.background?.trim() || 'transparent'
+  const stroke = resolveEntryStroke(kind?.coloring?.stroke)
+  const background = resolveEntryBackground(kind?.coloring?.background)
   const kindName = kind?.name || entry.kind
   const preview = React.useContext(EntryPreviewContext)
+  const ctrlPressed = useCtrlPressed()
+  const [titleHovered, setTitleHovered] = useState(false)
+  const titleActivationActive = Boolean(interaction_ports?.on_title_activate && titleHovered && ctrlPressed)
   const effectiveInteractionDriver = useMemo(() => {
     if (!preview) return interaction_driver
     return new SnlInteractionDriver({
@@ -173,16 +195,17 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     })
   }, [interaction_driver, interaction_ports, preview])
   const invoke = (result: void | Promise<void> | undefined): void => { if (result instanceof Promise) void result.catch(() => undefined) }
-  return <section data-entry-id={entry.id} className={props.className} style={{ borderLeft: `5px solid ${stroke}`, background, width: '100%', ...props.style }}>
+  return <section data-entry-id={entry.id} className={props.className} style={{ borderLeft: `5px solid ${stroke}`, background: titleActivationActive ? '#f3f4f6' : background, width: '100%', transition: 'background-color 150ms ease', ...props.style }}>
     <header style={{ padding: '0.275rem 0.8rem', display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-      <strong onClick={(event) => invoke(interaction_ports?.on_title_activate?.(entry.id, event))} style={{ color: stroke, fontSize: '1.25rem', flex: '1 1 auto', cursor: interaction_ports?.on_title_activate ? 'pointer' : undefined }}>
+      <strong onMouseEnter={() => setTitleHovered(true)} onMouseLeave={() => setTitleHovered(false)} onClick={(event) => invoke(interaction_ports?.on_title_activate?.(entry.id, event))} style={{ color: stroke, fontSize: '1.25rem', flex: '1 1 auto', cursor: titleActivationActive ? 'pointer' : undefined }}>
         {kindName}{counter_label ? ` ${counter_label}` : ''} -- <span dangerouslySetInnerHTML={{ __html: html }} />
       </strong>
       {entry.pointer !== undefined && (props.show_source_action ?? true) ? <button type="button" aria-label="Open source" onClick={(event) => invoke(interaction_ports?.on_source_activate?.(entry.pointer, entry.id, event))}>↗ source</button> : null}
     </header>
     {bodySurface !== 'none' ? <>
       <div style={{ borderTop: `0.5px solid ${stroke}`, margin: '4px 10px' }} />
-      <div data-entry-body={bodySurface} style={{ padding: '0.9rem', fontSize: '1.05rem' }}>
+      <div data-entry-body={bodySurface} style={{ padding: '0.9rem', fontSize: '1.05rem', color: background === 'transparent' ? undefined : '#111' }}>
+        {bodySurface === 'error' ? <div role="alert" className="snl-entry-error">Entry content localization error: {contentError}</div> : null}
         {bodySurface === 'snl' ? <SnlEntryBody source={content.snl!} entry_data_driver={props.entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={effectiveInteractionDriver} hooks={hooks} kind_palette={kind_palette} /> : null}
         {bodySurface === 'markdown' ? <MarkdownBody source={content.markdown!} /> : null}
         {bodySurface === 'typst' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content.typst}</pre> : null}
