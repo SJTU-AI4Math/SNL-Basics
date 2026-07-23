@@ -36,6 +36,15 @@ describe('Entry package isolation', () => {
     expect(readFileSync(resolve(root, 'src/snl-react-view/index.ts'), 'utf8')).not.toMatch(/entry-react|EntryView|MarkdownBody/)
   })
 
+  it('exports every nominal interaction dependency from the Entry subpath', () => {
+    const source = readFileSync(resolve(root, 'src/entry-react/index.ts'), 'utf8')
+    expect(source).toContain('MacroDataDriver')
+    expect(source).toContain('SnlInteractionDriver')
+    expect(source).toContain('type SnlInteractionContext')
+    expect(source).toContain('SnlRenderHooks')
+    expect(source).toContain('KindPalette')
+  })
+
   it('keeps Markdown dependencies outside the root import closure', () => {
     const rootClosure = localImportClosure(resolve(root, 'src/snl-react-view/index.ts'))
     const rootSource = [...rootClosure.values()].join('\n')
