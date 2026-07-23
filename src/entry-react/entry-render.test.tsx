@@ -123,6 +123,18 @@ describe('Entry surface dispatch', () => {
     const view = render(<EntrySurface entry={base({ snl: 'x@ctx' })} kind={null} entry_data_driver={entries} macro_data_driver={macroDriver} />)
     await waitFor(() => expect(view.container.querySelector('[data-kind="bvar"]')).not.toBeNull())
   })
+
+  it('removes stale context annotations when the EntryDataDriver changes', async () => {
+    const sourceEntry = base({ snl: 'x@ctx' })
+    const declaring = dataDriver({ ctx: base({ snl: '@x' }, { id: 'ctx', kind: 'context' }) })
+    const view = render(<EntrySurface entry={sourceEntry} kind={null} entry_data_driver={declaring} macro_data_driver={macroDriver} />)
+    await waitFor(() => expect(view.container.querySelector('[data-kind="bvar"]')).not.toBeNull())
+
+    const noLongerDeclaring = dataDriver({ ctx: base({ snl: '@y' }, { id: 'ctx', kind: 'context' }) })
+    view.rerender(<EntrySurface entry={sourceEntry} kind={null} entry_data_driver={noLongerDeclaring} macro_data_driver={macroDriver} />)
+    await waitFor(() => expect(view.container.querySelector('[data-kind="fvar"]')).not.toBeNull())
+    expect(view.container.querySelector('[data-kind="bvar"]')).toBeNull()
+  })
 })
 
 describe('EntryView query lifecycle', () => {

@@ -8,6 +8,7 @@ import type { KindPalette } from '../snl-react-view/kind-palette'
 import { SnlInteractionDriver, type SnlInteractionContext } from '../snl-react-view/interaction-driver'
 import type { SnlRenderHooks } from '../snl-react-view/hooks'
 import { useCtrlPressed } from '../snl-react-view/use-ctrl-pressed'
+import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import {
   HoverPopoverProvider,
   useCurrentPopoverId,
@@ -123,20 +124,28 @@ interface SnlEntryBodyProps {
   kind_palette?: KindPalette
 }
 
+function cloneSnlSyntaxTree(node: SnlSyntaxTree): SnlSyntaxTree {
+  return {
+    ...node,
+    children: node.children.map(cloneSnlSyntaxTree),
+  }
+}
+
 function SnlEntryBody({ source, entry_data_driver, macro_data_driver, reader_runtime, interaction_driver, hooks, kind_palette }: SnlEntryBodyProps): ReactElement {
   const parsed = useMemo(() => tryParseSnlSyntaxTree(source), [source])
-  const [state, setState] = useState<{ tree: object; driver: EntryDataDriver; status: 'loading' | 'ready' | 'error'; error?: Error } | null>(null)
-  const current = parsed.ok && state?.tree === parsed.tree && state.driver === entry_data_driver ? state : null
+  const [state, setState] = useState<{ source_tree: SnlSyntaxTree; tree: SnlSyntaxTree; driver: EntryDataDriver; status: 'loading' | 'ready' | 'error'; error?: Error } | null>(null)
+  const current = parsed.ok && state?.source_tree === parsed.tree && state.driver === entry_data_driver ? state : null
 
   useEffect(() => {
     if (!parsed.ok) return
     const controller = new AbortController()
     let active = true
-    setState({ tree: parsed.tree, driver: entry_data_driver, status: 'loading' })
-    void resolveEntryContextSources(parsed.tree, entry_data_driver, controller.signal).then(() => {
-      if (active) setState({ tree: parsed.tree, driver: entry_data_driver, status: 'ready' })
+    const tree = cloneSnlSyntaxTree(parsed.tree)
+    setState({ source_tree: parsed.tree, tree, driver: entry_data_driver, status: 'loading' })
+    void resolveEntryContextSources(tree, entry_data_driver, controller.signal).then(() => {
+      if (active) setState({ source_tree: parsed.tree, tree, driver: entry_data_driver, status: 'ready' })
     }, (value: unknown) => {
-      if (active && !controller.signal.aborted) setState({ tree: parsed.tree, driver: entry_data_driver, status: 'error', error: value instanceof Error ? value : new Error(String(value)) })
+      if (active && !controller.signal.aborted) setState({ source_tree: parsed.tree, tree, driver: entry_data_driver, status: 'error', error: value instanceof Error ? value : new Error(String(value)) })
     })
     return () => { active = false; controller.abort() }
   }, [entry_data_driver, parsed])
@@ -144,7 +153,7 @@ function SnlEntryBody({ source, entry_data_driver, macro_data_driver, reader_run
   if (!parsed.ok) return <><div role="alert" className="snl-entry-error">SNL parse error: {parsed.error}{parsed.position === undefined ? '' : ` (at ${parsed.position})`}</div><pre>{source}</pre></>
   if (!current || current.status === 'loading') return <div className="snl-entry-loading">Resolving Entry context…</div>
   if (current.status === 'error') return <><div role="alert" className="snl-entry-error">Entry context query failed: {current.error!.message}</div><pre>{source}</pre></>
-  return <SnlSyntaxTreeView tree={parsed.tree} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={interaction_driver} hooks={hooks} kindPalette={kind_palette} />
+  return <SnlSyntaxTreeView tree={current.tree} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={interaction_driver} hooks={hooks} kindPalette={kind_palette} />
 }
 
 function resolveEntryStroke(raw: string | undefined): string {
