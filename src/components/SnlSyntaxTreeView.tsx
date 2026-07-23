@@ -902,6 +902,10 @@ export function SnlSyntaxTreeView({
       return
     }
 
+    const baseTextColor = window.getComputedStyle(container).color
+    if (baseTextColor) {
+      container.style.setProperty('--snl-base-text-color', baseTextColor)
+    }
     applyHoverHighlight(hasName, container)
     setHasHoverTarget(true)
     activateHoverTarget(hasName, container, event.clientX, event.clientY, {

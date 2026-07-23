@@ -97,8 +97,12 @@ describe('SnlInteractionDriver integration', () => {
       value: () => [target],
     })
     try {
+      interactionSurface.style.color = '#111111'
       fireEvent.mouseMove(target, { clientX: 20, clientY: 30 })
       expect(target.classList.contains('snl-single-hover')).toBe(true)
+      const baseColor = interactionSurface.style.getPropertyValue('--snl-base-text-color')
+      expect(baseColor).not.toBe('')
+      expect(baseColor).toBe(window.getComputedStyle(interactionSurface).color)
       expect(interactionSurface.style.cursor).not.toBe('pointer')
 
       fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })
