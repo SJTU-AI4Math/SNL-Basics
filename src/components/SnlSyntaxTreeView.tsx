@@ -606,7 +606,7 @@ export function SnlSyntaxTreeView({
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
   const [hasHoverTarget, setHasHoverTarget] = useState(false)
-  const ctrlPressed = useCtrlPressed()
+  const ctrlPressed = useCtrlPressed(hasHoverTarget)
   const prefetchTimerRef = useRef<number | null>(null)
   const showTimerRef = useRef<number | null>(null)
   const hoverMarkedElsRef = useRef<HTMLElement[]>([])

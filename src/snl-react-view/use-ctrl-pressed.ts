@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 
-/** Tracks whether Ctrl is currently held, including press/release while stationary. */
-export function useCtrlPressed(): boolean {
+/** Tracks Ctrl while this interaction surface is actively hovered. */
+export function useCtrlPressed(enabled = true): boolean {
   const [pressed, setPressed] = useState(false)
 
   useEffect(() => {
+    if (!enabled) {
+      setPressed(false)
+      return
+    }
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Control' || event.ctrlKey) setPressed(true)
     }
@@ -20,7 +24,7 @@ export function useCtrlPressed(): boolean {
       window.removeEventListener('keyup', onKeyUp)
       window.removeEventListener('blur', onBlur)
     }
-  }, [])
+  }, [enabled])
 
   return pressed
 }

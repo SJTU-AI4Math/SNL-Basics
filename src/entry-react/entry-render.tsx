@@ -174,8 +174,8 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
   const background = resolveEntryBackground(kind?.coloring?.background)
   const kindName = kind?.name || entry.kind
   const preview = React.useContext(EntryPreviewContext)
-  const ctrlPressed = useCtrlPressed()
   const [titleHovered, setTitleHovered] = useState(false)
+  const ctrlPressed = useCtrlPressed(titleHovered)
   const titleActivationActive = Boolean(interaction_ports?.on_title_activate && titleHovered && ctrlPressed)
   const effectiveInteractionDriver = useMemo(() => {
     if (!preview) return interaction_driver
