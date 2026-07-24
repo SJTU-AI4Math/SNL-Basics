@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "7",
   "name": "api-doc",
   "macros": {
     "api.iface": {
@@ -1258,11 +1258,12 @@
         ],
         "urls": []
       },
+      "kind": "const",
       "dynamic_arity": false,
       "styles": [
         {
-          "mode": "formula_inline",
-          "template": "\\\\texttt{style\\\\_name}",
+          "style_name": "default",
+          "tags": [],
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -1279,11 +1280,10 @@
           },
           "markdown": "",
           "text": "",
-          "style_name": "default",
-          "tags": []
+          "mode": "formula_inline",
+          "template": "\\texttt{style\\_name}"
         }
       ],
-      "kind": "const",
       "tags": []
     },
     "SnlMacroStyle.mode": {
@@ -1366,11 +1366,12 @@
         ],
         "urls": []
       },
+      "kind": "const",
       "dynamic_arity": false,
       "styles": [
         {
-          "mode": "formula_inline",
-          "template": "\\\\texttt{separator}",
+          "style_name": "default",
+          "tags": [],
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -1387,11 +1388,10 @@
           },
           "markdown": "",
           "text": "",
-          "style_name": "default",
-          "tags": []
+          "mode": "formula_inline",
+          "template": "\\texttt{separator}"
         }
       ],
-      "kind": "const",
       "tags": []
     },
     "SnlMacroStyle.block_template_name": {
@@ -1402,11 +1402,12 @@
         ],
         "urls": []
       },
+      "kind": "const",
       "dynamic_arity": false,
       "styles": [
         {
-          "mode": "formula_inline",
-          "template": "\\\\texttt{block\\\\_template\\\\_name}",
+          "style_name": "default",
+          "tags": [],
           "typst": {
             "built_in": "",
             "synthesis": {
@@ -1423,11 +1424,10 @@
           },
           "markdown": "",
           "text": "",
-          "style_name": "default",
-          "tags": []
+          "mode": "formula_inline",
+          "template": "\\texttt{block\\_template\\_name}"
         }
       ],
-      "kind": "const",
       "tags": []
     },
     "SnlMacroStyle.tags": {
