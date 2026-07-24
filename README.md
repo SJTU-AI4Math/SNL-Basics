@@ -402,3 +402,7 @@ npm run build:lib   # emits dist-lib/ (JS + types + style.css + core macro DB)
 npm test            # vitest
 npm run dev         # interactive demo (src/App.tsx)
 ```
+
+## License
+
+SNL-Basics is released under the [MIT License](LICENSE).

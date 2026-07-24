@@ -2,6 +2,7 @@
   "name": "@snl-basics/react",
   "private": true,
   "version": "0.10.0",
+  "license": "MIT",
   "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
   "type": "module",
   "sideEffects": [
