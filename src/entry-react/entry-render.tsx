@@ -43,6 +43,7 @@ export interface EntrySurfaceProps {
   interaction_ports?: EntryInteractionPorts
   hooks?: SnlRenderHooks
   kind_palette?: KindPalette
+  markdown_image_url_transform?: (source: string) => string
   counter_label?: string
   show_source_action?: boolean
   className?: string
@@ -216,7 +217,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
       <div data-entry-body={bodySurface} style={{ padding: '0.9rem', fontSize: '1.05rem', color: background === 'transparent' ? undefined : '#111' }}>
         {bodySurface === 'error' ? <div role="alert" className="snl-entry-error">Entry content localization error: {contentError}</div> : null}
         {bodySurface === 'snl' ? <SnlEntryBody source={content.snl!} entry_data_driver={props.entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={effectiveInteractionDriver} hooks={hooks} kind_palette={kind_palette} /> : null}
-        {bodySurface === 'markdown' ? <MarkdownBody source={content.markdown!} /> : null}
+        {bodySurface === 'markdown' ? <MarkdownBody source={content.markdown!} image_url_transform={props.markdown_image_url_transform} /> : null}
         {bodySurface === 'typst' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content.typst}</pre> : null}
         {bodySurface === 'latex' ? <LatexBody source={content.latex!} /> : null}
         {bodySurface === 'text' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content.text}</pre> : null}

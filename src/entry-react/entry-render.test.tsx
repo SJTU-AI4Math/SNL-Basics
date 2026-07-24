@@ -29,6 +29,14 @@ describe('Entry surface dispatch', () => {
     expect(view.container.querySelector('.snl-markdown-body strong')?.textContent).toBe('群')
   })
 
+  it('rewrites Markdown image sources through the consumer image resolver', () => {
+    const resolveImage = vi.fn((src: string) => `vscode-resource:${src}`)
+    const view = render(<EntrySurface entry={base({ markdown: '![diagram](assets/proof.png)' })} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} markdown_image_url_transform={resolveImage} />)
+    const image = view.getByRole('img', { name: 'diagram' })
+    expect(image.getAttribute('src')).toBe('vscode-resource:assets/proof.png')
+    expect(resolveImage).toHaveBeenCalledWith('assets/proof.png')
+  })
+
   it('renders a localization error instead of throwing for malformed content', () => {
     const markdown: I18n<string, string> = {
       type: 'i18n',

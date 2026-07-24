@@ -2,5 +2,6 @@
 .snl-markdown-body > *:last-child { margin-bottom: 0; }
 .snl-markdown-body pre { overflow-x: auto; padding: .5em .7em; background: rgba(127,127,127,.1); }
 .snl-markdown-body table { border-collapse: collapse; }
+.snl-markdown-body img { display: block; max-width: 100%; height: auto; }
 .snl-markdown-body th, .snl-markdown-body td { border: 1px solid rgba(127,127,127,.3); padding: .25em .5em; }
 .snl-entry-error { padding: .4rem .6rem; color: #8a1f11; background: #fdecea; border: 1px solid #f5c2c0; }
