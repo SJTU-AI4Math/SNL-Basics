@@ -1,21 +1,22 @@
+import type { TrustContext } from 'katex'
+
 /**
- * KaTeX option defaults required for SNL hover to work.
+ * KaTeX option defaults required for SNL hover and placeholder styling.
  *
- * The render templates emit `\htmlData{name=…,kind=…}{…}`, which powers the
- * whole hover/tooltip feature. KaTeX's own defaults (`strict: 'warn'` +
- * `trust: false`) *silently drop* the `\htmlData` extension, leaving no
- * `data-*` attributes in the DOM and thus no hover. `SnlSyntaxTreeView` merges
- * these defaults in before any consumer overrides so hover works out of the box.
+ * SNL emits `\htmlData` wrappers for hover metadata and `\htmlClass` for
+ * placeholder styling. Keep those two extensions enabled while rejecting URL,
+ * image, id, and inline-style commands from workspace-authored templates.
  *
  * Consumers who call `katex.renderToString` themselves (e.g. custom block
  * renderers) can spread this preset to get the same behavior:
  *
  * ```typescript
- * import { HTMLDATA_KATEX_DEFAULTS } from '@snl-basics/react'
+ * import { HTMLDATA_KATEX_DEFAULTS } from '@sjtu-ai4math/snl-basics'
  * katex.renderToString(latex, { throwOnError: false, ...HTMLDATA_KATEX_DEFAULTS })
  * ```
  */
 export const HTMLDATA_KATEX_DEFAULTS = {
-  trust: true, // permits \htmlData
+  trust: (context: TrustContext) =>
+    context.command === '\\htmlData' || context.command === '\\htmlClass',
   strict: false, // disables the "HTML extension is disabled" warning
 } as const

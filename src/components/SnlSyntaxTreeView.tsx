@@ -24,6 +24,7 @@ import { getBindRef, getSrc, readBindRefFromDom } from '../snl-syntax-tree/bindi
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { tightenHoverBoxes } from '../snl-react-view/tighten-hover-boxes'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { useCtrlPressed } from '../snl-react-view/use-ctrl-pressed'
 import {
   modeBucket,
   nodeDisplay,
@@ -604,6 +605,8 @@ export function SnlSyntaxTreeView({
   )
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
+  const [hasHoverTarget, setHasHoverTarget] = useState(false)
+  const ctrlPressed = useCtrlPressed(hasHoverTarget)
   const prefetchTimerRef = useRef<number | null>(null)
   const showTimerRef = useRef<number | null>(null)
   const hoverMarkedElsRef = useRef<HTMLElement[]>([])
@@ -892,13 +895,19 @@ export function SnlSyntaxTreeView({
 
     if (!hasName) {
       clearHoverMarks()
+      setHasHoverTarget(false)
       setHoverKey('')
       clearHoverTimers()
       setTooltip((prev) => (prev ? { ...prev, visible: false } : null))
       return
     }
 
+    const baseTextColor = window.getComputedStyle(container).color
+    if (baseTextColor) {
+      container.style.setProperty('--snl-base-text-color', baseTextColor)
+    }
     applyHoverHighlight(hasName, container)
+    setHasHoverTarget(true)
     activateHoverTarget(hasName, container, event.clientX, event.clientY, {
       ctrl_key: event.ctrlKey,
       meta_key: event.metaKey,
@@ -909,6 +918,7 @@ export function SnlSyntaxTreeView({
 
   const handleKaTeXMouseLeave = () => {
     clearHoverMarks()
+    setHasHoverTarget(false)
     setHoverKey('')
     clearHoverTimers()
     setTooltip((prev) => (prev ? { ...prev, visible: false } : null))
@@ -1060,6 +1070,7 @@ export function SnlSyntaxTreeView({
         key={isKatexRoot ? 'katex' : 'react'}
         ref={containerRef}
         className="katex-html"
+        style={{ cursor: ctrlPressed && hasHoverTarget ? 'pointer' : undefined }}
         onMouseMove={handleKaTeXMouseMove}
         onMouseLeave={handleKaTeXMouseLeave}
         onClick={handleClick}

@@ -29,7 +29,7 @@ import {
   read_localized,
   type I18n,
   type ReaderM,
-} from '@snl-basics/react'
+} from '@sjtu-ai4math/snl-basics'
 
 interface Preferences {
   language: 'en' | 'zh-CN'

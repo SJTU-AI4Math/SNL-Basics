@@ -1,4 +1,4 @@
-/** Tree-shakeable `@snl-basics/react/entry` Entry rendering route. */
+/** Tree-shakeable `@sjtu-ai4math/snl-basics/entry` Entry rendering route. */
 export {
   EntryDataDriver,
   read_entry_content,
@@ -26,4 +26,15 @@ export {
 } from './entry-render'
 export { MarkdownBody, type MarkdownBodyProps } from './markdown-body'
 export { LatexBody, type LatexBodyProps } from './latex-body'
+export { MacroDataDriver, type MacroDataDriverOptions, type MacroQueryArgs, type MacroDataQueries } from '../snl-macro/macro-data-driver'
+export {
+  SnlInteractionDriver,
+  type SnlInteractionContext,
+  type SnlInteractionDriverOptions,
+  type InteractionCallback,
+  type LeaveCallback,
+  type TreePath,
+} from '../snl-react-view/interaction-driver'
+export type { SnlRenderHooks } from '../snl-react-view/hooks'
+export type { KindPalette } from '../snl-react-view/kind-palette'
 export { extractExportedBinders, applyContextSource, resolveEntryContextSources } from './context-source'

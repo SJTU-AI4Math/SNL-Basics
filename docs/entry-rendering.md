@@ -1,4 +1,4 @@
-# Generic Entry rendering (`@snl-basics/react/entry`)
+# Generic Entry rendering (`@sjtu-ai4math/snl-basics/entry`)
 
 The optional `/entry` subpath renders complete query-backed Entries without owning
 a database, filesystem, pointer resolver, or host message protocol. It is kept out
@@ -8,14 +8,14 @@ Markdown pipeline.
 ## Setup
 
 ```tsx
-import { MacroDataDriver, ReaderRuntime } from '@snl-basics/react'
+import { MacroDataDriver, ReaderRuntime } from '@sjtu-ai4math/snl-basics'
 import {
   EntryDataDriver,
   EntryPreviewProvider,
   EntryView,
-} from '@snl-basics/react/entry'
-import '@snl-basics/react/style.css'
-import '@snl-basics/react/entry/style.css'
+} from '@sjtu-ai4math/snl-basics/entry'
+import '@sjtu-ai4math/snl-basics/style.css'
+import '@sjtu-ai4math/snl-basics/entry/style.css'
 import 'katex/dist/katex.min.css'
 
 const entries = new EntryDataDriver({

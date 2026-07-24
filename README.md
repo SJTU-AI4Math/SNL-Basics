@@ -11,10 +11,13 @@ Design goals: **simple, clear interfaces · highly modular · deeply customizabl
 Every interaction (tooltip, hover highlight, source resolution, block rendering)
 is overridable through a single `hooks` prop.
 
+> **Beta:** all `0.x` releases are beta releases and may contain breaking API
+> changes. The first stable release will be `1.0.0`.
+
 ## Install
 
 ```bash
-npm i @snl-basics/react katex react react-dom
+npm i @sjtu-ai4math/snl-basics katex react react-dom
 ```
 
 `react`, `react-dom`, and `katex` are **peerDependencies** — the library never
@@ -24,7 +27,7 @@ Import the stylesheets once (KaTeX + the SNL hover/block styles):
 
 ```ts
 import 'katex/dist/katex.min.css'
-import '@snl-basics/react/style.css'
+import '@sjtu-ai4math/snl-basics/style.css'
 ```
 
 ## 5-minute quickstart
@@ -33,7 +36,7 @@ Create a query-only `MacroDataDriver`, parse an expression, and render:
 
 ```tsx
 import 'katex/dist/katex.min.css'
-import '@snl-basics/react/style.css'
+import '@sjtu-ai4math/snl-basics/style.css'
 
 import { useMemo } from 'react'
 import {
@@ -42,7 +45,7 @@ import {
   parseSnlSyntaxTree,
   annotateBindings,
   type SnlSyntaxTree,
-} from '@snl-basics/react'
+} from '@sjtu-ai4math/snl-basics'
 
 // Your macro definitions (or fetch from a server/file)
 import macroDb from './my-macros.json'
@@ -81,7 +84,7 @@ export function Demo() {
 For async/remote backends, implement `MacroDataQueries` directly:
 
 ```tsx
-import { MacroDataDriver } from '@snl-basics/react'
+import { MacroDataDriver } from '@sjtu-ai4math/snl-basics'
 
 const driver = new MacroDataDriver({
   queries: {
@@ -96,12 +99,12 @@ const driver = new MacroDataDriver({
 ## Optional complete Entry renderer
 
 Complete Entry cards are available only from the tree-shakeable
-`@snl-basics/react/entry` subpath. The package root does not import its Markdown
+`@sjtu-ai4math/snl-basics/entry` subpath. The package root does not import its Markdown
 dependencies.
 
 ```tsx
-import { EntryDataDriver, EntryPreviewProvider, EntryView } from '@snl-basics/react/entry'
-import '@snl-basics/react/entry/style.css'
+import { EntryDataDriver, EntryPreviewProvider, EntryView } from '@sjtu-ai4math/snl-basics/entry'
+import '@sjtu-ai4math/snl-basics/entry/style.css'
 
 const entries = new EntryDataDriver({
   queries: {
@@ -120,20 +123,23 @@ handles empty/error cards and title math, queries context-bound sources, and
 supports recursive macro-source previews. Storage, pointers, and host actions
 remain injected adapters. See [Generic Entry rendering](docs/entry-rendering.md).
 
-### KaTeX options — hover requires `trust: true` / `strict: false` ⚠️
+### KaTeX options — command-scoped trust policy
 
-**`SnlSyntaxTreeView` merges `{ trust: true, strict: false }` into
-`katexOptions` by default so `\htmlData` (which powers hover) survives.**
-Override at your own risk — passing `trust: false` will silently break hover
-(KaTeX drops the `\htmlData` extension and no `data-*` attributes reach the
-DOM, so `onHover` never fires).
+`SnlSyntaxTreeView` uses a KaTeX trust callback that permits only `\htmlData`
+(hover metadata) and `\htmlClass` (placeholder styling). URL, image, element-ID,
+and inline-style commands remain rejected, including `\href`, `\url`,
+`\includegraphics`, `\htmlId`, and `\htmlStyle`.
+
+Passing `trust: false` disables the required HTML extensions and silently breaks
+hover. Passing `trust: true` replaces the command-scoped policy and enables all
+KaTeX trust-gated commands, so do that only for fully trusted input.
 
 If you call `katex.renderToString` directly for a custom block renderer, import
 and spread the same preset so your output keeps the hover hooks:
 
 ```tsx
 import katex from 'katex'
-import { HTMLDATA_KATEX_DEFAULTS } from '@snl-basics/react'
+import { HTMLDATA_KATEX_DEFAULTS } from '@sjtu-ai4math/snl-basics'
 
 katex.renderToString(latex, { throwOnError: false, ...HTMLDATA_KATEX_DEFAULTS })
 ```
@@ -141,17 +147,17 @@ katex.renderToString(latex, { throwOnError: false, ...HTMLDATA_KATEX_DEFAULTS })
 ## Offline / bundled usage (VS Code, Electron, Node)
 
 No network required — load a macro JSON file and create a driver from it.
-The bundled `public/snl-macro-db.json` ships with the package:
+The bundled macro database ships through the `./snl-macro-db.json` export:
 
 ```tsx
 import {
   MacroDataDriver,
   parseSnlSyntaxTree,
   SnlSyntaxTreeView,
-} from '@snl-basics/react'
+} from '@sjtu-ai4math/snl-basics'
 import 'katex/dist/katex.min.css'
-import '@snl-basics/react/style.css'
-import macroDb from '../public/snl-macro-db.json'
+import '@sjtu-ai4math/snl-basics/style.css'
+import macroDb from '@sjtu-ai4math/snl-basics/snl-macro-db.json'
 
 const driver = new MacroDataDriver({
   queries: {
@@ -168,7 +174,7 @@ const tree = parseSnlSyntaxTree('FOL.implies(a, b)')
 
 ## Bundling (Vite / webpack)
 
-`@snl-basics/react` lists `react` and `react-dom` as **peerDependencies** (never
+`@sjtu-ai4math/snl-basics` lists `react` and `react-dom` as **peerDependencies** (never
 `dependencies`), so it never carries its own nested React. If your bundler still
 duplicates React (you'll see **"Invalid hook call"** at runtime), dedupe it:
 
@@ -302,7 +308,7 @@ so hover interactions work with zero boilerplate.
 highlighting:
 
 ```tsx
-import { defaultRenderHooks, type SnlRenderHooks } from '@snl-basics/react'
+import { defaultRenderHooks, type SnlRenderHooks } from '@sjtu-ai4math/snl-basics'
 
 const hooks: SnlRenderHooks = { ...defaultRenderHooks, renderTooltip: () => null }
 ```
@@ -314,7 +320,7 @@ return a `SnlResolvedSource` or `null`. The `source` arg is the exported
 `SnlMacroSource` (`{ entries: string[]; urls: string[] }`):
 
 ```tsx
-import { defaultRenderHooks, type SnlRenderHooks } from '@snl-basics/react'
+import { defaultRenderHooks, type SnlRenderHooks } from '@sjtu-ai4math/snl-basics'
 
 const entryPool: Record<string, { title: string; url?: string }> = {
   'add-def': { title: 'Addition', url: 'https://example/add' },
@@ -339,7 +345,7 @@ const hooks: SnlRenderHooks = {
 messaging:
 
 ```tsx
-import { defaultRenderHooks, type SnlRenderHooks } from '@snl-basics/react'
+import { defaultRenderHooks, type SnlRenderHooks } from '@sjtu-ai4math/snl-basics'
 
 const hooks: SnlRenderHooks = {
   ...defaultRenderHooks,
@@ -355,7 +361,7 @@ Register a renderer keyed by the resolved style's `block_template_name`. Spread
 `defaultRenderers` to keep the built-in `list` / `table` / `centered` renderers:
 
 ```tsx
-import { defaultRenderers, type SnlBlockRenderer } from '@snl-basics/react'
+import { defaultRenderers, type SnlBlockRenderer } from '@sjtu-ai4math/snl-basics'
 
 // Macro DB entry (v7 shape):
 // { name: 'MyCallout', dynamic_arity: true,
@@ -392,7 +398,7 @@ The full public surface is the grouped barrel in
 TypeScript declarations for every export — props, hooks, types, and the
 `MacroDataDriver` class — are published at
 [`dist-lib/index.d.ts`](dist-lib/index.d.ts) and are what your editor resolves
-on `import type { … } from '@snl-basics/react'`.
+on `import type { … } from '@sjtu-ai4math/snl-basics'`.
 
 ## Development
 
@@ -402,3 +408,7 @@ npm run build:lib   # emits dist-lib/ (JS + types + style.css + core macro DB)
 npm test            # vitest
 npm run dev         # interactive demo (src/App.tsx)
 ```
+
+## License
+
+SNL-Basics is released under the [MIT License](LICENSE).

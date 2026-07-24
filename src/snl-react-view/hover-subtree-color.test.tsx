@@ -44,11 +44,12 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
     expect(addEl.querySelector('[data-kind="fvar"]')).not.toBeNull()
   })
 
-  it('stylesheet: nested kinds keep original color; hover accent is palette-driven (not static)', () => {
-    // Nested subtrees inside the hovered element restore their ORIGINAL
-    // (un-hovered, black) color — via `color: initial` (was `revert` in R3).
-    expect(css).toMatch(/\.katex-html \.snl-single-hover \[data-kind\]\s*\{\s*color:\s*initial;?\s*\}/)
-    // The per-kind hover color moved out of the static stylesheet into injected
+  it('stylesheet: nested kinds restore the captured base color; hover accent is palette-driven', () => {
+    // Nested subtrees must use the same computed text color they had before
+    // their ancestor was highlighted. `initial` is theme-sensitive CanvasText
+    // and turns white under `color-scheme: dark`, even on a light Entry body.
+    expect(css).toMatch(/\.katex-html \.snl-single-hover \[data-kind\]\s*\{\s*color:\s*var\(--snl-base-text-color\);?\s*\}/)
+    expect(css).not.toMatch(/\.snl-single-hover \[data-kind\][^{]*\{[^}]*color:\s*(initial|revert)/)
     // palette CSS — style.css must no longer hardcode the accent on hover.
     expect(css).not.toMatch(/\.snl-single-hover\s*\{[^}]*color:\s*var\(--snl-c-hover-accent\)/)
     // Every hovered element (kind-in-palette or not) gets a visible default

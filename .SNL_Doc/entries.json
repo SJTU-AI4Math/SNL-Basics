@@ -4,14 +4,14 @@
     "kind": "npm-package",
     "title": "SNL Basics React Package",
     "content": {
-      "snl": "%The npm distribution unit for SNL-Basics, version 0.10.0 (currently private=true). It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, and the macro DB. It contains three source modules: snl-syntax-tree, snl-macro, and snl-react-view. The package.json#files allowlist restricts the tarball to the contents of dist-lib/, approximately 29 kB.%",
-      "markdown": "The npm distribution unit for SNL-Basics, version 0.10.0 (currently `private=true`). It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, and the macro DB. It contains three source modules: snl-syntax-tree, snl-macro, and snl-react-view. The `package.json#files` allowlist restricts the tarball to the contents of `dist-lib/`, approximately 29 kB."
+      "snl": "%The npm distribution unit for SNL-Basics, reset to version 0.1.0 for its first public beta series. It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, complete Entry rendering, and the bundled macro database. The package remains private during release preparation; private is removed only immediately before the first publish. The package.json#files allowlist restricts the tarball to dist-lib plus npm-mandated metadata.%",
+      "markdown": "The npm distribution unit for SNL-Basics, reset to version `0.1.0` for its first public beta series. It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, complete Entry rendering, and the bundled macro database. The package remains `private` during release preparation; `private` is removed only immediately before the first publish. The `package.json#files` allowlist restricts the tarball to `dist-lib` plus npm-mandated metadata."
     },
     "contribution_info": null,
     "pointer": {
       "file": "package.json",
       "mode": "regex",
-      "pattern": "\"name\"\\s*:\\s*\"@snl-basics/react\""
+      "pattern": "\"name\"\\s*:\\s*\"@sjtu-ai4math/snl-basics\""
     }
   },
   {
@@ -56,7 +56,7 @@
     "pointer": {
       "file": "src/snl-react-view/index.ts",
       "mode": "regex",
-      "pattern": "@snl-basics/react"
+      "pattern": "@sjtu-ai4math/snl-basics"
     }
   },
   {
@@ -705,7 +705,7 @@
   {
     "id": "con.surface-a-npm",
     "kind": "concept",
-    "title": "Surface A — @snl-basics/react npm Entry Point",
+    "title": "Surface A — @sjtu-ai4math/snl-basics npm Entry Point",
     "content": {
       "snl": "%The public surface that depends on React and KaTeX. It targets hosts capable of running React, such as VS Code webviews and ordinary frontend applications. Its compiled artifact is dist-lib/index.js, which re-exports from src/snl-react-view/index.ts.%",
       "markdown": "The public surface that depends on React and KaTeX. It targets hosts capable of running React, such as VS Code webviews and ordinary frontend applications. Its compiled artifact is `dist-lib/index.js`, which re-exports from `src/snl-react-view/index.ts`."
@@ -762,8 +762,8 @@
     "kind": "concept",
     "title": "Consumer — SNL-Doc-Extension",
     "content": {
-      "snl": "%References @snl-basics/react through an npm alias. The webview has eight import sites and actually uses approximately 15 symbols.%",
-      "markdown": "References `@snl-basics/react` through an npm alias. The webview has eight import sites and actually uses approximately 15 symbols."
+      "snl": "%References @sjtu-ai4math/snl-basics through an npm alias. The webview has eight import sites and actually uses approximately 15 symbols.%",
+      "markdown": "References `@sjtu-ai4math/snl-basics` through an npm alias. The webview has eight import sites and actually uses approximately 15 symbols."
     },
     "contribution_info": null,
     "pointer": null
@@ -795,8 +795,8 @@
     "kind": "concept",
     "title": "Formalization Decision for Deep-Path Imports (Pending)",
     "content": {
-      "snl": "%Three options exist: (a) retain the deep-path imports unchanged, (b) add the @snl-basics/parser subpath export, or (c) split the package into @snl-basics/core and @snl-basics/react. The short-term preference is (a), and the medium-term preference is (b), depending on the schedule for actually publishing SNL-Basics as a public npm package.%",
-      "markdown": "Three options exist: (a) retain the deep-path imports unchanged, (b) add the `@snl-basics/parser` subpath export, or (c) split the package into `@snl-basics/core` and `@snl-basics/react`. The short-term preference is (a), and the medium-term preference is (b), depending on the schedule for actually publishing SNL-Basics as a public npm package."
+      "snl": "%Three options exist: (a) retain the deep-path imports unchanged, (b) add the @snl-basics/parser subpath export, or (c) split the package into @snl-basics/core and @sjtu-ai4math/snl-basics. The short-term preference is (a), and the medium-term preference is (b), depending on the schedule for actually publishing SNL-Basics as a public npm package.%",
+      "markdown": "Three options exist: (a) retain the deep-path imports unchanged, (b) add the `@snl-basics/parser` subpath export, or (c) split the package into `@snl-basics/core` and `@sjtu-ai4math/snl-basics`. The short-term preference is (a), and the medium-term preference is (b), depending on the schedule for actually publishing SNL-Basics as a public npm package."
     },
     "contribution_info": null,
     "pointer": null
@@ -1950,8 +1950,8 @@
     "kind": "npm-package",
     "title": "Overall Info",
     "content": {
-      "snl": "%The @snl-basics/react npm package: its package-root public API, SNL syntax-tree parser, React/KaTeX renderer, and macro database surface.%",
-      "markdown": "The @snl-basics/react npm package: its package-root public API, SNL syntax-tree parser, React/KaTeX renderer, and macro database surface."
+      "snl": "%The @sjtu-ai4math/snl-basics npm package: its package-root public API, SNL syntax-tree parser, React/KaTeX renderer, and macro database surface.%",
+      "markdown": "The @sjtu-ai4math/snl-basics npm package: its package-root public API, SNL syntax-tree parser, React/KaTeX renderer, and macro database surface."
     },
     "contribution_info": null,
     "pointer": null
@@ -3720,7 +3720,7 @@
     "kind": "module",
     "title": "Generic Entry React Module",
     "content": {
-      "markdown": "The tree-shakeable `@snl-basics/react/entry` route. It renders complete query-backed Entry cards while keeping Markdown dependencies outside the package-root import graph."
+      "markdown": "The tree-shakeable `@sjtu-ai4math/snl-basics/entry` route. It renders complete query-backed Entry cards while keeping Markdown dependencies outside the package-root import graph."
     },
     "pointer": {
       "file": "src/entry-react/index.ts",

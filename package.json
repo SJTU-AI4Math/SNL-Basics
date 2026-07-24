@@ -1,8 +1,27 @@
 {
-  "name": "@snl-basics/react",
+  "name": "@sjtu-ai4math/snl-basics",
   "private": true,
-  "version": "0.10.0",
+  "version": "0.1.0",
+  "license": "MIT",
   "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
+  "keywords": [
+    "structured-natural-language",
+    "snl",
+    "react",
+    "katex",
+    "mathematics"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SJTU-AI4Math/SNL-Basics.git"
+  },
+  "homepage": "https://github.com/SJTU-AI4Math/SNL-Basics#readme",
+  "bugs": {
+    "url": "https://github.com/SJTU-AI4Math/SNL-Basics/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"
@@ -51,13 +70,15 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
     "jsdom": "^29.1.1",
+    "katex": "^0.16.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "typescript": "~5.9.3",
     "vite": "^8.0.1",
     "vite-plugin-dts": "^4.5.0",
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "katex": "^0.16.0",
     "react-markdown": "^10.1.0",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",

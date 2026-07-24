@@ -85,15 +85,13 @@
   border-radius: 5px;
 }
 
-/* Nested subtrees inside a hovered element must keep their ORIGINAL
-   (un-hovered) color — which is the KaTeX/UA default, since we no longer
-   set a base color per kind. `color: initial` forces the UA initial value
-   (canvastext / black) and cannot be pierced by the parent's inherited
-   hover color. Kept per-`[data-kind]` so plain text inside the hover
-   frame still takes the frame's color (e.g. the `Im` and `(` `)` in
-   `Im(#0)` change color, but the wrapped subtree at `#0` doesn't). */
+/* Nested subtrees inside a hovered element keep the computed text color from
+   the render container. Do not use `initial`/`revert`: under an explicit dark
+   `color-scheme` those resolve to a light CanvasText even when the Entry body
+   itself is intentionally dark-on-light. SnlSyntaxTreeView captures the
+   pre-hover computed color in `--snl-base-text-color` before applying marks. */
 .katex-html .snl-single-hover [data-kind] {
-  color: initial;
+  color: var(--snl-base-text-color);
 }
 
 /* Block renderers (list / table / centered) — see block-renderers.tsx */

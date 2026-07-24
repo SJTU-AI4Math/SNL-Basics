@@ -1,9 +1,9 @@
-# `@snl-basics/react` — Public API Reference
+# `@sjtu-ai4math/snl-basics` — Public API Reference
 
-Current stable surface for v0.10.0. Import from the package root:
+Current beta surface for v0.1.0. Import from the package root:
 
 ```ts
-import { MacroDataDriver, SnlSyntaxTreeView } from '@snl-basics/react'
+import { MacroDataDriver, SnlSyntaxTreeView } from '@sjtu-ai4math/snl-basics'
 ```
 
 ## Data model
@@ -182,7 +182,7 @@ file for their exact signatures.
 Import the required styles once:
 
 ```ts
-import '@snl-basics/react/style.css'
+import '@sjtu-ai4math/snl-basics/style.css'
 import 'katex/dist/katex.min.css'
 ```
 
@@ -197,8 +197,8 @@ import {
   EntryView,
   EntryPreviewProvider,
   resolveEntryContextSources,
-} from '@snl-basics/react/entry'
-import '@snl-basics/react/entry/style.css'
+} from '@sjtu-ai4math/snl-basics/entry'
+import '@sjtu-ai4math/snl-basics/entry/style.css'
 ```
 
 `EntryDataDriver` accepts only `query_entry` and `query_entry_kind` functions.

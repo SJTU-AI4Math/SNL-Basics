@@ -78,6 +78,50 @@ describe('data-tree-path DOM attribute', () => {
 })
 
 describe('SnlInteractionDriver integration', () => {
+  it('uses a pointer cursor only while Ctrl is held over a highlighted subtree', async () => {
+    const tree = createSnlSyntaxTreeNode('sum', {
+      children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')],
+    })
+    const { container } = render(
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} />,
+    )
+    const target = await waitFor(() => {
+      const found = container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const interactionSurface = container.querySelector<HTMLElement>('.katex-html')!
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', {
+      configurable: true,
+      value: () => [target],
+    })
+    try {
+      interactionSurface.style.color = '#111111'
+      fireEvent.mouseMove(target, { clientX: 20, clientY: 30 })
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+      const baseColor = interactionSurface.style.getPropertyValue('--snl-base-text-color')
+      expect(baseColor).not.toBe('')
+      expect(baseColor).toBe(window.getComputedStyle(interactionSurface).color)
+      expect(interactionSurface.style.cursor).not.toBe('pointer')
+
+      fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })
+      expect(interactionSurface.style.cursor).toBe('pointer')
+
+      fireEvent.keyUp(window, { key: 'Control' })
+      expect(interactionSurface.style.cursor).not.toBe('pointer')
+
+      fireEvent.mouseLeave(interactionSurface)
+      fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })
+      expect(interactionSurface.style.cursor).not.toBe('pointer')
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', {
+        configurable: true,
+        value: original,
+      })
+    }
+  })
+
   it('hover dispatch receives the actual node and tree path', async () => {
     const hovers: SnlInteractionContext[] = []
     const tree = createSnlSyntaxTreeNode('sum', {

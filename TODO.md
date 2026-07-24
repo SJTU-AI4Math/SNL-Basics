@@ -4,7 +4,7 @@
 > `bundledMacroDb`，为下游提供无法省略的内置宏。
 >
 > 普通项目宏、业务宏与 demo 宏仍属于 downstream macro packages，
-> 不应进入 Bundled DB 或 `@snl-basics/react` 的公开 API。
+> 不应进入 Bundled DB 或 `@sjtu-ai4math/snl-basics` 的公开 API。
 
 ## 已确认的边界
 

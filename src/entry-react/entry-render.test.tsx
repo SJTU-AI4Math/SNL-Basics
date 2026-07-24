@@ -29,6 +29,27 @@ describe('Entry surface dispatch', () => {
     expect(view.container.querySelector('.snl-markdown-body strong')?.textContent).toBe('群')
   })
 
+  it('rewrites Markdown image sources through the consumer image resolver', () => {
+    const resolveImage = vi.fn((src: string) => `vscode-resource:${src}`)
+    const view = render(<EntrySurface entry={base({ markdown: '![diagram](assets/proof.png)' })} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} markdown_image_url_transform={resolveImage} />)
+    const image = view.getByRole('img', { name: 'diagram' })
+    expect(image.getAttribute('src')).toBe('vscode-resource:assets/proof.png')
+    expect(resolveImage).toHaveBeenCalledWith('assets/proof.png')
+  })
+
+  it('renders a localization error instead of throwing for malformed content', () => {
+    const markdown: I18n<string, string> = {
+      type: 'i18n',
+      default_language: 'en',
+      values: {},
+    }
+    const runtime = new ReaderRuntime({
+      queries: { query_environment: () => ({ language: 'en' }) },
+    })
+    const view = render(<EntrySurface entry={base({ markdown })} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} reader_runtime={runtime} />)
+    expect(view.getByRole('alert').textContent).toMatch(/localization error.*no values/i)
+  })
+
   it('uses SNL > Markdown > LaTeX > text priority', async () => {
     const view = render(<EntrySurface entry={base({ snl: '%SNL wins%', markdown: '**Markdown**', latex: 'L', text: 'T' })} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
     await waitFor(() => expect(view.container.textContent).toContain('SNL wins'))
@@ -50,6 +71,24 @@ describe('Entry surface dispatch', () => {
     expect(source).toHaveBeenCalledWith(base({}, { pointer: { downstream: true } }).pointer, 'e', expect.anything())
   })
 
+  it('only shows title activation affordances while Ctrl is held over the title', () => {
+    const view = render(<EntrySurface entry={base({})} kind={{ id: 'definition', name: 'Definition', coloring: { stroke: '#123456', background: '#eeeeee' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} interaction_ports={{ on_title_activate: vi.fn() }} />)
+    const section = view.container.querySelector('section')!
+    const title = view.container.querySelector('strong')!
+
+    fireEvent.mouseEnter(title)
+    expect((title as HTMLElement).style.cursor).not.toBe('pointer')
+    expect((section as HTMLElement).style.background).toBe('rgb(238, 238, 238)')
+
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })
+    expect((title as HTMLElement).style.cursor).toBe('pointer')
+    expect((section as HTMLElement).style.background).toBe('rgb(243, 244, 246)')
+
+    fireEvent.keyUp(window, { key: 'Control' })
+    expect((title as HTMLElement).style.cursor).not.toBe('pointer')
+    expect((section as HTMLElement).style.background).toBe('rgb(238, 238, 238)')
+  })
+
   it('shows parse errors and original SNL source', () => {
     const view = render(<EntrySurface entry={base({ snl: '{broken' })} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
     expect(view.container.textContent).toMatch(/SNL parse error/i)
@@ -61,9 +100,10 @@ describe('Entry surface dispatch', () => {
     expect(titleToKatexSource(String.raw`cost \$5 $$ raw $x$`)).toContain(String.raw`\text{cost \$5 \$\$ raw }x`)
     expect(titleToKatexSource('unbalanced $x')).toContain(String.raw`\text{unbalanced \$x}`)
     expect(titleToKatexSource('A&B_{x}')).toBe(String.raw`\text{A\&B\_\{x\}}`)
-    const view = render(<EntrySurface entry={base({})} kind={{ id: 'definition', name: 'Definition', coloring: { stroke: '#123456', background: '#eeeeee' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} counter_label="1.2" />)
+    const view = render(<EntrySurface entry={base({ text: 'body' })} kind={{ id: 'definition', name: 'Definition', coloring: { stroke: '#123456', background: '#eeeeee' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} counter_label="1.2" />)
     const section = view.container.querySelector('section')!
     expect(section.getAttribute('style')).toContain('rgb(18, 52, 86)')
+    expect(view.container.querySelector('[data-entry-body]')?.getAttribute('style')).toContain('color: rgb(17, 17, 17)')
     expect(view.container.textContent).toContain('Definition 1.2')
     expect(view.container.querySelector('.katex')).not.toBeNull()
   })
@@ -75,10 +115,33 @@ describe('Entry surface dispatch', () => {
     expect(view.container.querySelector('section')?.getAttribute('style')).toContain('transparent')
   })
 
+  it('preserves neutral and theme-aware Entry color fallbacks', () => {
+    const neutral = render(<EntrySurface entry={base({})} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
+    expect(neutral.container.querySelector('section')?.getAttribute('style')).toContain('rgb(238, 238, 238)')
+    neutral.unmount()
+
+    const themed = render(<EntrySurface entry={base({})} kind={{ id: 'custom', name: 'Custom', coloring: { stroke: '', background: '' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
+    const style = themed.container.querySelector('section')?.getAttribute('style') ?? ''
+    expect(style).toContain('var(--vscode-editor-foreground, #ddd)')
+    expect(style).toContain('background: transparent')
+  })
+
   it('resolves context-bound variables through EntryDataDriver before rendering SNL', async () => {
     const entries = dataDriver({ ctx: base({ snl: '@x' }, { id: 'ctx', kind: 'context' }) })
     const view = render(<EntrySurface entry={base({ snl: 'x@ctx' })} kind={null} entry_data_driver={entries} macro_data_driver={macroDriver} />)
     await waitFor(() => expect(view.container.querySelector('[data-kind="bvar"]')).not.toBeNull())
+  })
+
+  it('removes stale context annotations when the EntryDataDriver changes', async () => {
+    const sourceEntry = base({ snl: 'x@ctx' })
+    const declaring = dataDriver({ ctx: base({ snl: '@x' }, { id: 'ctx', kind: 'context' }) })
+    const view = render(<EntrySurface entry={sourceEntry} kind={null} entry_data_driver={declaring} macro_data_driver={macroDriver} />)
+    await waitFor(() => expect(view.container.querySelector('[data-kind="bvar"]')).not.toBeNull())
+
+    const noLongerDeclaring = dataDriver({ ctx: base({ snl: '@y' }, { id: 'ctx', kind: 'context' }) })
+    view.rerender(<EntrySurface entry={sourceEntry} kind={null} entry_data_driver={noLongerDeclaring} macro_data_driver={macroDriver} />)
+    await waitFor(() => expect(view.container.querySelector('[data-kind="fvar"]')).not.toBeNull())
+    expect(view.container.querySelector('[data-kind="bvar"]')).toBeNull()
   })
 })
 
