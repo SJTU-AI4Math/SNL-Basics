@@ -29,7 +29,7 @@ source-tree renames are performed with `git mv` to preserve per-file history.
     `OperatorTreeKaTeXView` → `SnlSyntaxTreeView`) + import-path updates only.
   - Commit 3: identifier rename (`Operator*`/`OperatorTree` →
     `SnlMacro*`/`SnlSyntaxTree`), package name (`@fulcrum-smarterm/operator-katex`
-    → `@snl-basics/react`), CSS class rename (`.katex-*` custom classes →
+    → `@sjtu-ai4math/snl-basics`), CSS class rename (`.katex-*` custom classes →
     `.snl-*`), data-file rename (`katex-template-db.json` → `snl-macro-db.json`),
     and the `contantSubtree` → `constantSubtree` typo fix.
 - **Phase 3 (later):** removal of the `[style]` parser DSL. Not part of this
@@ -131,10 +131,10 @@ Idempotent — skips documents already in v7 shape.
 ### Consumer upgrade path
 
 ```diff
-- import { createMacroTemplateQueryFromDb, bundledMacroDb, SnlSyntaxTreeView } from '@snl-basics/react'
+- import { createMacroTemplateQueryFromDb, bundledMacroDb, SnlSyntaxTreeView } from '@sjtu-ai4math/snl-basics'
 - const query = createMacroTemplateQueryFromDb(bundledMacroDb)
 - <SnlSyntaxTreeView tree={tree} query={query} macroDb={bundledMacroDb} />
-+ import { MacroDataDriver, SnlSyntaxTreeView } from '@snl-basics/react'
++ import { MacroDataDriver, SnlSyntaxTreeView } from '@sjtu-ai4math/snl-basics'
 + import macroDb from './path/to/snl-macro-db.json'
 + const driver = new MacroDataDriver({
 +   queries: { query_macro: async ({ macro_name }) => macroDb[macro_name] ?? null },

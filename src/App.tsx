@@ -152,7 +152,7 @@ export default function App() {
           <SnlSyntaxTreeView
             tree={tree}
             macro_data_driver={driver}
-            katexOptions={{ displayMode: true, trust: true }}
+            katexOptions={{ displayMode: true }}
             onResolved={setLatexSource}
           />
         </div>

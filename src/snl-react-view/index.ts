@@ -1,10 +1,10 @@
 /**
- * `@snl-basics/react` — Structured Natural Language (SNL) base library.
+ * `@sjtu-ai4math/snl-basics` — Structured Natural Language (SNL) base library.
  *
  * Parse a macro DSL to syntax trees and render them to KaTeX-in-React with hover
  * interactions. v0.10.0: single MacroDataDriver backend, injectable interaction.
  *
- * Styles: `import '@snl-basics/react/style.css'` and `import 'katex/dist/katex.min.css'`.
+ * Styles: `import '@sjtu-ai4math/snl-basics/style.css'` and `import 'katex/dist/katex.min.css'`.
  */
 
 // === Runtime environment / ReaderM ===

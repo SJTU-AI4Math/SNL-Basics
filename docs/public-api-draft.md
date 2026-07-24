@@ -1,6 +1,6 @@
 # SNL-Basics 对外接口 — Phase 1 起稿 (v2)
 
-> **状态**: Phase 1 (起稿). 目的是把 npm 包 `@snl-basics/react` 的对外表面**逐条落成 entry 清单**, 交付物是一张能直接喂给 Phase 2 (术语化) + Phase 3 (条目预制) 的施工蓝图.
+> **状态**: Phase 1 (起稿). 目的是把 npm 包 `@sjtu-ai4math/snl-basics` 的对外表面**逐条落成 entry 清单**, 交付物是一张能直接喂给 Phase 2 (术语化) + Phase 3 (条目预制) 的施工蓝图.
 >
 > **起稿 = 清单**: 每一行就是未来一个 entry, 明确 `id / kind / title / 父 entry`. 内容 (content.snl) Phase 3 才填. **散文性讨论**在本稿一律砍掉, 转成 `Concept` kind 的 entry (占位, 内容 Phase 3 写).
 
@@ -167,7 +167,7 @@ react-view 自己的 functions:
 
 | id | kind | title |
 |---|---|---|
-| `concepts.concept.surface-a-npm` | Concept | Surface A — `@snl-basics/react` npm 入口 |
+| `concepts.concept.surface-a-npm` | Concept | Surface A — `@sjtu-ai4math/snl-basics` npm 入口 |
 | `concepts.concept.surface-b-deep-path` | Concept | Surface B — Toolkit 深路径 (parser-only) |
 | `concepts.concept.stability-stable` | Concept | 稳定级别 — Stable |
 | `concepts.concept.stability-experimental` | Concept | 稳定级别 — Experimental |

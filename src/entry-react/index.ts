@@ -1,4 +1,4 @@
-/** Tree-shakeable `@snl-basics/react/entry` Entry rendering route. */
+/** Tree-shakeable `@sjtu-ai4math/snl-basics/entry` Entry rendering route. */
 export {
   EntryDataDriver,
   read_entry_content,
