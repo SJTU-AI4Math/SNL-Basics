@@ -31,7 +31,7 @@ import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { getBindRef, getSrc } from '../snl-syntax-tree/binding'
 import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
-import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { isEmptySnlSyntaxTreeNode, type SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { encodeTreePath, type TreePath } from './interaction-driver'
 
 /**
@@ -208,6 +208,19 @@ export async function resolveNodeLatex(
   signal?: AbortSignal,
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
 ): Promise<string> {
+  // An unfilled argument slot renders as the same numbered placeholder the
+  // Create Macro preview uses, indexed by its position in the parent's
+  // argument list. Cat 2026-07-25. It never reaches the macro backend —
+  // there is no macro named ''.
+  if (isEmptySnlSyntaxTreeNode(node)) {
+    const slotIndex = treePath.length > 0 ? treePath[treePath.length - 1] : 0
+    return wrapHtmlData(
+      node,
+      `\\mathord{\\htmlClass{snlArgPlaceholder}{${slotIndex}}}`,
+      null,
+      treePath,
+    )
+  }
   const macro = node.env_mode ? null : await driver.query_macro({ macro_name: node.macro_name, signal })
   const style = macro ? resolveStyle(node, macro) : undefined
   const hasDbMacro = Boolean(macro)

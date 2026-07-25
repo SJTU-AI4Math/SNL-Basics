@@ -33,7 +33,12 @@ export type {
   SnlTextMacroStyle,
 } from '../snl-macro/types'
 export type { SnlSyntaxTree } from '../snl-syntax-tree/types'
-export { createSnlSyntaxTreeNode, isSnlSyntaxTree } from '../snl-syntax-tree/types'
+export {
+  createEmptySnlSyntaxTreeNode,
+  createSnlSyntaxTreeNode,
+  isEmptySnlSyntaxTreeNode,
+  isSnlSyntaxTree,
+} from '../snl-syntax-tree/types'
 export type {
   SnlSyntaxTreeBase,
   SnlSyntaxTreeFormulaNode,

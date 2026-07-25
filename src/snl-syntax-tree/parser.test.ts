@@ -1,5 +1,6 @@
 import { describe, expect, it, test } from 'vitest'
 import { SnlSyntaxTreeParseError, parseSnlSyntaxTree } from './parser'
+import { isEmptySnlSyntaxTreeNode } from './types'
 
 describe('parseSnlSyntaxTree', () => {
   it('parses nested expression', () => {
@@ -18,8 +19,38 @@ describe('parseSnlSyntaxTree', () => {
   })
 
   it('throws with bad syntax', () => {
-    expect(() => parseSnlSyntaxTree('a.b(c,)')).toThrow(SnlSyntaxTreeParseError)
     expect(() => parseSnlSyntaxTree('a.b(c')).toThrow(SnlSyntaxTreeParseError)
+    expect(() => parseSnlSyntaxTree('a.b(c))')).toThrow(SnlSyntaxTreeParseError)
+  })
+
+  it('parses an unfilled argument slot as an empty node', () => {
+    // Cat 2026-07-25: an author must be able to write "this slot exists but
+    // is not filled yet", so arity keeps matching what is written.
+    const trailing = parseSnlSyntaxTree('a.b(c,)')
+    expect(trailing.children).toHaveLength(2)
+    expect(isEmptySnlSyntaxTreeNode(trailing.children[1])).toBe(true)
+
+    const middle = parseSnlSyntaxTree('f(a,,b)')
+    expect(middle.children.map((child) => child.macro_name)).toEqual(['a', '', 'b'])
+    expect(middle.children.map(isEmptySnlSyntaxTreeNode)).toEqual([false, true, false])
+
+    const bothEmpty = parseSnlSyntaxTree('f(,)')
+    expect(bothEmpty.children).toHaveLength(2)
+    expect(bothEmpty.children.every(isEmptySnlSyntaxTreeNode)).toBe(true)
+  })
+
+  it('keeps f() at zero arguments — an empty slot needs a comma', () => {
+    expect(parseSnlSyntaxTree('f()').children).toEqual([])
+    expect(parseSnlSyntaxTree('f( )').children).toEqual([])
+    expect(parseSnlSyntaxTree('f').children).toEqual([])
+  })
+
+  it('does not treat a delimited empty node as an unfilled slot', () => {
+    // `%%` is an empty TEXT node the author wrote on purpose.
+    const tree = parseSnlSyntaxTree('f(%%)')
+    expect(tree.children[0].macro_name).toBe('')
+    expect(tree.children[0].env_mode).toBe('text')
+    expect(isEmptySnlSyntaxTreeNode(tree.children[0])).toBe(false)
   })
 
   it('parses a [style] bracket without args → sets node.style_name', () => {

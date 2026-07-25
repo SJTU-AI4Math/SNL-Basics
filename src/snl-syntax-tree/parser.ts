@@ -1,5 +1,9 @@
 import { annotateBindings } from './annotate-bind'
-import { createSnlSyntaxTreeNode, type SnlSyntaxTree } from './types'
+import {
+  createEmptySnlSyntaxTreeNode,
+  createSnlSyntaxTreeNode,
+  type SnlSyntaxTree,
+} from './types'
 
 // 2026-07-04-late 猫猫 spec 2 — Parser supports `%`, `$`, `$$`, `@` delimited
 // name-forms in addition to the plain identifier form.
@@ -324,15 +328,31 @@ class Parser {
       return []
     }
 
-    const children: SnlSyntaxTree[] = [this.parseNode()]
+    const children: SnlSyntaxTree[] = [this.parseArgument()]
     while (this.peek().type === 'COMMA') {
       this.consume('COMMA')
-      if (this.peek().type === 'RPAREN') {
-        throw new SnlSyntaxTreeParseError('Trailing comma is not allowed', this.peek().position)
-      }
-      children.push(this.parseNode())
+      children.push(this.parseArgument())
     }
     return children
+  }
+
+  /**
+   * One argument slot. An argument may be EMPTY — `f(,)` is two empty slots,
+   * `f(a,,b)` has an empty middle slot, `f(a,)` has an empty trailing slot.
+   *
+   * Cat 2026-07-25: an author editing a tree needs to say "this slot exists
+   * but I haven't filled it yet" in the surface syntax, so arity keeps
+   * matching what is written. An empty slot parses to the canonical empty
+   * node (`macro_name === ''`, no env_mode), which the renderer draws as the
+   * same numbered placeholder the Create Macro preview uses. `f()` remains
+   * ZERO arguments — the empty-argument form requires at least one comma.
+   */
+  private parseArgument(): SnlSyntaxTree {
+    const next = this.peek().type
+    if (next === 'COMMA' || next === 'RPAREN') {
+      return createEmptySnlSyntaxTreeNode()
+    }
+    return this.parseNode()
   }
 
   private expect(type: TokenType): Token {

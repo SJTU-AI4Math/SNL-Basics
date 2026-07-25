@@ -73,4 +73,41 @@ describe('SnlDslFormatter', () => {
 
     expect(() => formatter.format(source)).not.toThrow()
   })
+
+  it('round trips unfilled argument slots', () => {
+    const formatter = new SnlDslFormatter()
+
+    // Empty slots keep a tight comma so `f(a, , b)` never appears — the
+    // padding would read as though something were there.
+    expect(formatter.format('f(a,,b)')).toBe('f(a,,b)')
+    expect(formatter.format('f(,)')).toBe('f(,)')
+    expect(formatter.format('f(a,)')).toBe('f(a,)')
+    expect(formatter.format('f(,a)')).toBe('f(,a)')
+
+    // Filled neighbours still get the readable gap.
+    expect(formatter.format('f(a,b)')).toBe('f(a, b)')
+    expect(formatter.format('f(a,,b,c)')).toBe('f(a,,b, c)')
+
+    // And formatting is idempotent, so a saved file is stable.
+    expect(formatter.format(formatter.format('f(a,,b,c)'))).toBe('f(a,,b, c)')
+  })
+
+  it('keeps zero-argument and empty-slot forms distinct', () => {
+    const formatter = new SnlDslFormatter()
+
+    expect(formatter.format('f()')).toBe('f')
+    expect(formatter.format('f(,)')).toBe('f(,)')
+  })
+
+  it('expands empty slots in multi-line output', () => {
+    const formatter = new SnlDslFormatter(2, 0)
+
+    expect(formatter.format('root(a,,b)')).toBe([
+      'root(',
+      '  a,',
+      '  ,',
+      '  b',
+      ')',
+    ].join('\n'))
+  })
 })

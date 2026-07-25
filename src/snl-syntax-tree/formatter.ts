@@ -3,6 +3,21 @@ import type { SnlSyntaxTree } from './types'
 
 const MAX_INDENT_SPACES = 256
 
+/**
+ * Join formatted arguments with commas, inserting `gap` only between two
+ * NON-empty arguments. An unfilled slot formats to the empty string, so
+ * `f(a,,b)` must not become `f(a, , b)` — the padding would read as though
+ * something were there. Cat 2026-07-25.
+ */
+function joinArgumentList(formattedArguments: readonly string[], gap: string): string {
+  return formattedArguments.reduce((accumulator, current, index) => {
+    if (index === 0) return current
+    const previous = formattedArguments[index - 1]
+    const separator = previous !== '' && current !== '' ? `,${gap}` : ','
+    return `${accumulator}${separator}${current}`
+  }, '')
+}
+
 /** Pretty-printer for the SNL DSL. */
 export class SnlDslFormatter {
   /** Number of spaces added for each expanded parenthesis level. */
@@ -38,7 +53,10 @@ export class SnlDslFormatter {
 
     if (this.parenthesisDepth(node) <= this.inlineParenthesisDepth) {
       const children = node.children.map((child) => this.formatNode(child, 0))
-      return `${name}(${children.join(', ')})`
+      // An empty slot formats to the empty string, so `f(a,,b)` round trips.
+      // Joining with ', ' would emit `f(a, , b)`; that reparses identically
+      // but reads worse, so empty slots keep a tight comma.
+      return `${name}(${joinArgumentList(children, ' ')})`
     }
 
     const indentation = ' '.repeat(this.indentSpaces * (indentationLevel + 1))

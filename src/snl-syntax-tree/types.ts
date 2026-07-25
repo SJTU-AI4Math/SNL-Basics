@@ -65,6 +65,32 @@ export function createSnlSyntaxTreeNode(
   }
 }
 
+/**
+ * The canonical EMPTY node: an argument slot the author has declared but not
+ * filled in, written as nothing between two commas (`f(a,,b)`).
+ *
+ * It is deliberately indistinguishable from `createSnlSyntaxTreeNode('')` —
+ * "empty" is just the empty name, not a new node species — so every consumer
+ * that already handles nodes generically keeps working. Use
+ * {@link isEmptySnlSyntaxTreeNode} to detect it. Cat 2026-07-25.
+ */
+export function createEmptySnlSyntaxTreeNode(): SnlSyntaxTree {
+  return createSnlSyntaxTreeNode('')
+}
+
+/**
+ * True for an unfilled argument slot: no name, no delimited env_mode (so a
+ * `%%` empty-text node does NOT count), and no children of its own.
+ */
+export function isEmptySnlSyntaxTreeNode(node: SnlSyntaxTree | undefined | null): boolean {
+  return Boolean(
+    node &&
+      node.macro_name === '' &&
+      node.env_mode === undefined &&
+      node.children.length === 0,
+  )
+}
+
 /** Runtime type guard for {@link SnlSyntaxTree}. */
 export function isSnlSyntaxTree(value: unknown): value is SnlSyntaxTree {
   if (!value || typeof value !== 'object') {
