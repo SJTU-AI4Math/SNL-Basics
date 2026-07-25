@@ -313,6 +313,7 @@ class Parser {
 
     if (isBinder) {
       // Recursively mark this node + all descendants as binders.
+      node.binder_explicit = true
       markBinderRecursive(node)
     }
     return node

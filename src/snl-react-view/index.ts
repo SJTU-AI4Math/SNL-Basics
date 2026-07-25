@@ -62,9 +62,10 @@ export {
   type TreePath,
 } from './interaction-driver'
 
-// === Parser ===
+// === Parser / formatter ===
 export { parseSnlSyntaxTree, tryParseSnlSyntaxTree, SnlSyntaxTreeParseError } from './parse'
 export { serializeSnlSyntaxTree } from './serialize'
+export { SnlDslFormatter } from '../snl-syntax-tree/formatter'
 export { annotateBindings } from '../snl-syntax-tree/annotate-bind'
 export {
   analyzeSnlTreeSources,

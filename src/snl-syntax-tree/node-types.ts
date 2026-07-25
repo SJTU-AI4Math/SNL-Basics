@@ -16,6 +16,8 @@ export interface SnlSyntaxTreeBase {
   kind: string
   /** Structural scope marker (e.g. 'binder'), emitted as `data-scope`. */
   scope?: string
+  /** True only when this node had an explicit `@` prefix in the source DSL. */
+  binder_explicit?: boolean
   /** Meta data (bindRef etc). */
   mdata: unknown
   /** Children — semantics depends on mode + macro.arity. */

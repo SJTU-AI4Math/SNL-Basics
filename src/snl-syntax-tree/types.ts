@@ -44,6 +44,8 @@ export interface SnlSyntaxTree {
    * `scope = 'binder'` on quantifier nodes; the view emits `data-scope` from it.
    */
   scope?: string
+  /** True only when this node had an explicit `@` prefix in the source DSL. */
+  binder_explicit?: boolean
   /** Meta data (e.g. `{ bindRef }`) written by binding annotation. */
   mdata: unknown
   /** Child nodes. */

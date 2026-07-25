@@ -43,9 +43,13 @@ function isLegacyQuantifierName(name: string): boolean {
  */
 function collectBinderNames(node: SnlSyntaxTree): string[] {
   const acc: string[] = []
-  if (node.kind === 'binder') acc.push(node.macro_name)
-  for (const child of node.children) {
-    acc.push(...collectBinderNames(child))
+  const pending: SnlSyntaxTree[] = [node]
+  while (pending.length > 0) {
+    const current = pending.pop()!
+    if (current.kind === 'binder') acc.push(current.macro_name)
+    for (let index = current.children.length - 1; index >= 0; index -= 1) {
+      pending.push(current.children[index])
+    }
   }
   return acc
 }
@@ -114,10 +118,13 @@ export function annotateBindings(
       walk(child, localStack)
       const contributed = collectBinderNames(child)
       if (contributed.length > 0) {
+        if (localStack === stack) {
+          localStack = [...stack]
+        }
         // Extend for subsequent siblings only. Every contributed name gets
         // a fresh bindRef stamp (the child's `@` didn't allocate one).
         for (const name of contributed) {
-          localStack = [...localStack, { name, ref: nextRef() }]
+          localStack.push({ name, ref: nextRef() })
         }
       }
     }
