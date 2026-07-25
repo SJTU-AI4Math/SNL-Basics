@@ -324,6 +324,10 @@ class Parser {
   }
 
   private parseNodeList(): SnlSyntaxTree[] {
+    // `f()` stays ZERO arguments — existing documents rely on it. An empty
+    // slot always needs a comma, which means arity 1 with an unfilled slot
+    // has NO surface form; callers must not serialize that shape. See
+    // `canPersistCanvasForest` in SNL-Doc-Extension. Cat 2026-07-25.
     if (this.peek().type === 'RPAREN') {
       return []
     }

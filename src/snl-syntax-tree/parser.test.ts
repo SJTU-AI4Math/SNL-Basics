@@ -40,9 +40,12 @@ describe('parseSnlSyntaxTree', () => {
   })
 
   it('keeps f() at zero arguments — an empty slot needs a comma', () => {
+    // Consequence: arity 1 with an unfilled slot has no surface form, so it
+    // must never be serialized. Guarded by canPersistCanvasForest.
     expect(parseSnlSyntaxTree('f()').children).toEqual([])
     expect(parseSnlSyntaxTree('f( )').children).toEqual([])
     expect(parseSnlSyntaxTree('f').children).toEqual([])
+    expect(parseSnlSyntaxTree('f(,)').children).toHaveLength(2)
   })
 
   it('does not treat a delimited empty node as an unfilled slot', () => {
