@@ -32,6 +32,16 @@
       "import": "./dist-lib/index.js",
       "default": "./dist-lib/index.js"
     },
+    "./runtime": {
+      "types": "./dist-lib/index.d.ts",
+      "import": "./dist-lib/runtime.js",
+      "default": "./dist-lib/runtime.js"
+    },
+    "./core": {
+      "types": "./dist-lib/index.d.ts",
+      "import": "./dist-lib/core.js",
+      "default": "./dist-lib/core.js"
+    },
     "./entry": {
       "types": "./dist-lib/entry.d.ts",
       "import": "./dist-lib/entry.js",
@@ -48,7 +58,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:lib": "vite build --config vite.lib.config.ts && vite build --config vite.entry.config.ts && tsc -p tsconfig.entry.json && node scripts/copy-lib-assets.mjs",
+    "build:lib": "vite build --config vite.lib.config.ts && vite build --config vite.entry.config.ts && vite build --config vite.runtime.config.ts && tsc -p tsconfig.entry.json && node scripts/copy-lib-assets.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "migrate-db-v1": "node scripts/migrate-macro-db-v1.mjs",
