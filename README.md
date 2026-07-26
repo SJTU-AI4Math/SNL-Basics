@@ -1,5 +1,7 @@
 # SNL-Basics
 
+**v0.1.0 · MIT License · Beta** — [中文版 README](README(ZH).md)
+
 Structured Natural Language (SNL) base library — parse a macro DSL into syntax
 trees and render them to KaTeX-in-React with hover interactions.
 
@@ -11,8 +13,91 @@ Design goals: **simple, clear interfaces · highly modular · deeply customizabl
 Every interaction (tooltip, hover highlight, source resolution, block rendering)
 is overridable through a single `hooks` prop.
 
-> **Beta:** all `0.x` releases are beta releases and may contain breaking API
-> changes. The first stable release will be `1.0.0`.
+---
+
+## ⚠️ Read this before you depend on SNL-Basics
+
+### Beta status — the schema is not stable until `1.0.0`
+
+Every `0.x` release is a **beta** release and may contain breaking changes to
+the API *and* to the serialized data schema (syntax-tree documents and macro
+databases).
+
+We commit to the following **maintenance measures** for every breaking change:
+
+- **Deprecation notices** — removed API surface is announced with the release
+  that removes it, and where practical shipped for one minor release with a
+  deprecation marker naming its removal version.
+- **Data migration functions** — every serialized-schema break ships with a
+  runnable migration (`scripts/migrate-*.mjs`, plus the programmatic
+  `migrateMacroDocument` / `migrateSyntaxTreeDocument`) and a row in
+  [MIGRATION.md](MIGRATION.md).
+
+We explicitly **do not** promise schema stability before `1.0.0`. Migration
+functions are our commitment to make breaks *survivable*, not a promise that
+breaks will not happen. The first release that freezes the schema is `1.0.0`.
+
+### This library was built by AI agents, and the API has not been human-curated
+
+SNL-Basics was produced by **vibe coding with Claude Opus + a ChatGPT-based
+Hermes Agent**. The public interface has **not yet been through a human design
+review**. Concretely, this means:
+
+- Naming, argument shapes, and module boundaries are **not guaranteed to be
+  efficient or well-designed**. Some of them are historical accidents.
+- We expect to **substantially rework the interface** on the road to `1.0.0`.
+
+**Therefore: if you write code by hand ("artisanal" programming), we do not
+recommend depending on this library yet.** A future interface cleanup is likely
+to invalidate a large amount of carefully hand-written integration work. If you
+do use it now, we recommend you keep your integration thin, generated, or
+otherwise cheap to regenerate — and pin an exact version.
+
+The library is nonetheless **fully tested** (287 tests) and used in production
+by SNL-Doc-Extension. The caveat is about interface *stability and taste*, not
+correctness.
+
+---
+
+## Runnable example
+
+[`examples/basic-demo`](examples/basic-demo) is a self-contained Vite + React
+app that installs SNL-Basics **from the packed tarball** — exactly what npm
+consumers get — and imports only from the public entry points. It is the
+integration test for the published package as well as the reference
+integration.
+
+```bash
+npm run build:lib && npm pack      # produces sjtu-ai4math-snl-basics-<ver>.tgz
+cd examples/basic-demo
+npm install                        # resolves the tarball via file:../../
+npm run dev                        # or: npm run build
+```
+
+It demonstrates parse → `annotateBindings` → `SnlSyntaxTreeView` with the
+bundled macro database, live editing, style-bracket switching, the serialized
+tree, and the generated KaTeX source.
+
+## Feature overview
+
+| Area | What you get | Entry point |
+|---|---|---|
+| **Parsing** | SNL source → syntax tree, with a non-throwing variant and a typed error | `parseSnlSyntaxTree`, `tryParseSnlSyntaxTree`, `SnlSyntaxTreeParseError` |
+| **Serializing** | Tree → Parser-readable source (round-trips, including `[style]`) | `serializeSnlSyntaxTree`, `SnlDslFormatter` |
+| **Binding analysis** | Infer binder / bound-variable / free-variable kinds for hover | `annotateBindings` |
+| **Rendering** | Tree → KaTeX-in-React with automatic `\htmlData` hover metadata | `SnlSyntaxTreeView` |
+| **Macro data** | Query-only data layer with LRU cache + in-flight dedup | `MacroDataDriver`, `MacroDataQueries` |
+| **Interaction** | Injectable hover / leave / click / ctrl-click driver, tree paths | `SnlInteractionDriver`, `encodeTreePath`, `resolveTreePath` |
+| **Customization** | Override tooltip, hover, source resolution, highlighting, block renderers | `SnlRenderHooks`, `defaultRenderHooks`, `defaultRenderers` |
+| **Theming** | Kind → colour palette, CSS generation | `DEFAULT_KIND_PALETTE`, `paletteToCss` |
+| **Runtime injection** | Locale / theme / preferences via a Reader monad, no host assumptions | `ReaderRuntime`, `ReaderM` |
+| **Popovers** | Recursive hover-popover stack with viewport clamping | `HoverPopoverProvider`, `useHoverPopovers` |
+| **Entry cards** (subpath) | Complete Entry renderer — SNL / Markdown / LaTeX / text bodies | `@sjtu-ai4math/snl-basics/entry` |
+| **Schema migration** | Programmatic + CLI migration between schema versions | `migrateMacroDocument`, `scripts/migrate-schema.mjs` |
+
+Everything above is exported from the package root except the Entry renderer,
+which lives behind the tree-shakeable `/entry` subpath so the root never pulls
+in the Markdown dependency chain.
 
 ## Install
 
@@ -220,6 +305,9 @@ The picked tag is exposed on the node as `node.style_name` and (when explicit)
 is emitted as `data-style="<tag>"` on the rendered element. An unknown tag is a
 render error.
 
+`serializeSnlSyntaxTree` preserves an explicit style bracket, so parse →
+serialize round-trips.
+
 ## Concepts
 
 - **Macro** — a named renderer. Top-level fields are `name`, `description`,
@@ -405,10 +493,12 @@ on `import type { … } from '@sjtu-ai4math/snl-basics'`.
 ```bash
 npm install
 npm run build:lib   # emits dist-lib/ (JS + types + style.css + core macro DB)
-npm test            # vitest
+npm test            # vitest — 287 tests
 npm run dev         # interactive demo (src/App.tsx)
+npm pack            # produce the publishable tarball
 ```
 
-## License
+## Version & License
 
-SNL-Basics is released under the [MIT License](LICENSE).
+- **Version:** `0.1.0` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
+- **License:** [MIT](LICENSE)

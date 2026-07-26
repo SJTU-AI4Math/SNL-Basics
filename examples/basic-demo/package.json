@@ -1,0 +1,24 @@
+{
+  "name": "snl-basics-example-basic-demo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@sjtu-ai4math/snl-basics": "file:../../sjtu-ai4math-snl-basics-0.1.0.tgz",
+    "katex": "^0.16.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.9.3",
+    "vite": "^8.0.1"
+  }
+}

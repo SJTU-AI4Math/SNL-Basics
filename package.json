@@ -1,6 +1,5 @@
 {
   "name": "@sjtu-ai4math/snl-basics",
-  "private": true,
   "version": "0.1.0",
   "license": "MIT",
   "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
@@ -53,7 +52,11 @@
   },
   "types": "./dist-lib/index.d.ts",
   "files": [
-    "dist-lib"
+    "dist-lib",
+    "README.md",
+    "README(ZH).md",
+    "MIGRATION.md",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "vite",

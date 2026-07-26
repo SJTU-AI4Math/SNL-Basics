@@ -13,6 +13,9 @@ dist-lib
 dist-ssr
 *.local
 
+# packed tarballs (regenerate with `npm pack`)
+*.tgz
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
