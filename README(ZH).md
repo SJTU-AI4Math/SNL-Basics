@@ -43,7 +43,7 @@ SNL-Basics 由 **Claude Opus + 基于 ChatGPT 的 Hermes Agent 通过 vibe codin
 未来的接口整理很可能会让大量精心手写的集成代码作废。如果你现在就要用，我们建议把集成层
 写得尽量薄、尽量可自动生成、或者尽量易于重新生成，并锁定精确版本号。
 
-需要说明的是，本库本身是**经过完整测试的**（287 个测试），并已在 SNL-Doc-Extension 中
+需要说明的是，本库本身是**经过完整测试的**（300 个测试），并已在 SNL-Doc-Extension 中
 投入实际使用。上面的警告针对的是接口的*稳定性与设计品味*，而不是正确性。
 
 ---
@@ -456,7 +456,7 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 ```bash
 npm install
 npm run build:lib   # 产出 dist-lib/（JS + 类型 + style.css + 核心宏数据库）
-npm test            # vitest —— 287 个测试
+npm test            # vitest —— 300 个测试
 npm run dev         # 交互式 demo（src/App.tsx）
 npm pack            # 产出可发布的 tarball
 ```

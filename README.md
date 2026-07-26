@@ -53,7 +53,7 @@ to invalidate a large amount of carefully hand-written integration work. If you
 do use it now, we recommend you keep your integration thin, generated, or
 otherwise cheap to regenerate — and pin an exact version.
 
-The library is nonetheless **fully tested** (287 tests) and used in production
+The library is nonetheless **fully tested** (300 tests) and used in production
 by SNL-Doc-Extension. The caveat is about interface *stability and taste*, not
 correctness.
 
@@ -493,7 +493,7 @@ on `import type { … } from '@sjtu-ai4math/snl-basics'`.
 ```bash
 npm install
 npm run build:lib   # emits dist-lib/ (JS + types + style.css + core macro DB)
-npm test            # vitest — 287 tests
+npm test            # vitest — 300 tests
 npm run dev         # interactive demo (src/App.tsx)
 npm pack            # produce the publishable tarball
 ```

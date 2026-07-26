@@ -35,10 +35,20 @@ describe('serializeSnlSyntaxTree', () => {
     expect(roundTrip(source)).toBe(source)
   })
 
-  // NOTE: SNL-Basics' parser currently rejects empty nodes (`f(a,,b)`). This
-  // test pins that behaviour so a future grammar change that allows them shows
-  // up here as a deliberate decision rather than a silent drift.
-  it('currently rejects empty nodes f(a,,b)', () => {
-    expect(() => roundTrip('f(a,,b)')).toThrow(/Expected macro name/)
+  // Empty nodes: `f(a,,b)` is three children, the middle one empty. Distinct
+  // from `f()`, which is genuinely zero arguments and serializes back to `f`.
+  it('round-trips empty nodes f(a,,b)', () => {
+    expect(roundTrip('f(a,,b)')).toBe('f(a,,b)')
+  })
+
+  it('round-trips leading and trailing empty nodes', () => {
+    expect(roundTrip('f(,a)')).toBe('f(,a)')
+    expect(roundTrip('f(a,)')).toBe('f(a,)')
+    expect(roundTrip('f(,)')).toBe('f(,)')
+  })
+
+  it('treats f() as zero arguments, serializing to a bare name', () => {
+    expect(parseSnlSyntaxTree('f()').children).toHaveLength(0)
+    expect(roundTrip('f()')).toBe('f')
   })
 })
