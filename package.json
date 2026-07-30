@@ -41,6 +41,11 @@
       "import": "./dist-lib/core.js",
       "default": "./dist-lib/core.js"
     },
+    "./hover": {
+      "types": "./dist-lib/index.d.ts",
+      "import": "./dist-lib/hover.js",
+      "default": "./dist-lib/hover.js"
+    },
     "./entry": {
       "types": "./dist-lib/entry.d.ts",
       "import": "./dist-lib/entry.js",

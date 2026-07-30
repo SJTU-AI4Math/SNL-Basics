@@ -20,6 +20,11 @@ export default defineConfig({
       entry: {
         runtime: resolve(root, 'src/runtime/index.ts'),
         core: resolve(root, 'src/core/index.ts'),
+        // DOM-only hover highlighting. Same motivation as the two above: the
+        // policy is reachable through the barrel, but the barrel also exports
+        // the React views and with them KaTeX, so a consumer that only wants
+        // hover over already-rendered markup would ship the whole math engine.
+        hover: resolve(root, 'src/hover/index.ts'),
       },
       formats: ['es'],
     },

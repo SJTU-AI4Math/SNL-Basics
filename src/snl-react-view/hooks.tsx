@@ -6,8 +6,10 @@ import type { MacroDataDriver } from '../snl-macro/macro-data-driver'
 // against it so consumers receive exactly what the view has. The forward-looking
 // node-types union is exported separately from the package barrel.
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
-import type { BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
-import { readBindRefFromDom } from '../snl-syntax-tree/binding'
+import {
+  defaultHighlightStrategy,
+  type SnlHighlightStrategy,
+} from './highlight-strategy'
 import { CenteredRenderer, EnumerateRenderer, ListRenderer, TableRenderer } from './block-renderers'
 
 
@@ -52,97 +54,16 @@ export interface SnlTooltipState {
 }
 
 /**
- * The set of DOM elements a hover interaction should decorate. The view applies
- * one CSS class per bucket, uniformly:
- *   singleHover → `.snl-single-hover`, bvarScope → `.snl-bvar-scope`,
- *   binderDecl → `.snl-binder-decl`.
- *
- * `singleHover` is the element directly under the pointer (the minimal hover
- * root); CSS colors all TEXT inside it via inheritance, so nested subtrees no
- * longer need their own bulk-highlight classes.
+ * Hover-highlight policy lives in its own React-free module so the DOM-only
+ * `./hover` subpath entry can import it without dragging in the block
+ * renderers (and through them React). Re-exported here so this module's public
+ * surface is unchanged.
  */
-export interface SnlHighlightSet {
-  /** Gets `.snl-single-hover` — the one element directly under the pointer. */
-  singleHover: HTMLElement | null
-  /** Gets `.snl-bvar-scope` — bound-variable occurrences in scope. */
-  bvarScope: HTMLElement[]
-  /** Gets `.snl-binder-decl` — binder declaration sites. */
-  binderDecl: HTMLElement[]
-}
-
-/**
- * Pluggable hover-highlight policy. Given the pointer target, the render
- * container, and the current bvar-scope index, compute which elements light up.
- * Override to change highlight behavior without touching class application.
- */
-export interface SnlHighlightStrategy {
-  /**
-   * @param target - the semantic element under the pointer (already resolved to
-   *   its minimal hover root by the view).
-   * @param container - the render root that owns the KaTeX/React output.
-   * @param bvarScopeIndex - `bindRef → { bvars, binders }` built from the DOM.
-   * @returns the buckets of elements to decorate.
-   */
-  computeHighlightSet(
-    target: HTMLElement,
-    container: HTMLElement,
-    bvarScopeIndex: Map<string, BvarScopeEntry>,
-  ): SnlHighlightSet
-}
-
-/**
- * Default highlight policy. Colour is scoped by subtree:
- * `singleHover` (the element under the pointer) gets `.snl-single-hover`, and
- * CSS turns all TEXT inside it a highlight colour via inheritance — a deeper
- * subtree wins when it becomes the pointer target. Binder/bvar hovers also
- * light up the whole binding scope (`.snl-bvar-scope` / `.snl-binder-decl`),
- * the one interaction that spans siblings rather than nested ancestors.
- */
-export const defaultHighlightStrategy: SnlHighlightStrategy = {
-  computeHighlightSet(target, container, bvarScopeIndex) {
-    const kind = target.dataset.kind ?? ''
-    const bindRef = readBindRefFromDom(target)
-
-    const bvarScope: HTMLElement[] = []
-    const binderDecl: HTMLElement[] = []
-    // The pointer target IS the minimal hover root (resolved by the view); its
-    // text colours via inheritance, so no bulk `hovered` set is needed.
-    const singleHover: HTMLElement | null = target
-
-    if ((kind === 'bvar' || kind === 'binder') && bindRef) {
-      const entry = bvarScopeIndex.get(bindRef)
-      let bvars: HTMLElement[]
-      let binders: HTMLElement[]
-      if (entry) {
-        bvars = entry.bvars
-        binders = entry.binders
-      } else {
-        const scopeRoot = Array.from(
-          container.querySelectorAll<HTMLElement>('[data-scope="binder"]'),
-        ).find((el) => readBindRefFromDom(el) === bindRef)
-        if (!scopeRoot) {
-          bvars = []
-          binders = []
-        } else {
-          bvars = Array.from(
-            scopeRoot.querySelectorAll<HTMLElement>('[data-kind="bvar"]'),
-          ).filter((el) => readBindRefFromDom(el) === bindRef)
-          binders = Array.from(
-            scopeRoot.querySelectorAll<HTMLElement>('[data-kind="binder"]'),
-          ).filter((el) => readBindRefFromDom(el) === bindRef)
-        }
-      }
-      for (const el of bvars) {
-        bvarScope.push(el)
-      }
-      for (const el of binders) {
-        binderDecl.push(el)
-      }
-    }
-
-    return { singleHover, bvarScope, binderDecl }
-  },
-}
+export {
+  defaultHighlightStrategy,
+  type SnlHighlightSet,
+  type SnlHighlightStrategy,
+} from './highlight-strategy'
 
 /**
  * Props passed to a block renderer. `renderChild` dispatches any child node
