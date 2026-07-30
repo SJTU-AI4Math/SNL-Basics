@@ -84,6 +84,25 @@ export { SnlSyntaxTreeView, type SnlSyntaxTreeViewProps } from '../components/Sn
 // === Hooks & customization ===
 export { defaultRenderHooks, defaultHighlightStrategy, defaultRenderers } from './hooks'
 export { HTMLDATA_KATEX_DEFAULTS } from './katex-defaults'
+
+// === Hover highlighting against already-rendered DOM ===
+//
+// `SnlSyntaxTreeView` drives hover through these. They are exported so a
+// consumer that owns rendered SNL markup but NOT the React tree — the static
+// HTML export in SNL-Doc-Extension is the motivating case — can reproduce the
+// exact panel behaviour instead of reimplementing it. 猫猫 2026-07-29: "这应该
+// 是 SNL-Basics 里就确定的行为，你到底有没有复用代码?" — it was hand-copied,
+// and the copy drifted (missing `--snl-base-text-color`, so nested subtrees
+// inside a hovered node never reverted to the base colour).
+export { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
+export { findMinimalHoverRoot, findBinderScopeAncestor } from './hover-dom'
+export { readBindRefFromDom, readSrcFromDom } from '../snl-syntax-tree/binding'
+export {
+  applySnlHoverHighlight,
+  clearSnlHoverHighlight,
+  SNL_BASE_TEXT_COLOR_VAR,
+  SNL_HOVER_CLASS
+} from './hover-apply'
 export {
   DEFAULT_KIND_PALETTE,
   alpha,

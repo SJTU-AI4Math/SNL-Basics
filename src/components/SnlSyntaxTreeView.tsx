@@ -34,6 +34,7 @@ import {
   resolve_style_template,
 } from '../snl-react-view/render-source'
 import { findBinderScopeAncestor, findMinimalHoverRoot } from '../snl-react-view/hover-dom'
+import { applySnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
 import {
   DEFAULT_KIND_PALETTE,
@@ -42,7 +43,6 @@ import {
 } from '../snl-react-view/kind-palette'
 import {
   defaultRenderHooks,
-  type SnlHighlightSet,
   type SnlRenderHooks,
   type SnlResolvedSource,
   type SnlTooltipState,
@@ -832,28 +832,23 @@ export function SnlSyntaxTreeView({
     hoverMarkedElsRef.current = []
   }
 
-  const applyHighlightSet = (set: SnlHighlightSet) => {
-    const touched = new Set<HTMLElement>()
-    if (set.singleHover) {
-      set.singleHover.classList.add('snl-single-hover')
-      touched.add(set.singleHover)
-    }
-    for (const el of set.bvarScope) {
-      el.classList.add('snl-bvar-scope')
-      touched.add(el)
-    }
-    for (const el of set.binderDecl) {
-      el.classList.add('snl-binder-decl')
-      touched.add(el)
-    }
-    hoverMarkedElsRef.current = [...touched]
-  }
-
+  /**
+   * Delegates to the shared DOM-only implementation so the panel and the
+   * static HTML export cannot drift apart — they are literally the same code
+   * path now (猫猫 2026-07-29). The ref bookkeeping stays here because it is a
+   * React-lifecycle concern the shared helper has no business knowing about.
+   */
   const applyHoverHighlight = (target: HTMLElement, container: HTMLElement) => {
     clearHoverMarks()
-    const strategy = mergedHooks.highlightStrategy ?? defaultRenderHooks.highlightStrategy!
-    const set = strategy.computeHighlightSet(target, container, bvarScopeIndexRef.current)
-    applyHighlightSet(set)
+    const set = applySnlHoverHighlight(target, container, {
+      strategy: mergedHooks.highlightStrategy ?? defaultRenderHooks.highlightStrategy!,
+      bvarScopeIndex: bvarScopeIndexRef.current,
+    })
+    const touched = new Set<HTMLElement>()
+    if (set.singleHover) touched.add(set.singleHover)
+    for (const el of set.bvarScope) touched.add(el)
+    for (const el of set.binderDecl) touched.add(el)
+    hoverMarkedElsRef.current = [...touched]
   }
 
   const handleKaTeXMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
@@ -902,10 +897,8 @@ export function SnlSyntaxTreeView({
       return
     }
 
-    const baseTextColor = window.getComputedStyle(container).color
-    if (baseTextColor) {
-      container.style.setProperty('--snl-base-text-color', baseTextColor)
-    }
+    // `applyHoverHighlight` captures `--snl-base-text-color` from the
+    // container before marking (see hover-apply.ts), so it is not set here.
     applyHoverHighlight(hasName, container)
     setHasHoverTarget(true)
     activateHoverTarget(hasName, container, event.clientX, event.clientY, {
