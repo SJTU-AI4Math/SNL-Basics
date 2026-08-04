@@ -1,4 +1,5 @@
 import { annotateBindings } from './annotate-bind'
+import { snlIdentifierCharLength } from './identifier'
 import {
   createEmptySnlSyntaxTreeNode,
   createSnlSyntaxTreeNode,
@@ -139,7 +140,7 @@ function tokenize(input: string): Token[] {
   while (i < input.length) {
     const ch = input[i]
 
-    if (/\s/.test(ch)) {
+    if (/[ \t\r\n\f\v]/.test(ch)) {
       i += 1
       continue
     }
@@ -161,18 +162,23 @@ function tokenize(input: string): Token[] {
       continue
     }
 
-    if (/[A-Za-z0-9_\\]/.test(ch)) {
+    const initialIdentifierLength = snlIdentifierCharLength(input, i, true)
+    if (initialIdentifierLength > 0) {
       const start = i
-      i += 1
+      i += initialIdentifierLength
       // 支持 Lean 风格命名 + 点缀后缀（原 style），如 DivRing.div.inlineDiv。
       // 允许开头的反斜杠（`\i` / `\operatorname` 等 LaTeX 命令名 as leaf id）。
+      // 允许可见的非 ASCII Unicode；ASCII 仍采用显式白名单，Unicode
+      // 空白/控制/格式控制不属于 IDENT（见 identifier.ts）。
       // 允许 `-` (hyphen) — 2026-07-04-late 猫猫 spec fix.
       // 允许 leading digit (2026-07-14 猫猫 spec §numeral): 全数字的 token
       // 作为 numeral literal 使用（`3`, `1.5` 等），下游 fallback 会按
       // math-mode 数字裸渲。仍然是 IDENT 类型—— parser 不区分 numeric-only 与
       // 一般 identifier，语义在 render fallback (fallbackLatexSymbol) 里分岔。
-      while (i < input.length && /[A-Za-z0-9_.\-]/.test(input[i])) {
-        i += 1
+      while (i < input.length) {
+        const length = snlIdentifierCharLength(input, i, false)
+        if (length === 0) break
+        i += length
       }
       tokens.push({ type: 'IDENT', value: input.slice(start, i), position: start })
       continue

@@ -275,9 +275,13 @@ but the workaround is easy to miss.
 
 ## Macro naming conventions
 
-Macro names must match `[A-Za-z0-9_.]+` — no hyphens, no other punctuation.
-Dashes break KaTeX's `\htmlData` tokenizer (it treats `-` as binary minus and
-mangles the attribute value). A dotted suffix is part of a macro's identity when
+Plain Macro/style identifiers accept the legacy ASCII allow-list (`A-Z`, `a-z`,
+`0-9`, `_`, leading `\\`, and subsequent `.`/`-`) plus visible non-ASCII
+Unicode, for example `群.是群`, `Ελληνικά.Ομάδα`, and `Théorie.groupe`.
+Other ASCII punctuation remains forbidden because it carries SNL syntax.
+Unicode whitespace, controls, format controls (including zero-width/bidi
+controls), and lone UTF-16 surrogates are also rejected. A dotted suffix is part
+of a macro's identity when
 it's a genuinely different macro (e.g. different arity): `FOL.forall` vs.
 `FOL.forall.typed` (2 vs. 3 children). Render *variations that keep the same
 arity* are **styles**, not separate macros — see below.

@@ -5,3 +5,4 @@ export type {
   SnlSyntaxTreeTextNode,
   SnlSyntaxTreeBlockNode,
 } from './node-types'
+export { isSnlIdentifier } from './identifier'

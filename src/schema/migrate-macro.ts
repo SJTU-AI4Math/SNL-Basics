@@ -7,6 +7,7 @@
  */
 import type { I18n } from '../runtime'
 import type { SnlMacro, SnlMacroStyle } from '../snl-macro/types'
+import { isSnlIdentifier } from '../snl-syntax-tree/identifier'
 
 /** v6 style shape (pre-v7 migration). */
 export interface MacroStyleV6 {
@@ -61,13 +62,10 @@ function isI18nString(value: unknown): value is I18n<string, string> {
   )
 }
 
-// Exactly the IDENT token grammar accepted inside `[style]` by the parser.
-const STYLE_NAME_RE = /^[A-Za-z0-9_\\][A-Za-z0-9_.-]*$/
-
 function isStyleV7(input: unknown): boolean {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return false
   const style = input as Record<string, unknown>
-  if (typeof style.style_name !== 'string' || !STYLE_NAME_RE.test(style.style_name) ||
+  if (typeof style.style_name !== 'string' || !isSnlIdentifier(style.style_name) ||
       'tag' in style || 'variadic_left' in style ||
       'variadic_join' in style || 'variadic_right' in style) return false
   if (!Array.isArray(style.tags) || !style.tags.every((tag) => typeof tag === 'string')) return false
@@ -86,7 +84,8 @@ function isStringArray(value: unknown): value is string[] {
 }
 
 function isMacroBase(value: Record<string, unknown>, requireTags = true): boolean {
-  if (typeof value.name !== 'string' || typeof value.description !== 'string') return false
+  if (typeof value.name !== 'string' || !isSnlIdentifier(value.name) ||
+      typeof value.description !== 'string') return false
   if (typeof value.dynamic_arity !== 'boolean') return false
   if (requireTags ? !isStringArray(value.tags) : value.tags !== undefined && !isStringArray(value.tags)) return false
   if (value.kind !== undefined && typeof value.kind !== 'string') return false
@@ -100,8 +99,10 @@ function isStyleV6(input: unknown): boolean {
   const style = input as Record<string, unknown>
   if (!['formula_inline', 'formula_display', 'text', 'block'].includes(String(style.mode))) return false
   if (typeof style.template !== 'string') return false
-  if (style.tag !== undefined && typeof style.tag !== 'string') return false
-  if (style.style_name !== undefined && typeof style.style_name !== 'string') return false
+  if (style.tag !== undefined &&
+      (typeof style.tag !== 'string' || !isSnlIdentifier(style.tag))) return false
+  if (style.style_name !== undefined &&
+      (typeof style.style_name !== 'string' || !isSnlIdentifier(style.style_name))) return false
   if (style.tags !== undefined && !isStringArray(style.tags)) return false
   for (const field of ['variadic_left', 'variadic_join', 'variadic_right', 'react_renderer_key', 'block_template_name']) {
     if (style[field] !== undefined && typeof style[field] !== 'string') return false

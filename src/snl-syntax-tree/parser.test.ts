@@ -12,6 +12,31 @@ describe('parseSnlSyntaxTree', () => {
     expect(tree.children[1].children[0].macro_name).toBe('e')
   })
 
+  it('parses Unicode Macro and style names without ASCII-normalizing them', () => {
+    const cases = [
+      ['群.是群[默认](对象)', '群.是群', '默认', '对象'],
+      ['日本語.写像(値)', '日本語.写像', undefined, '値'],
+      ['Ελληνικά.Ομάδα(αντικείμενο)', 'Ελληνικά.Ομάδα', undefined, 'αντικείμενο'],
+      ['Théorie.groupe(élément)', 'Théorie.groupe', undefined, 'élément'],
+      ['几何.∠(点)', '几何.∠', undefined, '点'],
+      ['emoji.猫🐈(鱼)', 'emoji.猫🐈', undefined, '鱼'],
+    ] as const
+    for (const [source, macroName, styleName, childName] of cases) {
+      const tree = parseSnlSyntaxTree(source)
+      expect(tree.macro_name).toBe(macroName)
+      expect(tree.style_name).toBe(styleName)
+      expect(tree.children[0].macro_name).toBe(childName)
+    }
+  })
+
+  it('rejects Unicode whitespace and format controls at token boundaries', () => {
+    for (const char of ['\u00a0', '\u3000', '\u2028', '\ufeff', '\u200b', '\u202e']) {
+      expect(() => parseSnlSyntaxTree(`a${char}(b)`), JSON.stringify(char))
+        .toThrow(SnlSyntaxTreeParseError)
+    }
+    expect(parseSnlSyntaxTree('a \t\n(b)').macro_name).toBe('a')
+  })
+
   it('supports empty children list', () => {
     const tree = parseSnlSyntaxTree('x.y()')
     expect(tree.macro_name).toBe('x.y')

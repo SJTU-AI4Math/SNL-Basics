@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ReaderRuntime,
   isMacroDocumentV8,
+  isSnlIdentifier,
   migrateMacroV7toV8,
   read_localized,
   type I18n,
@@ -20,6 +21,7 @@ describe('runtime public API', () => {
     }
     const reader: ReaderM<{ language: 'en' }, string> = read_localized(value)
     expect(runtime.run_reader(reader)).toBe('Ready')
+    expect(isSnlIdentifier('群.是群')).toBe(true)
   })
 
   it('exports Macro v8 migration APIs from the package root', () => {

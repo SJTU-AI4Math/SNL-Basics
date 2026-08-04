@@ -44,8 +44,8 @@ export interface SnlMacroSource {
  */
 interface SnlMacroStyleBase {
   /**
-   * Style name — the token used in `foo[style_name](…)`. `[A-Za-z_][A-Za-z0-9_]*`
-   * (parser IDENT rules). Must be unique within a macro's `styles` array.
+   * Style name — the token used in `foo[style_name](…)`. Must satisfy the shared
+   * {@link isSnlIdentifier} policy and be unique within a macro's `styles` array.
    */
   style_name: string
   /**
@@ -111,8 +111,8 @@ export interface SnlMacro {
    * when neither the current language nor English has a `default_style` entry.
    * In `foo[bar](x)`, the parser picks
    * the style whose `style_name === "bar"`; unknown names are a render-time error.
-   * Every macro has at least one style. Style names follow `[A-Za-z_][A-Za-z0-9_]*`
-   * (parser IDENT rules) and must be unique within this array.
+   * Every macro has at least one style. Style names follow the shared
+   * {@link isSnlIdentifier} policy and must be unique within this array.
    */
   styles: SnlMacroStyle[]
 

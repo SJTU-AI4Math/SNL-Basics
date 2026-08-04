@@ -95,6 +95,7 @@ export { parseSnlSyntaxTree, tryParseSnlSyntaxTree, SnlSyntaxTreeParseError } fr
 export { serializeSnlSyntaxTree } from './serialize'
 export { SnlDslFormatter } from '../snl-syntax-tree/formatter'
 export { annotateBindings } from '../snl-syntax-tree/annotate-bind'
+export { isSnlIdentifier } from '../snl-syntax-tree/identifier'
 export {
   analyzeSnlTreeSources,
   type SnlMacroSourceLookup,

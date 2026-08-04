@@ -73,8 +73,24 @@ function migrateMacroV6toV7(macro) {
   }
 }
 
-const STYLE_NAME_RE = /^[A-Za-z0-9_\\][A-Za-z0-9_.-]*$/
+const ASCII_IDENTIFIER_START = /^[A-Za-z0-9_\\]$/
+const ASCII_IDENTIFIER_CONTINUE = /^[A-Za-z0-9_.-]$/
+const UNSAFE_UNICODE_IDENTIFIER = /[\p{White_Space}\p{Cc}\p{Cf}\p{Cs}]/u
 const MODES = new Set(['formula_inline', 'formula_display', 'text', 'block'])
+
+/** @param {string} value */
+function isSnlIdentifier(value) {
+  if (value.length === 0) return false
+  const chars = [...value]
+  const first = chars.shift()
+  if (first === undefined) return false
+  if (first.charCodeAt(0) <= 0x7f
+    ? !ASCII_IDENTIFIER_START.test(first)
+    : UNSAFE_UNICODE_IDENTIFIER.test(first)) return false
+  return chars.every((char) => char.charCodeAt(0) <= 0x7f
+    ? ASCII_IDENTIFIER_CONTINUE.test(char)
+    : !UNSAFE_UNICODE_IDENTIFIER.test(char))
+}
 
 /** @param {any} value */
 function isStringArray(value) {
@@ -84,7 +100,8 @@ function isStringArray(value) {
 /** @param {any} macro @param {boolean} [requireTags] */
 function isMacroBase(macro, requireTags = true) {
   if (!macro || typeof macro !== 'object' || Array.isArray(macro)) return false
-  if (typeof macro.name !== 'string' || typeof macro.description !== 'string') return false
+  if (typeof macro.name !== 'string' || !isSnlIdentifier(macro.name) ||
+      typeof macro.description !== 'string') return false
   if (typeof macro.dynamic_arity !== 'boolean') return false
   if (requireTags ? !isStringArray(macro.tags) : macro.tags !== undefined && !isStringArray(macro.tags)) return false
   if (macro.kind !== undefined && typeof macro.kind !== 'string') return false
@@ -95,7 +112,7 @@ function isMacroBase(macro, requireTags = true) {
 /** @param {any} style */
 function isStyleV7(style) {
   if (!style || typeof style !== 'object' || Array.isArray(style)) return false
-  if (typeof style.style_name !== 'string' || !STYLE_NAME_RE.test(style.style_name)) return false
+  if (typeof style.style_name !== 'string' || !isSnlIdentifier(style.style_name)) return false
   if (!MODES.has(style.mode) || !isStringArray(style.tags)) return false
   if ('tag' in style || 'variadic_left' in style || 'variadic_join' in style || 'variadic_right' in style) return false
   if (style.separator !== undefined && typeof style.separator !== 'string') return false
@@ -122,7 +139,11 @@ function isStyleV6(style) {
   if (!style || typeof style !== 'object' || Array.isArray(style)) return false
   if (!MODES.has(style.mode) || typeof style.template !== 'string') return false
   if (style.tags !== undefined && !isStringArray(style.tags)) return false
-  for (const field of ['tag', 'style_name', 'variadic_left', 'variadic_join', 'variadic_right', 'react_renderer_key', 'block_template_name']) {
+  if (style.tag !== undefined &&
+      (typeof style.tag !== 'string' || !isSnlIdentifier(style.tag))) return false
+  if (style.style_name !== undefined &&
+      (typeof style.style_name !== 'string' || !isSnlIdentifier(style.style_name))) return false
+  for (const field of ['variadic_left', 'variadic_join', 'variadic_right', 'react_renderer_key', 'block_template_name']) {
     if (style[field] !== undefined && typeof style[field] !== 'string') return false
   }
   return true

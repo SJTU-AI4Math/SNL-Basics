@@ -62,6 +62,12 @@ explicit `[style]` always wins. Every mapping value must reference a style in
 the same macro. Macro templates are always strings; `I18n` remains available
 for other localized values such as Entry content, not for style templates.
 
+Plain Macro and style identifiers accept the legacy ASCII set (`A-Z`, `a-z`,
+`0-9`, `_`, leading `\\`, and subsequent `.`/`-`) plus visible non-ASCII
+Unicode code points. ASCII punctuation outside that allow-list, whitespace,
+controls, format controls (including zero-width/bidi controls), and lone UTF-16
+surrogates are rejected. `isSnlIdentifier` exposes the exact shared policy.
+
 ## Parser and serialization
 
 ```ts

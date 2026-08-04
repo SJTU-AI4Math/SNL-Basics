@@ -2,6 +2,12 @@
 
 **Date:** 2026-07-01
 
+## Package 0.1.3
+
+Plain SNL identifiers now accept visible non-ASCII Unicode while preserving the
+existing ASCII allow-list. This changes lexical acceptance only; Macro schema
+remains v8. Use `isSnlIdentifier` instead of maintaining a separate validator.
+
 ## Rename event
 
 This repository was renamed from **Fulcrum-Smarterm** to **SNL-Basics**

@@ -55,6 +55,18 @@ describe('migrate-schema CLI', () => {
     expect((migrated as any).X.default_style).toEqual({ en: 'plain' })
   })
 
+  it('preserves Unicode Macro and style names during v7 to v8 migration', () => {
+    const { migrated } = migrate({
+      '群.是群🐈': {
+        name: '群.是群🐈', description: '', source: { entries: [], urls: [] },
+        dynamic_arity: false, tags: [],
+        styles: [{ style_name: '默认样式', mode: 'text', template: '群', tags: [] }],
+      },
+    })
+    expect((migrated as any)['群.是群🐈'].styles[0].style_name).toBe('默认样式')
+    expect((migrated as any)['群.是群🐈'].default_style).toEqual({ en: '默认样式' })
+  })
+
   it('splits localized v7 templates only with explicit opt-in', () => {
     const { migrated } = migrate({
       X: {

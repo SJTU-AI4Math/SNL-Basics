@@ -20,6 +20,7 @@ export {
   SnlSyntaxTreeParseError,
   parseSnlSyntaxTree,
 } from '../snl-syntax-tree/parser'
+export { isSnlIdentifier } from '../snl-syntax-tree/identifier'
 
 export { serializeSnlSyntaxTree } from '../snl-react-view/serialize'
 export { tryParseSnlSyntaxTree } from '../snl-react-view/parse'

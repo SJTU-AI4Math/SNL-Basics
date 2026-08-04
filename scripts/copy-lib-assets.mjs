@@ -58,6 +58,7 @@ writeFileSync(join(root, 'dist-lib/core.d.ts'), `export {
   createSnlSyntaxTreeNode,
   fillLatexTemplate,
   isEmptySnlSyntaxTreeNode,
+  isSnlIdentifier,
   isSnlSyntaxTree,
   parseSnlSyntaxTree,
   serializeSnlSyntaxTree,

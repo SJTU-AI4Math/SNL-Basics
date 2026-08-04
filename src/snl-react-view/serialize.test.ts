@@ -17,6 +17,10 @@ describe('serializeSnlSyntaxTree', () => {
     expect(roundTrip('FOL.implies(a,b)')).toBe('FOL.implies(a,b)')
   })
 
+  it('round-trips Unicode Macro, style, and child names verbatim', () => {
+    expect(roundTrip('群.是群[默认🐈](对象)')).toBe('群.是群[默认🐈](对象)')
+  })
+
   it('preserves an explicit [style] bracket (regression: style was dropped)', () => {
     expect(roundTrip('FOL.implies[double](a,b)')).toBe('FOL.implies[double](a,b)')
   })

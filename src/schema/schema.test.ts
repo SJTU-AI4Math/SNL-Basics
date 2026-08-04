@@ -172,6 +172,21 @@ describe('schema/migrate-macro', () => {
     } } as any)).toBe(false)
   })
 
+  it('accepts Unicode Macro and style names under the Parser identifier policy', () => {
+    const unicode = migrateMacroV7toV8({
+      ...migrateMacroV6toV7(v6Macro),
+      name: '群.是群🐈',
+      styles: [{ style_name: '默认样式', mode: 'text', template: '群', tags: [] }],
+    })
+    expect(isMacroDocumentV8({ [unicode.name]: unicode } as any)).toBe(true)
+    expect(isMacroDocumentV8({ 'bad!name': { ...unicode, name: 'bad!name' } } as any)).toBe(false)
+    expect(isMacroDocumentV8({ X: {
+      ...unicode, name: 'X',
+      styles: [{ ...unicode.styles[0], style_name: 'bad/name' }],
+      default_style: { en: 'bad/name' },
+    } } as any)).toBe(false)
+  })
+
   it('validates complete records and never drops malformed entries', () => {
     expect(isMacroDocumentV7({ X: null } as any)).toBe(false)
     expect(() => migrateMacroDocument({ bad: 'value' } as any)).toThrow(/neither valid v6, v7, nor v8/)
