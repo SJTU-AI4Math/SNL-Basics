@@ -1,7 +1,10 @@
-import type { Localized } from '../runtime'
 
 /**
- * SnlMacro v7 (on-disk) — the single source of truth for a macro.
+ * SnlMacro v8 (on-disk) — the single source of truth for a macro.
+ *
+ * v8 adds a required language-to-style `default_style` map and restores every
+ * style template to an invariant string. Implicit selection is current
+ * language → English → `styles[0]`; explicit `[style]` always wins.
  *
  * A macro is a globally-unique named renderer. Multiple macros MAY share the
  * same source entry (e.g. FOL.implies.infix and FOL.implies.double both refer to the
@@ -63,10 +66,10 @@ export interface SnlInvariantMacroStyle extends SnlMacroStyleBase {
   block_template_name?: string
 }
 
-/** Text templates may be invariant strings or serializable language maps. */
+/** Text templates are ordinary strings; language variants live in separate styles. */
 export interface SnlTextMacroStyle extends SnlMacroStyleBase {
   mode: 'text'
-  template: Localized<string, string>
+  template: string
   block_template_name?: never
 }
 
@@ -97,8 +100,16 @@ export interface SnlMacro {
   dynamic_arity: boolean
 
   /**
-   * All render styles in order. `styles[0]` is the **implicit default** used
-   * when the SNL source omits `[style]`. In `foo[bar](x)`, the parser picks
+   * Language → implicit style name. When source omits `[style]`, resolution uses
+   * the current language, then `en`, then `styles[0]`. Explicit `[style]` always
+   * wins. A mapped name must identify a member of `styles`.
+   */
+  default_style: Record<string, string>
+
+  /**
+   * All render styles in order. `styles[0]` is the final compatibility fallback
+   * when neither the current language nor English has a `default_style` entry.
+   * In `foo[bar](x)`, the parser picks
    * the style whose `style_name === "bar"`; unknown names are a render-time error.
    * Every macro has at least one style. Style names follow `[A-Za-z_][A-Za-z0-9_]*`
    * (parser IDENT rules) and must be unique within this array.

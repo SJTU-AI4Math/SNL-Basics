@@ -1,6 +1,6 @@
 # `@sjtu-ai4math/snl-basics` — Public API Reference
 
-Current beta surface for v0.1.0. Import from the package root:
+Current beta surface for v0.1.2. Import from the package root:
 
 ```ts
 import { MacroDataDriver, SnlSyntaxTreeView } from '@sjtu-ai4math/snl-basics'
@@ -31,22 +31,14 @@ interface I18n<Language extends string, Value = string> {
 }
 type Localized<Language extends string, Value = string> = Value | I18n<Language, Value>
 
-type SnlMacroStyle =
-  | {
-      style_name: string
-      mode: 'formula_inline' | 'formula_display' | 'block'
-      template: string
-      separator?: string
-      block_template_name?: string
-      tags: string[]
-    }
-  | {
-      style_name: string
-      mode: 'text'
-      template: Localized<string, string>
-      separator?: string
-      tags: string[]
-    }
+interface SnlMacroStyle {
+  style_name: string
+  mode: 'formula_inline' | 'formula_display' | 'text' | 'block'
+  template: string
+  separator?: string
+  block_template_name?: string
+  tags: string[]
+}
 
 interface SnlMacro {
   name: string
@@ -54,6 +46,7 @@ interface SnlMacro {
   source: SnlMacroSource
   kind?: string
   dynamic_arity: boolean
+  default_style: Record<string, string>
   styles: SnlMacroStyle[]
   tags: string[]
 }
@@ -62,6 +55,12 @@ interface SnlMacro {
 Dynamic styles place `#*` in `template`; `separator` joins its expanded children.
 `block_template_name` is valid only when `mode === 'block'`. All styles of one
 macro must have the same arity contract.
+
+When source omits an explicit `[style]`, style selection is
+`default_style[current language]` → `default_style.en` → `styles[0]`. An
+explicit `[style]` always wins. Every mapping value must reference a style in
+the same macro. Macro templates are always strings; `I18n` remains available
+for other localized values such as Entry content, not for style templates.
 
 ## Parser and serialization
 

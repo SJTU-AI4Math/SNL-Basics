@@ -6,6 +6,9 @@
       "urls": []
     },
     "kind": "const",
+    "default_style": {
+      "en": "sup"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -25,6 +28,9 @@
       "urls": []
     },
     "kind": "rule",
+    "default_style": {
+      "en": "binder"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -44,6 +50,9 @@
       "urls": []
     },
     "kind": "rule",
+    "default_style": {
+      "en": "binder"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -63,6 +72,9 @@
       "urls": []
     },
     "kind": "rule",
+    "default_style": {
+      "en": "binder"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -82,6 +94,9 @@
       "urls": []
     },
     "kind": "rule",
+    "default_style": {
+      "en": "binder"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -101,6 +116,9 @@
       "urls": []
     },
     "kind": "rule",
+    "default_style": {
+      "en": "apply"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -121,6 +139,9 @@
       "urls": []
     },
     "kind": "rule",
+    "default_style": {
+      "en": "round"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -140,6 +161,9 @@
       "urls": []
     },
     "kind": "rule",
+    "default_style": {
+      "en": "infix"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -165,6 +189,9 @@
       "urls": []
     },
     "kind": "const",
+    "default_style": {
+      "en": "infix"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -184,6 +211,9 @@
       "urls": []
     },
     "kind": "const",
+    "default_style": {
+      "en": "infix"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -203,6 +233,9 @@
       "urls": []
     },
     "kind": "const",
+    "default_style": {
+      "en": "prefix"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -222,6 +255,9 @@
       "urls": []
     },
     "kind": "rule",
+    "default_style": {
+      "en": "infix"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -242,6 +278,9 @@
         "https://en.wikipedia.org/wiki/Matrix_(mathematics)"
       ]
     },
+    "default_style": {
+      "en": "default"
+    },
     "styles": [
       {
         "mode": "formula_inline",
@@ -260,6 +299,9 @@
     "source": {
       "entries": [],
       "urls": []
+    },
+    "default_style": {
+      "en": "default"
     },
     "styles": [
       {

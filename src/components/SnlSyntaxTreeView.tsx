@@ -60,7 +60,7 @@ export interface SnlSyntaxTreeViewProps {
   tree: SnlSyntaxTree
   /** The single macro data source — query-only driver with bounded cache. */
   macro_data_driver: MacroDataDriver
-  /** Consumer-owned runtime used when a text Macro template is localized. */
+  /** Consumer-owned runtime used to select the language-dependent default style. */
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   /** Injectable interaction handler (hover/leave/click/ctrl-click via delegated events). */
   interaction_driver?: SnlInteractionDriver
@@ -92,12 +92,14 @@ function MathSpan({
   reader_runtime,
   treePath,
   katexOptions,
+  language,
 }: {
   node: SnlSyntaxTree
   driver: MacroDataDriver
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   treePath: TreePath
   katexOptions?: KatexOptions
+  language: string
 }): ReactElement {
   const spanRef = useRef<HTMLSpanElement | null>(null)
   const currentHtmlRef = useRef<string>('')
@@ -106,12 +108,23 @@ function MathSpan({
     const controller = new AbortController()
     void (async () => {
       try {
-        const latex = await resolveRootLatex(node, driver, controller.signal, treePath, reader_runtime)
+        const latex = await resolveRootLatex(
+          node,
+          driver,
+          controller.signal,
+          treePath,
+          reader_runtime,
+          language,
+        )
         const macro = node.env_mode ? null : await driver.query_macro({ macro_name: node.macro_name, signal: controller.signal })
         const out = katex.renderToString(latex, {
           throwOnError: false,
           ...HTMLDATA_KATEX_DEFAULTS,
-          displayMode: nodeDisplay(node, macro) === 'block',
+          displayMode: nodeDisplay(
+            node,
+            macro,
+            language,
+          ) === 'block',
           ...katexOptions,
         })
         if (cancelled) return
@@ -128,7 +141,7 @@ function MathSpan({
       cancelled = true
       controller.abort()
     }
-  }, [node, driver, reader_runtime, treePath, katexOptions])
+  }, [node, driver, reader_runtime, treePath, katexOptions, language])
   return <span className="snl-math-span" ref={spanRef} />
 }
 
@@ -171,12 +184,14 @@ function TextRun({
   reader_runtime,
   treePath,
   renderChild,
+  language,
 }: {
   node: SnlSyntaxTree
   macros: SnlMacroRecord
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   treePath: string
   renderChild: (child: SnlSyntaxTree, index: number) => ReactElement
+  language: string
 }): ReactElement {
   // Envelope semantics — see the block comment below.
   const envIsText = node.env_mode === 'text'
@@ -217,7 +232,9 @@ function TextRun({
   }
 
   const macro = macros[node.macro_name]
-  const style = macro ? resolveStyle(node, macro) : undefined
+  const style = macro
+    ? resolveStyle(node, macro, language)
+    : undefined
   const template = isSyntheticTemplate
     ? node.macro_name
     : style
@@ -436,6 +453,7 @@ function useSnlSyntaxTreeRender(
   reader_runtime: ReaderRuntime<LanguageEnvironment<string>> | undefined,
   katexOptions: KatexOptions | undefined,
   enabled: boolean,
+  language: string,
 ) {
   const [result, setResult] = useState<RenderResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -457,12 +475,23 @@ function useSnlSyntaxTreeRender(
       setLoading(true)
       setError(null)
       try {
-        const latex = await resolveRootLatex(tree, driver, controller.signal, [], reader_runtime)
+        const latex = await resolveRootLatex(
+          tree,
+          driver,
+          controller.signal,
+          [],
+          reader_runtime,
+          language,
+        )
         const rootMacro = tree.env_mode ? null : await driver.query_macro({ macro_name: tree.macro_name, signal: controller.signal })
         const html = katex.renderToString(latex, {
           throwOnError: false,
           ...HTMLDATA_KATEX_DEFAULTS,
-          displayMode: nodeDisplay(tree, rootMacro) === 'block',
+          displayMode: nodeDisplay(
+            tree,
+            rootMacro,
+            language,
+          ) === 'block',
           ...katexOptions,
         })
         if (!cancelled && reqIdRef.current === reqId) {
@@ -486,7 +515,7 @@ function useSnlSyntaxTreeRender(
       cancelled = true
       controller.abort()
     }
-  }, [enabled, katexOptions, driver, reader_runtime, tree])
+  }, [enabled, katexOptions, driver, reader_runtime, tree, language])
 
   return { loading, error, result, reqIdRef }
 }
@@ -506,6 +535,7 @@ export function SnlSyntaxTreeView({
   onResolved,
   hooks,
 }: SnlSyntaxTreeViewProps) {
+  const renderLanguage = reader_runtime?.query_environment().language ?? 'en'
   // Query all macros used by this tree through the single driver backend. The
   // state is tagged with the exact tree+driver identities, so a prop change
   // immediately makes the previous projection stale — it is never rendered
@@ -594,7 +624,9 @@ export function SnlSyntaxTreeView({
 
   // Determine root mode from the cache
   const rootMacro = macroCache[tree.macro_name] ?? null
-  const rootBucket = macroStatus === 'ready' ? modeBucket(nodeMode(tree, rootMacro)) : 'formula'
+  const rootBucket = macroStatus === 'ready'
+    ? modeBucket(nodeMode(tree, rootMacro, renderLanguage))
+    : 'formula'
   const isKatexRoot = macroStatus === 'ready' && rootBucket === 'formula'
   const { loading, error, result } = useSnlSyntaxTreeRender(
     tree,
@@ -602,6 +634,7 @@ export function SnlSyntaxTreeView({
     reader_runtime,
     katexOptions,
     isKatexRoot,
+    renderLanguage,
   )
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
@@ -972,9 +1005,11 @@ export function SnlSyntaxTreeView({
   //     block inside formula" placeholder in resolveNodeLatex)
   const renderNode = (node: SnlSyntaxTree, pathStr = ''): ReactElement => {
     const macro = resolvedMacros[node.macro_name] ?? null
-    const mode = nodeMode(node, macro)
+    const mode = nodeMode(node, macro, renderLanguage)
     if (mode === 'block') {
-      const key = macro ? resolveStyle(node, macro).block_template_name : undefined
+      const key = macro
+        ? resolveStyle(node, macro, renderLanguage).block_template_name
+        : undefined
       const Renderer = key ? mergedHooks.renderers?.[key] : undefined
       const blockDataAttrs: Record<string, string | undefined> = {
         'data-name': node.macro_name || undefined,
@@ -1010,6 +1045,7 @@ export function SnlSyntaxTreeView({
           node={node}
           macros={resolvedMacros}
           reader_runtime={reader_runtime}
+          language={renderLanguage}
           treePath={pathStr}
           renderChild={(child, idx) => renderNode(child, pathStr ? `${pathStr}.${idx}` : `${idx}`)}
         />
@@ -1021,6 +1057,7 @@ export function SnlSyntaxTreeView({
         node={node}
         driver={macro_data_driver}
         reader_runtime={reader_runtime}
+        language={renderLanguage}
         treePath={decodeTreePath(pathStr)}
         katexOptions={katexOptions}
       />

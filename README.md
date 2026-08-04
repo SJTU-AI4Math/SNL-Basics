@@ -284,8 +284,9 @@ arity* are **styles**, not separate macros — see below.
 
 ## Styles & the `[style]` bracket
 
-A macro declares one or more render **styles** keyed by `style_name`, with
-`styles[0]` as the implicit default. All styles of a macro **must accept the
+A macro declares one or more render **styles** keyed by `style_name`. The
+macro-level `default_style` map chooses the implicit style by language. All
+styles of a macro **must accept the
 same arity** — a style only varies the render output, never the child count.
 This is the invariant that makes switching styles always safe:
 
@@ -293,11 +294,13 @@ This is the invariant that makes switching styles always safe:
 node := IDENT ('[' IDENT ']')? ('(' args ')')?
 ```
 
-The optional `[style]` bracket picks a style; without it the macro's
-`styles[0]` (default) is used.
+The optional `[style]` bracket picks a style and always wins. Without it,
+selection is `default_style[current language]` → `default_style.en` →
+`styles[0]`. Missing mappings therefore remain backward-compatible without
+making list order the normal default-selection mechanism.
 
 ```ts
-parseSnlSyntaxTree('FOL.implies(a, b)')          // default style → a \rightarrow b
+parseSnlSyntaxTree('FOL.implies(a, b)')          // language-selected default
 parseSnlSyntaxTree('FOL.implies[double](a, b)')  // 'double' style → a \Rightarrow b
 ```
 
@@ -311,8 +314,9 @@ serialize round-trips.
 ## Concepts
 
 - **Macro** — a named renderer. Top-level fields are `name`, `description`,
-  `source`, optional `kind`, `dynamic_arity`, and a `styles` array (ordered,
-  `styles[0]` is the default). Consumer-owned output strategies (`typst` /
+  `source`, optional `kind`, `dynamic_arity`, `default_style`, and a `styles`
+  array (ordered; `styles[0]` is only the final compatibility fallback).
+  Consumer-owned output strategies (`typst` /
   `latex` / `markdown` / `text`) live downstream. Fields and semantics live in
   [`src/snl-macro/types.ts`](src/snl-macro/types.ts):
 
@@ -322,6 +326,7 @@ serialize round-trips.
     description: '…',
     source: { entries: [], urls: [] },
     dynamic_arity: false,
+    default_style: { en: 'infix', 'zh-CN': 'double' },
     tags: [],
     styles: [
       { style_name: 'infix', mode: 'formula_inline', template: '#0 \\rightarrow #1', tags: [] },
@@ -329,6 +334,10 @@ serialize round-trips.
     ],
   }
   ```
+
+  Every style template is a plain string, including `mode: 'text'`. Natural
+  languages that need different wording use separate ordinary styles and map
+  their locale to the desired `style_name`; templates never contain an I18n map.
 
 - **Kind** — optional semantic tag surfaced as `data-kind` (drives the hover
   palette: `rule` / `const` / `bvar` / `binder` / `fvar`). If a macro sets no

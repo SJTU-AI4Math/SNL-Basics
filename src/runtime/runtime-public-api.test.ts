@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   ReaderRuntime,
+  isMacroDocumentV8,
+  migrateMacroV7toV8,
   read_localized,
   type I18n,
   type ReaderM,
@@ -18,5 +20,14 @@ describe('runtime public API', () => {
     }
     const reader: ReaderM<{ language: 'en' }, string> = read_localized(value)
     expect(runtime.run_reader(reader)).toBe('Ready')
+  })
+
+  it('exports Macro v8 migration APIs from the package root', () => {
+    const migrated = migrateMacroV7toV8({
+      name: 'X', description: '', source: { entries: [], urls: [] },
+      dynamic_arity: false, tags: [],
+      styles: [{ style_name: 'plain', mode: 'text', template: 'X', tags: [] }],
+    })
+    expect(isMacroDocumentV8({ X: migrated })).toBe(true)
   })
 })

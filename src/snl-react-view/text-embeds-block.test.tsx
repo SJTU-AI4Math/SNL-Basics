@@ -17,6 +17,7 @@ const proseWithList: SnlMacro = {
   source: { entries: [], urls: [] },
   dynamic_arity: false,
   tags: [],
+  default_style: { en: 'default' },
   styles: [
     { style_name: 'default', mode: 'text', template: '注意以下几点：#0', tags: [] },
   ],
@@ -26,6 +27,7 @@ const enumerateMacro: SnlMacro = {
   source: { entries: [], urls: [] },
   dynamic_arity: true,
   tags: [],
+  default_style: { en: 'default' },
   styles: [
     {
       style_name: 'default',

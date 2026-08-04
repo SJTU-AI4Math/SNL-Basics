@@ -263,7 +263,7 @@ export default defineConfig({
 
 ## Style 与 `[style]` 方括号
 
-一个宏声明一个或多个以 `style_name` 为键的渲染 **style**，其中 `styles[0]` 是隐式默认值。
+一个宏声明一个或多个以 `style_name` 为键的渲染 **style**。宏级 `default_style` 映射按语言选择隐式 style。
 一个宏的所有 style **必须接受相同的 arity** —— style 只改变渲染输出，绝不改变子节点数量。
 正是这条不变量保证了切换 style 永远是安全的：
 
@@ -271,10 +271,10 @@ export default defineConfig({
 node := IDENT ('[' IDENT ']')? ('(' args ')')?
 ```
 
-可选的 `[style]` 方括号用于选定 style；不写则使用该宏的 `styles[0]`（默认）。
+可选的 `[style]` 方括号用于显式选定 style，并且永远优先。不写时依次使用 `default_style[当前语言]`、`default_style.en`、`styles[0]`。
 
 ```ts
-parseSnlSyntaxTree('FOL.implies(a, b)')          // 默认 style → a \rightarrow b
+parseSnlSyntaxTree('FOL.implies(a, b)')          // 按当前语言选择默认 style
 parseSnlSyntaxTree('FOL.implies[double](a, b)')  // 'double' style → a \Rightarrow b
 ```
 
@@ -287,7 +287,7 @@ round-trip 闭合的。
 ## 核心概念
 
 - **Macro（宏）** —— 一个具名的渲染器。顶层字段为 `name`、`description`、`source`、
-  可选的 `kind`、`dynamic_arity`，以及一个 `styles` 数组（有序，`styles[0]` 为默认值）。
+  可选的 `kind`、`dynamic_arity`、`default_style` 映射，以及一个有序 `styles` 数组（`styles[0]` 仅作最终兼容回退）。
   使用方自有的输出策略（`typst` / `latex` / `markdown` / `text`）位于下游。字段与语义定义在
   [`src/snl-macro/types.ts`](src/snl-macro/types.ts)：
 
@@ -297,6 +297,7 @@ round-trip 闭合的。
     description: '…',
     source: { entries: [], urls: [] },
     dynamic_arity: false,
+    default_style: { en: 'infix', 'zh-CN': 'double' },
     tags: [],
     styles: [
       { style_name: 'infix', mode: 'formula_inline', template: '#0 \\rightarrow #1', tags: [] },
@@ -304,6 +305,8 @@ round-trip 闭合的。
     ],
   }
   ```
+
+  所有 mode（包括 `text`）的 style template 都是普通字符串。不同自然语言使用不同的普通 style，并由 locale 映射到对应 `style_name`；template 内不再嵌套 I18n map。
 
 - **Kind** —— 可选的语义标签，输出为 `data-kind`（驱动悬停配色：`rule` / `const` /
   `bvar` / `binder` / `fvar`）。如果一个宏没有设置 `kind` 且标注过程也未赋值，该节点默认为

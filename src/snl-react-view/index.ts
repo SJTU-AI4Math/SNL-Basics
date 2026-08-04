@@ -28,6 +28,7 @@ export {
 export type {
   SnlInvariantMacroStyle,
   SnlMacro,
+  SnlMacroRecord,
   SnlMacroStyle,
   SnlMacroSource,
   SnlTextMacroStyle,
@@ -53,6 +54,28 @@ export {
   type MacroDataDriverOptions,
   type MacroQueryArgs,
 } from '../snl-macro/macro-data-driver'
+
+// === Schema migrations ===
+export {
+  MACRO_SCHEMA_VERSION,
+  PACKAGE_VERSION,
+  TREE_SCHEMA_VERSION,
+  isMacroDocumentV7,
+  isMacroDocumentV8,
+  migrateMacroDocument,
+  migrateMacroV6toV7,
+  migrateMacroV7toV8,
+  migrateStyleV6toV7,
+  migrateSyntaxTreeDocument,
+  migrateTreeNodeV1toV2,
+  isSyntaxTreeDocumentV2,
+  type SyntaxTreeNodeV1,
+  type MacroV6,
+  type MacroV7,
+  type MacroStyleV6,
+  type MacroStyleV7Base,
+  type MacroV7ToV8Options,
+} from '../schema'
 
 // === InteractionDriver ===
 export {

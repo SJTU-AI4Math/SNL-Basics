@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { EntryContent } from '../entry-react/entry-data-driver'
 import type { I18n } from '../runtime'
-import type { SnlMacroStyle } from './types'
+import type { SnlMacro, SnlMacroStyle } from './types'
 
 const localized: I18n<string, string> = {
   type: 'i18n',
@@ -10,17 +10,33 @@ const localized: I18n<string, string> = {
 }
 
 describe('localized content schema', () => {
-  it('accepts I18n only for text Macro templates', () => {
+  it('keeps every Macro style template a plain string', () => {
     const style: SnlMacroStyle = {
-      style_name: 'prose',
+      style_name: 'prose_en',
       mode: 'text',
-      template: localized,
+      template: 'Group',
       tags: [],
     }
-    expect(style.template).toEqual(localized)
+    expect(style.template).toBe('Group')
   })
 
-  it('accepts I18n for non-SNL Entry content', () => {
+  it('stores language-dependent default style names at Macro level', () => {
+    const macro: SnlMacro = {
+      name: 'Group.prose',
+      description: '',
+      source: { entries: [], urls: [] },
+      dynamic_arity: false,
+      default_style: { en: 'prose_en', 'zh-CN': 'prose_zh' },
+      styles: [
+        { style_name: 'prose_en', mode: 'text', template: 'Group', tags: [] },
+        { style_name: 'prose_zh', mode: 'text', template: '群', tags: [] },
+      ],
+      tags: [],
+    }
+    expect(macro.default_style['zh-CN']).toBe('prose_zh')
+  })
+
+  it('continues to accept I18n for non-SNL Entry content', () => {
     const content: EntryContent = {
       snl: 'Group(G)',
       markdown: localized,
@@ -32,19 +48,26 @@ describe('localized content schema', () => {
   })
 })
 
-// Formula and block templates are language-invariant render programs.
-// @ts-expect-error formula templates cannot be localized
-const _formula_style: SnlMacroStyle = {
-  style_name: 'formula',
-  mode: 'formula_inline',
+const _text_style: SnlMacroStyle = {
+  style_name: 'text',
+  mode: 'text',
+  // @ts-expect-error Macro templates are strings; language variants are separate styles
   template: localized,
   tags: [],
 }
 
-// @ts-expect-error block renderer templates cannot be localized
+const _formula_style: SnlMacroStyle = {
+  style_name: 'formula',
+  mode: 'formula_inline',
+  // @ts-expect-error formula templates are language-invariant strings
+  template: localized,
+  tags: [],
+}
+
 const _block_style: SnlMacroStyle = {
   style_name: 'block',
   mode: 'block',
+  // @ts-expect-error block templates are language-invariant strings
   template: localized,
   tags: [],
 }
@@ -54,4 +77,4 @@ const _entry_content: EntryContent = {
   snl: localized,
 }
 
-void [_formula_style, _block_style, _entry_content]
+void [_text_style, _formula_style, _block_style, _entry_content]

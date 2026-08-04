@@ -21,7 +21,7 @@ import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
 import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { testDriver } from '../snl-react-view/test-helpers'
-import { ReaderRuntime, type I18n } from '../runtime'
+import { ReaderRuntime } from '../runtime'
 
 function leaf(name: string): SnlSyntaxTree {
   return createSnlSyntaxTreeNode(name, { kind: 'fvar' })
@@ -33,6 +33,7 @@ const eqDualMode: SnlMacro = {
   kind: 'const',
   dynamic_arity: false,
   tags: [],
+  default_style: { en: 'infix' },
   styles: [
     { style_name: 'infix', mode: 'formula_inline', template: '#0 = #1', tags: [] },
     { style_name: 'prose', mode: 'text', template: '#0 与 #1 相等', tags: [] },
@@ -44,6 +45,7 @@ const listAllPeople: SnlMacro = {
   source: { entries: [], urls: [] },
   dynamic_arity: true,
   tags: [],
+  default_style: { en: 'default' },
   styles: [
     { style_name: 'default', mode: 'text', template: '所有人：#*', separator: '、', tags: [] },
   ],
@@ -55,6 +57,7 @@ const interfaceMacro: SnlMacro = {
   kind: 'Syntax',
   dynamic_arity: false,
   tags: [],
+  default_style: { en: 'default' },
   styles: [
     {
       style_name: 'default',
@@ -71,6 +74,7 @@ const enumerateMacro: SnlMacro = {
   kind: 'partial',
   dynamic_arity: true,
   tags: [],
+  default_style: { en: 'default' },
   styles: [
     {
       style_name: 'default',
@@ -97,15 +101,14 @@ function panelText(container: HTMLElement): string {
 }
 
 describe('text-mode template splicing (regression)', () => {
-  it('renders an I18n text template using the injected language query', async () => {
-    const template: I18n<string, string> = {
-      type: 'i18n',
-      default_language: 'en',
-      values: { en: '#0 equals #1', 'zh-CN': '#0 等于 #1' },
-    }
+  it('selects a language-dependent default style using the injected language query', async () => {
     const localized: SnlMacro = {
       ...eqDualMode,
-      styles: [{ style_name: 'default', mode: 'text', template, tags: [] }],
+      default_style: { en: 'english', 'zh-CN': 'chinese' },
+      styles: [
+        { style_name: 'english', mode: 'text', template: '#0 equals #1', tags: [] },
+        { style_name: 'chinese', mode: 'text', template: '#0 等于 #1', tags: [] },
+      ],
     }
     const tree = createSnlSyntaxTreeNode('Eq.eq', { children: [leaf('a'), leaf('b')] })
     const runtime = new ReaderRuntime({

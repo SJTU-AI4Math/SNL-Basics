@@ -22,8 +22,14 @@ test('every macro has at least one style with a mode', () => {
   for (const macro of Object.values(bundledMacroDb)) {
     expect(Array.isArray(macro.styles)).toBe(true)
     expect(macro.styles.length).toBeGreaterThan(0)
+    const styleNames = new Set(macro.styles.map((style) => style.style_name))
+    expect(macro.default_style).toBeDefined()
+    for (const styleName of Object.values(macro.default_style)) {
+      expect(styleNames.has(styleName)).toBe(true)
+    }
     for (const s of macro.styles) {
       expect(typeof s.style_name).toBe('string')
+      expect(typeof s.template).toBe('string')
       expect(['formula_inline', 'formula_display', 'text', 'block']).toContain(s.mode)
       if (s.mode !== 'block') expect(s.block_template_name).toBeUndefined()
       if (macro.dynamic_arity) expect(s.template).toContain('#*')

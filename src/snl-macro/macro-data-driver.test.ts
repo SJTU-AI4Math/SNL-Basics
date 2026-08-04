@@ -10,6 +10,7 @@ function makeMacro(name: string): SnlMacro {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     tags: [],
+    default_style: { en: 'default' },
     styles: [{ style_name: 'default', mode: 'formula_inline', template: '#0', tags: [] }],
   }
 }

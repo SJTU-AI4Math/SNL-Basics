@@ -21,8 +21,6 @@
 
 import type { SnlMacro, SnlMacroStyle } from '../snl-macro/types'
 import {
-  is_i18n,
-  read_localized,
   type LanguageEnvironment,
   type ReaderM,
   type ReaderRuntime,
@@ -61,31 +59,41 @@ export function sanitizeHtmlDataAttr(value: string): string {
 
 /**
  * Resolve which {@link SnlMacroStyle} to render a node with. The tag comes from
- * the parser's `[style]` bracket (`node.style_name`); when missing, `styles[0]` is
- * the implicit default. Throws if the resolved tag isn't in `macro.styles`.
+ * the parser's `[style]` bracket (`node.style_name`). When missing, resolve the
+ * current language mapping, then English, then `styles[0]`.
  */
-export function resolveStyle(node: SnlSyntaxTree, macro: SnlMacro): SnlMacroStyle {
+export function resolveStyle(
+  node: SnlSyntaxTree,
+  macro: SnlMacro,
+  language = 'en',
+): SnlMacroStyle {
   if (macro.styles.length === 0) {
     throw new Error(`macro "${macro.name}" has no styles`)
   }
-  if (node.style_name == null) {
-    return macro.styles[0]
-  }
-  const style = macro.styles.find((s) => s.style_name === node.style_name)
+  const mappedName = macro.default_style?.[language] ?? macro.default_style?.en
+  const resolvedName = node.style_name ?? mappedName
+  if (resolvedName == null) return macro.styles[0]
+  const style = macro.styles.find((s) => s.style_name === resolvedName)
   if (!style) {
+    if (node.style_name == null) {
+      throw new Error(
+        `default style "${resolvedName}" for language "${language}" ` +
+          `does not exist on macro "${macro.name}"`,
+      )
+    }
     throw new Error(
-      `unknown style "${node.style_name}" for macro "${macro.name}" ` +
+      `unknown style "${resolvedName}" for macro "${macro.name}" ` +
         `(available: ${macro.styles.map((s) => s.style_name).join(', ') || '(none)'})`,
     )
   }
   return style
 }
 
-/** Resolve a style template from consumer-supplied language preferences. */
+/** Preserve the Reader-shaped public helper; templates themselves are invariant strings. */
 export function read_style_template(
   style: SnlMacroStyle,
 ): ReaderM<LanguageEnvironment<string>, string> {
-  return read_localized<string, string>(style.template)
+  return () => style.template
 }
 
 /** Run a style-template Reader at a renderer boundary. */
@@ -93,11 +101,16 @@ export function resolve_style_template(
   style: SnlMacroStyle,
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
 ): string {
-  if (!is_i18n(style.template)) return style.template
-  if (!reader_runtime) {
-    throw new Error('localized text Macro template requires reader_runtime')
-  }
-  return reader_runtime.run_reader(read_style_template(style))
+  // Kept as an optional parameter for source compatibility; v8 templates are
+  // language-invariant, so resolving one must not re-query the environment.
+  void reader_runtime
+  return style.template
+}
+
+function current_language(
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
+): string {
+  return reader_runtime?.query_environment().language ?? 'en'
 }
 
 /**
@@ -173,11 +186,15 @@ export function modeBucket(mode: SnlMacroStyle['mode']): 'formula' | 'text' | 'b
  * default to `formula_inline` when unknown.
  * Accepts a pre-resolved macro (null if not found or not queried yet).
  */
-export function nodeMode(node: SnlSyntaxTree, macro: SnlMacro | null): SnlMacroStyle['mode'] {
+export function nodeMode(
+  node: SnlSyntaxTree,
+  macro: SnlMacro | null,
+  language = 'en',
+): SnlMacroStyle['mode'] {
   if (node.env_mode) return node.env_mode
   if (!macro) return 'formula_inline'
   try {
-    return resolveStyle(node, macro).mode
+    return resolveStyle(node, macro, language).mode
   } catch {
     return 'formula_inline'
   }
@@ -188,8 +205,12 @@ export function nodeMode(node: SnlSyntaxTree, macro: SnlMacro | null): SnlMacroS
  * itself: `formula_display` → block, everything else → inline. Nested
  * formula nodes' displays are ignored within a single render call.
  */
-export function nodeDisplay(node: SnlSyntaxTree, macro: SnlMacro | null): 'inline' | 'block' {
-  return nodeMode(node, macro) === 'formula_display' ? 'block' : 'inline'
+export function nodeDisplay(
+  node: SnlSyntaxTree,
+  macro: SnlMacro | null,
+  language = 'en',
+): 'inline' | 'block' {
+  return nodeMode(node, macro, language) === 'formula_display' ? 'block' : 'inline'
 }
 
 /**
@@ -207,7 +228,9 @@ export async function resolveNodeLatex(
   treePath: TreePath = [],
   signal?: AbortSignal,
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
+  language?: string,
 ): Promise<string> {
+  const sampled_language = language ?? current_language(reader_runtime)
   // An unfilled argument slot renders as the same numbered placeholder the
   // Create Macro preview uses, indexed by its position in the parent's
   // argument list. Cat 2026-07-25. It never reaches the macro backend —
@@ -222,7 +245,7 @@ export async function resolveNodeLatex(
     )
   }
   const macro = node.env_mode ? null : await driver.query_macro({ macro_name: node.macro_name, signal })
-  const style = macro ? resolveStyle(node, macro) : undefined
+  const style = macro ? resolveStyle(node, macro, sampled_language) : undefined
   const hasDbMacro = Boolean(macro)
 
   const selfMode: SnlMacroStyle['mode'] =
@@ -230,7 +253,14 @@ export async function resolveNodeLatex(
   const selfBucket = modeBucket(selfMode)
 
   const childRawList = await Promise.all(
-    node.children.map((child, i) => resolveNodeLatex(child, driver, [...treePath, i], signal, reader_runtime)),
+    node.children.map((child, i) => resolveNodeLatex(
+      child,
+      driver,
+      [...treePath, i],
+      signal,
+      reader_runtime,
+      sampled_language,
+    )),
   )
 
   const wrappedChildren = await Promise.all(childRawList.map(async (latex, index) => {
@@ -242,7 +272,7 @@ export async function resolveNodeLatex(
       const childMacro = await driver.query_macro({ macro_name: child.macro_name, signal })
       if (childMacro) {
         try {
-          cMode = resolveStyle(child, childMacro).mode
+          cMode = resolveStyle(child, childMacro, sampled_language).mode
         } catch {
           cMode = 'formula_inline'
         }
@@ -339,15 +369,24 @@ export async function resolveRootLatex(
   signal?: AbortSignal,
   treePath: TreePath = [],
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
+  language?: string,
 ): Promise<string> {
-  const raw = await resolveNodeLatex(root, driver, treePath, signal, reader_runtime)
+  const sampled_language = language ?? current_language(reader_runtime)
+  const raw = await resolveNodeLatex(
+    root,
+    driver,
+    treePath,
+    signal,
+    reader_runtime,
+    sampled_language,
+  )
   const macro = root.env_mode ? null : await driver.query_macro({ macro_name: root.macro_name, signal })
   let rootMode: SnlMacroStyle['mode'] = 'formula_inline'
   if (root.env_mode) {
     rootMode = root.env_mode
   } else if (macro) {
     try {
-      rootMode = resolveStyle(root, macro).mode
+      rootMode = resolveStyle(root, macro, sampled_language).mode
     } catch {
       rootMode = 'formula_inline'
     }

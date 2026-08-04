@@ -12,6 +12,7 @@ describe('dynamic #* + separator expansion', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: true,
       tags: [],
+      default_style: { en: 'default' },
       styles: [{ style_name: 'default', mode: 'formula_inline', template: '#*', separator: ', ', tags: [] }],
     },
     wrap_braces: {
@@ -20,6 +21,7 @@ describe('dynamic #* + separator expansion', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: true,
       tags: [],
+      default_style: { en: 'default' },
       styles: [{ style_name: 'default', mode: 'formula_inline', template: '\\{#*\\}', separator: '; ', tags: [] }],
     },
     no_sep: {
@@ -28,6 +30,7 @@ describe('dynamic #* + separator expansion', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: true,
       tags: [],
+      default_style: { en: 'default' },
       styles: [{ style_name: 'default', mode: 'formula_inline', template: '#*', tags: [] }],
     },
   }

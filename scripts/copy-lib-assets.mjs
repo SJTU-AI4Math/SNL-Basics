@@ -1,5 +1,5 @@
-import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -17,9 +17,26 @@ function makeDeclarationsNodeNextCompatible(directory) {
     const declaration = readFileSync(path, 'utf8')
     const nodeNextCompatible = declaration.replace(
       /(from\s+['"]|import\(['"])(\.[^'"]+?)(['"]\)?)/g,
-      (match, prefix, specifier, suffix) => /\.(?:[cm]?js|json)$/.test(specifier)
-        ? match
-        : `${prefix}${specifier}.js${suffix}`,
+      (match, prefix, specifier, suffix) => {
+        if (/\.(?:[cm]?js|json)$/.test(specifier)) return match
+        const resolved = join(dirname(path), specifier)
+        const normalized = resolved.replaceAll('\\', '/')
+        if (
+          normalized.includes('/dist-lib/entry-types/runtime') ||
+          normalized.endsWith('/dist-lib/entry-types/snl-macro/macro-data-driver')
+        ) {
+          const rootDeclaration = relative(dirname(path), join(root, 'dist-lib/index.js'))
+            .replaceAll('\\', '/')
+          const publicSpecifier = rootDeclaration.startsWith('.')
+            ? rootDeclaration
+            : `./${rootDeclaration}`
+          return `${prefix}${publicSpecifier}${suffix}`
+        }
+        const target = existsSync(resolved) && statSync(resolved).isDirectory()
+          ? `${specifier}/index.js`
+          : `${specifier}.js`
+        return `${prefix}${target}${suffix}`
+      },
     )
     writeFileSync(path, nodeNextCompatible)
   }
@@ -31,5 +48,36 @@ mkdirSync(join(root, 'dist-lib'), { recursive: true })
 copyFileSync(join(root, 'src/snl-react-view/style.css'), join(root, 'dist-lib/style.css'))
 copyFileSync(join(root, 'src/entry-react/style.css'), join(root, 'dist-lib/entry.css'))
 writeFileSync(join(root, 'dist-lib/entry.d.ts'), "export * from './entry-types/entry-react/index.js'\n")
+writeFileSync(join(root, 'dist-lib/core.d.ts'), `export {
+  MacroDataDriver,
+  SnlDslFormatter,
+  SnlSyntaxTreeParseError,
+  analyzeSnlTreeSources,
+  annotateBindings,
+  createEmptySnlSyntaxTreeNode,
+  createSnlSyntaxTreeNode,
+  fillLatexTemplate,
+  isEmptySnlSyntaxTreeNode,
+  isSnlSyntaxTree,
+  parseSnlSyntaxTree,
+  serializeSnlSyntaxTree,
+  tryParseSnlSyntaxTree,
+} from './index.js'
+export type {
+  MacroDataDriverOptions,
+  MacroQueryArgs,
+  SnlMacro,
+  SnlMacroRecord,
+  SnlMacroSource,
+  SnlMacroSourceLookup,
+  SnlMacroStyle,
+  SnlSourceMetrics,
+  SnlSyntaxTree,
+} from './index.js'
+export {
+  applyContextSource,
+  extractExportedBinders,
+} from './entry-types/entry-react/context-source.js'
+`)
 copyFileSync(join(root, 'public/snl-macro-db.json'), join(root, 'dist-lib/snl-macro-db.json'))
 rmSync(join(root, 'dist-lib/snl-macro-db-samples.json'), { force: true })

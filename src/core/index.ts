@@ -32,3 +32,20 @@ export {
   type SnlMacroSourceLookup,
   type SnlSourceMetrics,
 } from '../snl-syntax-tree/source-metrics'
+
+export {
+  MacroDataDriver,
+  type MacroDataDriverOptions,
+  type MacroQueryArgs,
+} from '../snl-macro/macro-data-driver'
+export type {
+  SnlMacro,
+  SnlMacroRecord,
+  SnlMacroSource,
+  SnlMacroStyle,
+} from '../snl-macro/types'
+
+export {
+  applyContextSource,
+  extractExportedBinders,
+} from '../entry-react/context-source'

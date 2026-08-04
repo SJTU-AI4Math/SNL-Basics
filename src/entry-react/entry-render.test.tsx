@@ -178,6 +178,7 @@ describe('recursive Entry preview', () => {
   it('queries and renders a referenced Entry in a generic popover', async () => {
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name }) => macro_name === 'ref' ? {
       name: 'ref', description: '', source: { entries: ['child'], urls: [] }, dynamic_arity: false, tags: [],
+      default_style: { en: 'default' },
       styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
     } : null } })
     const entries = dataDriver({

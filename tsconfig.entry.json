@@ -7,6 +7,6 @@
     "rootDir": "./src",
     "declarationDir": "./dist-lib/entry-types"
   },
-  "include": ["src/entry-react/index.ts"],
+  "include": ["src/entry-react/index.ts", "src/core/index.ts"],
   "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
 }

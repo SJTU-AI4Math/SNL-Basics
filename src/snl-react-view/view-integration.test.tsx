@@ -20,6 +20,7 @@ const db: SnlMacroRecord = {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     tags: [],
+    default_style: { en: 'default' },
     styles: [{ style_name: 'default', mode: 'formula_inline', template: '#0 + #1', tags: [] }],
   },
   x: {
@@ -28,6 +29,7 @@ const db: SnlMacroRecord = {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     tags: [],
+    default_style: { en: 'default' },
     styles: [{ style_name: 'default', mode: 'formula_inline', template: 'x', tags: [] }],
   },
 }
@@ -255,6 +257,7 @@ describe('macro query lifecycle', () => {
         source: { entries: [], urls: [] },
         dynamic_arity: false,
         tags: [],
+        default_style: { en: 'default' },
         styles: [{ style_name: 'default', mode: 'text', template: 'old backend', tags: [] }],
       },
     }
@@ -298,6 +301,7 @@ describe('block_template_name validation', () => {
         source: { entries: [], urls: [] },
         dynamic_arity: false,
         tags: [],
+        default_style: { en: 'default' },
         styles: [{
           style_name: 'default',
           mode: 'formula_inline',
@@ -327,6 +331,7 @@ describe('block_template_name validation', () => {
         source: { entries: [], urls: [] },
         dynamic_arity: true,
         tags: [],
+        default_style: { en: 'default' },
         styles: [{
           style_name: 'default',
           mode: 'block',

@@ -15,6 +15,7 @@ const db: SnlMacroRecord = {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     tags: [],
+    default_style: { en: 'default' },
     styles: [{ style_name: 'default', mode: 'formula_inline', template: '\\mathbb{T}(#0)', tags: [] }],
   },
   // Dynamic-arity macro — template MUST contain #* per v0.10.0 contract.
@@ -24,6 +25,7 @@ const db: SnlMacroRecord = {
     source: { entries: [], urls: [] },
     dynamic_arity: true,
     tags: [],
+    default_style: { en: 'default' },
     styles: [
       {
         style_name: 'default',
@@ -38,6 +40,7 @@ const db: SnlMacroRecord = {
     source: { entries: [], urls: [] },
     dynamic_arity: true,
     tags: [],
+    default_style: { en: 'default' },
     styles: [
       {
         style_name: 'default',
