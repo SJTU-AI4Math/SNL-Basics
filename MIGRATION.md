@@ -70,10 +70,6 @@ automatic wrapping.
   templates. The view layer auto-wraps every rendered node in a single
   `\htmlData{name=<macro>,kind=<node.kind>[,bindRef=<ref>][,tree-path=<path>]}{…}`.
 
-Run `npm run migrate-db-v2` (`scripts/migrate-macro-db-v2.mjs`, `--dry-run`
-supported) to transform a v1 DB: it strips **all** `\htmlData` wrappers with a
-balanced-brace parser and rewrites `@CHILDn@ → #n` / `@CHILDREN@ → #*`.
-
 This is a schema break — the migrated DB is not compatible with library
 versions `< 0.3.0`.
 

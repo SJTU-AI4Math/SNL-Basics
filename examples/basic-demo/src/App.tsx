@@ -17,19 +17,14 @@ import {
   type SnlMacro,
   type SnlSyntaxTree,
 } from '@sjtu-ai4math/snl-basics'
-// The core macro database ships with the package — no network, no server.
-import macroDbJson from '@sjtu-ai4math/snl-basics/snl-macro-db.json'
+const macroDb: Record<string, SnlMacro> = {}
 
-const macroDb = macroDbJson as unknown as Record<string, SnlMacro>
-
-const INITIAL_INPUT =
-  'FOL.forall(x,FOL.implies[double](FOL.app(P,x),FOL.paren(FOL.or(y,FOL.app(Q,x)))))'
+const INITIAL_INPUT = '群.示例(@x,x)'
 
 const SAMPLES = [
   INITIAL_INPUT,
-  'FOL.implies(a, b)',
-  'FOL.implies[double](a, b)',
-  'FOL.forall(x, FOL.eq(x, x))',
+  'Théorie.groupe(élément)',
+  'Ελληνικά.Ομάδα(αντικείμενο)',
 ]
 
 /** Render the tree as an indented outline, for eyeballing parser output. */
@@ -96,10 +91,9 @@ export default function App() {
         <h2>1 · Source</h2>
         <p className="hint">
           Grammar: <code>name ('[' style ']')? ('(' args ')')?</code>. The optional style bracket
-          picks a render style of the same macro (same arity), e.g.{' '}
-          <code>FOL.implies[double](a, b)</code> renders with <code>⇒</code>. Omit it to use the
-          macro's default style. A quantifier's first child is its binder; whether a bare leaf is
-          a bound or free variable is inferred by <code>annotateBindings</code>.
+          picks a render style of the same macro (same arity). Omit it to use the macro's default
+          style. Binder sites use the explicit <code>@name</code> syntax; Basics does not assign
+          domain semantics from Macro names.
         </p>
         <div className="row">
           <input

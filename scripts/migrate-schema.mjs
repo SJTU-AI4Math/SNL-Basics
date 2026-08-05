@@ -12,10 +12,10 @@
  * Usage:
  *   node scripts/migrate-schema.mjs [--write] [--split-localized-templates] [--target <path>...]
  *
- * Without --target, migrates default bundled files.
+ * At least one --target is required; SNL-Basics does not own consumer data.
  */
 import { copyFileSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -29,14 +29,14 @@ if (process.argv.includes('--help')) {
   process.exit(0)
 }
 
-const defaultTargets = [
-  join(__dirname, '..', 'public', 'snl-macro-db.json'),
-]
-
 const targetIdx = process.argv.indexOf('--target')
 const targets = targetIdx >= 0
   ? process.argv.slice(targetIdx + 1).filter(a => !a.startsWith('--'))
-  : defaultTargets
+  : []
+if (targets.length === 0) {
+  console.error('At least one --target <path> is required.')
+  process.exit(2)
+}
 
 // --- Macro v6→v7 migration (source-equivalent to src/schema/migrate-macro.ts) ---
 

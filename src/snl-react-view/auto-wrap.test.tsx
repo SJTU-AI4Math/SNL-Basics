@@ -3,11 +3,10 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
-import mainDbJson from '../../public/snl-macro-db.json'
 import type { SnlMacroRecord } from '../snl-macro/types'
 import { testDriver } from '../snl-react-view/test-helpers'
 
-const db = mainDbJson as unknown as SnlMacroRecord
+const db: SnlMacroRecord = {}
 
 afterEach(cleanup)
 
@@ -31,16 +30,18 @@ describe('auto-wrap \\htmlData', () => {
     expect(container.querySelector('[data-name="b"]')).not.toBeNull()
   })
 
-  it('emits data-scope="binder" + bindRef for a quantifier (bvar-scope highlighting)', async () => {
-    const tree = parseSnlSyntaxTree('FOL.forall(x,x)')
+  it('emits binder metadata from explicit @ syntax without domain-name special cases', async () => {
+    const tree = parseSnlSyntaxTree('quantifier(@x,x)')
     const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 
-    await waitFor(() => {
-      expect(container.querySelector('[data-scope="binder"]')).not.toBeNull()
-    })
-    const scope = container.querySelector<HTMLElement>('[data-scope="binder"]')!
-    expect(scope.dataset.bindref ?? scope.getAttribute('data-bindRef')).toBeTruthy()
-    // A bound-variable occurrence carrying the same bindRef exists inside scope.
-    expect(scope.querySelector('[data-kind="bvar"]')).not.toBeNull()
+    await waitFor(() => expect(container.querySelector('[data-kind="binder"]')).not.toBeNull())
+    const scope = container.querySelector<HTMLElement>('[data-scope="binder"]')
+    const binder = container.querySelector<HTMLElement>('[data-kind="binder"]')
+    const bvar = container.querySelector<HTMLElement>('[data-kind="bvar"]')
+    expect(scope).not.toBeNull()
+    expect(binder?.dataset.bindref).toBeTruthy()
+    expect(bvar?.dataset.bindref).toBe(binder?.dataset.bindref)
+    expect(scope?.contains(binder!)).toBe(true)
+    expect(scope?.contains(bvar!)).toBe(true)
   })
 })

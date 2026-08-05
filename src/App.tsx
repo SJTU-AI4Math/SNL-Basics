@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type KeyboardEventHandler } from 'react'
+import { useMemo, useState, type KeyboardEventHandler } from 'react'
 import {
   MacroDataDriver,
   SnlSyntaxTreeView,
@@ -10,8 +10,7 @@ import {
 import { SnlSyntaxTreeEditor } from './components/SnlSyntaxTreeEditor/SnlSyntaxTreeEditor'
 import type { SnlMacroRecord } from './snl-macro/types'
 
-const INITIAL_INPUT =
-  'FOL.forall(x,FOL.implies[double](FOL.app(P,x),FOL.paren(FOL.or(y,FOL.app(Q,x)))))'
+const INITIAL_INPUT = '群.示例(@x,x)'
 
 const MAX_UNDO_CHECKPOINTS = 10
 
@@ -49,7 +48,7 @@ export default function App() {
   const [tree, setTree] = useState<SnlSyntaxTree>(() => parseSnlSyntaxTree(INITIAL_INPUT))
   const [parseError, setParseError] = useState<string | null>(null)
   const [latexSource, setLatexSource] = useState('')
-  const [templateDb, setTemplateDb] = useState<SnlMacroRecord>({})
+  const [templateDb] = useState<SnlMacroRecord>({})
   const [, setUndoStack] = useState<SnlSyntaxTree[]>([])
   const driver = useMemo(
     () => new MacroDataDriver({
@@ -64,12 +63,6 @@ export default function App() {
   const treeString = useMemo(() => serializeSnlSyntaxTree(tree), [tree])
   const treeDiagram = useMemo(() => toTreeDiagram(tree), [tree])
 
-  useEffect(() => {
-    void fetch('/snl-macro-db.json')
-      .then((r) => r.json())
-      .then((db) => setTemplateDb(db as SnlMacroRecord))
-      .catch(() => setTemplateDb({}))
-  }, [])
 
   const parseFromInput = () => {
     const result = tryParseSnlSyntaxTree(expression)
@@ -124,9 +117,9 @@ export default function App() {
       <div className="section">
         <h2>1) Parser 输入</h2>
         <p>
-          语法：name（含点缀后缀，如 FOL.forall.typed）后可跟可选的 [style] 方括号覆盖渲染样式，
-          再跟 (child1,child2(…))。例如 FOL.implies[double](a,b) 用 ⇒ 渲染，不写方括号则用宏的
-          defaultStyle。量词首个子节点即绑定变量；裸名叶子是否在作用域内由编译期推断为 bvar / fvar。
+          语法：name 后可跟可选的 [style] 方括号覆盖渲染样式，再跟
+          (child1,child2(…))。例如 群.示例(@x,x) 同时演示 Unicode 名称和显式 binder。
+          宏数据由消费者通过 MacroDataDriver 提供；Basics 不附带 Macro DB。
         </p>
         <div className="row">
           <input

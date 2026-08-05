@@ -144,51 +144,43 @@ describe('parseSnlSyntaxTree', () => {
     expect(t.children[0].macro_name).toBe('x')
   })
 
-  it('marks the quantifier binding variable and annotates bindRef', () => {
-    const tree = parseSnlSyntaxTree('FOL.forall.binder(x,y)')
-    expect(tree.macro_name).toBe('FOL.forall.binder')
-    expect(tree.mdata).toMatchObject({ bindRef: 'b1' })
-    expect(tree.children[0].macro_name).toBe('x')
+  it('uses explicit @ binders without hardcoded Macro names', () => {
+    const tree = parseSnlSyntaxTree('quantifier(@x,x)')
+    expect(tree.macro_name).toBe('quantifier')
+    expect(tree.scope).toBe('binder')
     expect(tree.children[0].kind).toBe('binder')
     expect(tree.children[0].mdata).toMatchObject({ bindRef: 'b1' })
+    expect(tree.children[1].kind).toBe('bvar')
+    expect(tree.children[1].mdata).toMatchObject({ bindRef: 'b1' })
   })
 
-  it('infers bvar for bare leaves from binder stack; leaves unbound leaves un-kinded', () => {
-    // 2026-07-04-late 猫猫 spec: an unbound bare leaf should NOT be stamped
-    // 'fvar' by annotate-bind — leaving it as '' lets the view fall through
-    // to the macro's DB-declared kind (e.g. `Type` → 'rule') instead of
-    // masking it as fvar. The wrapHtmlData chain still lands on 'fvar' as
-    // the ultimate fallback when there's no db entry.
-    const tree = parseSnlSyntaxTree('FOL.forall.binder(x,y)')
+  it('does not assign binder semantics from an FOL-shaped name', () => {
+    const tree = parseSnlSyntaxTree('FOL.forall(x,x)')
+    expect(tree.kind).toBe('')
+    expect(tree.children[0].kind).toBe('')
+    expect(tree.children[1].kind).toBe('')
+  })
+
+  it('infers bvar for explicit binders; leaves unbound leaves un-kinded', () => {
+    const tree = parseSnlSyntaxTree('quantifier(@x,y)')
     expect(tree.children[1].kind).toBe('')
     expect(tree.children[1].macro_name).toBe('y')
 
-    const t2 = parseSnlSyntaxTree('FOL.forall.binder(x,x)')
-    expect(t2.children[1].kind).toBe('bvar')
-    expect(t2.children[1].mdata).toMatchObject({ bindRef: 'b1' })
+    const bound = parseSnlSyntaxTree('quantifier(@x,x)')
+    expect(bound.children[1].kind).toBe('bvar')
+    expect(bound.children[1].mdata).toMatchObject({ bindRef: 'b1' })
   })
 
-  it('infers bound/free variables in nested FOL example', () => {
-    const input =
-      'FOL.forall.binder(x,FOL.implies.infix(FOL.app.apply(P,x),FOL.paren.round(FOL.or.infix(y,FOL.app.apply(Q,x)))))'
-    const tree = parseSnlSyntaxTree(input)
-
+  it('infers bound/free variables in a generic nested example', () => {
+    const tree = parseSnlSyntaxTree(
+      'quantifier(@x,implies(app(P,x),paren(or(y,app(Q,x)))))',
+    )
     const implies = tree.children[1]
     const app1 = implies.children[0]
-    expect(app1.macro_name).toBe('FOL.app.apply')
-    // Unbound leaves now stay kind='' (was: 'fvar') — see contract update
-    // in the sibling test above.
     expect(app1.children[0].kind).toBe('')
-    expect(app1.children[0].macro_name).toBe('P')
     expect(app1.children[1].kind).toBe('bvar')
-    expect(app1.children[1].macro_name).toBe('x')
-
-    const paren = implies.children[1]
-    const orNode = paren.children[0]
-    expect(orNode.macro_name).toBe('FOL.or.infix')
+    const orNode = implies.children[1].children[0]
     expect(orNode.children[0].kind).toBe('')
-    expect(orNode.children[0].macro_name).toBe('y')
-    expect(orNode.children[1].macro_name).toBe('FOL.app.apply')
     expect(orNode.children[1].children[0].kind).toBe('')
     expect(orNode.children[1].children[1].kind).toBe('bvar')
   })

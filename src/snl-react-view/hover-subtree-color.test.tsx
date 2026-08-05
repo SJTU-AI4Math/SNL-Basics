@@ -6,11 +6,10 @@ import { cleanup, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
 import { paletteToCss, DEFAULT_KIND_PALETTE } from './kind-palette'
-import mainDbJson from '../../public/snl-macro-db.json'
 import type { SnlMacroRecord } from '../snl-macro/types'
 import { testDriver } from '../snl-react-view/test-helpers'
 
-const db = mainDbJson as unknown as SnlMacroRecord
+const db: SnlMacroRecord = {}
 
 const css = readFileSync(path.resolve(process.cwd(), 'src/snl-react-view/style.css'), 'utf8')
 
@@ -18,9 +17,9 @@ afterEach(cleanup)
 
 describe('hover colors only direct-text descendants, not nested subtrees', () => {
   it('applies .snl-single-hover to the hovered subtree while nested subtrees keep their [data-kind]', async () => {
-    // forall(x, add(x, mul(x, y))) — add wraps a nested mul subtree.
+    // wrapper(@x, add(x, mul(x, y))) — add wraps a nested mul subtree.
     const tree = parseSnlSyntaxTree(
-      'FOL.forall(x, Add.add(x, Mul.mul(x, y)))',
+      'wrapper(@x, Add.add(x, Mul.mul(x, y)))',
     )
     const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 

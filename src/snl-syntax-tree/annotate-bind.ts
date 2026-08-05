@@ -4,12 +4,7 @@ import type { SnlSyntaxTree } from './types'
 // links and to resolve delimited-name leaves as bvar / fvar based on the
 // enclosing binder scope.
 //
-// A "binder" is either:
-//   (a) a legacy hardcoded FOL.forall / FOL.exists quantifier (see below).
-//       The first child is the introduction site of the bound variable and
-//       gets kind='binder' + bindRef, and its name becomes an active binder
-//       for the quantifier body's parse.
-//   (b) a node the parser tagged with kind='binder' via the `@` prefix
+// A "binder" is a node the parser tagged with kind='binder' via the `@` prefix
 //       (2026-07-04-late spec 2). `@` recursively marks a node AND every
 //       descendant as binder, so a nested @-subtree contributes MULTIPLE
 //       binder names to the enclosing scope (all descendants' names).
@@ -20,15 +15,6 @@ import type { SnlSyntaxTree } from './types'
 // bvar with the matching bindRef; otherwise it becomes an fvar. This mirrors
 // how KaTeX / textbook binder-scoping works.
 
-/** 量词宏（原 FOL.forall / FOL.exists，v1 后带点缀后缀如 FOL.forall.binder） */
-function isLegacyQuantifierName(name: string): boolean {
-  return (
-    name === 'FOL.forall' ||
-    name === 'FOL.exists' ||
-    name.startsWith('FOL.forall.') ||
-    name.startsWith('FOL.exists.')
-  )
-}
 
 /**
  * Collect every kind='binder' node in a subtree — including binders buried
@@ -41,12 +27,12 @@ function isLegacyQuantifierName(name: string): boolean {
  * position that comes LATER in DFS order, unbounded by its immediate
  * container.
  */
-function collectBinderNames(node: SnlSyntaxTree): string[] {
-  const acc: string[] = []
+function collectBinderNodes(node: SnlSyntaxTree): SnlSyntaxTree[] {
+  const acc: SnlSyntaxTree[] = []
   const pending: SnlSyntaxTree[] = [node]
   while (pending.length > 0) {
     const current = pending.pop()!
-    if (current.kind === 'binder') acc.push(current.macro_name)
+    if (current.kind === 'binder') acc.push(current)
     for (let index = current.children.length - 1; index >= 0; index -= 1) {
       pending.push(current.children[index])
     }
@@ -80,51 +66,35 @@ export function annotateBindings(
   const initFrames: Frame[] = initialStack.map((name) => ({ name, ref: '' }))
 
   function walk(node: SnlSyntaxTree, stack: Frame[]): void {
-    // --- (a) Legacy FOL.forall / FOL.exists quantifier ---
-    // Preserve the existing behavior: first child is the introduction site;
-    // subsequent siblings see it in scope.
-    if (isLegacyQuantifierName(node.macro_name)) {
-      const ref = nextRef()
-      const base = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
-      node.mdata = { ...base, bindRef: ref }
-      node.scope = 'binder'
-      if (!node.kind) {
-        node.kind = 'rule'
-      }
-      const ch = node.children
-      if (ch.length >= 1) {
-        const v = ch[0]
-        const vb = v.mdata && typeof v.mdata === 'object' ? v.mdata : {}
-        v.mdata = { ...vb, bindRef: ref }
-        v.kind = 'binder'
-      }
-      if (ch.length === 2) {
-        walk(ch[0], stack)
-        walk(ch[1], [...stack, { name: ch[0].macro_name, ref }])
-      } else if (ch.length >= 3) {
-        walk(ch[0], stack)
-        walk(ch[1], stack)
-        walk(ch[2], [...stack, { name: ch[0].macro_name, ref }])
-      }
-      return
-    }
-
-    // --- (b) Non-quantifier: walk children left-to-right. Each child
+    // Walk children left-to-right. Each child
     // that ends up as a binder (either @-marked by the parser or explicit
     // kind='binder' from some other source) contributes its subtree's
     // binder names to the scope of its LATER siblings. ---
     let localStack = stack
     for (const child of node.children) {
       walk(child, localStack)
-      const contributed = collectBinderNames(child)
+      const contributed = collectBinderNodes(child)
       if (contributed.length > 0) {
         if (localStack === stack) {
           localStack = [...stack]
         }
-        // Extend for subsequent siblings only. Every contributed name gets
-        // a fresh bindRef stamp (the child's `@` didn't allocate one).
-        for (const name of contributed) {
-          localStack.push({ name, ref: nextRef() })
+        // Extend for subsequent siblings only. Stamp the explicit binder with
+        // the same ref consumed by later bvar occurrences. A nested binder may
+        // already own a ref from its nearest scope; preserve it when an outer
+        // subtree contributes that binder farther in DFS order.
+        for (const binder of contributed) {
+          const data: Record<string, unknown> = binder.mdata && typeof binder.mdata === 'object'
+            ? binder.mdata as Record<string, unknown>
+            : {}
+          const existingRef = typeof data.bindRef === 'string' ? data.bindRef : ''
+          const ref = existingRef || nextRef()
+          binder.mdata = { ...data, bindRef: ref }
+          localStack.push({ name: binder.macro_name, ref })
+          if (!node.scope) {
+            node.scope = 'binder'
+            const nodeData = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
+            node.mdata = { ...nodeData, bindRef: ref }
+          }
         }
       }
     }

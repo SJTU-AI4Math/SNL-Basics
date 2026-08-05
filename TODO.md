@@ -1,18 +1,15 @@
 # SNL-Basics TODO — 库表面精简（lightening）
 
-> 本仓库定位是 SNL 语法树渲染库，同时保留一份小而稳定的
-> `bundledMacroDb`，为下游提供无法省略的内置宏。
->
-> 普通项目宏、业务宏与 demo 宏仍属于 downstream macro packages，
-> 不应进入 Bundled DB 或 `@sjtu-ai4math/snl-basics` 的公开 API。
+> 本仓库定位是 SNL 语法树机制库。所有 Macro 数据都由 consumer 拥有，
+> Basics 不附带 DB，也不通过 Macro 名字硬编码领域语义。
 
 ## 已确认的边界
 
-- [x] 保留 `bundledMacroDb` 及 `./snl-macro-db.json` 包导出。
+- [x] 删除 `bundledMacroDb`、`./snl-macro-db.json` 包导出及 bundled DB。
 - [x] 删除 `bundledSampleMacroDb`、sample JSON 与对应文档 Entry。
 - [x] Bundled DB 不收录普通四则运算宏：`Add.add`、`Sub.sub`、
   `Mul.mul`、`DivRing.div`。
-- [ ] 后续逐项审计 Bundled DB；只有所有 consumer 都必须依赖的内置宏才保留。
+
 
 ## 仍待处理
 

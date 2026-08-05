@@ -52,16 +52,23 @@
       "default": "./dist-lib/entry.js"
     },
     "./entry/style.css": "./dist-lib/entry.css",
-    "./style.css": "./dist-lib/style.css",
-    "./snl-macro-db.json": "./dist-lib/snl-macro-db.json"
+    "./style.css": "./dist-lib/style.css"
   },
   "types": "./dist-lib/index.d.ts",
   "typesVersions": {
     "*": {
-      "core": ["dist-lib/core.d.ts"],
-      "runtime": ["dist-lib/index.d.ts"],
-      "hover": ["dist-lib/index.d.ts"],
-      "entry": ["dist-lib/entry.d.ts"]
+      "core": [
+        "dist-lib/core.d.ts"
+      ],
+      "runtime": [
+        "dist-lib/index.d.ts"
+      ],
+      "hover": [
+        "dist-lib/index.d.ts"
+      ],
+      "entry": [
+        "dist-lib/entry.d.ts"
+      ]
     }
   },
   "files": [
@@ -77,11 +84,6 @@
     "build:lib": "vite build --config vite.lib.config.ts && vite build --config vite.entry.config.ts && vite build --config vite.runtime.config.ts && tsc -p tsconfig.entry.json && node scripts/copy-lib-assets.mjs",
     "preview": "vite preview",
     "test": "vitest run",
-    "migrate-db-v1": "node scripts/migrate-macro-db-v1.mjs",
-    "migrate-db-v2": "node scripts/migrate-macro-db-v2.mjs",
-    "migrate-db-v3": "node scripts/migrate-macro-db-v3.mjs",
-    "migrate-db-v4": "node scripts/migrate-macro-db-v4.mjs",
-    "migrate-db-v5": "node scripts/migrate-macro-db-v5.mjs",
     "prepublishOnly": "npm run build:lib"
   },
   "peerDependencies": {

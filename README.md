@@ -74,9 +74,9 @@ npm install                        # resolves the tarball via file:../../
 npm run dev                        # or: npm run build
 ```
 
-It demonstrates parse → `annotateBindings` → `SnlSyntaxTreeView` with the
-bundled macro database, live editing, style-bracket switching, the serialized
-tree, and the generated KaTeX source.
+It demonstrates parse → `annotateBindings` → `SnlSyntaxTreeView` with a
+consumer-owned `MacroDataDriver`, live editing, the
+serialized tree, and the generated KaTeX source.
 
 ## Feature overview
 
@@ -150,7 +150,7 @@ export function Demo() {
 
   // 2. Parse SNL source, then annotate binders/bound-variables for hover.
   const tree: SnlSyntaxTree = useMemo(() => {
-    const t = parseSnlSyntaxTree('FOL.forall(x, FOL.eq(x, x))')
+    const t = parseSnlSyntaxTree('quantifier(@x, equals(x, x))')
     annotateBindings(t)
     return t
   }, [])
@@ -229,33 +229,26 @@ import { HTMLDATA_KATEX_DEFAULTS } from '@sjtu-ai4math/snl-basics'
 katex.renderToString(latex, { throwOnError: false, ...HTMLDATA_KATEX_DEFAULTS })
 ```
 
-## Offline / bundled usage (VS Code, Electron, Node)
+## Consumer-owned Macro data
 
-No network required — load a macro JSON file and create a driver from it.
-The bundled macro database ships through the `./snl-macro-db.json` export:
+SNL-Basics does not ship a Macro database. Applications own their Macro records
+and expose them through `MacroDataDriver`, whether the backing store is an
+in-memory object, a workspace file, or a remote service:
 
 ```tsx
-import {
-  MacroDataDriver,
-  parseSnlSyntaxTree,
-  SnlSyntaxTreeView,
-} from '@sjtu-ai4math/snl-basics'
-import 'katex/dist/katex.min.css'
-import '@sjtu-ai4math/snl-basics/style.css'
-import macroDb from '@sjtu-ai4math/snl-basics/snl-macro-db.json'
+import { MacroDataDriver, parseSnlSyntaxTree } from '@sjtu-ai4math/snl-basics'
 
+const macros = {} // consumer-owned Record<string, SnlMacro>
 const driver = new MacroDataDriver({
   queries: {
     async query_macro({ macro_name }) {
-      return macroDb[macro_name] ?? null
+      return macros[macro_name] ?? null
     },
   },
 })
-const tree = parseSnlSyntaxTree('FOL.implies(a, b)')
+const tree = parseSnlSyntaxTree('群.示例(@x, x)')
 // <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} />
 ```
-
-> **No network required — load the bundled JSON and query through the driver.**
 
 ## Bundling (Vite / webpack)
 
@@ -282,8 +275,8 @@ Other ASCII punctuation remains forbidden because it carries SNL syntax.
 Unicode whitespace, controls, format controls (including zero-width/bidi
 controls), and lone UTF-16 surrogates are also rejected. A dotted suffix is part
 of a macro's identity when
-it's a genuinely different macro (e.g. different arity): `FOL.forall` vs.
-`FOL.forall.typed` (2 vs. 3 children). Render *variations that keep the same
+it's a genuinely different macro (e.g. different arity): `quantifier` vs.
+`quantifier.typed` (2 vs. 3 children). Render *variations that keep the same
 arity* are **styles**, not separate macros — see below.
 
 ## Styles & the `[style]` bracket
@@ -304,8 +297,8 @@ selection is `default_style[current language]` → `default_style.en` →
 making list order the normal default-selection mechanism.
 
 ```ts
-parseSnlSyntaxTree('FOL.implies(a, b)')          // language-selected default
-parseSnlSyntaxTree('FOL.implies[double](a, b)')  // 'double' style → a \Rightarrow b
+parseSnlSyntaxTree('Pow.pow(x, 2)')          // language-selected default
+parseSnlSyntaxTree('operator[double](a, b)')     // 'double' style → a \Rightarrow b
 ```
 
 The picked tag is exposed on the node as `node.style_name` and (when explicit)
@@ -326,7 +319,7 @@ serialize round-trips.
 
   ```ts
   const macro: SnlMacro = {
-    name: 'FOL.implies',
+    name: 'operator',
     description: '…',
     source: { entries: [], urls: [] },
     dynamic_arity: false,

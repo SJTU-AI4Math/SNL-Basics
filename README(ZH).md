@@ -61,7 +61,7 @@ npm install                        # 通过 file:../../ 解析该 tarball
 npm run dev                        # 或者：npm run build
 ```
 
-它演示了 parse → `annotateBindings` → `SnlSyntaxTreeView` 的完整流程（使用内置宏数据库）、
+它演示了 parse → `annotateBindings` → `SnlSyntaxTreeView` 的完整流程（使用消费者提供的 MacroDataDriver）、
 实时编辑、style 方括号切换、序列化后的树，以及生成的 KaTeX 源码。
 
 ## 功能与接口一览
@@ -135,7 +135,7 @@ export function Demo() {
 
   // 2. 解析 SNL 源码，然后标注 binder / 约束变量以支持悬停。
   const tree: SnlSyntaxTree = useMemo(() => {
-    const t = parseSnlSyntaxTree('FOL.forall(x, FOL.eq(x, x))')
+    const t = parseSnlSyntaxTree('quantifier(@x, equals(x, x))')
     annotateBindings(t)
     return t
   }, [])
@@ -211,33 +211,24 @@ import { HTMLDATA_KATEX_DEFAULTS } from '@sjtu-ai4math/snl-basics'
 katex.renderToString(latex, { throwOnError: false, ...HTMLDATA_KATEX_DEFAULTS })
 ```
 
-## 离线 / 打包使用（VS Code、Electron、Node）
+## 消费者自有的 Macro 数据
 
-无需网络 —— 加载一个宏 JSON 文件并据此创建 driver。内置的宏数据库通过
-`./snl-macro-db.json` 导出提供：
+SNL-Basics 不附带 Macro 数据库。应用自行拥有 Macro 记录，并通过
+`MacroDataDriver` 暴露查询；底层可以是内存对象、workspace 文件或远程服务：
 
 ```tsx
-import {
-  MacroDataDriver,
-  parseSnlSyntaxTree,
-  SnlSyntaxTreeView,
-} from '@sjtu-ai4math/snl-basics'
-import 'katex/dist/katex.min.css'
-import '@sjtu-ai4math/snl-basics/style.css'
-import macroDb from '@sjtu-ai4math/snl-basics/snl-macro-db.json'
+import { MacroDataDriver, parseSnlSyntaxTree } from '@sjtu-ai4math/snl-basics'
 
+const macros = {} // 消费者自有的 Record<string, SnlMacro>
 const driver = new MacroDataDriver({
   queries: {
     async query_macro({ macro_name }) {
-      return macroDb[macro_name] ?? null
+      return macros[macro_name] ?? null
     },
   },
 })
-const tree = parseSnlSyntaxTree('FOL.implies(a, b)')
-// <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} />
+const tree = parseSnlSyntaxTree('群.示例(@x, x)')
 ```
-
-> **无需网络 —— 加载内置 JSON，通过 driver 查询即可。**
 
 ## 打包（Vite / webpack）
 
@@ -261,7 +252,7 @@ export default defineConfig({
 `群.是群`、`Ελληνικά.Ομάδα`、`Théorie.groupe`。其他 ASCII 标点因承载 SNL 语法而
 继续禁止；Unicode 空白、控制字符、格式控制字符（含零宽/Bidi 控制）和孤立 UTF-16
 代理项同样会被拒绝。当点缀后缀确实标识了一个不同的宏
-（例如 arity 不同）时，它就是该宏身份的一部分：`FOL.forall` 与 `FOL.forall.typed`
+（例如 arity 不同）时，它就是该宏身份的一部分：`quantifier` 与 `quantifier.typed`
 （2 个 vs. 3 个子节点）。*保持相同 arity 的渲染变体*属于 **style**，而不是不同的宏 —— 见下节。
 
 ## Style 与 `[style]` 方括号
@@ -277,8 +268,8 @@ node := IDENT ('[' IDENT ']')? ('(' args ')')?
 可选的 `[style]` 方括号用于显式选定 style，并且永远优先。不写时依次使用 `default_style[当前语言]`、`default_style.en`、`styles[0]`。
 
 ```ts
-parseSnlSyntaxTree('FOL.implies(a, b)')          // 按当前语言选择默认 style
-parseSnlSyntaxTree('FOL.implies[double](a, b)')  // 'double' style → a \Rightarrow b
+parseSnlSyntaxTree('Pow.pow(x, 2)')          // 按当前语言选择默认 style
+parseSnlSyntaxTree('operator[double](a, b)')     // 'double' style → a \Rightarrow b
 ```
 
 选中的标签会暴露在节点的 `node.style_name` 上，并且（当它是显式写出的时）作为
@@ -296,7 +287,7 @@ round-trip 闭合的。
 
   ```ts
   const macro: SnlMacro = {
-    name: 'FOL.implies',
+    name: 'operator',
     description: '…',
     source: { entries: [], urls: [] },
     dynamic_arity: false,

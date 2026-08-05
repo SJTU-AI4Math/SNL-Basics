@@ -9,23 +9,37 @@ export interface BvarScopeEntry {
 }
 
 /**
- * KaTeX 注入 innerHTML 后调用：按 data-scope="binder" 划分，只收录各 scope 内的 bvar/binder（嵌套量词不会串 ref）。
- * bindRef 在 DOM 上为 data-bindRef，不能用 [data-bind-ref] 选择器。
+ * KaTeX 注入 innerHTML 后调用：为每个 bindRef 选择能包含其全部 binder/bvar
+ * 节点的最小 data-scope="binder" 根。嵌套 scope 可共享 ref，也可拥有不同 ref。
  */
 export function buildBvarScopeIndex(container: HTMLElement): Map<string, BvarScopeEntry> {
   const map = new Map<string, BvarScopeEntry>()
-  for (const scopeRoot of container.querySelectorAll<HTMLElement>('[data-scope="binder"]')) {
-    const ref = readBindRefFromDom(scopeRoot)
-    if (!ref) {
-      continue
-    }
-    const bvars = Array.from(scopeRoot.querySelectorAll<HTMLElement>('[data-kind="bvar"]')).filter(
-      (el) => readBindRefFromDom(el) === ref,
+  const scopeRoots = Array.from(
+    container.querySelectorAll<HTMLElement>('[data-scope="binder"]'),
+  )
+  const allBinders = Array.from(container.querySelectorAll<HTMLElement>('[data-kind="binder"]'))
+  const allBvars = Array.from(container.querySelectorAll<HTMLElement>('[data-kind="bvar"]'))
+  const refs = new Set<string>()
+  for (const element of [...scopeRoots, ...allBinders, ...allBvars]) {
+    const ref = readBindRefFromDom(element)
+    if (ref) refs.add(ref)
+  }
+
+  for (const ref of refs) {
+    const binders = allBinders.filter((element) => readBindRefFromDom(element) === ref)
+    const bvars = allBvars.filter((element) => readBindRefFromDom(element) === ref)
+    const members = [...binders, ...bvars]
+    const candidates = scopeRoots.filter((root) =>
+      members.length > 0
+        ? members.every((member) => root.contains(member))
+        : readBindRefFromDom(root) === ref,
     )
-    const binders = Array.from(scopeRoot.querySelectorAll<HTMLElement>('[data-kind="binder"]')).filter(
-      (el) => readBindRefFromDom(el) === ref,
+    // Any two candidates containing all members are nested in a valid syntax
+    // tree. Choose the deepest one, i.e. the minimal containing scope.
+    const scopeRoot = candidates.find((candidate) =>
+      !candidates.some((other) => other !== candidate && candidate.contains(other)),
     )
-    map.set(ref, { scopeRoot, bvars, binders })
+    if (scopeRoot) map.set(ref, { scopeRoot, bvars, binders })
   }
   return map
 }

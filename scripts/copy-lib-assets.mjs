@@ -80,5 +80,5 @@ export {
   extractExportedBinders,
 } from './entry-types/entry-react/context-source.js'
 `)
-copyFileSync(join(root, 'public/snl-macro-db.json'), join(root, 'dist-lib/snl-macro-db.json'))
+rmSync(join(root, 'dist-lib/snl-macro-db.json'), { force: true })
 rmSync(join(root, 'dist-lib/snl-macro-db-samples.json'), { force: true })
