@@ -13,7 +13,13 @@ import {
 import { CenteredRenderer, EnumerateRenderer, ListRenderer, TableRenderer } from './block-renderers'
 
 
-/** Payload passed to onHover. */
+/** Shared mutable channel for one uninterrupted hover lifecycle. */
+export interface SnlHoverSession {
+  readonly id: number
+  readonly data: Map<unknown, unknown>
+}
+
+/** Backward-compatible base payload for hover consumers and fixtures. */
 export interface SnlHoverEvent {
   name: string
   kind: string
@@ -23,6 +29,11 @@ export interface SnlHoverEvent {
   target: HTMLElement                          // DOM element under the cursor
   clientX: number
   clientY: number
+}
+
+/** Payload delivered to the three phase hooks; all phases share one session. */
+export interface SnlHoverPhaseEvent extends SnlHoverEvent {
+  session: SnlHoverSession
 }
 
 /** Resolved macro description for tooltip / accessibility. */
@@ -42,6 +53,8 @@ export interface SnlResolvedSource {
 /** State passed to renderTooltip. */
 export interface SnlTooltipState {
   visible: boolean
+  /** True once the tooltip is pinned by a 2-second hover or a click. Defaults to false. */
+  locked?: boolean
   x: number
   y: number
   name: string
@@ -116,7 +129,11 @@ export interface SnlRenderHooks {
    * side effects (logging, host messaging). The view's internal hover state
    * machine runs regardless. Default: undefined.
    */
-  onHover?: (event: SnlHoverEvent) => void
+  onHover?: (event: SnlHoverPhaseEvent) => void
+  /** Fire once when the same node has remained hovered for one second. */
+  onHover1s?: (event: SnlHoverPhaseEvent) => void
+  /** Fire once when the same node has remained hovered for two seconds. */
+  onHover2s?: (event: SnlHoverPhaseEvent) => void
   /**
    * Fire-and-forget — NOT awaited. Called when the pointer leaves the render
    * container. Default: undefined.
@@ -161,7 +178,8 @@ export interface SnlRenderHooks {
 function defaultRenderTooltip(state: SnlTooltipState): ReactElement | null {
   return (
     <div
-      className={`snl-hover-tooltip ${state.visible ? 'visible' : ''}`}
+      className={`snl-hover-tooltip ${state.visible ? 'visible' : ''} ${state.locked ? 'locked' : ''}`}
+      data-locked={state.locked ? 'true' : undefined}
       style={{ left: state.x, top: state.y }}
     >
       <div className="tooltip-title">{state.name}</div>

@@ -140,7 +140,7 @@ describe('Entry surface dispatch', () => {
 
     const noLongerDeclaring = dataDriver({ ctx: base({ snl: '@y' }, { id: 'ctx', kind: 'context' }) })
     view.rerender(<EntrySurface entry={sourceEntry} kind={null} entry_data_driver={noLongerDeclaring} macro_data_driver={macroDriver} />)
-    await waitFor(() => expect(view.container.querySelector('[data-kind="fvar"]')).not.toBeNull())
+    await waitFor(() => expect(view.container.querySelector('[data-kind="partial"]')).not.toBeNull())
     expect(view.container.querySelector('[data-kind="bvar"]')).toBeNull()
   })
 })
@@ -177,7 +177,7 @@ describe('EntryView query lifecycle', () => {
 describe('recursive Entry preview', () => {
   it('queries and renders a referenced Entry in a generic popover', async () => {
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name }) => macro_name === 'ref' ? {
-      name: 'ref', description: '', source: { entries: ['child'], urls: [] }, dynamic_arity: false, tags: [],
+      name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
       default_style: { en: 'default' },
       styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
     } : null } })

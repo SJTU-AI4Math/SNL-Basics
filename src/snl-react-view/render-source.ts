@@ -117,6 +117,7 @@ function current_language(
  * Auto-wrap a rendered node's latex in a single `\htmlData{name,kind[,style][,bindRef][,treePath]}`.
  * This is the sole place metadata enters the KaTeX output — templates never
  * write `\htmlData` themselves. Accepts resolved macro (or null) for the node.
+ * Unclassified roots default to `partial`; unclassified descendants to `fvar`.
  */
 export function wrapHtmlData(
   node: SnlSyntaxTree,
@@ -128,7 +129,7 @@ export function wrapHtmlData(
   const name = sanitizeHtmlDataAttr(node.macro_name)
   const dbKind = macro?.kind
   const kind = sanitizeHtmlDataAttr(
-    kindOverride || node.kind || dbKind || 'fvar',
+    kindOverride || node.kind || dbKind || (treePath?.length === 0 ? 'partial' : 'fvar'),
   )
   const ref = getBindRef(node)
   const bindRefFragment = ref ? `,bindRef=${sanitizeHtmlDataAttr(ref)}` : ''
@@ -138,6 +139,49 @@ export function wrapHtmlData(
   const styleFragment = node.style_name ? `,style=${sanitizeHtmlDataAttr(node.style_name)}` : ''
   const pathFragment = treePath ? `,tree-path=${encodeTreePath(treePath)}` : ''
   return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}${srcFragment}${pathFragment}}{${inner}}`
+}
+
+/** Wrap each top-level alignment segment without crossing `&` / `\\` boundaries. */
+function wrapTopLevelAlignmentSegments(
+  latex: string,
+  wrap: (segment: string) => string,
+): string {
+  const segments: string[] = []
+  const separators: string[] = []
+  let current = ''
+  let braceDepth = 0
+  for (let i = 0; i < latex.length; i += 1) {
+    const char = latex[i]
+    if (char === '\\') {
+      const next = latex[i + 1]
+      if (next === '\\' && braceDepth === 0) {
+        segments.push(current)
+        separators.push('\\\\')
+        current = ''
+        i += 1
+      } else {
+        current += char
+        if (next !== undefined) {
+          current += next
+          i += 1
+        }
+      }
+      continue
+    }
+    if (char === '{') braceDepth += 1
+    else if (char === '}') braceDepth = Math.max(0, braceDepth - 1)
+    if (char === '&' && braceDepth === 0) {
+      segments.push(current)
+      separators.push('&')
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  segments.push(current)
+  return segments.map(wrap).map((segment, index) => (
+    index < separators.length ? `${segment}${separators[index]}` : segment
+  )).join('')
 }
 
 /**
@@ -334,17 +378,20 @@ export async function resolveNodeLatex(
 
   // Dynamic-arity macro handling
   if (macro?.dynamic_arity) {
-    // If template contains #*, fill it (this handles \begin{pmatrix}#*\end{pmatrix} etc.)
+    // If template contains #*, fill it (this handles \\begin{pmatrix}#*\\end{pmatrix} etc.)
     if (template.includes('#*')) {
+      const hasEnvironment = /\\begin\{/.test(template)
+      const hasAlignmentSeparator = /(?:^|[^\\])&|\\\\/.test(separator)
       const filled = fillLatexTemplate(
         template,
         { ...childValues, children_joined },
         selfBucket,
       )
-      // KaTeX environments (\begin{...}...\end{...}) and alignment tokens
-      // (& or \\) cannot be nested inside \htmlData{}{...}, so skip wrapping.
-      if (/\\begin\{/.test(filled) || /(?:^|[^\\])&|\\\\/.test(separator)) {
-        return filled
+      if (!hasEnvironment && hasAlignmentSeparator) {
+        return wrapTopLevelAlignmentSegments(
+          filled,
+          (segment) => wrapHtmlData(node, segment, macro, treePath),
+        )
       }
       return wrapHtmlData(node, filled, macro, treePath)
     }

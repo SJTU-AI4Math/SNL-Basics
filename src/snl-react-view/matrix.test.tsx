@@ -71,4 +71,47 @@ describe('variadic pmatrix / matrix.row', () => {
     // a & b for the first row, rows separated by \\
     expect(latex).toMatch(/a[\s\S]*&[\s\S]*b[\s\S]*\\\\[\s\S]*c[\s\S]*&[\s\S]*d/)
   })
+
+  it('preserves root and alignment-node metadata with fallback kinds', async () => {
+    const tree = createSnlSyntaxTreeNode('pmatrix', {
+      children: [row('a', 'b'), row('c', 'd')],
+    })
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
+    await waitFor(() => expect(view.container.querySelector('.mtable')).not.toBeNull())
+    expect(view.container.querySelector('[data-name="pmatrix"][data-kind="partial"][data-tree-path=""]')).not.toBeNull()
+    expect(view.container.querySelector('[data-name="matrix.row"][data-kind="fvar"][data-tree-path="0"]')).not.toBeNull()
+
+    const explicit = createSnlSyntaxTreeNode('pmatrix', {
+      kind: 'const',
+      children: [row('a', 'b')],
+    })
+    view.rerender(<SnlSyntaxTreeView tree={explicit} macro_data_driver={testDriver(db)} />)
+    await waitFor(() => expect(view.container.querySelector('[data-name="pmatrix"][data-kind="const"]')).not.toBeNull())
+  })
+
+  it('keeps nested alignment nodes KaTeX-valid and preserves both identities', async () => {
+    const nestedRow = createSnlSyntaxTreeNode('matrix.row', {
+      children: [row('a', 'b'), leaf('c')],
+    })
+    const tree = createSnlSyntaxTreeNode('pmatrix', { children: [nestedRow] })
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
+    await waitFor(() => expect(view.container.querySelector('.mtable')).not.toBeNull())
+    expect(view.container.querySelector('[data-name="matrix.row"][data-tree-path="0"]')).not.toBeNull()
+    expect(view.container.querySelector('[data-name="matrix.row"][data-tree-path="0.0"]')).not.toBeNull()
+    expect(view.container.querySelector('.katex-error')).toBeNull()
+  })
+
+  it('preserves metadata for zero- and one-child alignment nodes', async () => {
+    const empty = createSnlSyntaxTreeNode('pmatrix', {
+      children: [createSnlSyntaxTreeNode('matrix.row')],
+    })
+    const view = render(<SnlSyntaxTreeView tree={empty} macro_data_driver={testDriver(db)} />)
+    await waitFor(() => expect(view.container.querySelector('[data-name="matrix.row"][data-tree-path="0"]')).not.toBeNull())
+
+    const singleton = createSnlSyntaxTreeNode('pmatrix', {
+      children: [createSnlSyntaxTreeNode('matrix.row', { children: [leaf('a')] })],
+    })
+    view.rerender(<SnlSyntaxTreeView tree={singleton} macro_data_driver={testDriver(db)} />)
+    await waitFor(() => expect(view.container.querySelector('[data-name="matrix.row"][data-tree-path="0"]')).not.toBeNull())
+  })
 })

@@ -2,6 +2,19 @@
 
 **Date:** 2026-07-01
 
+## Package 0.1.4
+
+Unclassified syntax-tree roots now default to Macro Kind `partial`; unclassified
+descendants continue to default to `fvar`. Explicit node and Macro kinds still
+win. `SnlRenderHooks` adds independent `onHover1s` and `onHover2s` phases beside
+`onHover`. The default timeline is highlight immediately, show at one second,
+lock at two seconds, and show+lock immediately on click. Custom tooltip renderers
+receive optional `SnlTooltipState.locked`. All phases in one uninterrupted hover
+share an exported `SnlHoverSession` through the hook-specific
+`SnlHoverPhaseEvent.session` for identity and data exchange; the legacy
+`SnlHoverEvent` shape remains constructible. Changing the node or tree cancels
+the old session.
+
 ## Package 0.1.3
 
 Plain SNL identifiers now accept visible non-ASCII Unicode while preserving the

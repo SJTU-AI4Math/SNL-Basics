@@ -138,6 +138,8 @@ export {
 export type {
   SnlRenderHooks,
   SnlHoverEvent,
+  SnlHoverPhaseEvent,
+  SnlHoverSession,
   SnlMacroInfo,
   SnlResolvedSource,
   SnlTooltipState,

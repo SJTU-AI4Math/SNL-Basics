@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { isValidElement } from 'react'
 import { defaultRenderHooks, defaultHighlightStrategy, defaultRenderers } from './hooks'
 import type { SnlMacro } from '../snl-macro/types'
-import type { SnlTooltipState } from './hooks'
+import type { SnlHoverEvent, SnlTooltipState } from './hooks'
 
 const macro: SnlMacro = {
   name: 'Add.add', description: '加法运算',
@@ -15,6 +15,17 @@ const macro: SnlMacro = {
 }
 
 describe('defaultRenderHooks', () => {
+  it('keeps the legacy SnlHoverEvent shape constructible without a session', () => {
+    const event: SnlHoverEvent = {
+      name: 'x', kind: 'fvar',
+      node: { macro_name: 'x', kind: '', mdata: {}, children: [] },
+      bindingHint: '', variableRole: 'fvar',
+      target: null as unknown as HTMLElement,
+      clientX: 0, clientY: 0,
+    }
+    expect(event.name).toBe('x')
+  })
+
   it('resolveMacroInfo reads macro.description', async () => {
     const info = await defaultRenderHooks.resolveMacroInfo!('Add.add', macro)
     expect(info.description).toBe('加法运算')
@@ -32,6 +43,7 @@ describe('defaultRenderHooks', () => {
   it('renderTooltip returns a React element for a valid state', () => {
     const state: SnlTooltipState = {
       visible: true,
+      locked: false,
       x: 10,
       y: 20,
       name: 'Add.add',
@@ -47,8 +59,10 @@ describe('defaultRenderHooks', () => {
     expect(isValidElement(el)).toBe(true)
   })
 
-  it('onHover / onLeave are undefined by default (opt-in interception)', () => {
+  it('timed hover interception is opt-in', () => {
     expect(defaultRenderHooks.onHover).toBeUndefined()
+    expect(defaultRenderHooks.onHover1s).toBeUndefined()
+    expect(defaultRenderHooks.onHover2s).toBeUndefined()
     expect(defaultRenderHooks.onLeave).toBeUndefined()
   })
 

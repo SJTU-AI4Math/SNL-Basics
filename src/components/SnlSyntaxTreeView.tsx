@@ -44,6 +44,8 @@ import {
 import {
   defaultRenderHooks,
   type SnlRenderHooks,
+  type SnlHoverPhaseEvent,
+  type SnlHoverSession,
   type SnlResolvedSource,
   type SnlTooltipState,
 } from '../snl-react-view/hooks'
@@ -168,14 +170,15 @@ function MathSpan({
  */
 /**
  * Resolve the kind we should stamp on a rendered node's DOM. Mirrors
- * wrapHtmlData's priority: node.kind > queried macro kind > 'fvar'. Kept in
+ * wrapHtmlData's priority: node.kind > queried macro kind > root 'partial' /
+ * descendant 'fvar'. Kept in
  * sync so TextRun spans hover-highlight exactly like KaTeX \htmlData
  * output. Empty-string kind (createSnlSyntaxTreeNode default) falls
  * through — `||` is deliberate.
  */
-function resolveNodeKind(node: SnlSyntaxTree, macros: SnlMacroRecord): string {
+function resolveNodeKind(node: SnlSyntaxTree, macros: SnlMacroRecord, isRoot = false): string {
   const dbKind = node.macro_name ? macros[node.macro_name]?.kind : undefined
-  return node.kind || dbKind || 'fvar'
+  return node.kind || dbKind || (isRoot ? 'partial' : 'fvar')
 }
 
 function TextRun({
@@ -202,7 +205,7 @@ function TextRun({
   // popover machinery treats a TextRun span exactly like a KaTeX
   // \htmlData-wrapped node. `data-name` drives hover-root discovery,
   // `data-kind` drives the palette CSS.
-  const kind = resolveNodeKind(node, macros)
+  const kind = resolveNodeKind(node, macros, treePath === '')
   const dataAttrs: Record<string, string | undefined> = {
     'data-name': node.macro_name || undefined,
     'data-kind': kind,
@@ -642,6 +645,12 @@ export function SnlSyntaxTreeView({
   const ctrlPressed = useCtrlPressed(hasHoverTarget)
   const prefetchTimerRef = useRef<number | null>(null)
   const showTimerRef = useRef<number | null>(null)
+  const lockTimerRef = useRef<number | null>(null)
+  const hoverSessionIdRef = useRef(0)
+  const hoverSessionRef = useRef<{ key: string; session: SnlHoverSession } | null>(null)
+  const interactionGenerationRef = useRef(0)
+  const interactionIdentityRef = useRef({ tree, driver: macro_data_driver })
+  const infoRequestRef = useRef<{ key: string; generation: number } | null>(null)
   const hoverMarkedElsRef = useRef<HTMLElement[]>([])
   const containerRef = useRef<HTMLDivElement | null>(null)
   const lastHtmlRef = useRef<string | null>(null)
@@ -655,11 +664,17 @@ export function SnlSyntaxTreeView({
 
   useEffect(() => {
     return () => {
+      interactionGenerationRef.current += 1
+      hoverSessionRef.current = null
+      infoRequestRef.current = null
       if (prefetchTimerRef.current) {
         window.clearTimeout(prefetchTimerRef.current)
       }
       if (showTimerRef.current) {
         window.clearTimeout(showTimerRef.current)
+      }
+      if (lockTimerRef.current) {
+        window.clearTimeout(lockTimerRef.current)
       }
     }
   }, [])
@@ -710,6 +725,10 @@ export function SnlSyntaxTreeView({
       window.clearTimeout(showTimerRef.current)
       showTimerRef.current = null
     }
+    if (lockTimerRef.current) {
+      window.clearTimeout(lockTimerRef.current)
+      lockTimerRef.current = null
+    }
   }
 
   const resolveInfo = async (
@@ -717,7 +736,6 @@ export function SnlSyntaxTreeView({
     variableRole: 'bvar' | 'fvar' | 'none',
     bindingHint: string,
   ) => {
-    await new Promise((resolve) => window.setTimeout(resolve, 120))
     const macro = resolvedMacros[name]
     const base = await mergedHooks.resolveMacroInfo!(name, macro)
     let description = base.description
@@ -731,12 +749,49 @@ export function SnlSyntaxTreeView({
     return { description, extra: base.extra }
   }
 
+  const beginInfoRequest = (
+    key: string,
+    name: string,
+    variableRole: 'bvar' | 'fvar' | 'none',
+    bindingHint: string,
+  ) => {
+    const generation = interactionGenerationRef.current
+    const pending = infoRequestRef.current
+    if (pending?.key === key && pending.generation === generation) return
+    infoRequestRef.current = { key, generation }
+    void resolveInfo(name, variableRole, bindingHint)
+      .catch((value: unknown) => ({
+        description: value instanceof Error ? value.message : String(value),
+      }))
+      .then((info) => {
+        if (interactionGenerationRef.current !== generation) return
+        setTooltip((prev) => prev && prev.interactionKey === key
+          ? { ...prev, loading: false, info }
+          : prev)
+      })
+  }
+
+  const invokeHook = <T,>(hook: ((event: T) => unknown) | undefined, event: T): void => {
+    try {
+      const result = hook?.(event)
+      if (result !== undefined) void Promise.resolve(result).catch(() => {})
+    } catch { /* consumer hooks cannot break defaults */ }
+  }
+
+  const invokeLeaveHook = (hook: (() => unknown) | undefined): void => {
+    try {
+      const result = hook?.()
+      if (result !== undefined) void Promise.resolve(result).catch(() => {})
+    } catch { /* consumer hooks cannot break cleanup */ }
+  }
+
   const activateHoverTarget = (
     target: HTMLElement,
     container: HTMLElement,
     x: number,
     y: number,
     modifiers: { ctrl_key: boolean; meta_key: boolean; shift_key: boolean; alt_key: boolean },
+    lockImmediately = false,
   ) => {
     const tooltipX = x + 12
     const tooltipY = y + 12
@@ -780,21 +835,32 @@ export function SnlSyntaxTreeView({
     }
 
     const key = `${pathAttr ?? 'unresolved'}|${name}|${kind}|${bindRef}`
+    if (tooltip?.locked && !lockImmediately) return
 
+    let session = hoverSessionRef.current?.key === key
+      ? hoverSessionRef.current.session
+      : null
+    if (!session) {
+      interactionGenerationRef.current += 1
+      infoRequestRef.current = null
+      session = { id: ++hoverSessionIdRef.current, data: new Map() }
+      hoverSessionRef.current = { key, session }
+    }
+    const hoverEvent: SnlHoverPhaseEvent | null = actualNode ? {
+      session,
+      name: actualNode.macro_name,
+      kind,
+      node: actualNode,
+      bindingHint,
+      variableRole,
+      target,
+      clientX: x,
+      clientY: y,
+    } : null
     const interactionMacro = actualNode ? (resolvedMacros[actualNode.macro_name] ?? null) : null
     if (actualNode && treePath) {
-      // Legacy hook receives the actual tree node (never a reconstructed leaf).
-      mergedHooks.onHover?.({
-        name: actualNode.macro_name,
-        kind,
-        node: actualNode,
-        bindingHint,
-        variableRole,
-        target,
-        clientX: x,
-        clientY: y,
-      })
-      if (_interaction_driver) {
+      if (!lockImmediately) invokeHook(mergedHooks.onHover, hoverEvent!)
+      if (!lockImmediately && _interaction_driver) {
         void _interaction_driver.dispatch_hover({
           node: actualNode,
           tree_path: treePath,
@@ -811,8 +877,17 @@ export function SnlSyntaxTreeView({
     }
 
     if (hoverKey === key) {
-      // 同一元素内移动：仅更新位置（不重新解析说明）
-      setTooltip((prev) => (prev && prev.interactionKey === key ? { ...prev, x: tooltipX, y: tooltipY } : prev))
+      if (lockImmediately) {
+        clearHoverTimers()
+        setTooltip((prev) => prev && prev.interactionKey === key
+          ? { ...prev, visible: true, locked: true }
+          : prev)
+        beginInfoRequest(key, name, variableRole, bindingHint)
+      } else {
+        setTooltip((prev) => prev && prev.interactionKey === key
+          ? { ...prev, x: tooltipX, y: tooltipY }
+          : prev)
+      }
       return
     }
 
@@ -824,7 +899,8 @@ export function SnlSyntaxTreeView({
     setHoverKey(key)
     clearHoverTimers()
     setTooltip({
-      visible: false,
+      visible: lockImmediately,
+      locked: lockImmediately,
       x: tooltipX,
       y: tooltipY,
       loading: true,
@@ -837,25 +913,30 @@ export function SnlSyntaxTreeView({
       source,
     })
 
+    if (lockImmediately) {
+      beginInfoRequest(key, name, variableRole, bindingHint)
+      return
+    }
+
     prefetchTimerRef.current = window.setTimeout(() => {
-      void resolveInfo(name, variableRole, bindingHint).then((info) => {
-        setTooltip((prev) => {
-          if (!prev || prev.interactionKey !== key) {
-            return prev
-          }
-          return { ...prev, loading: false, info }
-        })
-      })
+      beginInfoRequest(key, name, variableRole, bindingHint)
     }, 500)
 
     showTimerRef.current = window.setTimeout(() => {
+      if (hoverEvent) invokeHook(mergedHooks.onHover1s, hoverEvent)
       setTooltip((prev) => {
-        if (!prev || prev.interactionKey !== key) {
-          return prev
-        }
+        if (!prev || prev.interactionKey !== key) return prev
         return { ...prev, visible: true }
       })
     }, 1000)
+
+    lockTimerRef.current = window.setTimeout(() => {
+      if (hoverEvent) invokeHook(mergedHooks.onHover2s, hoverEvent)
+      setTooltip((prev) => {
+        if (!prev || prev.interactionKey !== key) return prev
+        return { ...prev, visible: true, locked: true }
+      })
+    }, 2000)
   }
 
   const clearHoverMarks = () => {
@@ -864,6 +945,20 @@ export function SnlSyntaxTreeView({
     })
     hoverMarkedElsRef.current = []
   }
+
+  useEffect(() => {
+    const previous = interactionIdentityRef.current
+    if (previous.tree === tree && previous.driver === macro_data_driver) return
+    interactionIdentityRef.current = { tree, driver: macro_data_driver }
+    interactionGenerationRef.current += 1
+    infoRequestRef.current = null
+    hoverSessionRef.current = null
+    clearHoverTimers()
+    clearHoverMarks()
+    setHasHoverTarget(false)
+    setHoverKey('')
+    setTooltip(null)
+  }, [tree, macro_data_driver])
 
   /**
    * Delegates to the shared DOM-only implementation so the panel and the
@@ -887,6 +982,7 @@ export function SnlSyntaxTreeView({
   const handleKaTeXMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
     const container = containerRef.current
     if (!container) return
+    if (tooltip?.locked) return
 
     // elementsFromPoint returns every element painted at (x,y) in front-to-back
     // order. In principle every DOM ancestor of the topmost hit is present, so
@@ -922,6 +1018,9 @@ export function SnlSyntaxTreeView({
         : null
 
     if (!hasName) {
+      interactionGenerationRef.current += 1
+      infoRequestRef.current = null
+      hoverSessionRef.current = null
       clearHoverMarks()
       setHasHoverTarget(false)
       setHoverKey('')
@@ -943,20 +1042,23 @@ export function SnlSyntaxTreeView({
   }
 
   const handleKaTeXMouseLeave = () => {
+    invokeLeaveHook(mergedHooks.onLeave)
+    if (_interaction_driver) {
+      void _interaction_driver.dispatch_leave().catch(() => {})
+    }
+    if (tooltip?.locked) return
+    interactionGenerationRef.current += 1
+    infoRequestRef.current = null
+    hoverSessionRef.current = null
     clearHoverMarks()
     setHasHoverTarget(false)
     setHoverKey('')
     clearHoverTimers()
     setTooltip((prev) => (prev ? { ...prev, visible: false } : null))
-    mergedHooks.onLeave?.()
-    if (_interaction_driver) {
-      void _interaction_driver.dispatch_leave().catch(() => {})
-    }
   }
 
   // Delegated click handler — resolves data-tree-path → actual node → dispatch
   const handleClick: MouseEventHandler<HTMLDivElement> = (event) => {
-    if (!_interaction_driver) return
     const container = containerRef.current
     if (!container) return
     // Walk up from target to find the nearest element with data-tree-path
@@ -982,7 +1084,15 @@ export function SnlSyntaxTreeView({
       shift_key: event.shiftKey,
       alt_key: event.altKey,
     }
-    void _interaction_driver.dispatch_click(ctx).catch(() => {})
+    applyHoverHighlight(el, container)
+    setHasHoverTarget(true)
+    activateHoverTarget(el, container, event.clientX, event.clientY, {
+      ctrl_key: event.ctrlKey,
+      meta_key: event.metaKey,
+      shift_key: event.shiftKey,
+      alt_key: event.altKey,
+    }, true)
+    if (_interaction_driver) void _interaction_driver.dispatch_click(ctx).catch(() => {})
   }
 
   // Mode-aware React dispatch (used for non-KaTeX roots — text and
@@ -1013,7 +1123,7 @@ export function SnlSyntaxTreeView({
       const Renderer = key ? mergedHooks.renderers?.[key] : undefined
       const blockDataAttrs: Record<string, string | undefined> = {
         'data-name': node.macro_name || undefined,
-        'data-kind': resolveNodeKind(node, resolvedMacros),
+        'data-kind': resolveNodeKind(node, resolvedMacros, pathStr === ''),
         'data-tree-path': pathStr,
         'data-style': node.style_name,
         'data-scope': node.scope,

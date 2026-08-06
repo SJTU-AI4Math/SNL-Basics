@@ -337,9 +337,10 @@ serialize round-trips.
   their locale to the desired `style_name`; templates never contain an I18n map.
 
 - **Kind** — optional semantic tag surfaced as `data-kind` (drives the hover
-  palette: `rule` / `const` / `bvar` / `binder` / `fvar`). If a macro sets no
-  `kind` and annotation assigns none, the node defaults to **`fvar`** (there is
-  no more neutral-grey `default` kind).
+  palette: `rule` / `const` / `bvar` / `binder` / `fvar`). If neither the node
+  nor its Macro supplies a `kind`, a root node defaults to **`partial`** and a
+  descendant defaults to **`fvar`**. An explicit Macro `kind` such as `const`
+  remains authoritative. This keeps a flat SNL root out of hover targeting.
 - **Syntax tree** — the parsed representation
   (`{ macro_name, style_name?, kind, mdata, children }`). At render time each
   node is dispatched by its style's `mode`: `formula_inline`/`formula_display`
@@ -356,7 +357,7 @@ serialize round-trips.
   fresh environment without Basics assuming VS Code, browser globals, files,
   or any other backend. See [Query-injected runtime standard](docs/query-injected-runtime.md).
 - **Hooks** — every interaction is customizable via `SnlRenderHooks`: supply your
-  own `renderTooltip`, `onHover` / `onLeave`, `resolveMacroInfo`, `resolveSource`,
+  own `renderTooltip`, `onHover` / `onHover1s` / `onHover2s` / `onLeave`, `resolveMacroInfo`, `resolveSource`,
   `highlightStrategy`, or `renderers`. Anything you omit falls back to
   `defaultRenderHooks`.
 - **Arity & placeholders** — fixed-arity macros use `#0`, `#1`, …; variadic
@@ -379,6 +380,32 @@ so hover interactions work with zero boilerplate.
 ## Customization examples
 
 ### Custom tooltip
+
+The default interaction timeline is:
+
+- hover immediately: highlight only;
+- hover the same node for 1 second: show the tooltip;
+- hover it for 2 seconds: lock the tooltip (`state.locked === true`);
+- click: show and lock the tooltip immediately.
+
+`onHover`, `onHover1s`, and `onHover2s` are independent, optional hooks. Leaving
+before a threshold cancels its pending hook. A locked tooltip survives pointer
+leave and ignores later hover movement until another node is clicked.
+All three phases receive the same `event.session`, whose stable `id` identifies
+the lifecycle and whose `data` Map is an explicit communication channel:
+
+```ts
+const hooks: SnlRenderHooks = {
+  onHover1s: (event) => event.session.data.set('popover', openPopover(event)),
+  onHover2s: (event) => {
+    const popover = event.session.data.get('popover') as Popover | undefined
+    popover?.lock()
+  },
+}
+```
+
+A node or tree change creates a new session and cancels stale phases. Consumer
+hook failures are isolated from the default show/lock state machine.
 
 ```tsx
 <SnlSyntaxTreeView
@@ -445,6 +472,12 @@ const hooks: SnlRenderHooks = {
   ...defaultRenderHooks,
   onHover: (event) => {
     vscodeApi.postMessage({ type: 'hover', name: event.name, kind: event.kind })
+  },
+  onHover1s: (event) => {
+    vscodeApi.postMessage({ type: 'hover-1s', name: event.name })
+  },
+  onHover2s: (event) => {
+    vscodeApi.postMessage({ type: 'hover-2s', name: event.name })
   },
 }
 ```

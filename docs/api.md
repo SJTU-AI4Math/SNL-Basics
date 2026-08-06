@@ -173,9 +173,22 @@ render comes from `macro_data_driver`. Formula modes use KaTeX, text mode uses
 native React text with optional math islands, and block mode dispatches through
 `block_template_name`.
 
+When neither syntax-tree annotation nor Macro data specifies a kind, the tree
+root defaults to `partial`; descendants default to `fvar`. Explicit Macro kinds,
+including `const`, take precedence.
+
 `SnlInteractionDriver` provides delegated hover, leave, click, and literal
 Ctrl-click callbacks. Each callback receives the original syntax-tree node and
 its stable tree path.
+
+`SnlRenderHooks` exposes independent `onHover`, `onHover1s`, and `onHover2s`
+hooks. By default immediate hover only highlights, one second shows the tooltip,
+two seconds locks it, and click shows and locks it immediately. `SnlTooltipState`
+exposes the lock as optional `locked?: boolean` (`undefined` means false). Every
+phase receives a shared `SnlHoverSession` through the hook-specific
+`SnlHoverPhaseEvent.session`; its stable
+`id` and `data: Map<unknown, unknown>` provide an explicit communication channel
+between the independently replaceable hooks.
 
 ## Customization
 

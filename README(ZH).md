@@ -303,8 +303,9 @@ round-trip 闭合的。
   所有 mode（包括 `text`）的 style template 都是普通字符串。不同自然语言使用不同的普通 style，并由 locale 映射到对应 `style_name`；template 内不再嵌套 I18n map。
 
 - **Kind** —— 可选的语义标签，输出为 `data-kind`（驱动悬停配色：`rule` / `const` /
-  `bvar` / `binder` / `fvar`）。如果一个宏没有设置 `kind` 且标注过程也未赋值，该节点默认为
-  **`fvar`**（不再存在中性灰的 `default` kind）。
+  `bvar` / `binder` / `fvar`）。如果节点和 Macro 都没有显式 `kind`，根节点默认
+  **`partial`**，中间节点默认 **`fvar`**；Macro 显式声明的 `const` 等 kind 始终优先。
+  因此扁平 SNL 的无分类根节点不会产生冗余悬浮反馈。
 - **Syntax tree（语法树）** —— 解析后的表示
   （`{ macro_name, style_name?, kind, mdata, children }`）。渲染时每个节点按其 style 的
   `mode` 分派：`formula_inline`/`formula_display`（KaTeX）、`text`（`<span>`）、
@@ -318,7 +319,7 @@ round-trip 闭合的。
   不必假设 VS Code、浏览器全局对象、文件系统或任何其他后端。见
   [Query-injected runtime standard](docs/query-injected-runtime.md)。
 - **Hooks** —— 每一处交互都可通过 `SnlRenderHooks` 定制：提供你自己的 `renderTooltip`、
-  `onHover` / `onLeave`、`resolveMacroInfo`、`resolveSource`、`highlightStrategy`
+  `onHover` / `onHover1s` / `onHover2s` / `onLeave`、`resolveMacroInfo`、`resolveSource`、`highlightStrategy`
   或 `renderers`。任何你省略的项都会回退到 `defaultRenderHooks`。
 - **Arity 与占位符** —— 固定 arity 的宏使用 `#0`、`#1`、…；可变 arity 的宏使用 `#*`
   并以 `separator` 连接（例如 `pmatrix` / `matrix.row`）。见 [模板 DSL](#模板-dsl)。
@@ -338,6 +339,30 @@ round-trip 闭合的。
 ## 定制示例
 
 ### 自定义 tooltip
+
+默认交互时序：
+
+- 立即悬浮：只高亮；
+- 在同一节点悬浮 1 秒：打开浮窗；
+- 悬浮 2 秒：锁定浮窗（`state.locked === true`）；
+- 点击：立即打开并锁定浮窗。
+
+`onHover`、`onHover1s`、`onHover2s` 是三个独立、可分别覆盖的 hook。指针在阈值前离开
+会取消尚未触发的 hook。锁定后的浮窗在指针离开后继续显示，并忽略后续悬浮移动，直到点击另一节点。
+三个阶段收到同一个 `event.session`：稳定的 `session.id` 标识本次连续悬浮生命周期，
+`session.data` Map 是正式的跨阶段通讯通道：
+
+```ts
+const hooks: SnlRenderHooks = {
+  onHover1s: (event) => event.session.data.set('popover', openPopover(event)),
+  onHover2s: (event) => {
+    const popover = event.session.data.get('popover') as Popover | undefined
+    popover?.lock()
+  },
+}
+```
+
+切换节点或整棵 tree 会建立新 session 并取消旧阶段。consumer hook 即使抛错，也不会打断默认的显示/锁定状态机。
 
 ```tsx
 <SnlSyntaxTreeView
@@ -402,6 +427,12 @@ const hooks: SnlRenderHooks = {
   ...defaultRenderHooks,
   onHover: (event) => {
     vscodeApi.postMessage({ type: 'hover', name: event.name, kind: event.kind })
+  },
+  onHover1s: (event) => {
+    vscodeApi.postMessage({ type: 'hover-1s', name: event.name })
+  },
+  onHover2s: (event) => {
+    vscodeApi.postMessage({ type: 'hover-2s', name: event.name })
   },
 }
 ```

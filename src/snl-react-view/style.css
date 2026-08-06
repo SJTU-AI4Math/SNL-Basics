@@ -179,6 +179,10 @@
   transform: translateY(0);
 }
 
+.snl-hover-tooltip.locked {
+  pointer-events: auto;
+}
+
 .snl-hover-tooltip .tooltip-title {
   font-weight: 600;
   font-size: 12px;
