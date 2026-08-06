@@ -1,35 +1,47 @@
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 const root = fileURLToPath(new URL('.', import.meta.url))
 
 /**
- * Standalone build of the Reader runtime.
+ * One multi-entry ESM graph for every public JavaScript entry point.
  *
- * The runtime is pure data plumbing (`read_localized`, `ReaderRuntime`) with no
- * imports of its own, but it used to be reachable only through the package
- * barrel — which also exports the React views, and through them KaTeX. Every
- * panel that merely wanted to localize a button label therefore pulled the
- * whole math engine into its bundle. Cat 2026-07-25: "各个 Panel 开起来都非常慢".
+ * Keeping these entries in one Rollup graph preserves runtime identity for
+ * classes and functions exported through both the root and lean subpaths,
+ * while code splitting still lets `./runtime` and `./hover` avoid loading the
+ * React/KaTeX entry chunks.
  */
 export default defineConfig({
   publicDir: false,
+  plugins: [react()],
   build: {
     lib: {
       entry: {
+        index: resolve(root, 'src/snl-react-view/index.ts'),
+        entry: resolve(root, 'src/entry-react/index.ts'),
         runtime: resolve(root, 'src/runtime/index.ts'),
         core: resolve(root, 'src/core/index.ts'),
-        // DOM-only hover highlighting. Same motivation as the two above: the
-        // policy is reachable through the barrel, but the barrel also exports
-        // the React views and with them KaTeX, so a consumer that only wants
-        // hover over already-rendered markup would ship the whole math engine.
         hover: resolve(root, 'src/hover/index.ts'),
       },
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime', 'katex'],
+      external: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        'katex',
+        'react-markdown',
+        'remark-gfm',
+        'remark-math',
+        'rehype-katex',
+      ],
+      output: {
+        entryFileNames: '[name].js',
+        chunkFileNames: 'chunks/[name]-[hash].js',
+      },
     },
     outDir: 'dist-lib',
     emptyOutDir: false,

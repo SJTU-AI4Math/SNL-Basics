@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { ReaderRuntime, type I18n } from '../runtime'
 import { EntryDataDriver, type EntryData } from './entry-data-driver'
@@ -200,4 +200,91 @@ describe('recursive Entry preview', () => {
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
     }
   })
+
+  it('pins the referenced Entry popover on primary click', async () => {
+    const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
+      name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
+      default_style: { en: 'default' },
+      styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
+    }) } })
+    const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'pinned child body' }, { id: 'child' }) })
+    const view = render(<EntryPreviewProvider entry_data_driver={entries} macro_data_driver={refMacroDriver} options={{ openDelayMs: 0, fadeMs: 0 }}><EntryView entry_id="root" entry_data_driver={entries} macro_data_driver={refMacroDriver} /></EntryPreviewProvider>)
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-name="ref"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [target] })
+    try {
+      fireEvent.mouseMove(target, { clientX: 12, clientY: 14 })
+      await waitFor(() => expect(document.body.textContent).toContain('pinned child body'))
+      fireEvent.click(target, { clientX: 12, clientY: 14 })
+      fireEvent.pointerMove(document, { clientX: 900, clientY: 700 })
+      expect(document.body.textContent).toContain('pinned child body')
+      expect(document.querySelector('[data-frozen="true"]')).not.toBeNull()
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
+  it('cancels a transient preview when its owning Entry unmounts', async () => {
+    const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
+      name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
+      default_style: { en: 'default' },
+      styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
+    }) } })
+    const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'orphan child' }, { id: 'child' }) })
+    const provider = (show: boolean) => <EntryPreviewProvider entry_data_driver={entries} macro_data_driver={refMacroDriver} options={{ openDelayMs: 1000, fadeMs: 0 }}>
+      {show ? <EntryView entry_id="root" entry_data_driver={entries} macro_data_driver={refMacroDriver} /> : null}
+    </EntryPreviewProvider>
+    const view = render(provider(true))
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-name="ref"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [target] })
+    try {
+      fireEvent.mouseMove(target, { clientX: 12, clientY: 14 })
+      expect(document.querySelector('[data-popover-id]')).not.toBeNull()
+      view.rerender(provider(false))
+      await waitFor(() => expect(document.querySelector('[data-popover-id]')).toBeNull())
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
+  it('can disable hover previews while retaining click-to-pin', async () => {
+    const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
+      name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
+      default_style: { en: 'default' },
+      styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
+    }) } })
+    const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'click only child' }, { id: 'child' }) })
+    const view = render(<EntryPreviewProvider entry_data_driver={entries} macro_data_driver={refMacroDriver} options={{ openDelayMs: 0, fadeMs: 0, hoverEnabled: false }}><EntryView entry_id="root" entry_data_driver={entries} macro_data_driver={refMacroDriver} /></EntryPreviewProvider>)
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-name="ref"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [target] })
+    try {
+      await act(async () => {
+        fireEvent.mouseMove(target, { clientX: 12, clientY: 14 })
+        await new Promise((resolve) => setTimeout(resolve, 20))
+      })
+      expect(document.body.textContent).not.toContain('click only child')
+      expect(target.getAttribute('role')).toBe('button')
+      expect(target.tabIndex).toBe(0)
+      fireEvent.keyDown(target, { key: 'Enter' })
+      await waitFor(() => expect(document.body.textContent).toContain('click only child'))
+      expect(document.querySelector('[data-frozen="true"]')).not.toBeNull()
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
 })

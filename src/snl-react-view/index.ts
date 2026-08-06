@@ -125,7 +125,8 @@ export {
   applySnlHoverHighlight,
   clearSnlHoverHighlight,
   SNL_BASE_TEXT_COLOR_VAR,
-  SNL_HOVER_CLASS
+  SNL_HOVER_CLASS,
+  type ApplySnlHoverHighlightOptions,
 } from './hover-apply'
 export {
   DEFAULT_KIND_PALETTE,

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, type ReactElement } from 'react'
+import React, { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import katex from 'katex'
 import type { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import type { LanguageEnvironment, ReaderRuntime } from '../runtime'
@@ -58,7 +58,9 @@ export interface EntryViewProps extends Omit<EntrySurfaceProps, 'entry' | 'kind'
 }
 
 interface PreviewController {
-  show(entry_id: string, target: HTMLElement, x: number, y: number): void
+  show(entry_id: string, target: HTMLElement, x: number, y: number): string | null
+  pin(entry_id: string, target: HTMLElement, x: number, y: number): string
+  cancelUnfrozen(id: string): void
 }
 const EntryPreviewContext = React.createContext<PreviewController | null>(null)
 
@@ -184,6 +186,12 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
   const background = resolveEntryBackground(kind?.coloring?.background)
   const kindName = kind?.name || entry.kind
   const preview = React.useContext(EntryPreviewContext)
+  const ownedPreviewIds = useRef(new Set<string>())
+  useEffect(() => () => {
+    if (!preview) return
+    for (const id of ownedPreviewIds.current) preview.cancelUnfrozen(id)
+    ownedPreviewIds.current.clear()
+  }, [preview])
   const [titleHovered, setTitleHovered] = useState(false)
   const ctrlPressed = useCtrlPressed(titleHovered)
   const titleActivationActive = Boolean(interaction_ports?.on_title_activate && titleHovered && ctrlPressed)
@@ -192,11 +200,20 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     return new SnlInteractionDriver({
       on_hover: async (context: SnlInteractionContext) => {
         const id = context.macro?.source.entries[0]
-        if (id) preview.show(id, context.target, context.client_x, context.client_y)
+        if (id) {
+          const popoverId = preview.show(id, context.target, context.client_x, context.client_y)
+          if (popoverId) ownedPreviewIds.current.add(popoverId)
+        }
         await interaction_driver?.dispatch_hover(context)
       },
       on_leave: () => interaction_driver?.dispatch_leave(),
-      on_click: (context) => interaction_driver?.dispatch_click(context),
+      on_click: async (context) => {
+        const id = context.macro?.source.entries[0]
+        if (id) ownedPreviewIds.current.delete(
+          preview.pin(id, context.target, context.client_x, context.client_y),
+        )
+        await interaction_driver?.dispatch_click(context)
+      },
       on_ctrl_click: async (context) => {
         const id = context.macro?.source.entries[0]
         if (id) await interaction_ports?.on_preview_activate?.(id, null)
@@ -248,17 +265,22 @@ export function EntryView({ entry_id, entry_data_driver, loading_fallback, missi
   return <EntrySurface {...surfaceProps} entry_data_driver={entry_data_driver} entry={current.entry!} kind={current.kind ?? null} />
 }
 
-function EntryPreviewBridge({ children }: { children: React.ReactNode }): ReactElement {
+function EntryPreviewBridge({ children, hoverEnabled }: { children: React.ReactNode; hoverEnabled: boolean }): ReactElement {
   const api = useHoverPopovers<string>()
   const parentId = useCurrentPopoverId()
   const controller = useMemo<PreviewController>(() => ({
-    show: (entry_id, target, x, y) => { api.spawn(entry_id, target, x, y, parentId) },
-  }), [api, parentId])
+    show: (entry_id, target, x, y) => {
+      return hoverEnabled ? api.preview(entry_id, target, x, y, parentId) : null
+    },
+    pin: (entry_id, target, x, y) => api.pin(entry_id, target, x, y, parentId),
+    cancelUnfrozen: (id) => api.cancelUnfrozen(id),
+  }), [api, hoverEnabled, parentId])
   return <EntryPreviewContext.Provider value={controller}>{children}</EntryPreviewContext.Provider>
 }
 
 /** Generic recursive Entry popovers; host loading is entirely supplied by EntryDataDriver. */
 export function EntryPreviewProvider({ children, entry_data_driver, macro_data_driver, reader_runtime, interaction_ports, hooks, kind_palette, options, className, style }: EntryPreviewProviderProps): ReactElement {
-  const renderPopover = (popover: HoverPopover<string>): React.ReactNode => <EntryPreviewBridge><EntryView entry_id={popover.subject} entry_data_driver={entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_ports={interaction_ports} hooks={hooks} kind_palette={kind_palette} /></EntryPreviewBridge>
-  return <HoverPopoverProvider<string> renderPopover={renderPopover} options={options} className={className} style={style}><EntryPreviewBridge>{children}</EntryPreviewBridge></HoverPopoverProvider>
+  const hoverEnabled = options?.hoverEnabled !== false
+  const renderPopover = (popover: HoverPopover<string>): React.ReactNode => <EntryPreviewBridge hoverEnabled={hoverEnabled}><EntryView entry_id={popover.subject} entry_data_driver={entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_ports={interaction_ports} hooks={hooks} kind_palette={kind_palette} /></EntryPreviewBridge>
+  return <HoverPopoverProvider<string> renderPopover={renderPopover} options={options} className={className} style={style}><EntryPreviewBridge hoverEnabled={hoverEnabled}>{children}</EntryPreviewBridge></HoverPopoverProvider>
 }

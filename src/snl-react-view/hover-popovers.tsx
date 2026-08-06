@@ -20,6 +20,7 @@ export interface HoverPopover<TSubject> {
   id: string
   subject: TSubject
   originRect: DOMRect
+  originElement?: HTMLElement | null
   x: number
   y: number
   parentId: string | null
@@ -35,6 +36,20 @@ export interface HoverPopoverApi<TSubject> {
     pointerY: number,
     parentId: string | null,
   ): string
+  preview(
+    subject: TSubject,
+    origin: HTMLElement | DOMRect,
+    pointerX: number,
+    pointerY: number,
+    parentId: string | null,
+  ): string
+  pin(
+    subject: TSubject,
+    origin: HTMLElement | DOMRect,
+    pointerX: number,
+    pointerY: number,
+    parentId: string | null,
+  ): string
   updatePointer(id: string, pointerX: number, pointerY: number): void
   freeze(id: string): void
   cancelUnfrozen(id: string): void
@@ -43,6 +58,8 @@ export interface HoverPopoverApi<TSubject> {
 }
 
 export interface HoverPopoverOptions {
+  /** Whether pointer hover may open previews. Click-to-pin remains available. */
+  hoverEnabled?: boolean
   offset?: number
   hitPadding?: number
   viewportMargin?: number
@@ -271,9 +288,8 @@ export function HoverPopoverProvider<TSubject>({
     setPopovers((current) => current.filter((popover) => !ids.has(popover.id)))
   }, [clearTimers])
 
-  const dismissSubtree = useCallback((rootId: string) => {
+  const dismissSet = useCallback((doomed: ReadonlySet<string>) => {
     const current = popoversRef.current
-    const doomed = collectPopoverSubtree(rootId, current)
     const immediate = new Set(
       current.filter((p) => doomed.has(p.id) && p.phase === 'opening').map((p) => p.id),
     )
@@ -298,6 +314,27 @@ export function HoverPopoverProvider<TSubject>({
     setPopovers((list) => list.map((p) => fading.has(p.id) ? { ...p, phase: 'closing' } : p))
   }, [fadeMs, removeNow])
 
+  const dismissSubtree = useCallback((rootId: string) => {
+    dismissSet(collectPopoverSubtree(rootId, popoversRef.current))
+  }, [dismissSet])
+
+  const dismissUnfrozenSubtree = useCallback((rootId: string) => {
+    const current = popoversRef.current
+    const subtree = collectPopoverSubtree(rootId, current)
+    const removable = new Set(
+      current.filter((popover) => subtree.has(popover.id) && !popover.frozen).map((popover) => popover.id),
+    )
+    if (removable.size === 0) return
+    const byId = new Map(current.map((popover) => [popover.id, popover]))
+    setPopovers((list) => list.map((popover) => {
+      if (!subtree.has(popover.id) || removable.has(popover.id)) return popover
+      let parentId = popover.parentId
+      while (parentId && removable.has(parentId)) parentId = byId.get(parentId)?.parentId ?? null
+      return parentId === popover.parentId ? popover : { ...popover, parentId }
+    }))
+    dismissSet(removable)
+  }, [dismissSet])
+
   const spawn = useCallback((
     subject: TSubject,
     origin: HTMLElement | DOMRect,
@@ -317,6 +354,7 @@ export function HoverPopoverProvider<TSubject>({
       id,
       subject,
       originRect,
+      originElement: isElement ? origin as HTMLElement : null,
       x: pointerX + offset,
       y: pointerY + offset,
       parentId,
@@ -350,6 +388,27 @@ export function HoverPopoverProvider<TSubject>({
     ))
   }, [offset])
 
+  const preview = useCallback((
+    subject: TSubject,
+    origin: HTMLElement | DOMRect,
+    pointerX: number,
+    pointerY: number,
+    parentId: string | null,
+  ): string => {
+    const originElement = typeof HTMLElement !== 'undefined' && origin instanceof HTMLElement
+      ? origin
+      : null
+    const existing = [...popoversRef.current].reverse().find((popover) =>
+      popover.phase !== 'closing' &&
+      popover.subject === subject &&
+      popover.parentId === parentId &&
+      (originElement ? popover.originElement === originElement : popover.originRect === origin),
+    )
+    if (!existing) return spawn(subject, origin, pointerX, pointerY, parentId)
+    updatePointer(existing.id, pointerX, pointerY)
+    return existing.id
+  }, [spawn, updatePointer])
+
   const freeze = useCallback((id: string) => {
     const bucket = timersRef.current.get(id)
     if (bucket?.freeze) {
@@ -361,10 +420,59 @@ export function HoverPopoverProvider<TSubject>({
     ))
   }, [])
 
+  const revealAndFreeze = useCallback((id: string) => {
+    const bucket = timersRef.current.get(id)
+    if (bucket?.open) {
+      clearTimeout(bucket.open)
+      bucket.open = undefined
+    }
+    if (bucket?.freeze) {
+      clearTimeout(bucket.freeze)
+      bucket.freeze = undefined
+    }
+    if (bucket && !bucket.open && !bucket.close && !bucket.freeze) timersRef.current.delete(id)
+    setPopovers((list) => list.map((popover) =>
+      popover.id === id && popover.phase !== 'closing'
+        ? { ...popover, frozen: true, phase: 'visible' }
+        : popover,
+    ))
+  }, [])
+
+  const pin = useCallback((
+    subject: TSubject,
+    origin: HTMLElement | DOMRect,
+    pointerX: number,
+    pointerY: number,
+    parentId: string | null,
+  ): string => {
+    const originElement = typeof HTMLElement !== 'undefined' && origin instanceof HTMLElement
+      ? origin
+      : null
+    const existing = [...popoversRef.current].reverse().find((popover) =>
+      popover.phase !== 'closing' &&
+      popover.subject === subject &&
+      popover.parentId === parentId &&
+      (originElement ? popover.originElement === originElement : popover.originRect === origin),
+    )
+    if (existing) {
+      updatePointer(existing.id, pointerX, pointerY)
+      revealAndFreeze(existing.id)
+      return existing.id
+    }
+    for (const popover of popoversRef.current) {
+      if (popover.parentId === parentId && popover.phase !== 'closing') {
+        dismissSubtree(popover.id)
+      }
+    }
+    const id = spawn(subject, origin, pointerX, pointerY, parentId)
+    revealAndFreeze(id)
+    return id
+  }, [dismissSubtree, revealAndFreeze, spawn, updatePointer])
+
   const cancelUnfrozen = useCallback((id: string) => {
     const target = popoversRef.current.find((p) => p.id === id)
-    if (target && !target.frozen && target.phase !== 'closing') dismissSubtree(id)
-  }, [dismissSubtree])
+    if (target && !target.frozen && target.phase !== 'closing') dismissUnfrozenSubtree(id)
+  }, [dismissUnfrozenSubtree])
 
   const dismissAll = useCallback(() => {
     for (const popover of popoversRef.current) {
@@ -398,17 +506,43 @@ export function HoverPopoverProvider<TSubject>({
         }
       }
       if (insideIds.size === 0) {
-        dismissAll()
+        for (const popover of live) {
+          if (!popover.frozen) dismissUnfrozenSubtree(popover.id)
+        }
         return
       }
       const keep = expandPopoverAncestors(insideIds, live)
       for (const popover of live) {
-        if (!popover.frozen && !keep.has(popover.id)) dismissSubtree(popover.id)
+        if (!popover.frozen && !keep.has(popover.id)) dismissUnfrozenSubtree(popover.id)
       }
     }
     document.addEventListener('pointermove', onPointerMove)
     return () => document.removeEventListener('pointermove', onPointerMove)
-  }, [dismissAll, dismissSubtree, hitPadding])
+  }, [dismissAll, dismissUnfrozenSubtree, hitPadding])
+
+  useEffect(() => {
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target
+      if (target instanceof Node) {
+        for (const popover of popoversRef.current) {
+          if (popover.originElement?.contains(target)) return
+        }
+        for (const element of elementsRef.current.values()) {
+          if (element.contains(target)) return
+        }
+      }
+      dismissAll()
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') dismissAll()
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [dismissAll])
 
   useEffect(() => {
     const timers = timersRef.current
@@ -424,12 +558,14 @@ export function HoverPopoverProvider<TSubject>({
 
   const api = useMemo<HoverPopoverApi<TSubject>>(() => ({
     spawn,
+    preview,
+    pin,
     updatePointer,
     freeze,
     cancelUnfrozen,
     dismissAll,
     isAlive,
-  }), [spawn, updatePointer, freeze, cancelUnfrozen, dismissAll, isAlive])
+  }), [spawn, preview, pin, updatePointer, freeze, cancelUnfrozen, dismissAll, isAlive])
 
   const portal = typeof document === 'undefined' ? null : createPortal(
     <>

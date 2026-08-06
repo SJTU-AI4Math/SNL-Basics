@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactElement,
   type ReactNode,
@@ -1057,18 +1058,39 @@ export function SnlSyntaxTreeView({
     setTooltip((prev) => (prev ? { ...prev, visible: false } : null))
   }
 
-  // Delegated click handler — resolves data-tree-path → actual node → dispatch
-  const handleClick: MouseEventHandler<HTMLDivElement> = (event) => {
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || !_interaction_driver?.on_click) return
+    const interactive: HTMLElement[] = []
+    for (const element of container.querySelectorAll<HTMLElement>('[data-tree-path]')) {
+      const path = decodeTreePath(element.getAttribute('data-tree-path') ?? '')
+      const node = resolveTreePath(tree, path)
+      const macro = node ? resolvedMacros[node.macro_name] : undefined
+      if (!macro?.source.entries[0]) continue
+      element.tabIndex = 0
+      element.setAttribute('role', 'button')
+      element.dataset.snlKeyboardActivation = 'true'
+      interactive.push(element)
+    }
+    return () => {
+      for (const element of interactive) {
+        if (element.dataset.snlKeyboardActivation !== 'true') continue
+        element.removeAttribute('tabindex')
+        element.removeAttribute('role')
+        delete element.dataset.snlKeyboardActivation
+      }
+    }
+  }, [_interaction_driver, resolvedMacros, result, tree])
+
+  const dispatchElementActivation = (
+    el: HTMLElement,
+    clientX: number,
+    clientY: number,
+    modifiers: { ctrl_key: boolean; meta_key: boolean; shift_key: boolean; alt_key: boolean },
+  ): void => {
     const container = containerRef.current
     if (!container) return
-    // Walk up from target to find the nearest element with data-tree-path
-    let el: HTMLElement | null = event.target as HTMLElement
-    while (el && el !== container && !el.hasAttribute('data-tree-path')) {
-      el = el.parentElement
-    }
-    if (!el || !el.hasAttribute('data-tree-path')) return
-    const pathStr = el.getAttribute('data-tree-path')!
-    const path = decodeTreePath(pathStr)
+    const path = decodeTreePath(el.getAttribute('data-tree-path') ?? '')
     const node = resolveTreePath(tree, path)
     if (!node) return
     const macro = resolvedMacros[node.macro_name] ?? null
@@ -1077,22 +1099,48 @@ export function SnlSyntaxTreeView({
       tree_path: path,
       macro,
       target: el,
-      client_x: event.clientX,
-      client_y: event.clientY,
-      ctrl_key: event.ctrlKey,
-      meta_key: event.metaKey,
-      shift_key: event.shiftKey,
-      alt_key: event.altKey,
+      client_x: clientX,
+      client_y: clientY,
+      ctrl_key: modifiers.ctrl_key,
+      meta_key: modifiers.meta_key,
+      shift_key: modifiers.shift_key,
+      alt_key: modifiers.alt_key,
     }
     applyHoverHighlight(el, container)
     setHasHoverTarget(true)
-    activateHoverTarget(el, container, event.clientX, event.clientY, {
+    activateHoverTarget(el, container, clientX, clientY, modifiers, true)
+    if (_interaction_driver) void _interaction_driver.dispatch_click(ctx).catch(() => {})
+  }
+
+  // Delegated click handler — resolves data-tree-path → actual node → dispatch
+  const handleClick: MouseEventHandler<HTMLDivElement> = (event) => {
+    const container = containerRef.current
+    if (!container) return
+    let el: HTMLElement | null = event.target as HTMLElement
+    while (el && el !== container && !el.hasAttribute('data-tree-path')) el = el.parentElement
+    if (!el || !el.hasAttribute('data-tree-path')) return
+    dispatchElementActivation(el, event.clientX, event.clientY, {
       ctrl_key: event.ctrlKey,
       meta_key: event.metaKey,
       shift_key: event.shiftKey,
       alt_key: event.altKey,
-    }, true)
-    if (_interaction_driver) void _interaction_driver.dispatch_click(ctx).catch(() => {})
+    })
+  }
+
+  const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    const target = event.target instanceof HTMLElement
+      ? event.target.closest<HTMLElement>('[data-snl-keyboard-activation="true"]')
+      : null
+    if (!target || !event.currentTarget.contains(target)) return
+    event.preventDefault()
+    const rect = target.getBoundingClientRect()
+    dispatchElementActivation(target, rect.left + rect.width / 2, rect.top + rect.height / 2, {
+      ctrl_key: event.ctrlKey,
+      meta_key: event.metaKey,
+      shift_key: event.shiftKey,
+      alt_key: event.altKey,
+    })
   }
 
   // Mode-aware React dispatch (used for non-KaTeX roots — text and
@@ -1214,6 +1262,7 @@ export function SnlSyntaxTreeView({
         onMouseMove={handleKaTeXMouseMove}
         onMouseLeave={handleKaTeXMouseLeave}
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
       >
         {isKatexRoot ? null : renderNode(tree)}
       </div>

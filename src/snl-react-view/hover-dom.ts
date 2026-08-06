@@ -1,15 +1,12 @@
 /**
- * Internal DOM traversal helpers for hover highlighting. NOT part of the public
- * API — used by {@link defaultHighlightStrategy} and `SnlSyntaxTreeView`.
- *
- * @internal
+ * DOM traversal helpers shared by hover highlighting consumers. These are
+ * public through the lean `./hover` entry as well as the root package.
  */
 import { readBindRefFromDom } from '../snl-syntax-tree/binding'
 
 /**
  * Walk up from `start` to find the nearest binder-scope ancestor (a quantifier node marked
  * data-scope="binder" by annotate-bind) carrying the given `bindRef`.
- * @internal
  */
 export function findBinderScopeAncestor(
   start: HTMLElement,
@@ -36,7 +33,6 @@ export function findBinderScopeAncestor(
  * and should not attract hover feedback themselves. Walk past them to find
  * the nearest non-partial ancestor. (Fulcrum 2026-07-04.)
  *
- * @internal
  */
 export function findMinimalHoverRoot(start: HTMLElement, container: HTMLElement): HTMLElement {
   let cur: HTMLElement | null = start

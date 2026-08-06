@@ -1,6 +1,6 @@
 {
   "name": "@sjtu-ai4math/snl-basics",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "MIT",
   "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
   "keywords": [
@@ -32,7 +32,7 @@
       "default": "./dist-lib/index.js"
     },
     "./runtime": {
-      "types": "./dist-lib/index.d.ts",
+      "types": "./dist-lib/runtime.d.ts",
       "import": "./dist-lib/runtime.js",
       "default": "./dist-lib/runtime.js"
     },
@@ -42,7 +42,7 @@
       "default": "./dist-lib/core.js"
     },
     "./hover": {
-      "types": "./dist-lib/index.d.ts",
+      "types": "./dist-lib/hover.d.ts",
       "import": "./dist-lib/hover.js",
       "default": "./dist-lib/hover.js"
     },
@@ -61,10 +61,10 @@
         "dist-lib/core.d.ts"
       ],
       "runtime": [
-        "dist-lib/index.d.ts"
+        "dist-lib/runtime.d.ts"
       ],
       "hover": [
-        "dist-lib/index.d.ts"
+        "dist-lib/hover.d.ts"
       ],
       "entry": [
         "dist-lib/entry.d.ts"
@@ -81,7 +81,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:lib": "vite build --config vite.lib.config.ts && vite build --config vite.entry.config.ts && vite build --config vite.runtime.config.ts && tsc -p tsconfig.entry.json && node scripts/copy-lib-assets.mjs",
+    "build:lib": "vite build --config vite.lib.config.ts && vite build --config vite.runtime.config.ts && tsc -p tsconfig.entry.json && node scripts/copy-lib-assets.mjs && tsc --noEmit --strict --skipLibCheck false --module NodeNext --moduleResolution NodeNext --target ES2022 scripts/verify-subpath-types.ts && node scripts/verify-subpath-identity.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "prepublishOnly": "npm run build:lib"

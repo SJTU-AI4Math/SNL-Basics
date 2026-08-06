@@ -80,5 +80,42 @@ export {
   extractExportedBinders,
 } from './entry-types/entry-react/context-source.js'
 `)
+writeFileSync(join(root, 'dist-lib/runtime.d.ts'), `export {
+  ReaderRuntime,
+  flat_map_reader,
+  is_i18n,
+  map_reader,
+  pure_reader,
+  read_localized,
+  write_localized,
+} from './index.js'
+export type {
+  I18n,
+  LanguageEnvironment,
+  Localized,
+  ReaderM,
+  ReaderRuntimeOptions,
+  ReaderRuntimeQueries,
+} from './index.js'
+`)
+writeFileSync(join(root, 'dist-lib/hover.d.ts'), `export {
+  applySnlHoverHighlight,
+  buildBvarScopeIndex,
+  clearSnlHoverHighlight,
+  defaultHighlightStrategy,
+  findBinderScopeAncestor,
+  findMinimalHoverRoot,
+  readBindRefFromDom,
+  readSrcFromDom,
+  SNL_BASE_TEXT_COLOR_VAR,
+  SNL_HOVER_CLASS,
+} from './index.js'
+export type {
+  ApplySnlHoverHighlightOptions,
+  BvarScopeEntry,
+  SnlHighlightSet,
+  SnlHighlightStrategy,
+} from './index.js'
+`)
 rmSync(join(root, 'dist-lib/snl-macro-db.json'), { force: true })
 rmSync(join(root, 'dist-lib/snl-macro-db-samples.json'), { force: true })
