@@ -29,7 +29,6 @@ function fixedMathMacro(name: string, template: string, kind?: string): SnlMacro
     dynamic_arity: false,
     kind,
     tags: [],
-    default_style: { en: 'default' },
     styles: [{ style_name: 'default', mode: 'formula_inline', template, tags: [] }],
   }
 }
