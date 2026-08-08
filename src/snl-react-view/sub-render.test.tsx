@@ -10,7 +10,7 @@ const macro = (
   name: string,
   mode: 'formula_inline' | 'text' | 'block',
   template: string,
-  kind: string,
+  kind: 'const' | 'sub',
 ): SnlMacro => ({
   name,
   description: '',

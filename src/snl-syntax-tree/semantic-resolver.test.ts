@@ -3,7 +3,7 @@ import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
 import { parseSnlSyntaxTree } from './parser'
 import { resolveSnlSemantics } from './semantic-resolver'
 
-const macro = (name: string, kind: string = 'const'): SnlMacro => ({
+const macro = (name: string, kind: 'const' | 'sub' = 'const'): SnlMacro => ({
   name,
   description: '',
   source: { entries: [], urls: [] },
@@ -13,7 +13,7 @@ const macro = (name: string, kind: string = 'const'): SnlMacro => ({
   styles: [{ style_name: 'default', mode: 'formula_inline', template: name, tags: [] }],
 })
 
-const db = (...entries: Array<[string, string?]>): SnlMacroRecord => Object.fromEntries(
+const db = (...entries: Array<[string, ('const' | 'sub')?]>): SnlMacroRecord => Object.fromEntries(
   entries.map(([name, kind]) => [name, macro(name, kind)]),
 )
 
