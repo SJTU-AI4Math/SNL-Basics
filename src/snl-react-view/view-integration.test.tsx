@@ -21,7 +21,6 @@ const db: SnlMacroRecord = {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     tags: [],
-    default_style: { en: 'default' },
     styles: [{ style_name: 'default', mode: 'formula_inline', template: '#0 + #1', tags: [] }],
   },
   x: {
@@ -30,7 +29,6 @@ const db: SnlMacroRecord = {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     tags: [],
-    default_style: { en: 'default' },
     styles: [{ style_name: 'default', mode: 'formula_inline', template: 'x', tags: [] }],
   },
 }
@@ -65,7 +63,7 @@ describe('data-tree-path DOM attribute', () => {
     const constantDb: SnlMacroRecord = {
       c: {
         name: 'c', description: '', source: { entries: [], urls: [] }, kind: 'const',
-        dynamic_arity: false, tags: [], default_style: { en: 'default' },
+        dynamic_arity: false, tags: [],
         styles: [{ style_name: 'default', mode: 'formula_inline', template: 'c', tags: [] }],
       },
     }
@@ -80,12 +78,12 @@ describe('data-tree-path DOM attribute', () => {
     const nativeDb: SnlMacroRecord = {
       prose: {
         name: 'prose', description: '', source: { entries: [], urls: [] },
-        dynamic_arity: false, tags: [], default_style: { en: 'default' },
+        dynamic_arity: false, tags: [],
         styles: [{ style_name: 'default', mode: 'text', template: 'prose', tags: [] }],
       },
       group: {
         name: 'group', description: '', source: { entries: [], urls: [] },
-        dynamic_arity: true, tags: [], default_style: { en: 'default' },
+        dynamic_arity: true, tags: [],
         styles: [{ style_name: 'default', mode: 'block', template: '#*', tags: [] }],
       },
     }
@@ -605,7 +603,6 @@ describe('macro query lifecycle', () => {
         source: { entries: [], urls: [] },
         dynamic_arity: false,
         tags: [],
-        default_style: { en: 'default' },
         styles: [{ style_name: 'default', mode: 'text', template: 'old backend', tags: [] }],
       },
     }
@@ -642,14 +639,13 @@ describe('macro query lifecycle', () => {
 
 describe('block_template_name validation', () => {
   it('ignores block_template_name on non-block (formula) mode styles', async () => {
-    const formulaDb: SnlMacroRecord = {
+    const formulaDb = {
       bad: {
         name: 'bad',
         description: '',
         source: { entries: [], urls: [] },
         dynamic_arity: false,
         tags: [],
-        default_style: { en: 'default' },
         styles: [{
           style_name: 'default',
           mode: 'formula_inline',
@@ -658,7 +654,7 @@ describe('block_template_name validation', () => {
           tags: [],
         }],
       },
-    }
+    } as unknown as SnlMacroRecord
     const { container } = render(
       <SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('bad')} macro_data_driver={testDriver(formulaDb)} />,
     )
@@ -680,7 +676,6 @@ describe('block_template_name validation', () => {
         kind: 'rule',
         dynamic_arity: true,
         tags: [],
-        default_style: { en: 'default' },
         styles: [{
           style_name: 'default',
           mode: 'block',

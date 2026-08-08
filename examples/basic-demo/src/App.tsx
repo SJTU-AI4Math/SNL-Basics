@@ -2,7 +2,7 @@
  * SNL-Basics — basic demo.
  *
  * Descendant of the original Fulcrum-Smarterm `OperatorTree` demo, rewritten
- * against the v0.1.0 public API. Everything here is imported from the package
+ * against the v0.2.0 public API. Everything here is imported from the package
  * root barrel — no deep `src/…` imports — so it doubles as an integration test
  * of the published tarball.
  */

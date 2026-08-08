@@ -33,7 +33,6 @@ const eqDualMode: SnlMacro = {
   kind: 'const',
   dynamic_arity: false,
   tags: [],
-  default_style: { en: 'infix' },
   styles: [
     { style_name: 'infix', mode: 'formula_inline', template: '#0 = #1', tags: [] },
     { style_name: 'prose', mode: 'text', template: '#0 与 #1 相等', tags: [] },
@@ -45,7 +44,6 @@ const listAllPeople: SnlMacro = {
   source: { entries: [], urls: [] },
   dynamic_arity: true,
   tags: [],
-  default_style: { en: 'default' },
   styles: [
     { style_name: 'default', mode: 'text', template: '所有人：#*', separator: '、', tags: [] },
   ],
@@ -57,7 +55,6 @@ const interfaceMacro: SnlMacro = {
   kind: 'Syntax',
   dynamic_arity: false,
   tags: [],
-  default_style: { en: 'default' },
   styles: [
     {
       style_name: 'default',
@@ -74,7 +71,6 @@ const enumerateMacro: SnlMacro = {
   kind: 'partial',
   dynamic_arity: true,
   tags: [],
-  default_style: { en: 'default' },
   styles: [
     {
       style_name: 'default',
@@ -121,14 +117,19 @@ describe('text-mode template splicing (regression)', () => {
     })
   })
 
-  it('selects a language-dependent default style using the injected language query', async () => {
+  it('selects the current language projection inside the implicit first style', async () => {
     const localized: SnlMacro = {
       ...eqDualMode,
-      default_style: { en: 'english', 'zh-CN': 'chinese' },
-      styles: [
-        { style_name: 'english', mode: 'text', template: '#0 equals #1', tags: [] },
-        { style_name: 'chinese', mode: 'text', template: '#0 等于 #1', tags: [] },
-      ],
+      styles: [{
+        style_name: 'prose',
+        mode: 'text',
+        template: {
+          type: 'i18n',
+          default_language: 'en',
+          values: { en: '#0 equals #1', 'zh-CN': '#0 等于 #1' },
+        },
+        tags: [],
+      }],
     }
     const tree = createSnlSyntaxTreeNode('Eq.eq', { children: [leaf('a'), leaf('b')] })
     const runtime = new ReaderRuntime({
@@ -139,6 +140,76 @@ describe('text-mode template splicing (regression)', () => {
     )
     await waitFor(() => expect(panelText(container)).toContain('a 等于 b'))
   })
+
+  it('samples one language for every text node in a React render tree', async () => {
+    let reads = 0
+    const localizedStyle = (en: string, zh: string) => ({
+      style_name: 'default', mode: 'text' as const,
+      template: { type: 'i18n' as const, default_language: 'en', values: { en, 'zh-CN': zh } },
+      tags: [],
+    })
+    const macros: SnlMacroRecord = {
+      Parent: {
+        name: 'Parent', description: '', source: { entries: [], urls: [] },
+        dynamic_arity: false, tags: [], styles: [localizedStyle('EN(#0)', 'ZH(#0)')],
+      },
+      Child: {
+        name: 'Child', description: '', source: { entries: [], urls: [] },
+        dynamic_arity: false, tags: [], styles: [localizedStyle('EN_CHILD', 'ZH_CHILD')],
+      },
+    }
+    const runtime = new ReaderRuntime({
+      queries: { query_environment: () => ({ language: reads++ % 2 === 0 ? 'en' : 'zh-CN' }) },
+    })
+    const tree = createSnlSyntaxTreeNode('Parent', {
+      children: [createSnlSyntaxTreeNode('Child')],
+    })
+    const { container } = render(
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(macros)} reader_runtime={runtime} />,
+    )
+    await waitFor(() => {
+      const text = container.querySelector('.katex-html')?.textContent ?? ''
+      expect(text === 'EN(EN_CHILD)' || text === 'ZH(ZH_CHILD)').toBe(true)
+    })
+    const text = container.querySelector('.katex-html')?.textContent ?? ''
+    expect(text).not.toMatch(/EN\(ZH_CHILD\)|ZH\(EN_CHILD\)/)
+  })
+
+  it.each(['formula_inline', 'block'] as const)(
+    'surfaces malformed localized templates in %s mode',
+    async (mode) => {
+      const malformed = {
+        name: 'Malformed', description: '', source: { entries: [], urls: [] },
+        dynamic_arity: false, tags: [],
+        styles: [{
+          style_name: 'default', mode,
+          template: { type: 'i18n', default_language: 'en', values: { en: 'bad' } },
+          ...(mode === 'block' ? { block_template_name: 'enumerate' } : {}),
+          tags: [],
+        }],
+      } as unknown as SnlMacro
+      const macros: SnlMacroRecord = mode === 'formula_inline'
+        ? {
+            Parent: {
+              name: 'Parent', description: '', source: { entries: [], urls: [] },
+              dynamic_arity: false, tags: [],
+              styles: [{ style_name: 'default', mode: 'text', template: '#0', tags: [] }],
+            },
+            Malformed: malformed,
+          }
+        : { Malformed: malformed }
+      const tree = mode === 'formula_inline'
+        ? createSnlSyntaxTreeNode('Parent', { children: [createSnlSyntaxTreeNode('Malformed')] })
+        : createSnlSyntaxTreeNode('Malformed')
+      const { container } = render(
+        <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(macros)} />,
+      )
+      await waitFor(() => {
+        const error = container.querySelector('[role="alert"]')
+        expect(error?.textContent).toMatch(/SNL render error:.*text mode/)
+      })
+    },
+  )
 
   it('splices #0 / #1 into the template and keeps literal 与 / 相等', async () => {
     const tree = createSnlSyntaxTreeNode('Eq.eq', {

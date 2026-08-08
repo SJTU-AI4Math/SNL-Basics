@@ -14,7 +14,6 @@ function blockMacro(name: string, reactRendererKey: string): SnlMacro {
     source: { entries: [], urls: [] },
     dynamic_arity: true,
     tags: [],
-    default_style: { en: 'default' },
     styles: [{ style_name: 'default', mode: 'block', template: '', block_template_name: reactRendererKey, tags: [] }],
   }
 }

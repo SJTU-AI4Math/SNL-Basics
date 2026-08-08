@@ -17,7 +17,6 @@ function mathMacro(
     source: { entries: [], urls: [] },
     dynamic_arity: true,
     tags: [],
-    default_style: { en: 'default' },
     styles: [{ style_name: 'default', mode: 'formula_inline', template: opts.template ?? '#*', separator: opts.separator, tags: [] }],
   }
 }

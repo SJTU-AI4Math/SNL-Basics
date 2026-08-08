@@ -1,10 +1,11 @@
+import type { I18n } from '../runtime'
 
 /**
- * SnlMacro v8 (on-disk) — the single source of truth for a macro.
+ * SnlMacro v9 (on-disk) — the single source of truth for a macro.
  *
- * v8 adds a required language-to-style `default_style` map and restores every
- * style template to an invariant string. Implicit selection is current
- * language → English → `styles[0]`; explicit `[style]` always wins.
+ * The first style is the single implicit default. Text styles may localize their
+ * template inside that style; formula and block render programs remain invariant.
+ * Explicit `[style]` always wins and never depends on the current language.
  *
  * A macro is a globally-unique named renderer. Multiple macros MAY share the
  * same source entry (e.g. FOL.implies.infix and FOL.implies.double both refer to the
@@ -58,18 +59,27 @@ interface SnlMacroStyleBase {
   tags: string[]
 }
 
-/** Formula and block templates are language-invariant render programs. */
-export interface SnlInvariantMacroStyle extends SnlMacroStyleBase {
-  mode: 'formula_inline' | 'formula_display' | 'block'
+/** Formula templates are language-invariant render programs. */
+export interface SnlFormulaMacroStyle extends SnlMacroStyleBase {
+  mode: 'formula_inline' | 'formula_display'
   template: string
-  /** Block renderer dispatch key; only applies when mode is `block`. */
+  block_template_name?: never
+}
+
+/** Block templates are invariant and may select a block renderer. */
+export interface SnlBlockMacroStyle extends SnlMacroStyleBase {
+  mode: 'block'
+  template: string
   block_template_name?: string
 }
 
-/** Text templates are ordinary strings; language variants live in separate styles. */
+/** Formula and block templates are language-invariant render programs. */
+export type SnlInvariantMacroStyle = SnlFormulaMacroStyle | SnlBlockMacroStyle
+
+/** Text styles keep language projections inside one semantic style. */
 export interface SnlTextMacroStyle extends SnlMacroStyleBase {
   mode: 'text'
-  template: string
+  template: string | I18n<string, string>
   block_template_name?: never
 }
 
@@ -100,15 +110,7 @@ export interface SnlMacro {
   dynamic_arity: boolean
 
   /**
-   * Language → implicit style name. When source omits `[style]`, resolution uses
-   * the current language, then `en`, then `styles[0]`. Explicit `[style]` always
-   * wins. A mapped name must identify a member of `styles`.
-   */
-  default_style: Record<string, string>
-
-  /**
-   * All render styles in order. `styles[0]` is the final compatibility fallback
-   * when neither the current language nor English has a `default_style` entry.
+   * All render styles in order. `styles[0]` is the single implicit default.
    * In `foo[bar](x)`, the parser picks
    * the style whose `style_name === "bar"`; unknown names are a render-time error.
    * Every macro has at least one style. Style names follow the shared

@@ -137,46 +137,52 @@ Note: `SnlMacro.name` stays as `name` (NOT renamed to `macro_name`).
 ### Migration CLI
 
 ```bash
-node scripts/migrate-schema.mjs             # preview plain-string v6/v7 changes
-node scripts/migrate-schema.mjs --write     # back up and apply plain-string migration
-node scripts/migrate-schema.mjs --split-localized-templates --write
-# ^ explicit lossy opt-in: old Macro[style] calls no longer localize that style
+node scripts/migrate-schema.mjs --target macros.json
+node scripts/migrate-schema.mjs --write --target macros.json
 ```
 
-Idempotent — skips documents already in v8 shape.
+Idempotent — skips documents already in the current v9 shape. A legacy
+A redundant legacy `default_style` map is removed automatically when every
+mapping points to `styles[0]`. Published v8 language-split defaults are upgraded
+when all mapped styles differ only in `style_name` and string `template`: the
+migrator inserts a localized synthetic `styles[0]` and retains every old style
+so explicit v8 `[style]` source keeps resolving. When the legacy map contains
+`en`, that mapped Style remains the fallback for unmapped locales; when it does
+not, the synthetic template stores the old `styles[0]` text as its fallback.
+Structurally incompatible maps are rejected rather than silently changing
+rendering semantics.
 
-## Macro schema v8 (`@sjtu-ai4math/snl-basics@0.1.2`, 2026-08-04)
+## Macro schema v9 localization correction
 
-Macro style templates are plain strings again in every mode. The former v7
-`I18n` object accepted by text-style `template` is removed. Language now only
-selects the implicit style through a required macro-level map:
+`styles[0]` is the sole implicit style. Formula and block templates remain
+language-invariant strings. A text-style template may be a string or an `I18n`
+value:
 
 ```json
 {
-  "default_style": {
-    "en": "prose",
-    "zh-CN": "prose_zh_CN"
-  },
   "styles": [
-    { "style_name": "prose", "mode": "text", "template": "#0 is a group", "tags": [] },
-    { "style_name": "prose_zh_CN", "mode": "text", "template": "#0 是群", "tags": [] }
+    {
+      "style_name": "prose",
+      "mode": "text",
+      "template": {
+        "type": "i18n",
+        "default_language": "en",
+        "values": {
+          "en": "#0 is a group",
+          "zh-CN": "#0 是群"
+        }
+      },
+      "tags": []
+    }
   ]
 }
 ```
 
-Implicit selection is current language → English → `styles[0]`. Explicit
-`Macro[style](...)` selection is unchanged and always takes priority.
-
-`migrateMacroV7toV8` adds `default_style.en = styles[0].style_name` for
-plain-string v7 macros. Localized v7 templates require an explicit policy
-choice: automatic splitting changes the meaning of existing explicit
-`Macro[style](...)` source because v8 styles no longer vary by language. The
-programmatic API therefore requires `{ split_localized_templates: true }`, and
-the CLI requires `--split-localized-templates`, before it preserves the
-v7 default-language projection under the original `style_name` and creates
-deterministic `<style>_<locale>` names for the other projections. Without that
-opt-in migration fails instead of silently changing source semantics. Entry
-content I18n is unaffected.
+Explicit `Macro[style](...)` selection is unchanged and always takes priority.
+Language resolves a projection inside the selected text style; it never selects
+a different style. `migrateMacroV7toV9` preserves localized text templates and
+never splits them into synthetic language styles. Entry content I18n is
+unchanged.
 
 ### Consumer upgrade path
 

@@ -1,11 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   ReaderRuntime,
-  isMacroDocumentV8,
+  isMacroDocumentV9,
   isSnlIdentifier,
-  migrateMacroV7toV8,
+  migrateMacroV7toV9,
   read_localized,
   type I18n,
+  type MacroV8Style,
   type ReaderM,
 } from '../snl-react-view'
 
@@ -24,12 +25,22 @@ describe('runtime public API', () => {
     expect(isSnlIdentifier('群.是群')).toBe(true)
   })
 
-  it('exports Macro v8 migration APIs from the package root', () => {
-    const migrated = migrateMacroV7toV8({
+  it('exports a v8 Style type whose Template is invariant and block renderer key is block-only', () => {
+    expectTypeOf<MacroV8Style['template']>().toEqualTypeOf<string>()
+    // @ts-expect-error formula styles cannot carry a block renderer dispatch key
+    const invalidFormula: MacroV8Style = {
+      style_name: 'formula', mode: 'formula_inline', template: '#0', tags: [],
+      block_template_name: 'list',
+    }
+    void invalidFormula
+  })
+
+  it('exports Macro v9 migration APIs from the package root', () => {
+    const migrated = migrateMacroV7toV9({
       name: 'X', description: '', source: { entries: [], urls: [] },
       dynamic_arity: false, tags: [],
       styles: [{ style_name: 'plain', mode: 'text', template: 'X', tags: [] }],
     })
-    expect(isMacroDocumentV8({ X: migrated })).toBe(true)
+    expect(isMacroDocumentV9({ X: migrated })).toBe(true)
   })
 })

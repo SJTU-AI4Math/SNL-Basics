@@ -24,6 +24,7 @@ import {
   type LanguageEnvironment,
   type ReaderM,
   type ReaderRuntime,
+  read_localized,
 } from '../runtime'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { getBindRef, getSrc } from '../snl-syntax-tree/binding'
@@ -58,29 +59,21 @@ export function sanitizeHtmlDataAttr(value: string): string {
 }
 
 /**
- * Resolve which {@link SnlMacroStyle} to render a node with. The tag comes from
- * the parser's `[style]` bracket (`node.style_name`). When missing, resolve the
- * current language mapping, then English, then `styles[0]`.
+ * Resolve which {@link SnlMacroStyle} renders a node. An explicit parser
+ * `[style]` selector wins; otherwise the ordered first style is the sole default.
  */
 export function resolveStyle(
   node: SnlSyntaxTree,
   macro: SnlMacro,
-  language = 'en',
+  _language = 'en',
 ): SnlMacroStyle {
   if (macro.styles.length === 0) {
     throw new Error(`macro "${macro.name}" has no styles`)
   }
-  const mappedName = macro.default_style?.[language] ?? macro.default_style?.en
-  const resolvedName = node.style_name ?? mappedName
+  const resolvedName = node.style_name
   if (resolvedName == null) return macro.styles[0]
   const style = macro.styles.find((s) => s.style_name === resolvedName)
   if (!style) {
-    if (node.style_name == null) {
-      throw new Error(
-        `default style "${resolvedName}" for language "${language}" ` +
-          `does not exist on macro "${macro.name}"`,
-      )
-    }
     throw new Error(
       `unknown style "${resolvedName}" for macro "${macro.name}" ` +
         `(available: ${macro.styles.map((s) => s.style_name).join(', ') || '(none)'})`,
@@ -89,22 +82,50 @@ export function resolveStyle(
   return style
 }
 
-/** Preserve the Reader-shaped public helper; templates themselves are invariant strings. */
+/** Validate an untrusted style before renderer-specific dispatch. */
+export function assert_valid_style_template(style: SnlMacroStyle): void {
+  const template = (style as { template: unknown }).template
+  if (style.mode !== 'text') {
+    if (typeof template !== 'string') {
+      throw new Error(`style "${style.style_name}" may localize templates only in text mode`)
+    }
+    return
+  }
+  if (typeof template === 'string') return
+  if (!template || typeof template !== 'object' || Array.isArray(template)) {
+    throw new Error(`style "${style.style_name}" has a malformed localized template`)
+  }
+  const localized = template as Record<string, unknown>
+  const values = localized.values
+  if (localized.type !== 'i18n' || typeof localized.default_language !== 'string' ||
+      !values || typeof values !== 'object' || Array.isArray(values) ||
+      Object.values(values as Record<string, unknown>).some((value) => typeof value !== 'string') ||
+      !Object.prototype.hasOwnProperty.call(values, localized.default_language) ||
+      typeof (values as Record<string, unknown>)[localized.default_language] !== 'string') {
+    throw new Error(`style "${style.style_name}" has a malformed localized template`)
+  }
+}
+
+/** Read a validated style template in the local language environment. */
 export function read_style_template(
   style: SnlMacroStyle,
 ): ReaderM<LanguageEnvironment<string>, string> {
-  return () => style.template
+  assert_valid_style_template(style)
+  const template = (style as { template: unknown }).template
+  if (style.mode !== 'text' || typeof template === 'string') return () => template as string
+  return read_localized(template as Extract<SnlMacroStyle, { mode: 'text' }>['template'])
 }
 
-/** Run a style-template Reader at a renderer boundary. */
+/** Resolve a style template at a renderer boundary. */
 export function resolve_style_template(
   style: SnlMacroStyle,
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
+  language?: string,
 ): string {
-  // Kept as an optional parameter for source compatibility; v8 templates are
-  // language-invariant, so resolving one must not re-query the environment.
-  void reader_runtime
-  return style.template
+  const reader = read_style_template(style)
+  if (language !== undefined) return reader({ language })
+  if (reader_runtime) return reader_runtime.run_reader(reader)
+  return reader({ language: 'en' })
 }
 
 function current_language(
@@ -367,7 +388,7 @@ export async function resolveNodeLatex(
     }
   }
 
-  const template = style ? resolve_style_template(style, reader_runtime) : node.macro_name
+  const template = style ? resolve_style_template(style, reader_runtime, sampled_language) : node.macro_name
 
   const childValues = Object.fromEntries(
     wrappedChildren.map((latex, index) => [`child${index}`, latex]),

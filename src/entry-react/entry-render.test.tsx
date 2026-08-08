@@ -178,7 +178,6 @@ describe('recursive Entry preview', () => {
   it('queries and renders a referenced Entry in a generic popover', async () => {
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name }) => macro_name === 'ref' ? {
       name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
-      default_style: { en: 'default' },
       styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
     } : null } })
     const entries = dataDriver({
@@ -204,7 +203,6 @@ describe('recursive Entry preview', () => {
   it('pins the referenced Entry popover on primary click', async () => {
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
       name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
-      default_style: { en: 'default' },
       styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
     }) } })
     const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'pinned child body' }, { id: 'child' }) })
@@ -231,7 +229,6 @@ describe('recursive Entry preview', () => {
   it('cancels a transient preview when its owning Entry unmounts', async () => {
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
       name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
-      default_style: { en: 'default' },
       styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
     }) } })
     const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'orphan child' }, { id: 'child' }) })
@@ -259,7 +256,6 @@ describe('recursive Entry preview', () => {
   it('can disable hover previews while retaining click-to-pin', async () => {
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
       name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
-      default_style: { en: 'default' },
       styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
     }) } })
     const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'click only child' }, { id: 'child' }) })

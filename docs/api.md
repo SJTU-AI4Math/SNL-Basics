@@ -1,6 +1,6 @@
 # `@sjtu-ai4math/snl-basics` — Public API Reference
 
-Current beta surface for v0.1.2. Import from the package root:
+Current beta surface for v0.2.0. Import from the package root:
 
 ```ts
 import { MacroDataDriver, SnlSyntaxTreeView } from '@sjtu-ai4math/snl-basics'
@@ -34,7 +34,7 @@ type Localized<Language extends string, Value = string> = Value | I18n<Language,
 interface SnlMacroStyle {
   style_name: string
   mode: 'formula_inline' | 'formula_display' | 'text' | 'block'
-  template: string
+  template: string | I18n<string, string> // I18n only when mode === 'text'
   separator?: string
   block_template_name?: string
   tags: string[]
@@ -46,7 +46,6 @@ interface SnlMacro {
   source: SnlMacroSource
   kind?: string
   dynamic_arity: boolean
-  default_style: Record<string, string>
   styles: SnlMacroStyle[]
   tags: string[]
 }
@@ -56,11 +55,10 @@ Dynamic styles place `#*` in `template`; `separator` joins its expanded children
 `block_template_name` is valid only when `mode === 'block'`. All styles of one
 macro must have the same arity contract.
 
-When source omits an explicit `[style]`, style selection is
-`default_style[current language]` → `default_style.en` → `styles[0]`. An
-explicit `[style]` always wins. Every mapping value must reference a style in
-the same macro. Macro templates are always strings; `I18n` remains available
-for other localized values such as Entry content, not for style templates.
+When source omits an explicit `[style]`, `styles[0]` is the sole implicit
+default. An explicit `[style]` always wins. Formula and block templates are
+invariant strings; text templates may be strings or `I18n` values resolved by
+the injected language environment.
 
 Plain Macro and style identifiers accept the legacy ASCII set (`A-Z`, `a-z`,
 `0-9`, `_`, leading `\\`, and subsequent `.`/`-`) plus visible non-ASCII

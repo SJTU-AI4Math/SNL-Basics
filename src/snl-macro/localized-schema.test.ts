@@ -10,30 +10,30 @@ const localized: I18n<string, string> = {
 }
 
 describe('localized content schema', () => {
-  it('keeps every Macro style template a plain string', () => {
+  it('stores localized text in one semantic Macro style', () => {
     const style: SnlMacroStyle = {
-      style_name: 'prose_en',
+      style_name: 'prose',
       mode: 'text',
-      template: 'Group',
+      template: localized,
       tags: [],
     }
-    expect(style.template).toBe('Group')
+    expect(style.template).toEqual(localized)
   })
 
-  it('stores language-dependent default style names at Macro level', () => {
+  it('uses styles[0] as the only implicit default without a language-to-style map', () => {
     const macro: SnlMacro = {
       name: 'Group.prose',
       description: '',
       source: { entries: [], urls: [] },
       dynamic_arity: false,
-      default_style: { en: 'prose_en', 'zh-CN': 'prose_zh' },
       styles: [
-        { style_name: 'prose_en', mode: 'text', template: 'Group', tags: [] },
-        { style_name: 'prose_zh', mode: 'text', template: '群', tags: [] },
+        { style_name: 'prose', mode: 'text', template: localized, tags: [] },
+        { style_name: 'compact', mode: 'text', template: 'Group', tags: [] },
       ],
       tags: [],
     }
-    expect(macro.default_style['zh-CN']).toBe('prose_zh')
+    expect(macro.styles[0].style_name).toBe('prose')
+    expect(macro).not.toHaveProperty('default_style')
   })
 
   it('continues to accept I18n for non-SNL Entry content', () => {
@@ -51,23 +51,22 @@ describe('localized content schema', () => {
 const _text_style: SnlMacroStyle = {
   style_name: 'text',
   mode: 'text',
-  // @ts-expect-error Macro templates are strings; language variants are separate styles
   template: localized,
   tags: [],
 }
 
+// @ts-expect-error formula templates are language-invariant strings
 const _formula_style: SnlMacroStyle = {
   style_name: 'formula',
   mode: 'formula_inline',
-  // @ts-expect-error formula templates are language-invariant strings
   template: localized,
   tags: [],
 }
 
+// @ts-expect-error block templates are language-invariant strings
 const _block_style: SnlMacroStyle = {
   style_name: 'block',
   mode: 'block',
-  // @ts-expect-error block templates are language-invariant strings
   template: localized,
   tags: [],
 }

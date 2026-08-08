@@ -27,6 +27,7 @@ import { tightenHoverBoxes } from '../snl-react-view/tighten-hover-boxes'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { useCtrlPressed } from '../snl-react-view/use-ctrl-pressed'
 import {
+  assert_valid_style_template,
   modeBucket,
   nodeDisplay,
   nodeMode,
@@ -134,10 +135,20 @@ function MathSpan({
         const el = spanRef.current
         if (el && currentHtmlRef.current !== out) {
           currentHtmlRef.current = out
+          el.classList.remove('katex-error', 'snl-render-error')
+          el.removeAttribute('role')
           el.innerHTML = out
         }
-      } catch {
-        /* leave last-good HTML in place — no destructive reset */
+      } catch (reason) {
+        if (cancelled) return
+        const el = spanRef.current
+        if (el) {
+          const message = reason instanceof Error ? reason.message : String(reason)
+          currentHtmlRef.current = ''
+          el.classList.add('katex-error', 'snl-render-error')
+          el.setAttribute('role', 'alert')
+          el.textContent = `SNL render error: ${message}`
+        }
       }
     })()
     return () => {
@@ -251,7 +262,7 @@ function TextRun({
   const template = isSyntheticTemplate
     ? node.macro_name
     : style
-      ? resolve_style_template(style, reader_runtime)
+      ? resolve_style_template(style, reader_runtime, language)
       : ''
   const children = node.children
 
@@ -1192,11 +1203,17 @@ export function SnlSyntaxTreeView({
   //     block inside formula" placeholder in resolveNodeLatex)
   const renderNode = (node: SnlSyntaxTree, pathStr = ''): ReactElement => {
     const macro = resolvedMacros[node.macro_name] ?? null
+    let selectedStyle: SnlMacro['styles'][number] | undefined
+    try {
+      selectedStyle = macro ? resolveStyle(node, macro, renderLanguage) : undefined
+      if (selectedStyle) assert_valid_style_template(selectedStyle)
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : String(reason)
+      return <span className="katex-error snl-render-error" role="alert">SNL render error: {message}</span>
+    }
     const mode = nodeMode(node, macro, renderLanguage)
     if (mode === 'block') {
-      const key = macro
-        ? resolveStyle(node, macro, renderLanguage).block_template_name
-        : undefined
+      const key = selectedStyle?.block_template_name
       const Renderer = key ? mergedHooks.renderers?.[key] : undefined
       const blockDataAttrs: Record<string, string | undefined> = {
         'data-name': node.macro_name || undefined,

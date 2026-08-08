@@ -13,7 +13,6 @@ function fracMacro(name: string, display?: 'inline' | 'block'): SnlMacro {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     tags: [],
-    default_style: { en: 'default' },
     styles: [
       {
         style_name: 'default',

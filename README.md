@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.1.0 · MIT License · Beta** — [中文版 README](README(ZH).md)
+**v0.2.0 · MIT License · Beta** — [中文版 README](README(ZH).md)
 
 Structured Natural Language (SNL) base library — parse a macro DSL into syntax
 trees and render them to KaTeX-in-React with hover interactions.
@@ -281,10 +281,9 @@ arity* are **styles**, not separate macros — see below.
 
 ## Styles & the `[style]` bracket
 
-A macro declares one or more render **styles** keyed by `style_name`. The
-macro-level `default_style` map chooses the implicit style by language. All
-styles of a macro **must accept the
-same arity** — a style only varies the render output, never the child count.
+A macro declares one or more render **styles** keyed by `style_name`.
+`styles[0]` is the single implicit default. All styles of a macro **must accept
+the same arity** — a style only varies the render output, never the child count.
 This is the invariant that makes switching styles always safe:
 
 ```
@@ -292,12 +291,11 @@ node := IDENT ('[' IDENT ']')? ('(' args ')')?
 ```
 
 The optional `[style]` bracket picks a style and always wins. Without it,
-selection is `default_style[current language]` → `default_style.en` →
-`styles[0]`. Missing mappings therefore remain backward-compatible without
-making list order the normal default-selection mechanism.
+`styles[0]` is selected. Language changes resolve a localized `template` inside
+the selected text style; they never switch styles.
 
 ```ts
-parseSnlSyntaxTree('Pow.pow(x, 2)')          // language-selected default
+parseSnlSyntaxTree('Pow.pow(x, 2)')               // styles[0]
 parseSnlSyntaxTree('operator[double](a, b)')     // 'double' style → a \Rightarrow b
 ```
 
@@ -311,8 +309,8 @@ serialize round-trips.
 ## Concepts
 
 - **Macro** — a named renderer. Top-level fields are `name`, `description`,
-  `source`, optional `kind`, `dynamic_arity`, `default_style`, and a `styles`
-  array (ordered; `styles[0]` is only the final compatibility fallback).
+  `source`, optional `kind`, `dynamic_arity`, and an ordered `styles` array
+  (`styles[0]` is the implicit default).
   Consumer-owned output strategies (`typst` /
   `latex` / `markdown` / `text`) live downstream. Fields and semantics live in
   [`src/snl-macro/types.ts`](src/snl-macro/types.ts):
@@ -323,18 +321,26 @@ serialize round-trips.
     description: '…',
     source: { entries: [], urls: [] },
     dynamic_arity: false,
-    default_style: { en: 'infix', 'zh-CN': 'double' },
     tags: [],
     styles: [
-      { style_name: 'infix', mode: 'formula_inline', template: '#0 \\rightarrow #1', tags: [] },
+      {
+        style_name: 'prose',
+        mode: 'text',
+        template: {
+          type: 'i18n',
+          default_language: 'en',
+          values: { en: '#0 implies #1', 'zh-CN': '#0 蕴含 #1' },
+        },
+        tags: [],
+      },
       { style_name: 'double', mode: 'formula_inline', template: '#0 \\Rightarrow #1', tags: [] },
     ],
   }
   ```
 
-  Every style template is a plain string, including `mode: 'text'`. Natural
-  languages that need different wording use separate ordinary styles and map
-  their locale to the desired `style_name`; templates never contain an I18n map.
+  Formula and block templates are invariant strings. A `mode: 'text'` template
+  may be either a string or an `I18n` value; localization resolves inside that
+  style without changing `style_name`.
 
 - **Kind** — optional semantic tag surfaced as `data-kind` (drives the hover
   palette: `rule` / `const` / `bvar` / `binder` / `fvar`). If neither the node
@@ -539,5 +545,5 @@ npm pack            # produce the publishable tarball
 
 ## Version & License
 
-- **Version:** `0.1.0` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
+- **Version:** `0.2.0` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
 - **License:** [MIT](LICENSE)

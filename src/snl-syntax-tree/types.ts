@@ -14,8 +14,8 @@ export interface SnlSyntaxTree {
   macro_name: string
   /**
    * Style-name override from the parser's `[style]` bracket, e.g. `foo[bar]` sets
-   * `style_name = 'bar'`. Undefined when no bracket — the view resolves the
-   * current locale mapping, then `en`, then `SnlMacro.styles[0]`.
+   * `style_name = 'bar'`. Undefined when no bracket — the view uses
+   * `SnlMacro.styles[0]`; language only resolves a projection inside text styles.
    */
   style_name?: string
   /**

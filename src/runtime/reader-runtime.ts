@@ -92,9 +92,13 @@ export function read_localized<Language extends string, Value>(
 ): ReaderM<LanguageEnvironment<Language>, Value> {
   return ({ language }) => {
     if (!is_i18n(value)) return value
-    const exact = value.values[language]
+    const exact = Object.prototype.hasOwnProperty.call(value.values, language)
+      ? value.values[language]
+      : undefined
     if (exact !== undefined) return exact
-    const fallback = value.values[value.default_language]
+    const fallback = Object.prototype.hasOwnProperty.call(value.values, value.default_language)
+      ? value.values[value.default_language]
+      : undefined
     if (fallback !== undefined) return fallback
     for (const candidate of Object.keys(value.values)) {
       const resolved = value.values[candidate as Language]

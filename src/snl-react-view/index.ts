@@ -62,9 +62,11 @@ export {
   TREE_SCHEMA_VERSION,
   isMacroDocumentV7,
   isMacroDocumentV8,
+  isMacroDocumentV9,
   migrateMacroDocument,
   migrateMacroV6toV7,
   migrateMacroV7toV8,
+  migrateMacroV7toV9,
   migrateStyleV6toV7,
   migrateSyntaxTreeDocument,
   migrateTreeNodeV1toV2,
@@ -72,9 +74,12 @@ export {
   type SyntaxTreeNodeV1,
   type MacroV6,
   type MacroV7,
+  type MacroV8,
+  type MacroV8Style,
   type MacroStyleV6,
   type MacroStyleV7Base,
   type MacroV7ToV8Options,
+  type MacroV7ToV9Options,
 } from '../schema'
 
 // === InteractionDriver ===

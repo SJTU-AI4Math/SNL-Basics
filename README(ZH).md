@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.1.0 · MIT License · Beta** — [English README](README.md)
+**v0.2.0 · MIT License · Beta** — [English README](README.md)
 
 结构化自然语言（Structured Natural Language, SNL）基础库 —— 将宏 DSL 解析为语法树，
 并渲染为带悬停交互的 KaTeX-in-React。
@@ -257,7 +257,7 @@ export default defineConfig({
 
 ## Style 与 `[style]` 方括号
 
-一个宏声明一个或多个以 `style_name` 为键的渲染 **style**。宏级 `default_style` 映射按语言选择隐式 style。
+一个宏声明一个或多个以 `style_name` 为键的渲染 **style**。`styles[0]` 是唯一隐式默认 style。
 一个宏的所有 style **必须接受相同的 arity** —— style 只改变渲染输出，绝不改变子节点数量。
 正是这条不变量保证了切换 style 永远是安全的：
 
@@ -265,10 +265,10 @@ export default defineConfig({
 node := IDENT ('[' IDENT ']')? ('(' args ')')?
 ```
 
-可选的 `[style]` 方括号用于显式选定 style，并且永远优先。不写时依次使用 `default_style[当前语言]`、`default_style.en`、`styles[0]`。
+可选的 `[style]` 方括号用于显式选定 style，并且永远优先。不写时使用 `styles[0]`。语言只解析所选 text style 内部的本地化 template，不会切换 style。
 
 ```ts
-parseSnlSyntaxTree('Pow.pow(x, 2)')          // 按当前语言选择默认 style
+parseSnlSyntaxTree('Pow.pow(x, 2)')          // styles[0]
 parseSnlSyntaxTree('operator[double](a, b)')     // 'double' style → a \Rightarrow b
 ```
 
@@ -281,7 +281,7 @@ round-trip 闭合的。
 ## 核心概念
 
 - **Macro（宏）** —— 一个具名的渲染器。顶层字段为 `name`、`description`、`source`、
-  可选的 `kind`、`dynamic_arity`、`default_style` 映射，以及一个有序 `styles` 数组（`styles[0]` 仅作最终兼容回退）。
+  可选的 `kind`、`dynamic_arity`，以及一个有序 `styles` 数组（`styles[0]` 是隐式默认）。
   使用方自有的输出策略（`typst` / `latex` / `markdown` / `text`）位于下游。字段与语义定义在
   [`src/snl-macro/types.ts`](src/snl-macro/types.ts)：
 
@@ -291,16 +291,15 @@ round-trip 闭合的。
     description: '…',
     source: { entries: [], urls: [] },
     dynamic_arity: false,
-    default_style: { en: 'infix', 'zh-CN': 'double' },
     tags: [],
     styles: [
-      { style_name: 'infix', mode: 'formula_inline', template: '#0 \\rightarrow #1', tags: [] },
+      { style_name: 'prose', mode: 'text', template: { type: 'i18n', default_language: 'en', values: { en: '#0 implies #1', 'zh-CN': '#0 蕴含 #1' } }, tags: [] },
       { style_name: 'double', mode: 'formula_inline', template: '#0 \\Rightarrow #1', tags: [] },
     ],
   }
   ```
 
-  所有 mode（包括 `text`）的 style template 都是普通字符串。不同自然语言使用不同的普通 style，并由 locale 映射到对应 `style_name`；template 内不再嵌套 I18n map。
+  formula 与 block style 的 template 是语言无关字符串；`text` style 的 template 可以是字符串或 `I18n`。语言在同一个 style 内解析 projection，不改变 `style_name`。
 
 - **Kind** —— 可选的语义标签，输出为 `data-kind`（驱动悬停配色：`rule` / `const` /
   `bvar` / `binder` / `fvar`）。如果节点和 Macro 都没有显式 `kind`，根节点默认
@@ -491,5 +490,5 @@ npm pack            # 产出可发布的 tarball
 
 ## 版本与许可证
 
-- **版本：** `0.1.0`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
+- **版本：** `0.2.0`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
 - **许可证：** [MIT](LICENSE)

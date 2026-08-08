@@ -9,7 +9,7 @@ import { testDriver } from '../snl-react-view/test-helpers'
 const db: SnlMacroRecord = {
   implies: {
     name: 'implies', description: '', source: { entries: [], urls: [] },
-    dynamic_arity: false, default_style: { en: 'infix' }, tags: [],
+    dynamic_arity: false, tags: [],
     styles: [
       { style_name: 'infix', mode: 'formula_inline', template: '#0 \\rightarrow #1', tags: [] },
       { style_name: 'double', mode: 'formula_inline', template: '#0 \\Rightarrow #1', tags: [] },

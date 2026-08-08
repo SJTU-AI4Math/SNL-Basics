@@ -17,7 +17,6 @@ describe('empty argument slot rendering', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: false,
       tags: [],
-      default_style: { en: 'default' },
       styles: [{ style_name: 'default', mode: 'formula_inline', template: '#0 + #1', tags: [] }],
     },
     join_comma: {
@@ -26,7 +25,6 @@ describe('empty argument slot rendering', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: true,
       tags: [],
-      default_style: { en: 'default' },
       styles: [{ style_name: 'default', mode: 'formula_inline', template: '#*', separator: ', ', tags: [] }],
     },
   }
