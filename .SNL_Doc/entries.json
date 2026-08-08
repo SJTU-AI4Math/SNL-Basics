@@ -4,8 +4,8 @@
     "kind": "npm-package",
     "title": "SNL Basics React Package",
     "content": {
-      "snl": "%The npm distribution unit for SNL-Basics, reset to version 0.1.0 for its first public beta series. It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, complete Entry rendering, and the bundled macro database. The package remains private during release preparation; private is removed only immediately before the first publish. The package.json#files allowlist restricts the tarball to dist-lib plus npm-mandated metadata.%",
-      "markdown": "The npm distribution unit for SNL-Basics, reset to version `0.1.0` for its first public beta series. It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, complete Entry rendering, and the bundled macro database. The package remains `private` during release preparation; `private` is removed only immediately before the first publish. The `package.json#files` allowlist restricts the tarball to `dist-lib` plus npm-mandated metadata."
+      "snl": "%The npm distribution unit for SNL-Basics at version 0.2.0 in its public beta series. It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, complete Entry rendering, and the bundled macro database. The package is public on npm under @sjtu-ai4math/snl-basics. The package.json#files allowlist restricts the tarball to dist-lib plus npm-mandated metadata.%",
+      "markdown": "The npm distribution unit for SNL-Basics at version `0.2.0` in its public beta series. It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, complete Entry rendering, and the bundled macro database. The package is public on npm under `@sjtu-ai4math/snl-basics`. The `package.json#files` allowlist restricts the tarball to `dist-lib` plus npm-mandated metadata."
     },
     "contribution_info": null,
     "pointer": {
