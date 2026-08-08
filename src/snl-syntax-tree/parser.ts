@@ -33,6 +33,7 @@ type TokenType =
   | 'RBRACKET'
   | 'COMMA'
   | 'AT'
+  | 'HASH'
   | 'PERCENT_DELIMITED'      // %…%
   | 'DOLLAR_DELIMITED'       // $…$
   | 'DOLLAR2_DELIMITED'      // $$…$$
@@ -158,6 +159,12 @@ function tokenize(input: string): Token[] {
 
     if (ch === '@') {
       tokens.push({ type: 'AT', value: ch, position: i })
+      i += 1
+      continue
+    }
+
+    if (ch === '#') {
+      tokens.push({ type: 'HASH', value: ch, position: i })
       i += 1
       continue
     }
@@ -295,17 +302,36 @@ class Parser {
       )
     }
 
-    // Postfix `@IDENT` = src (cross-entry reference). Distinguishable
-    // from a new-node `@ident` in an argument slot because arguments
-    // must be COMMA-separated: at this point in the grammar we've just
-    // consumed a nameForm and the next node boundary is `,` / `)` /
-    // `EOF` / `[` / `(`. An `AT` here can only be a src postfix.
+    // Preserve postfix syntax until Macro-aware semantic resolution. A plain
+    // name is context-sensitive (`Const@x` exports binder name x, while an
+    // unresolved `x@entry` refers to an Entry); @# is unambiguous.
     if (this.peek().type === 'AT') {
       this.consume('AT')
-      const srcTok = this.expect('IDENT')
-      const baseMdata =
-        node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
-      node.mdata = { ...(baseMdata as Record<string, unknown>), src: srcTok.value }
+      if (this.peek().type === 'HASH') {
+        if (isBinder) {
+          throw new SnlSyntaxTreeParseError(
+            'Binder name override must not use #',
+            this.peek().position,
+          )
+        }
+        this.consume('HASH')
+        const target = this.expect('IDENT')
+        if (/^\d+(?:\.\d+)*$/.test(target.value)) {
+          node.postfix = { type: 'tree_path', path: target.value.split('.').map(Number) }
+        } else {
+          node.postfix = { type: 'binder_name', name: target.value }
+        }
+      } else {
+        const target = this.expect('IDENT')
+        if (isBinder) {
+          node.binder_name = target.value
+        } else {
+          node.postfix = { type: 'name', name: target.value }
+          // Keep the v2 projection until the Tree-v3 migration lands.
+          const baseMdata = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
+          node.mdata = { ...(baseMdata as Record<string, unknown>), src: target.value }
+        }
+      }
     }
 
     if (this.peek().type === 'LBRACKET') {
@@ -322,9 +348,12 @@ class Parser {
     }
 
     if (isBinder) {
-      // Recursively mark this node + all descendants as binders.
+      if (node.children.length > 0) {
+        throw new SnlSyntaxTreeParseError('Binder must be a leaf', nameTok.position)
+      }
       node.binder_explicit = true
-      markBinderRecursive(node)
+      node.kind = 'binder'
+      node.binder_name ??= node.macro_name
     }
     return node
   }
@@ -380,14 +409,6 @@ class Parser {
 
   private peek(): Token {
     return this.tokens[this.cursor]
-  }
-}
-
-/** Mark the node and every descendant with kind='binder'. */
-function markBinderRecursive(node: SnlSyntaxTree): void {
-  node.kind = 'binder'
-  for (const child of node.children) {
-    markBinderRecursive(child)
   }
 }
 

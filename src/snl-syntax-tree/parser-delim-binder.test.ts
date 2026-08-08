@@ -78,44 +78,30 @@ describe('@ binder prefix', () => {
     expect(t.kind).toBe('binder')
   })
 
-  it('is STRUCTURALLY identical to the un-@ form (2026-07-04-late 猫猫 fix)', () => {
-    // Only the `kind` field should differ between `f(x)` and `@f(x)` — the
-    // envMode / children / name shape must all match, so the render pipeline
-    // takes the same path and produces the same LaTeX (just tagged with a
-    // different kind in the \htmlData wrap).
-    const plain = parseSnlSyntaxTree('f(x)')
-    const bound = parseSnlSyntaxTree('@f(x)')
+  it('is structurally identical to an unprefixed leaf except for binder metadata', () => {
+    const plain = parseSnlSyntaxTree('x')
+    const bound = parseSnlSyntaxTree('@x')
     expect(bound.macro_name).toBe(plain.macro_name)
-    expect(bound.env_mode).toBe(plain.env_mode) // both undefined
-    expect(bound.children).toHaveLength(plain.children.length)
-    expect(bound.children[0].macro_name).toBe(plain.children[0].macro_name)
-    // kind is expected to differ:
+    expect(bound.env_mode).toBe(plain.env_mode)
+    expect(bound.children).toEqual(plain.children)
     expect(plain.kind).not.toBe('binder')
     expect(bound.kind).toBe('binder')
   })
 
-  it('recursively marks every descendant as binder', () => {
-    const t = parseSnlSyntaxTree('@Tuple(a, b)')
-    expect(t.kind).toBe('binder')
-    expect(t.children[0].kind).toBe('binder')
-    expect(t.children[1].kind).toBe('binder')
-  })
-
-  it('composes with $…$ delimited name', () => {
-    const t = parseSnlSyntaxTree('@$x + y$(a)')
+  it('composes with a leaf $…$ delimited name', () => {
+    const t = parseSnlSyntaxTree('@$x + y$')
     expect(t.macro_name).toBe('x + y')
     expect(t.env_mode).toBe('formula_inline')
     expect(t.kind).toBe('binder')
-    expect(t.children[0].macro_name).toBe('a')
-    expect(t.children[0].kind).toBe('binder')
+    expect(t.children).toEqual([])
   })
 
-  it('composes with %…% delimited name', () => {
-    const t = parseSnlSyntaxTree('@%my binder%(a)')
+  it('composes with a leaf %…% delimited name', () => {
+    const t = parseSnlSyntaxTree('@%my binder%')
     expect(t.macro_name).toBe('my binder')
     expect(t.env_mode).toBe('text')
     expect(t.kind).toBe('binder')
-    expect(t.children[0].kind).toBe('binder')
+    expect(t.children).toEqual([])
   })
 })
 
@@ -141,8 +127,8 @@ describe('binder scoping — @ contributes names to later siblings', () => {
     expect(t.children[1].kind).toBe('fvar')
   })
 
-  it('@Tuple(a, b) contributes ALL of Tuple, a, b as active binders', () => {
-    const t = parseSnlSyntaxTree('FooScope(@Tuple(a, b), Body($a$, $b$, $c$))')
+  it('leaf binders nested under a const source contribute independently', () => {
+    const t = parseSnlSyntaxTree('FooScope(Tuple@Tuple(@a, @b), Body($a$, $b$, $c$))')
     const body = t.children[1]
     expect(body.children[0].macro_name).toBe('a')
     expect(body.children[0].kind).toBe('bvar')

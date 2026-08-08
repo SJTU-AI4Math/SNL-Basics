@@ -9,6 +9,11 @@
  *  - `style` → `style_name` (matches SnlMacroStyle.style_name)
  *  - `envMode` → `env_mode` (snake_case consistency, no camelCase)
  */
+export type SnlPostfix =
+  | { type: 'name'; name: string }
+  | { type: 'tree_path'; path: number[] }
+  | { type: 'binder_name'; name: string }
+
 export interface SnlSyntaxTree {
   /** Macro name — key into `SnlMacroRecord`. */
   macro_name: string
@@ -46,6 +51,10 @@ export interface SnlSyntaxTree {
   scope?: string
   /** True only when this node had an explicit `@` prefix in the source DSL. */
   binder_explicit?: boolean
+  /** Binder-source name. Prefix binders default this to their node name. */
+  binder_name?: string
+  /** Parsed postfix syntax; semantic resolution happens after Macro lookup. */
+  postfix?: SnlPostfix
   /** Meta data (e.g. `{ bindRef }`) written by binding annotation. */
   mdata: unknown
   /** Child nodes. */

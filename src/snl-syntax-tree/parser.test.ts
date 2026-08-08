@@ -216,14 +216,12 @@ describe('parseSnlSyntaxTree', () => {
       expect((t2.mdata as { src?: string }).src).toBe('formula-ctx')
     })
 
-    it('src does NOT change binder semantics on a bare @-prefixed decl', () => {
-      // `@x` = decl; adding `@ctx` after makes it a decl WITH src (a decl
-      // that documents which context entry it originally came from —
-      // reserved semantics; renderer just shows the badge).
+    it('a postfix name overrides the name exported by a binder leaf', () => {
       const tree = parseSnlSyntaxTree('@x@ctx')
       expect(tree.macro_name).toBe('x')
       expect(tree.kind).toBe('binder')
-      expect((tree.mdata as { src?: string }).src).toBe('ctx')
+      expect(tree.binder_name).toBe('ctx')
+      expect(tree.mdata).toBeNull()
     })
 
     it('rejects postfix `@` with no identifier', () => {
