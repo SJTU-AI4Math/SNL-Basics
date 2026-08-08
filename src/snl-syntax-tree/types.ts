@@ -42,6 +42,10 @@ export interface SnlSyntaxTree {
    * Undefined for regular identifier-form nodes (the vast majority).
    */
   env_mode?: 'formula_inline' | 'formula_display' | 'text' | 'block'
+  /** Literal payload for a delimited temporary Macro. */
+  temporary_source?: string
+  /** Rendering sugar layered on an existing env_mode; never a separate mode. */
+  temporary_format?: 'texttt'
   /** Semantic kind (rule / const / binder / bvar / fvar / …). */
   kind: string
   /**

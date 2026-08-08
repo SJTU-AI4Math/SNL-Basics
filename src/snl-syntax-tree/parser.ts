@@ -37,6 +37,7 @@ type TokenType =
   | 'PERCENT_DELIMITED'      // %…%
   | 'DOLLAR_DELIMITED'       // $…$
   | 'DOLLAR2_DELIMITED'      // $$…$$
+  | 'BACKTICK_DELIMITED'     // `…`
   | 'EOF'
 
 interface Token {
@@ -86,6 +87,18 @@ function tryReadDelimited(
   start: number,
 ): { token: Token; next: number } | null {
   const rest = input.length - start
+  if (rest >= 2 && input[start] === '`') {
+    const close = input.indexOf('`', start + 1)
+    if (close < 0) throw new SnlSyntaxTreeParseError('Unclosed ` delimiter', start)
+    return {
+      token: {
+        type: 'BACKTICK_DELIMITED',
+        value: input.slice(start + 1, close),
+        position: start,
+      },
+      next: close + 1,
+    }
+  }
   // $$…$$
   if (rest >= 4 && input[start] === '$' && input[start + 1] === '$') {
     const close = input.indexOf('$$', start + 2)
@@ -148,7 +161,7 @@ function tokenize(input: string): Token[] {
 
     // Delimited name forms — must be tried BEFORE the plain-identifier
     // branch so `%foo%` isn't rejected as "unexpected character %".
-    if (ch === '%' || ch === '$') {
+    if (ch === '%' || ch === '$' || ch === '`') {
       const delim = tryReadDelimited(input, i)
       if (delim) {
         tokens.push(delim.token)
@@ -294,6 +307,11 @@ class Parser {
       this.consume('DOLLAR2_DELIMITED')
       node = createSnlSyntaxTreeNode(nameTok.value)
       node.env_mode = 'formula_display'
+    } else if (nameTok.type === 'BACKTICK_DELIMITED') {
+      this.consume('BACKTICK_DELIMITED')
+      node = createSnlSyntaxTreeNode(nameTok.value)
+      node.env_mode = 'formula_inline'
+      node.temporary_format = 'texttt'
     } else {
       throw new SnlSyntaxTreeParseError(
         `Expected macro name (IDENT or %…% / $…$ / $$…$$)` +
@@ -353,7 +371,6 @@ class Parser {
       }
       node.binder_explicit = true
       node.kind = 'binder'
-      node.binder_name ??= node.macro_name
     }
     return node
   }
@@ -438,6 +455,18 @@ export function parseSnlSyntaxTree(
   const tokens = tokenize(input)
   const parser = new Parser(tokens)
   const tree = parser.parse()
+  assignTemporaryCoordinates(tree)
   annotateBindings(tree, options.activeBinderIds ?? [])
   return tree
+}
+
+function assignTemporaryCoordinates(node: SnlSyntaxTree, path: number[] = []): void {
+  if (node.env_mode) {
+    node.temporary_source = node.macro_name
+    node.macro_name = path.length === 0 ? '#' : `#${path.join('.')}`
+  }
+  if (node.binder_explicit && node.binder_name === undefined) {
+    node.binder_name = node.macro_name
+  }
+  node.children.forEach((child, index) => assignTemporaryCoordinates(child, [...path, index]))
 }

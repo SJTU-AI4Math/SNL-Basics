@@ -6,34 +6,39 @@ import { SnlSyntaxTreeParseError, parseSnlSyntaxTree } from './parser'
 describe('delimited name forms', () => {
   it('parses %text% as a text envMode node', () => {
     const t = parseSnlSyntaxTree('%hello world%')
-    expect(t.macro_name).toBe('hello world')
+    expect(t.macro_name).toBe('#')
+    expect(t.temporary_source).toBe('hello world')
     expect(t.env_mode).toBe('text')
     expect(t.children).toEqual([])
   })
 
   it('parses $latex$ as a formula_inline envMode node', () => {
     const t = parseSnlSyntaxTree('$x + y$')
-    expect(t.macro_name).toBe('x + y')
+    expect(t.macro_name).toBe('#')
+    expect(t.temporary_source).toBe('x + y')
     expect(t.env_mode).toBe('formula_inline')
   })
 
   it('parses $$latex$$ as a formula_display envMode node', () => {
     const t = parseSnlSyntaxTree('$$\\int_0^1 x\\,dx$$')
-    expect(t.macro_name).toBe('\\int_0^1 x\\,dx')
+    expect(t.macro_name).toBe('#')
+    expect(t.temporary_source).toBe('\\int_0^1 x\\,dx')
     expect(t.env_mode).toBe('formula_display')
   })
 
   it('does NOT parse `$x$` inside `%…%` as a nested subtree', () => {
     // The whole payload is the string; the inner $ is part of the name.
     const t = parseSnlSyntaxTree('%foo $x$ bar%')
-    expect(t.macro_name).toBe('foo $x$ bar')
+    expect(t.macro_name).toBe('#')
+    expect(t.temporary_source).toBe('foo $x$ bar')
     expect(t.env_mode).toBe('text')
     expect(t.children).toEqual([])
   })
 
   it('accepts a style bracket and children on a delimited name', () => {
     const t = parseSnlSyntaxTree('$f$[custom](x, y)')
-    expect(t.macro_name).toBe('f')
+    expect(t.macro_name).toBe('#')
+    expect(t.temporary_source).toBe('f')
     expect(t.env_mode).toBe('formula_inline')
     expect(t.style_name).toBe('custom')
     expect(t.children.map((c) => c.macro_name)).toEqual(['x', 'y'])
@@ -60,7 +65,8 @@ describe('delimited name forms', () => {
   // saw no binder child), so `$…$@ctx` postfix links stayed red too.
   it('preserves kind=binder on @-prefixed delimited leaves', () => {
     const t = parseSnlSyntaxTree('@$\\cdot$')
-    expect(t.macro_name).toBe('\\cdot')
+    expect(t.macro_name).toBe('#')
+    expect(t.temporary_source).toBe('\\cdot')
     expect(t.env_mode).toBe('formula_inline')
     expect(t.kind).toBe('binder')
   })
@@ -90,7 +96,8 @@ describe('@ binder prefix', () => {
 
   it('composes with a leaf $…$ delimited name', () => {
     const t = parseSnlSyntaxTree('@$x + y$')
-    expect(t.macro_name).toBe('x + y')
+    expect(t.macro_name).toBe('#')
+    expect(t.temporary_source).toBe('x + y')
     expect(t.env_mode).toBe('formula_inline')
     expect(t.kind).toBe('binder')
     expect(t.children).toEqual([])
@@ -98,7 +105,8 @@ describe('@ binder prefix', () => {
 
   it('composes with a leaf %…% delimited name', () => {
     const t = parseSnlSyntaxTree('@%my binder%')
-    expect(t.macro_name).toBe('my binder')
+    expect(t.macro_name).toBe('#')
+    expect(t.temporary_source).toBe('my binder')
     expect(t.env_mode).toBe('text')
     expect(t.kind).toBe('binder')
     expect(t.children).toEqual([])
@@ -111,7 +119,8 @@ describe('binder scoping — @ contributes names to later siblings', () => {
     // later $x$ sibling looks up "x" and resolves to bvar.
     const t = parseSnlSyntaxTree('FooScope(@x, $x$)')
     expect(t.children[0].kind).toBe('binder')
-    expect(t.children[1].macro_name).toBe('x')
+    expect(t.children[1].macro_name).toBe('#1')
+    expect(t.children[1].temporary_source).toBe('x')
     expect(t.children[1].kind).toBe('bvar')
     // Later child should carry the fresh bindRef stamped by annotate-bind.
     const bref = (t.children[1].mdata as { bindRef?: string } | null)?.bindRef
@@ -123,18 +132,22 @@ describe('binder scoping — @ contributes names to later siblings', () => {
     // The whole delim payload is the name. Complex payloads seldom match a
     // later leaf, so those leaves default to fvar.
     const t = parseSnlSyntaxTree('FooScope(@$x + y$, $x$)')
-    expect(t.children[1].macro_name).toBe('x')
+    expect(t.children[1].macro_name).toBe('#1')
+    expect(t.children[1].temporary_source).toBe('x')
     expect(t.children[1].kind).toBe('fvar')
   })
 
   it('leaf binders nested under a const source contribute independently', () => {
     const t = parseSnlSyntaxTree('FooScope(Tuple@Tuple(@a, @b), Body($a$, $b$, $c$))')
     const body = t.children[1]
-    expect(body.children[0].macro_name).toBe('a')
+    expect(body.children[0].macro_name).toBe('#1.0')
+    expect(body.children[0].temporary_source).toBe('a')
     expect(body.children[0].kind).toBe('bvar')
-    expect(body.children[1].macro_name).toBe('b')
+    expect(body.children[1].macro_name).toBe('#1.1')
+    expect(body.children[1].temporary_source).toBe('b')
     expect(body.children[1].kind).toBe('bvar')
-    expect(body.children[2].macro_name).toBe('c')
+    expect(body.children[2].macro_name).toBe('#1.2')
+    expect(body.children[2].temporary_source).toBe('c')
     expect(body.children[2].kind).toBe('fvar')
   })
 })

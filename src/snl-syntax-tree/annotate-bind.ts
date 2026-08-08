@@ -89,7 +89,7 @@ export function annotateBindings(
           const existingRef = typeof data.bindRef === 'string' ? data.bindRef : ''
           const ref = existingRef || nextRef()
           binder.mdata = { ...data, bindRef: ref }
-          localStack.push({ name: binder.macro_name, ref })
+          localStack.push({ name: binder.binder_name ?? binder.macro_name, ref })
           if (!node.scope) {
             node.scope = 'binder'
             const nodeData = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
@@ -112,7 +112,7 @@ export function annotateBindings(
     // one in scope.
     if (node.children.length === 0) {
       if (node.kind === 'bvar') {
-        const frame = [...stack].reverse().find((f) => f.name === node.macro_name)
+        const frame = [...stack].reverse().find((f) => f.name === (node.temporary_source ?? node.macro_name))
         const base = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
         if (frame && frame.ref) {
           node.mdata = { ...base, bindRef: frame.ref }
@@ -128,7 +128,7 @@ export function annotateBindings(
         // 名字" — the whole delim payload is the lookup key. Complex payloads
         // typically won't match, hence usually fvar. Simple single-token
         // payloads (`$f$`) match cleanly when `f` was introduced as a binder.
-        const frame = [...stack].reverse().find((f) => f.name === node.macro_name)
+        const frame = [...stack].reverse().find((f) => f.name === (node.temporary_source ?? node.macro_name))
         const base = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
         if (frame) {
           node.kind = 'bvar'

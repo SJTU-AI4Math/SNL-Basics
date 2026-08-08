@@ -69,15 +69,18 @@ export class SnlDslFormatter {
   private formatNodeHead(node: SnlSyntaxTree): string {
     const binderPrefix = node.binder_explicit ? '@' : ''
     let name: string
-    switch (node.env_mode) {
+    const temporarySource = node.temporary_source ?? node.macro_name
+    if (node.temporary_format === 'texttt') {
+      name = `\`${temporarySource}\``
+    } else switch (node.env_mode) {
       case 'text':
-        name = `%${node.macro_name}%`
+        name = `%${temporarySource}%`
         break
       case 'formula_inline':
-        name = `$${node.macro_name}$`
+        name = `$${temporarySource}$`
         break
       case 'formula_display':
-        name = `$$${node.macro_name}$$`
+        name = `$$${temporarySource}$$`
         break
       default:
         name = node.macro_name
@@ -90,6 +93,12 @@ export class SnlDslFormatter {
   }
 
   private sourceReference(node: SnlSyntaxTree): string | undefined {
+    if (node.binder_explicit && node.binder_name && node.binder_name !== node.macro_name) {
+      return node.binder_name
+    }
+    if (node.postfix?.type === 'tree_path') return `#${node.postfix.path.join('.')}`
+    if (node.postfix?.type === 'binder_name') return `#${node.postfix.name}`
+    if (node.postfix?.type === 'name') return node.postfix.name
     if (!node.mdata || typeof node.mdata !== 'object') {
       return undefined
     }

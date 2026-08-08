@@ -76,7 +76,8 @@ describe('parseSnlSyntaxTree', () => {
   it('does not treat a delimited empty node as an unfilled slot', () => {
     // `%%` is an empty TEXT node the author wrote on purpose.
     const tree = parseSnlSyntaxTree('f(%%)')
-    expect(tree.children[0].macro_name).toBe('')
+    expect(tree.children[0].macro_name).toBe('#0')
+    expect(tree.children[0].temporary_source).toBe('')
     expect(tree.children[0].env_mode).toBe('text')
     expect(isEmptySnlSyntaxTreeNode(tree.children[0])).toBe(false)
   })

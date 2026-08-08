@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { SnlDslFormatter } from './formatter'
 import { SnlSyntaxTreeParseError, parseSnlSyntaxTree } from './parser'
 
 describe('0.2 postfix references', () => {
@@ -36,5 +37,13 @@ describe('0.2 leaf-only binders', () => {
     expect(tree.children[0].kind).toBe('binder')
     expect(tree.children[1].kind).not.toBe('binder')
     expect(tree.kind).not.toBe('binder')
+  })
+})
+
+describe('0.2 postfix formatting', () => {
+  it('round trips tree-path, binder-name, Entry, and binder override postfixes', () => {
+    const formatter = new SnlDslFormatter()
+    expect(formatter.format('F(x@#0.1.2,y@#name,z@entry,@w@other)'))
+      .toBe('F(x@#0.1.2, y@#name, z@entry, @w@other)')
   })
 })

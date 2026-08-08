@@ -15,8 +15,8 @@ describe('SnlDslFormatter', () => {
   it('preserves binders, source references, styles, and delimited names', () => {
     const formatter = new SnlDslFormatter()
 
-    expect(formatter.format('@quant@ctx[display]($x$, %hello%)')).toBe(
-      '@quant@ctx[display]($x$, %hello%)',
+    expect(formatter.format('quant@ctx[display](@x, %hello%)')).toBe(
+      'quant@ctx[display](@x, %hello%)',
     )
   })
 
@@ -41,12 +41,10 @@ describe('SnlDslFormatter', () => {
     )
   })
 
-  it('preserves an explicit @ on a legacy quantifier', () => {
+  it('preserves an explicit @ on a binder leaf', () => {
     const formatter = new SnlDslFormatter()
 
-    expect(formatter.format('@FOL.forall.binder(x, body)')).toBe(
-      '@FOL.forall.binder(x, body)',
-    )
+    expect(formatter.format('FOL.forall.binder(@x, body)')).toBe('FOL.forall.binder(@x, body)')
   })
 
   it('accepts zero and rejects invalid formatting parameters', () => {
@@ -69,7 +67,7 @@ describe('SnlDslFormatter', () => {
   it('formats nested wide explicit-binder expressions without overflowing annotation', () => {
     const formatter = new SnlDslFormatter()
     const leaves = Array.from({ length: 150_000 }, () => 'x').join(',')
-    const source = `root(wrapper(@branch(${leaves})), z)`
+    const source = `root(wrapper(branch(@x,${leaves})), z)`
 
     expect(() => formatter.format(source)).not.toThrow()
   })
