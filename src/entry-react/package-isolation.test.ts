@@ -32,7 +32,10 @@ describe('Entry package isolation', () => {
   it('exposes Entry only from the dedicated package subpath', () => {
     const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as { exports: Record<string, unknown> }
     expect(pkg.exports['./entry']).toBeDefined()
-    expect(pkg.exports['./entry/style.css']).toBe('./dist-lib/entry.css')
+    expect(pkg.exports['./entry/style.css']).toEqual({
+      types: './dist-lib/style-css.d.ts',
+      default: './dist-lib/entry.css',
+    })
     expect(readFileSync(resolve(root, 'src/snl-react-view/index.ts'), 'utf8')).not.toMatch(/entry-react|EntryView|MarkdownBody/)
   })
 
