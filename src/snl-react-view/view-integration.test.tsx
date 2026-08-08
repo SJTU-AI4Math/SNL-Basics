@@ -38,6 +38,25 @@ const driver = testDriver(db)
 afterEach(cleanup)
 
 describe('data-tree-path DOM attribute', () => {
+  it('selects light and dark Macro palettes from a live driver context reader on rerender', async () => {
+    let color_scheme: 'light' | 'dark' = 'light'
+    const themeDriver = new MacroDataDriver({
+      queries: { query_macro: async ({ macro_name }) => db[macro_name] ?? null },
+      context_reader: () => ({ color_scheme }),
+    })
+    const palette = { const: {
+      light: { stroke: '#112233', background: '#ddeeff' },
+      dark: { stroke: '#abcdef', background: '#123456' },
+    } }
+    const tree = createSnlSyntaxTreeNode('x')
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={themeDriver} kindPalette={palette} />)
+    await waitFor(() => expect(view.container.querySelector('style')?.textContent).toContain('#112233'))
+    color_scheme = 'dark'
+    view.rerender(<SnlSyntaxTreeView tree={tree} macro_data_driver={themeDriver} kindPalette={palette} />)
+    await waitFor(() => expect(view.container.querySelector('style')?.textContent).toContain('#abcdef'))
+    expect(view.container.querySelector('style')?.textContent).not.toContain('#112233')
+  })
+
   it('defaults unresolved nodes to fvar', async () => {
     const tree = createSnlSyntaxTreeNode('flat', {
       children: [createSnlSyntaxTreeNode('x')],

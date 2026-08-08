@@ -35,6 +35,11 @@ describe('alpha', () => {
     expect(alpha('rgb(1, 2, 3)', 0.25)).toBe('rgba(1, 2, 3, 0.25)')
     expect(alpha('rgba(10, 20, 30, 0.9)', 0.5)).toBe('rgba(10, 20, 30, 0.5)')
   })
+
+  it('uses color-mix so CSS variables and named colors still get real alpha', () => {
+    expect(alpha('var(--macro-stroke)', 0.5)).toBe('color-mix(in srgb, var(--macro-stroke) 50%, transparent)')
+    expect(alpha('rebeccapurple', 0.25)).toBe('color-mix(in srgb, rebeccapurple 25%, transparent)')
+  })
 })
 
 describe('paletteToCss', () => {

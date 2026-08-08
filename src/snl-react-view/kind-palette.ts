@@ -45,7 +45,8 @@ export function alpha(color: string, a: number): string {
     const [, r, g, b] = rgbMatch
     return `rgba(${r}, ${g}, ${b}, ${a})`
   }
-  return color
+  if (c === 'transparent' || c === 'inherit') return c
+  return `color-mix(in srgb, ${color} ${a * 100}%, transparent)`
 }
 
 const KIND_NAME_RE = /^[A-Za-z0-9_-]+$/
