@@ -14,4 +14,10 @@ describe('lean subpath declaration boundaries', () => {
     expect(pkg.typesVersions['*'].runtime).toEqual(['dist-lib/runtime.d.ts']);
     expect(pkg.scripts['build:lib']).toContain('scripts/copy-lib-assets.mjs');
   });
+
+  it('keeps the generated core declaration aligned with host-safe schema exports', () => {
+    const generator = readFileSync(new URL('../../scripts/copy-lib-assets.mjs', import.meta.url), 'utf8');
+    expect(generator).toContain('migrateMacroDocument,');
+    expect(generator).toContain("writeFileSync(join(root, 'dist-lib/core.d.ts')");
+  });
 });
