@@ -24,6 +24,14 @@ describe('lean subpath declaration boundaries', () => {
     expect(generator).toContain("writeFileSync(join(root, 'dist-lib/core.d.ts')");
   });
 
+  it('keeps the generated runtime declaration aligned with render-context exports', () => {
+    const generator = readFileSync(new URL('../../scripts/copy-lib-assets.mjs', import.meta.url), 'utf8');
+    expect(generator).toContain('DEFAULT_CONTEXT_READER,');
+    expect(generator).toContain('ColorScheme,');
+    expect(generator).toContain('ContextReader,');
+    expect(generator).toContain('RenderContext,');
+  });
+
   it('ships declarations for both public CSS subpaths', () => {
     const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
     expect(pkg.exports['./style.css'].types).toBe('./dist-lib/style-css.d.ts');

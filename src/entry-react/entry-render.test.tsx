@@ -127,6 +127,19 @@ describe('Entry surface dispatch', () => {
     expect(ctrlClick).toHaveBeenCalledWith(expect.objectContaining({ entry: expect.objectContaining({ id: 'e' }), ctrl_key: true }), expect.anything())
   })
 
+  it('isolates synchronous throws and rejected thenables from Entry Block callbacks', async () => {
+    const then = vi.fn((_resolve: unknown, reject: (reason: unknown) => void) => reject(new Error('later')))
+    const view = render(<EntrySurface entry={base({})} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} interaction_ports={{
+      on_block_hover: () => { throw new Error('sync') },
+      on_block_ctrl_click: (() => ({ then })) as never,
+    }} />)
+    const section = view.container.querySelector('section')!
+    expect(() => fireEvent.pointerEnter(section)).not.toThrow()
+    expect(() => fireEvent.click(section, { ctrlKey: true })).not.toThrow()
+    await Promise.resolve()
+    expect(then).toHaveBeenCalled()
+  })
+
   it('selects Entry Kind colors through the Entry driver context reader', () => {
     const driver = new EntryDataDriver({
       queries: { query_entry: async () => null, query_entry_kind: async () => null },

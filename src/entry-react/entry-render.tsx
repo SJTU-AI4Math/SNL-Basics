@@ -235,7 +235,13 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
       },
     })
   }, [interaction_driver, interaction_ports, preview])
-  const invoke = (result: void | Promise<void> | undefined): void => { if (result instanceof Promise) void result.catch(() => undefined) }
+  const invoke = (callback: () => void | Promise<void> | undefined): void => {
+    try {
+      void Promise.resolve(callback()).catch(() => undefined)
+    } catch {
+      // Consumer interaction hooks are isolated from the renderer.
+    }
+  }
   useEffect(() => {
     const target = blockTargetRef.current
     if (!blockHovered || !target) return
@@ -243,7 +249,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     if (blockHoverModeRef.current === mode) return
     blockHoverModeRef.current = mode
     const context: EntryBlockInteractionContext = { entry, kind, target, ctrl_key: ctrlPressed }
-    invoke(ctrlPressed
+    invoke(() => ctrlPressed
       ? interaction_ports?.on_block_ctrl_hover?.(context)
       : interaction_ports?.on_block_hover?.(context))
   }, [blockHovered, ctrlPressed, entry, interaction_ports, kind])
@@ -265,7 +271,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
       if (!event.ctrlKey) return
       const target = event.target as HTMLElement
       if (target.closest('button, a, strong, [data-tree-path], [role="button"]')) return
-      invoke(interaction_ports?.on_block_ctrl_click?.({ entry, kind, target: event.currentTarget, ctrl_key: true }, event))
+      invoke(() => interaction_ports?.on_block_ctrl_click?.({ entry, kind, target: event.currentTarget, ctrl_key: true }, event))
     }}
     style={{
       borderLeft: `5px solid ${stroke}`,
@@ -277,10 +283,10 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     }}
   >
     <header style={{ padding: '0.275rem 0.8rem', display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-      <strong onMouseEnter={() => setTitleHovered(true)} onMouseLeave={() => setTitleHovered(false)} onClick={(event) => invoke(interaction_ports?.on_title_activate?.(entry.id, event))} style={{ color: stroke, fontSize: '1.25rem', flex: '1 1 auto', cursor: titleActivationActive ? 'pointer' : undefined }}>
+      <strong onMouseEnter={() => setTitleHovered(true)} onMouseLeave={() => setTitleHovered(false)} onClick={(event) => invoke(() => interaction_ports?.on_title_activate?.(entry.id, event))} style={{ color: stroke, fontSize: '1.25rem', flex: '1 1 auto', cursor: titleActivationActive ? 'pointer' : undefined }}>
         {kindName}{counter_label ? ` ${counter_label}` : ''} -- <span dangerouslySetInnerHTML={{ __html: html }} />
       </strong>
-      {entry.pointer !== undefined && (props.show_source_action ?? true) ? <button type="button" aria-label="Open source" onClick={(event) => invoke(interaction_ports?.on_source_activate?.(entry.pointer, entry.id, event))}>↗ source</button> : null}
+      {entry.pointer !== undefined && (props.show_source_action ?? true) ? <button type="button" aria-label="Open source" onClick={(event) => invoke(() => interaction_ports?.on_source_activate?.(entry.pointer, entry.id, event))}>↗ source</button> : null}
     </header>
     {bodySurface !== 'none' ? <>
       <div style={{ borderTop: `0.5px solid ${stroke}`, margin: '4px 10px' }} />

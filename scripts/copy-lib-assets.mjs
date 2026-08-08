@@ -86,6 +86,7 @@ export {
 } from './entry-types/entry-react/context-source.js'
 `)
 writeFileSync(join(root, 'dist-lib/runtime.d.ts'), `export {
+  DEFAULT_CONTEXT_READER,
   ReaderRuntime,
   flat_map_reader,
   is_i18n,
@@ -95,12 +96,15 @@ writeFileSync(join(root, 'dist-lib/runtime.d.ts'), `export {
   write_localized,
 } from './index.js'
 export type {
+  ColorScheme,
+  ContextReader,
   I18n,
   LanguageEnvironment,
   Localized,
   ReaderM,
   ReaderRuntimeOptions,
   ReaderRuntimeQueries,
+  RenderContext,
 } from './index.js'
 `)
 writeFileSync(join(root, 'dist-lib/hover.d.ts'), `export {
