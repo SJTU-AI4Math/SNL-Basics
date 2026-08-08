@@ -61,6 +61,8 @@ writeFileSync(join(root, 'dist-lib/core.d.ts'), `export {
   isSnlIdentifier,
   isSnlSyntaxTree,
   migrateMacroDocument,
+  migrateSyntaxTreeDocument,
+  isSyntaxTreeDocumentV3,
   parseSnlSyntaxTree,
   serializeSnlSyntaxTree,
   tryParseSnlSyntaxTree,

@@ -57,6 +57,10 @@ export {
   migrateMacroDocument,
   isMacroDocumentV10,
 } from '../schema/migrate-macro'
+export {
+  migrateSyntaxTreeDocument,
+  isSyntaxTreeDocumentV3,
+} from '../schema/migrate-tree'
 
 export {
   applyContextSource,

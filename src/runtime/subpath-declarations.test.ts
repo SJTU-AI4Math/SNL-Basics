@@ -18,6 +18,8 @@ describe('lean subpath declaration boundaries', () => {
   it('keeps the generated core declaration aligned with host-safe schema exports', () => {
     const generator = readFileSync(new URL('../../scripts/copy-lib-assets.mjs', import.meta.url), 'utf8');
     expect(generator).toContain('migrateMacroDocument,');
+    expect(generator).toContain('migrateSyntaxTreeDocument,');
+    expect(generator).toContain('isSyntaxTreeDocumentV3,');
     expect(generator).toContain("writeFileSync(join(root, 'dist-lib/core.d.ts')");
   });
 });
