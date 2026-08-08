@@ -101,6 +101,26 @@ function panelText(container: HTMLElement): string {
 }
 
 describe('text-mode template splicing (regression)', () => {
+  it('renders TeX and children together in an extensible temporary text node', async () => {
+    const temporary = createSnlSyntaxTreeNode('平方：$x^2$ ', {
+      children: [leaf('temporary-child-token')],
+    })
+    temporary.env_mode = 'text'
+    const { container } = render(
+      <SnlSyntaxTreeView tree={temporary} macro_data_driver={testDriver(db)} />,
+    )
+
+    await waitFor(() => {
+      const root = container.querySelector('.snl-text[data-name="平方：$x^2$ "]')
+      expect(root).not.toBeNull()
+      expect(root!.querySelector('.snl-math-span .katex')).not.toBeNull()
+      expect(root!.textContent).toContain('x2')
+      expect(root!.querySelectorAll(
+        '[data-name="temporary-child-token"][data-tree-path="0"]',
+      )).toHaveLength(1)
+    })
+  })
+
   it('selects a language-dependent default style using the injected language query', async () => {
     const localized: SnlMacro = {
       ...eqDualMode,

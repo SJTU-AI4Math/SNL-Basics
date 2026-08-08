@@ -225,10 +225,19 @@ function TextRun({
     </span>
   )
 
-  // (a) envMode text leaf with no #N placeholder → literal text (with
-  // `$…$` math-island escapes handled by renderTextWithMathIslands).
-  if (envIsText && !isSyntheticTemplate && node.children.length === 0) {
-    return wrap(renderTextWithMathIslands(node.macro_name ?? ''))
+  // (a) envMode text without #N placeholders is its own literal payload.
+  // Temporary Canvas nodes remain structurally extensible, so append their
+  // children after rendering the payload (including `$…$` math islands)
+  // instead of dropping the payload merely because a child slot exists.
+  if (envIsText && !isSyntheticTemplate) {
+    return wrap(
+      <>
+        {renderTextWithMathIslands(node.macro_name ?? '')}
+        {node.children.map((child, index) => (
+          <Fragment key={index}>{renderChild(child, index)}</Fragment>
+        ))}
+      </>,
+    )
   }
   // (d) plain leaf (no macro) → literal name.
   if (!envIsText && node.children.length === 0 && !macros[node.macro_name]) {
