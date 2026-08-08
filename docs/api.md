@@ -161,6 +161,8 @@ interface SnlSyntaxTreeViewProps {
   kindPalette?: KindPalette
   onResolved?: (latex: string) => void
   hooks?: SnlRenderHooks
+  activation_controller?: SnlActivationDispatcher<SnlHoverPhaseEvent>
+  onDiagnostics?: (diagnostics: readonly SnlDiagnostic[]) => void
 }
 
 function SnlSyntaxTreeView(props: SnlSyntaxTreeViewProps): ReactElement
@@ -171,9 +173,11 @@ render comes from `macro_data_driver`. Formula modes use KaTeX, text mode uses
 native React text with optional math islands, and block mode dispatches through
 `block_template_name`.
 
-When neither syntax-tree annotation nor Macro data specifies a kind, the tree
-root defaults to `partial`; descendants default to `fvar`. Explicit Macro kinds,
-including `const`, take precedence.
+Basics has built-in behavior only for `sub`, `binder`, `bvar`, and `fvar`.
+Every other Entry kind uses const behavior while retaining its tag for palette
+and appearance. Temporary roots default to metadata-transparent `sub`; unknown
+names become `fvar` after Macro-aware semantic resolution. `onDiagnostics`
+reports fail-closed source errors and style fallback warnings.
 
 `SnlInteractionDriver` provides delegated hover, leave, click, and literal
 Ctrl-click callbacks. Each callback receives the original syntax-tree node and
@@ -187,6 +191,9 @@ phase receives a shared `SnlHoverSession` through the hook-specific
 `SnlHoverPhaseEvent.session`; its stable
 `id` and `data: Map<unknown, unknown>` provide an explicit communication channel
 between the independently replaceable hooks.
+`SnlActivationController` additionally configures the default phase behavior at
+initialization time: disable it, replace handlers for phases 0/1/2, or attach
+consumer parameters without rebuilding the view's timers.
 
 ## Customization
 

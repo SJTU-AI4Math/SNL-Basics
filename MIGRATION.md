@@ -2,6 +2,23 @@
 
 **Date:** 2026-07-01
 
+## Package 0.2.0
+
+- Macro schema 10 permits only persisted `const | sub` kinds. Consumer-defined
+  Entry kinds are still preserved for appearance, but Basics gives every kind
+  except `sub`, `binder`, `bvar`, and `fvar` const behavior.
+- Tree schema 3 replaces persisted `partial` with `sub`, removes derived
+  `bindRef`, and stores structured source references. Basics does not silently
+  rewrite consumer storage; run the schema migration or the Extension workspace
+  migration before loading old persisted data.
+- `@x` declares one leaf binder. `x@entry`, `x@#0.1`, and `x@#binderName` denote
+  Entry, explicit tree-position, and named local sources respectively.
+- Temporary `%…%`, `$…$`, `$$…$$`, and `` `…` `` nodes use tree-coordinate
+  internal names (`#`, `#0`, …); their literal payload is separate. Backticks
+  are formula-mode `\texttt` sugar, not a new rendering mode.
+- `sub` is metadata-transparent and delegates interaction to its nearest semantic
+  parent. A root `sub` remains bare rendered content.
+
 ## Package 0.1.4
 
 Unclassified syntax-tree roots now default to Macro Kind `partial`; unclassified

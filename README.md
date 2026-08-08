@@ -342,11 +342,11 @@ serialize round-trips.
   may be either a string or an `I18n` value; localization resolves inside that
   style without changing `style_name`.
 
-- **Kind** — optional semantic tag surfaced as `data-kind` (drives the hover
-  palette: `rule` / `const` / `bvar` / `binder` / `fvar`). If neither the node
-  nor its Macro supplies a `kind`, a root node defaults to **`partial`** and a
-  descendant defaults to **`fvar`**. An explicit Macro `kind` such as `const`
-  remains authoritative. This keeps a flat SNL root out of hover targeting.
+- **Kind** — one semantic tag. Basics has built-in behavior only for `sub`,
+  `binder`, `bvar`, and `fvar`; every other Entry kind uses const behavior while
+  retaining its original tag for appearance. Persisted Macro definitions use
+  only `const | sub`. Temporary roots default to metadata-transparent `sub`;
+  unresolved names become `fvar` after Macro-aware semantic resolution.
 - **Syntax tree** — the parsed representation
   (`{ macro_name, style_name?, kind, mdata, children }`). At render time each
   node is dispatched by its style's `mode`: `formula_inline`/`formula_display`
