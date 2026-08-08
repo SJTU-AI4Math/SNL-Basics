@@ -68,4 +68,20 @@ describe('analyzeSnlTreeSources', () => {
       structuredRatio: 0,
     })
   })
+
+  it('counts canonical tree-path and Entry sources without bindRef metadata', () => {
+    const binder = node('x', 'binder')
+    binder.binder_name = 'x'
+    const treeUse = node('x', 'bvar')
+    treeUse.source = { type: 'tree_path', path: [0] }
+    const entryUse = node('y', 'bvar')
+    entryUse.source = { type: 'entry', entry_id: 'entry-ok' }
+    const tree = node('root', '', null, [binder, treeUse, entryUse])
+    expect(analyzeSnlTreeSources(tree, {}, new Set(['entry-ok']))).toEqual({
+      totalNodes: 4,
+      sourcedNodes: 3,
+      semanticFreedom: 1,
+      structuredRatio: 3 / 4,
+    })
+  })
 })

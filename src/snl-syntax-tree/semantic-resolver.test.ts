@@ -87,4 +87,14 @@ describe('Macro-aware SNL semantic resolution', () => {
       code: 'SNL_SUB_IGNORES_BINDER_SUFFIX',
     }))
   })
+
+  it('falls back to the first style with a diagnostic when an explicit style is missing', () => {
+    const result = resolveSnlSemantics(parseSnlSyntaxTree('C[missing]'), db(['C']))
+    expect(result.tree.kind).toBe('const')
+    expect(result.tree.style_name).toBeUndefined()
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({
+      code: 'SNL_STYLE_NOT_FOUND',
+      tree_path: [],
+    }))
+  })
 })

@@ -107,6 +107,15 @@ export function resolveSnlSemantics(
       node.binder_name ??= node.macro_name
     } else if (macro) {
       node.kind = macro.kind || 'const'
+      if (node.style_name && !macro.styles.some((style) => style.style_name === node.style_name)) {
+        diagnostics.push({
+          code: 'SNL_STYLE_NOT_FOUND',
+          severity: 'warning',
+          tree_path: [...path],
+          message: `style ${JSON.stringify(node.style_name)} was not found; using the first style`,
+        })
+        node.style_name = undefined
+      }
       if (node.postfix?.type === 'name') node.binder_name = node.postfix.name
       node.source = undefined
       if (node.mdata && typeof node.mdata === 'object') {

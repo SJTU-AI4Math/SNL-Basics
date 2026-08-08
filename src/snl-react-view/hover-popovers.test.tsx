@@ -170,6 +170,34 @@ describe('HoverPopoverProvider', () => {
     expect(screen.queryByText('inside popover')).toBeNull()
   })
 
+  it('clicking a recursive layer clears only deeper layers', () => {
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(
+      <HoverPopoverProvider<string>
+        renderPopover={(popover) => <span>{popover.subject}</span>}
+        options={{ openDelayMs: 0, fadeMs: 0 }}
+      >
+        <ApiObserver onValue={(value) => { api = value }} />
+      </HoverPopoverProvider>,
+    )
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let root = ''
+    let child = ''
+    act(() => {
+      root = api!.spawn('root layer', origin, 10, 10, null)
+      child = api!.spawn('child layer', origin, 20, 20, root)
+      api!.spawn('grandchild layer', origin, 30, 30, child)
+    })
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(3)
+    fireEvent.pointerDown(document.querySelector(`[data-popover-id="${child}"]`)!)
+    expect(screen.getByText('root layer')).toBeTruthy()
+    expect(screen.getByText('child layer')).toBeTruthy()
+    expect(screen.queryByText('grandchild layer')).toBeNull()
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(2)
+    origin.remove()
+  })
+
   it('keeps the consumer action context stable while the popover stack moves', () => {
     let api: ReturnType<typeof useHoverPopovers<string>> | null = null
     let renders = 0

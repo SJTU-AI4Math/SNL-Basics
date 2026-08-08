@@ -145,14 +145,14 @@ describe('parseSnlSyntaxTree', () => {
     expect(t.children[0].macro_name).toBe('x')
   })
 
-  it('uses explicit @ binders without hardcoded Macro names', () => {
+  it('parses explicit leaf binders without allocating semantic source IDs', () => {
     const tree = parseSnlSyntaxTree('quantifier(@x,x)')
     expect(tree.macro_name).toBe('quantifier')
-    expect(tree.scope).toBe('binder')
-    expect(tree.children[0].kind).toBe('binder')
-    expect(tree.children[0].mdata).toMatchObject({ bindRef: 'b1' })
-    expect(tree.children[1].kind).toBe('bvar')
-    expect(tree.children[1].mdata).toMatchObject({ bindRef: 'b1' })
+    expect(tree.scope).toBeUndefined()
+    expect(tree.children[0]).toMatchObject({ kind: 'binder', binder_name: 'x' })
+    expect(tree.children[0].mdata).toBeNull()
+    expect(tree.children[1].kind).toBe('')
+    expect(JSON.stringify(tree)).not.toContain('bindRef')
   })
 
   it('does not assign binder semantics from an FOL-shaped name', () => {
@@ -162,28 +162,17 @@ describe('parseSnlSyntaxTree', () => {
     expect(tree.children[1].kind).toBe('')
   })
 
-  it('infers bvar for explicit binders; leaves unbound leaves un-kinded', () => {
-    const tree = parseSnlSyntaxTree('quantifier(@x,y)')
-    expect(tree.children[1].kind).toBe('')
-    expect(tree.children[1].macro_name).toBe('y')
-
-    const bound = parseSnlSyntaxTree('quantifier(@x,x)')
-    expect(bound.children[1].kind).toBe('bvar')
-    expect(bound.children[1].mdata).toMatchObject({ bindRef: 'b1' })
-  })
-
-  it('infers bound/free variables in a generic nested example', () => {
+  it('defers all bvar/fvar decisions to the Macro-aware resolver', () => {
     const tree = parseSnlSyntaxTree(
       'quantifier(@x,implies(app(P,x),paren(or(y,app(Q,x)))))',
     )
-    const implies = tree.children[1]
-    const app1 = implies.children[0]
-    expect(app1.children[0].kind).toBe('')
-    expect(app1.children[1].kind).toBe('bvar')
-    const orNode = implies.children[1].children[0]
-    expect(orNode.children[0].kind).toBe('')
-    expect(orNode.children[1].children[0].kind).toBe('')
-    expect(orNode.children[1].children[1].kind).toBe('bvar')
+    const kinds: string[] = []
+    const visit = (node: typeof tree): void => {
+      if (!node.binder_explicit) kinds.push(node.kind)
+      node.children.forEach(visit)
+    }
+    visit(tree)
+    expect(kinds.every((kind) => kind === '')).toBe(true)
   })
 
   describe('src postfix (cat 2026-07-09 context-entry)', () => {

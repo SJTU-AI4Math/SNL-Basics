@@ -113,100 +113,24 @@ describe('@ binder prefix', () => {
   })
 })
 
-describe('binder scoping — @ contributes names to later siblings', () => {
-  it('scopes an @-marked child so a later delimited leaf becomes bvar', () => {
-    // FooScope(@x, $x$) — parser sees @x as a binder in the scope; the
-    // later $x$ sibling looks up "x" and resolves to bvar.
-    const t = parseSnlSyntaxTree('FooScope(@x, $x$)')
-    expect(t.children[0].kind).toBe('binder')
-    expect(t.children[1].macro_name).toBe('#1')
-    expect(t.children[1].temporary_source).toBe('x')
-    expect(t.children[1].kind).toBe('bvar')
-    // Later child should carry the fresh bindRef stamped by annotate-bind.
-    const bref = (t.children[1].mdata as { bindRef?: string } | null)?.bindRef
-    expect(typeof bref).toBe('string')
-    expect(bref?.length).toBeGreaterThan(0)
+describe('parser/resolver boundary', () => {
+  it('parses binder syntax but does not allocate bindRef or classify later uses', () => {
+    const tree = parseSnlSyntaxTree('FooScope(@x, $x$)')
+    expect(tree.children[0]).toMatchObject({ kind: 'binder', binder_name: 'x' })
+    expect(tree.children[0].mdata).toBeNull()
+    expect(tree.children[1]).toMatchObject({ macro_name: '#1', temporary_source: 'x', kind: '' })
+    expect(tree.children[1].mdata).toBeNull()
   })
 
-  it('a complex @-delimited binder rarely matches — usually fvar', () => {
-    // The whole delim payload is the name. Complex payloads seldom match a
-    // later leaf, so those leaves default to fvar.
-    const t = parseSnlSyntaxTree('FooScope(@$x + y$, $x$)')
-    expect(t.children[1].macro_name).toBe('#1')
-    expect(t.children[1].temporary_source).toBe('x')
-    expect(t.children[1].kind).toBe('fvar')
+  it('leaves nested source selection to the Macro-aware semantic resolver', () => {
+    const tree = parseSnlSyntaxTree('wrap(inner(@T, deeper(@A, @B)), use(T, A, B))')
+    expect(tree.children[1].children.map((node) => node.kind)).toEqual(['', '', ''])
+    expect(tree.children[0].children[0].kind).toBe('binder')
   })
 
-  it('leaf binders nested under a const source contribute independently', () => {
-    const t = parseSnlSyntaxTree('FooScope(Tuple@Tuple(@a, @b), Body($a$, $b$, $c$))')
-    const body = t.children[1]
-    expect(body.children[0].macro_name).toBe('#1.0')
-    expect(body.children[0].temporary_source).toBe('a')
-    expect(body.children[0].kind).toBe('bvar')
-    expect(body.children[1].macro_name).toBe('#1.1')
-    expect(body.children[1].temporary_source).toBe('b')
-    expect(body.children[1].kind).toBe('bvar')
-    expect(body.children[2].macro_name).toBe('#1.2')
-    expect(body.children[2].temporary_source).toBe('c')
-    expect(body.children[2].kind).toBe('fvar')
-  })
-})
-
-describe('parseSnlSyntaxTree options.activeBinderIds', () => {
-  it('threads pre-existing binders through to bvar/fvar resolution', () => {
-    // Parsing a fragment: caller knows `x` is already in scope.
-    const t = parseSnlSyntaxTree('P($x$, $y$)', { activeBinderIds: ['x'] })
-    expect(t.children[0].kind).toBe('bvar')
-    expect(t.children[1].kind).toBe('fvar')
-  })
-
-  it('defaults to empty (context-free) when not provided', () => {
-    const t = parseSnlSyntaxTree('P($x$)')
-    expect(t.children[0].kind).toBe('fvar')
-  })
-})
-
-describe('deep-nested binder scoping (2026-07-04-late bug 1)', () => {
-  it('@T buried inside Type.judge(@T, ...) is visible to Type.judge\'s later siblings', () => {
-    // 猫猫 repro: def-hyp(hyp-list(Type.judge(@T,Type), ...), Set.union(A,B), ...)
-    // @T is nested 3 levels deep inside def-hyp's FIRST child. Later
-    // siblings of def-hyp (Set.union, ...) must still see T as a binder.
-    const t = parseSnlSyntaxTree(
-      'def-hyp(hyp-list(Type.judge(@T,Type)), Set.union(T))'
-    )
-    // Walk to the last leaf: def-hyp > Set.union > T
-    const setUnion = t.children[1]
-    expect(setUnion.macro_name).toBe('Set.union')
-    expect(setUnion.children[0].macro_name).toBe('T')
-    expect(setUnion.children[0].kind).toBe('bvar')
-  })
-
-  it('multiple deep @-binders at various depths all contribute to sibling scope', () => {
-    const t = parseSnlSyntaxTree(
-      'wrap(inner(@T, deeper(@A, @B)), use(T, A, B))'
-    )
-    const use = t.children[1]
-    expect(use.macro_name).toBe('use')
-    expect(use.children[0].kind).toBe('bvar') // T
-    expect(use.children[1].kind).toBe('bvar') // A
-    expect(use.children[2].kind).toBe('bvar') // B
-  })
-})
-
-describe('bare-leaf kind fallback (2026-07-04-late bug 2)', () => {
-  it('unbound bare leaf leaves kind="" (not "fvar") so wrapHtmlData can fall through to dbKind', () => {
-    // `Type` in `Type.judge(@T, Type)` should NOT be stamped fvar by
-    // annotate-bind — it stays '' so the view later resolves it against
-    // queried Type macro kind (typically 'rule').
-    const t = parseSnlSyntaxTree('Type.judge(@T, Type)')
-    expect(t.children[1].macro_name).toBe('Type')
-    expect(t.children[1].kind).toBe('')
-  })
-
-  it('but delimited-leaf (envMode) still gets fvar when unbound', () => {
-    // env_mode nodes bypass macro queries, so annotate-bind DOES stamp fvar for
-    // them (no db entry to fall through to).
-    const t = parseSnlSyntaxTree('$x$')
-    expect(t.kind).toBe('fvar')
+  it('accepts legacy activeBinderIds as a no-op parser option without creating IDs', () => {
+    const tree = parseSnlSyntaxTree('P($x$, $y$)', { activeBinderIds: ['x'] })
+    expect(tree.children.map((node) => node.kind)).toEqual(['', ''])
+    expect(JSON.stringify(tree)).not.toContain('bindRef')
   })
 })

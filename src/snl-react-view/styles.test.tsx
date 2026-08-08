@@ -38,10 +38,20 @@ describe('style dispatch via [style] bracket', () => {
     await waitFor(() => expect(container.querySelector('[data-style="double"]')).not.toBeNull())
   })
 
-  it('throws a render error for an unknown style tag', async () => {
+  it('falls back to the first style and reports an unknown style diagnostic', async () => {
     const tree = parseSnlSyntaxTree('implies[nope](a,b)')
-    const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
-    await waitFor(() => expect(container.querySelector('.katex-error')).not.toBeNull())
-    expect(container.querySelector('.katex-error')?.textContent).toContain('unknown style')
+    let latex = ''
+    let codes: string[] = []
+    const { container } = render(
+      <SnlSyntaxTreeView
+        tree={tree}
+        macro_data_driver={testDriver(db)}
+        onResolved={(value) => { latex = value }}
+        onDiagnostics={(items) => { codes = items.map((item) => item.code) }}
+      />,
+    )
+    await waitFor(() => expect(latex).toContain('\\rightarrow'))
+    expect(container.querySelector('.katex-error')).toBeNull()
+    expect(codes).toContain('SNL_STYLE_NOT_FOUND')
   })
 })

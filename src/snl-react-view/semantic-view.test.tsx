@@ -46,4 +46,19 @@ describe('semantic resolver integration', () => {
     expect(container.querySelector<HTMLElement>('[data-tree-path="0"]')?.dataset.kind).toBe('const')
     expect(container.querySelector<HTMLElement>('[data-tree-path="1"]')?.dataset.sourcePath).toBe('0')
   })
+
+  it('reports style fallback diagnostics through the view boundary', async () => {
+    const diagnostics: Array<{ code: string }> = []
+    const tree = parseSnlSyntaxTree('C[missing]')
+    const { container } = render(
+      <SnlSyntaxTreeView
+        tree={tree}
+        macro_data_driver={testDriver({ C: macro('C', 'C') })}
+        onDiagnostics={(items) => { diagnostics.splice(0, diagnostics.length, ...items) }}
+      />,
+    )
+    await waitFor(() => expect(container.querySelector('[data-name="C"]')).not.toBeNull())
+    expect(container.querySelector('.katex-error')).toBeNull()
+    expect(diagnostics).toContainEqual(expect.objectContaining({ code: 'SNL_STYLE_NOT_FOUND' }))
+  })
 })

@@ -1,4 +1,3 @@
-import { annotateBindings } from './annotate-bind'
 import { snlIdentifierCharLength } from './identifier'
 import {
   createEmptySnlSyntaxTreeNode,
@@ -60,13 +59,8 @@ export class SnlSyntaxTreeParseError extends Error {
 /** Options passed to {@link parseSnlSyntaxTree}. */
 export interface SnlSyntaxTreeParseOptions {
   /**
-   * Binder names already in scope OUTSIDE this fragment — used by
-   * annotate-bind to decide bvar vs fvar for delimited-name leaves whose
-   * name matches an enclosing binder. Defaults to empty (context-free).
-   *
-   * Consumers that parse a subtree in isolation (e.g. an incremental editor
-   * re-parsing one node) should pass the enclosing tree's currently-active
-   * binder names here so the sub-parse resolves bvar/fvar correctly.
+   * @deprecated Parsing is syntax-only in Tree3. Semantic resolution receives
+   * Macro hits and source context separately; this option is retained as a no-op.
    */
   activeBinderIds?: string[]
 }
@@ -450,13 +444,12 @@ class Parser {
  */
 export function parseSnlSyntaxTree(
   input: string,
-  options: SnlSyntaxTreeParseOptions = {},
+  _options: SnlSyntaxTreeParseOptions = {},
 ): SnlSyntaxTree {
   const tokens = tokenize(input)
   const parser = new Parser(tokens)
   const tree = parser.parse()
   assignTemporaryCoordinates(tree)
-  annotateBindings(tree, options.activeBinderIds ?? [])
   return tree
 }
 

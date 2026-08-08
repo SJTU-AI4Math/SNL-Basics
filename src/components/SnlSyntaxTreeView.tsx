@@ -29,7 +29,7 @@ import {
 } from '../snl-syntax-tree/bvar-scope-index'
 import { tightenHoverBoxes } from '../snl-react-view/tighten-hover-boxes'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
-import { resolveSnlSemantics } from '../snl-syntax-tree/semantic-resolver'
+import { resolveSnlSemantics, type SnlDiagnostic } from '../snl-syntax-tree/semantic-resolver'
 import { useCtrlPressed } from '../snl-react-view/use-ctrl-pressed'
 import {
   assert_valid_style_template,
@@ -92,6 +92,8 @@ export interface SnlSyntaxTreeViewProps {
   hooks?: SnlRenderHooks
   /** Initialization-time switch/replacement/params policy for phases 0/1/2. */
   activation_controller?: SnlActivationDispatcher<SnlHoverPhaseEvent>
+  /** Resolver warnings/errors for editor surfaces; rendering remains fail-closed. */
+  onDiagnostics?: (diagnostics: readonly SnlDiagnostic[]) => void
 }
 
 /** Internal tooltip state = public SnlTooltipState + interaction key for staleness checks. */
@@ -572,6 +574,7 @@ export function SnlSyntaxTreeView({
   onResolved,
   hooks,
   activation_controller = DEFAULT_SNL_ACTIVATION_CONTROLLER,
+  onDiagnostics,
 }: SnlSyntaxTreeViewProps) {
   const renderLanguage = reader_runtime?.query_environment().language ?? 'en'
   // Query all macros used by this tree through the single driver backend. The
@@ -657,6 +660,9 @@ export function SnlSyntaxTreeView({
     [macroStatus, resolvedMacros, tree],
   )
   const renderTree = semanticResolution.tree
+  useEffect(() => {
+    onDiagnostics?.(semanticResolution.diagnostics)
+  }, [onDiagnostics, semanticResolution])
 
   const treePaths = useMemo(() => {
     const paths = new WeakMap<SnlSyntaxTree, string>()

@@ -53,6 +53,8 @@ export interface HoverPopoverApi<TSubject> {
   updatePointer(id: string, pointerX: number, pointerY: number): void
   freeze(id: string): void
   cancelUnfrozen(id: string): void
+  /** Preserve this popover and ancestors; clear only recursively higher layers. */
+  dismissDescendants(id: string): void
   dismissAll(): void
   isAlive(id: string): boolean
 }
@@ -188,6 +190,7 @@ interface PopoverFrameProps<TSubject> {
   margin: number
   bounds: ViewportBounds
   register(id: string, element: HTMLElement | null): void
+  dismissDescendants(id: string): void
   children: ReactNode
 }
 
@@ -200,6 +203,7 @@ function PopoverFrame<TSubject>({
   margin,
   bounds,
   register,
+  dismissDescendants,
   children,
 }: PopoverFrameProps<TSubject>): JSX.Element {
   const ref = useRef<HTMLDivElement | null>(null)
@@ -230,6 +234,7 @@ function PopoverFrame<TSubject>({
       data-popover-id={popover.id}
       data-frozen={popover.frozen ? 'true' : 'false'}
       data-phase={popover.phase}
+      onPointerDownCapture={() => dismissDescendants(popover.id)}
       style={{
         position: 'fixed',
         left: position.x,
@@ -333,6 +338,12 @@ export function HoverPopoverProvider<TSubject>({
       return parentId === popover.parentId ? popover : { ...popover, parentId }
     }))
     dismissSet(removable)
+  }, [dismissSet])
+
+  const dismissDescendants = useCallback((id: string) => {
+    const descendants = collectPopoverSubtree(id, popoversRef.current)
+    descendants.delete(id)
+    if (descendants.size > 0) dismissSet(descendants)
   }, [dismissSet])
 
   const spawn = useCallback((
@@ -563,9 +574,10 @@ export function HoverPopoverProvider<TSubject>({
     updatePointer,
     freeze,
     cancelUnfrozen,
+    dismissDescendants,
     dismissAll,
     isAlive,
-  }), [spawn, preview, pin, updatePointer, freeze, cancelUnfrozen, dismissAll, isAlive])
+  }), [spawn, preview, pin, updatePointer, freeze, cancelUnfrozen, dismissDescendants, dismissAll, isAlive])
 
   const portal = typeof document === 'undefined' ? null : createPortal(
     <>
@@ -580,6 +592,7 @@ export function HoverPopoverProvider<TSubject>({
             margin={margin}
             bounds={boundsRef.current.get(popover.id) ?? findPopoverBounds(document.body)}
             register={register}
+            dismissDescendants={dismissDescendants}
           >
             {renderPopover(popover)}
           </PopoverFrame>

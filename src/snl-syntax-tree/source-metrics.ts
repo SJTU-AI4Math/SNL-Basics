@@ -38,9 +38,11 @@ export function analyzeSnlTreeSources(
   }
 
   const binderNames = new Set<string>()
-  const collectBinders = (node: SnlSyntaxTree): void => {
+  const nodesByPath = new Map<string, SnlSyntaxTree>()
+  const collectBinders = (node: SnlSyntaxTree, path: number[] = []): void => {
+    nodesByPath.set(path.join('.'), node)
     if (node.kind === 'binder') binderNames.add(node.macro_name)
-    for (const child of node.children) collectBinders(child)
+    node.children.forEach((child, index) => collectBinders(child, [...path, index]))
   }
   collectBinders(root)
 
@@ -56,7 +58,12 @@ export function analyzeSnlTreeSources(
       const meta = metadata(node)
       const bindRef = typeof meta.bindRef === 'string' ? meta.bindRef : ''
       const src = typeof meta.src === 'string' ? meta.src : ''
-      sourced =
+      const treeSource = node.source?.type === 'tree_path'
+        ? nodesByPath.get(node.source.path.join('.'))
+        : undefined
+      sourced = Boolean(
+        treeSource && (treeSource.kind === 'binder' || treeSource.binder_name),
+      ) || (node.source?.type === 'entry' && accessibleEntryIds.has(node.source.entry_id)) ||
         (bindRef.length > 0 && binderNames.has(node.macro_name)) ||
         (src.length > 0 && accessibleEntryIds.has(src))
     } else {
