@@ -106,6 +106,11 @@ describe('Entry surface dispatch', () => {
     fireEvent.pointerLeave(section)
     expect(section.style.background).toBe('rgb(238, 238, 238)')
     expect(section.style.boxShadow).toBe('none')
+
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })
+    fireEvent.pointerEnter(section)
+    expect(section.style.background).toBe('rgb(243, 244, 246)')
+    fireEvent.keyUp(window, { key: 'Control' })
   })
 
   it('shows parse errors and original SNL source', () => {

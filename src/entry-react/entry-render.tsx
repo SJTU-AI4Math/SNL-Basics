@@ -194,7 +194,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
   }, [preview])
   const [blockHovered, setBlockHovered] = useState(false)
   const [titleHovered, setTitleHovered] = useState(false)
-  const ctrlPressed = useCtrlPressed(blockHovered || titleHovered)
+  const ctrlPressed = useCtrlPressed()
   const titleActivationActive = Boolean(interaction_ports?.on_title_activate && titleHovered && ctrlPressed)
   const effectiveInteractionDriver = useMemo(() => {
     if (!preview) return interaction_driver
