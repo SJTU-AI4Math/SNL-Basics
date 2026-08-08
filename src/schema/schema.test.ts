@@ -585,6 +585,9 @@ describe('schema/migrate-tree', () => {
     })
     expect(migrated.postfix).toEqual({ type: 'name', name: 'ctx' })
     expect(migrated.mdata).toEqual({ keep: 1 })
+    expect(isSyntaxTreeDocumentV3({
+      macro_name: 'x', kind: 'bvar', mdata: { src: 'ctx' }, children: [],
+    })).toBe(false)
   })
 
   it('assigns # to a temporary root and preserves temporary texttt plus unknown fields', () => {

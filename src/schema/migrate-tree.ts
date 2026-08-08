@@ -48,6 +48,10 @@ function coordinate(path: number[]): string {
 function isTreeNodeV3(node: Record<string, unknown>, path: number[]): boolean {
   if (typeof node.macro_name !== 'string' || typeof node.kind !== 'string' ||
       !Object.prototype.hasOwnProperty.call(node, 'mdata') || !Array.isArray(node.children)) return false
+  if (node.mdata && typeof node.mdata === 'object' && !Array.isArray(node.mdata)) {
+    const metadata = node.mdata as Record<string, unknown>
+    if ('bindRef' in metadata || 'src' in metadata) return false
+  }
   if (node.temporary_format !== undefined && node.temporary_format !== 'texttt') return false
   if (node.env_mode !== undefined) {
     if (!['formula_inline', 'formula_display', 'text', 'block'].includes(String(node.env_mode)) ||
