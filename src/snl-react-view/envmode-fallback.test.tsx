@@ -40,7 +40,8 @@ describe('envMode synthetic-macro path', () => {
     // Cat 2026-07-10 refactor: text roots via React TextRun, not KaTeX \\text{...}.
     // onResolved is KaTeX-only, so assert on the DOM.
     const t: SnlSyntaxTree = {
-      macro_name: 'hello world',
+      macro_name: '#',
+      temporary_source: 'hello world',
       env_mode: 'text',
       kind: '',
       mdata: null,
@@ -50,15 +51,15 @@ describe('envMode synthetic-macro path', () => {
       <SnlSyntaxTreeView tree={t} macro_data_driver={testDriver(emptyDb)} />,
     )
     await waitFor(() => {
-      const text = container.querySelector('.snl-text')
-      expect(text).not.toBeNull()
-      expect(text!.textContent).toBe('hello world')
+      expect(container.querySelector('.snl-text')).toBeNull()
+      expect(container.querySelector('.katex-html')?.textContent).toBe('hello world')
     })
   })
 
   it('$latex$ root renders payload as raw LaTeX', async () => {
     const t: SnlSyntaxTree = {
-      macro_name: 'x + y',
+      macro_name: '#',
+      temporary_source: 'x + y',
       env_mode: 'formula_inline',
       kind: '',
       mdata: null,
@@ -75,7 +76,8 @@ describe('envMode synthetic-macro path', () => {
     // (though it stays in the tree for scoping). Result: just "f" (as
     // raw LaTeX, wrapped in \htmlData).
     const t: SnlSyntaxTree = {
-      macro_name: 'f',
+      macro_name: '#',
+      temporary_source: 'f',
       env_mode: 'formula_inline',
       kind: '',
       mdata: null,
@@ -96,7 +98,8 @@ describe('envMode synthetic-macro path', () => {
     // `@$\operatorname{Im}(#0)$(x)` — payload has `#0`, so `x` gets
     // inlined. Result: `\operatorname{Im}(x)`.
     const t: SnlSyntaxTree = {
-      macro_name: '\\operatorname{Im}(#0)',
+      macro_name: '#',
+      temporary_source: '\\operatorname{Im}(#0)',
       env_mode: 'formula_inline',
       kind: '',
       mdata: null,
@@ -110,7 +113,8 @@ describe('envMode synthetic-macro path', () => {
 
   it('%text with #0% splices child', async () => {
     const t: SnlSyntaxTree = {
-      macro_name: 'hello #0',
+      macro_name: '#',
+      temporary_source: 'hello #0',
       env_mode: 'text',
       kind: '',
       mdata: null,
@@ -120,7 +124,7 @@ describe('envMode synthetic-macro path', () => {
       <SnlSyntaxTreeView tree={t} macro_data_driver={testDriver(emptyDb)} />,
     )
     await waitFor(() => {
-      const root = container.querySelector('.snl-text')
+      const root = container.querySelector('.katex-html')
       expect(root).not.toBeNull()
       expect(root!.textContent).toContain('hello ')
       // The `name` child is a bare identifier → formula-mode → KaTeX

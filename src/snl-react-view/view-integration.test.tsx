@@ -37,7 +37,7 @@ const driver = testDriver(db)
 afterEach(cleanup)
 
 describe('data-tree-path DOM attribute', () => {
-  it('defaults an unclassified root to partial while descendants remain fvar', async () => {
+  it('defaults unresolved nodes to fvar', async () => {
     const tree = createSnlSyntaxTreeNode('flat', {
       children: [createSnlSyntaxTreeNode('x')],
     })
@@ -46,14 +46,13 @@ describe('data-tree-path DOM attribute', () => {
     )
     await waitFor(() => expect(container.querySelector('[data-tree-path=""]')).not.toBeNull())
     const root = container.querySelector<HTMLElement>('[data-tree-path=""]')!
-    expect(root.getAttribute('data-kind')).toBe('partial')
+    expect(root.getAttribute('data-kind')).toBe('fvar')
     expect(container.querySelector('[data-tree-path="0"]')?.getAttribute('data-kind')).toBe('fvar')
     const original = document.elementsFromPoint
     Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [root] })
     try {
       fireEvent.mouseMove(root, { clientX: 4, clientY: 5 })
-      expect(root.classList.contains('snl-single-hover')).toBe(false)
-      expect(container.querySelector('.snl-hover-tooltip')).toBeNull()
+      expect(root.classList.contains('snl-single-hover')).toBe(true)
     } finally {
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
     }
@@ -74,7 +73,7 @@ describe('data-tree-path DOM attribute', () => {
     expect(container.querySelector('[data-tree-path=""]')?.getAttribute('data-kind')).toBe('const')
   })
 
-  it('uses the root partial fallback for native text and block render paths', async () => {
+  it('uses const for registered native text and block Macros without an explicit kind', async () => {
     const nativeDb: SnlMacroRecord = {
       prose: {
         name: 'prose', description: '', source: { entries: [], urls: [] },
@@ -91,12 +90,12 @@ describe('data-tree-path DOM attribute', () => {
       <SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('prose')} macro_data_driver={testDriver(nativeDb)} />,
     )
     await waitFor(() => expect(view.container.querySelector('[data-tree-path=""]')).not.toBeNull())
-    expect(view.container.querySelector('[data-tree-path=""]')?.getAttribute('data-kind')).toBe('partial')
+    expect(view.container.querySelector('[data-tree-path=""]')?.getAttribute('data-kind')).toBe('const')
     view.rerender(
       <SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('group')} macro_data_driver={testDriver(nativeDb)} />,
     )
     await waitFor(() => expect(view.container.querySelector('.snl-block[data-tree-path=""]')).not.toBeNull())
-    expect(view.container.querySelector('.snl-block[data-tree-path=""]')?.getAttribute('data-kind')).toBe('partial')
+    expect(view.container.querySelector('.snl-block[data-tree-path=""]')?.getAttribute('data-kind')).toBe('const')
   })
 
   it('KaTeX output contains data-tree-path attributes', async () => {

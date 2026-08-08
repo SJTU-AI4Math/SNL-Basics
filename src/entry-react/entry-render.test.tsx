@@ -140,7 +140,7 @@ describe('Entry surface dispatch', () => {
 
     const noLongerDeclaring = dataDriver({ ctx: base({ snl: '@y' }, { id: 'ctx', kind: 'context' }) })
     view.rerender(<EntrySurface entry={sourceEntry} kind={null} entry_data_driver={noLongerDeclaring} macro_data_driver={macroDriver} />)
-    await waitFor(() => expect(view.container.querySelector('[data-kind="partial"]')).not.toBeNull())
+    await waitFor(() => expect(view.container.querySelector('[data-kind="fvar"]')).not.toBeNull())
     expect(view.container.querySelector('[data-kind="bvar"]')).toBeNull()
   })
 })

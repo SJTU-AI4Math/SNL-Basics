@@ -22,6 +22,7 @@ import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { testDriver } from '../snl-react-view/test-helpers'
 import { ReaderRuntime } from '../runtime'
+import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
 
 function leaf(name: string): SnlSyntaxTree {
   return createSnlSyntaxTreeNode(name, { kind: 'fvar' })
@@ -97,23 +98,34 @@ function panelText(container: HTMLElement): string {
 }
 
 describe('text-mode template splicing (regression)', () => {
-  it('renders TeX and children together in an extensible temporary text node', async () => {
-    const temporary = createSnlSyntaxTreeNode('平方：$x^2$ ', {
-      children: [leaf('temporary-child-token')],
-    })
-    temporary.env_mode = 'text'
+  it('renders a root temporary text payload like a text Macro while remaining bare sub HTML', async () => {
+    const temporary = parseSnlSyntaxTree('%$x$ is a number%')
     const { container } = render(
       <SnlSyntaxTreeView tree={temporary} macro_data_driver={testDriver(db)} />,
     )
 
     await waitFor(() => {
-      const root = container.querySelector('.snl-text[data-name="平方：$x^2$ "]')
-      expect(root).not.toBeNull()
-      expect(root!.querySelector('.snl-math-span .katex')).not.toBeNull()
-      expect(root!.textContent).toContain('x2')
-      expect(root!.querySelectorAll(
-        '[data-name="temporary-child-token"][data-tree-path="0"]',
-      )).toHaveLength(1)
+      expect(container.querySelector('.snl-math-span .katex')).not.toBeNull()
+      expect(container.textContent).toContain('x')
+      expect(container.textContent).toContain(' is a number')
+      expect(container.querySelector('[data-name="#"]')).toBeNull()
+      expect(container.querySelector('[data-kind="sub"]')).toBeNull()
+    })
+  })
+
+  it('renders backtick sugar through formula-inline texttt without adding a mode', async () => {
+    const temporary = parseSnlSyntaxTree('`a_b`')
+    let latex = ''
+    const { container } = render(
+      <SnlSyntaxTreeView
+        tree={temporary}
+        macro_data_driver={testDriver(db)}
+        onResolved={(value) => { latex = value }}
+      />,
+    )
+    await waitFor(() => {
+      expect(container.querySelector('.katex-error')).toBeNull()
+      expect(latex).toContain('\\texttt{a\\_b}')
     })
   })
 

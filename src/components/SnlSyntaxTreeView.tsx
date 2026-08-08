@@ -38,6 +38,7 @@ import {
 import { findMinimalHoverRoot } from '../snl-react-view/hover-dom'
 import { applySnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
+import { resolveRenderedKind } from '../snl-react-view/kind-behavior'
 import {
   DEFAULT_KIND_PALETTE,
   paletteToCss,
@@ -189,8 +190,8 @@ function MathSpan({
  * through — `||` is deliberate.
  */
 function resolveNodeKind(node: SnlSyntaxTree, macros: SnlMacroRecord, isRoot = false): string {
-  const dbKind = node.macro_name ? macros[node.macro_name]?.kind : undefined
-  return node.kind || dbKind || (isRoot ? 'partial' : 'fvar')
+  const macro = node.env_mode ? null : macros[node.macro_name]
+  return resolveRenderedKind(node, macro, isRoot)
 }
 
 function TextRun({
@@ -210,7 +211,8 @@ function TextRun({
 }): ReactElement {
   // Envelope semantics — see the block comment below.
   const envIsText = node.env_mode === 'text'
-  const nameHasPlaceholder = /#(\*|\d{1,2})/.test(node.macro_name ?? '')
+  const temporarySource = node.temporary_source ?? node.macro_name ?? ''
+  const nameHasPlaceholder = /#(\*|\d{1,2})/.test(temporarySource)
   const isSyntheticTemplate = envIsText && nameHasPlaceholder
 
   // DOM attribute payload — mirrors wrapHtmlData so hover / palette /
@@ -230,11 +232,9 @@ function TextRun({
   const srcVal = getSrc(node)
   if (srcVal) dataAttrs['data-src'] = srcVal
 
-  const wrap = (children: ReactNode): ReactElement => (
-    <span className="snl-text snl-hoverable" {...dataAttrs}>
-      {children}
-    </span>
-  )
+  const wrap = (children: ReactNode): ReactElement => kind === 'sub'
+    ? <>{children}</>
+    : <span className="snl-text snl-hoverable" {...dataAttrs}>{children}</span>
 
   // (a) envMode text without #N placeholders is its own literal payload.
   // Temporary Canvas nodes remain structurally extensible, so append their
@@ -243,7 +243,7 @@ function TextRun({
   if (envIsText && !isSyntheticTemplate) {
     return wrap(
       <>
-        {renderTextWithMathIslands(node.macro_name ?? '')}
+        {renderTextWithMathIslands(temporarySource)}
         {node.children.map((child, index) => (
           <Fragment key={index}>{renderChild(child, index)}</Fragment>
         ))}
@@ -260,7 +260,7 @@ function TextRun({
     ? resolveStyle(node, macro, language)
     : undefined
   const template = isSyntheticTemplate
-    ? node.macro_name
+    ? temporarySource
     : style
       ? resolve_style_template(style, reader_runtime, language)
       : ''
@@ -1215,15 +1215,18 @@ export function SnlSyntaxTreeView({
     if (mode === 'block') {
       const key = selectedStyle?.block_template_name
       const Renderer = key ? mergedHooks.renderers?.[key] : undefined
-      const blockDataAttrs: Record<string, string | undefined> = {
-        'data-name': node.macro_name || undefined,
-        'data-kind': resolveNodeKind(node, resolvedMacros, pathStr === ''),
-        'data-tree-path': pathStr,
-        'data-style': node.style_name,
-        'data-scope': node.scope,
-        'data-bindref': getBindRef(node) ?? undefined,
-        'data-src': getSrc(node) ?? undefined,
-      }
+      const blockKind = resolveNodeKind(node, resolvedMacros, pathStr === '')
+      const blockDataAttrs: Record<string, string | undefined> = blockKind === 'sub'
+        ? {}
+        : {
+            'data-name': node.macro_name || undefined,
+            'data-kind': blockKind,
+            'data-tree-path': pathStr,
+            'data-style': node.style_name,
+            'data-scope': node.scope,
+            'data-bindref': getBindRef(node) ?? undefined,
+            'data-src': getSrc(node) ?? undefined,
+          }
       if (Renderer) {
         return (
           <div className="snl-block-host" {...blockDataAttrs}>

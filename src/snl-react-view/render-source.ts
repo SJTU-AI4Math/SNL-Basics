@@ -32,6 +32,7 @@ import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-synta
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
 import { isEmptySnlSyntaxTreeNode, type SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { encodeTreePath, type TreePath } from './interaction-driver'
+import { resolveRenderedKind } from './kind-behavior'
 
 /**
  * Sanitize a value for use inside a `\htmlData{key=value,…}` attribute list.
@@ -147,11 +148,10 @@ export function wrapHtmlData(
   treePath?: TreePath,
   kindOverride?: string,
 ): string {
+  const resolvedKind = kindOverride || resolveRenderedKind(node, macro, treePath?.length === 0)
+  if (resolvedKind === 'sub') return inner
   const name = sanitizeHtmlDataAttr(node.macro_name)
-  const dbKind = macro?.kind
-  const kind = sanitizeHtmlDataAttr(
-    kindOverride || node.kind || dbKind || (treePath?.length === 0 ? 'partial' : 'fvar'),
-  )
+  const kind = sanitizeHtmlDataAttr(resolvedKind)
   const ref = getBindRef(node)
   const bindRefFragment = ref ? `,bindRef=${sanitizeHtmlDataAttr(ref)}` : ''
   const srcVal = getSrc(node)
@@ -472,7 +472,12 @@ export async function resolveNodeLatex(
   // Synthetic-macro path (delimited-name form).
   if (node.env_mode) {
     const isText = node.env_mode === 'text'
-    const templateBody = isText ? escapeTextButPreservePlaceholders(node.macro_name) : node.macro_name
+    const temporarySource = node.temporary_source ?? node.macro_name
+    const templateBody = node.temporary_format === 'texttt'
+      ? `\\texttt{${escapeLatexText(temporarySource)}}`
+      : isText
+        ? escapeTextButPreservePlaceholders(temporarySource)
+        : temporarySource
     const childValues = Object.fromEntries(
       wrappedChildren.map((latex, index) => [`child${index}`, latex]),
     )
