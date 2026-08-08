@@ -4,8 +4,8 @@
  * Applies:
  *   - Macro v6 → v7: tag→style_name, react_renderer_key→block_template_name,
  *     variadic_left/join/right → separator + template with #*, tags: []
- *   - Macro v7/v8 → v9: preserve localized text templates; styles[0] is default
- *   - Syntax tree v1 → v2: name→macro_name, style→style_name, envMode→env_mode
+ *   - Macro v7/v8/v9 → v10: canonical const/sub kinds
+ *   - Syntax tree v1/v2 → v3: temporary payload/coordinate separation
  *
  * NOTE: SnlMacro.name stays as `name` (NOT renamed to macro_name).
  *
@@ -167,6 +167,13 @@ function isMacroDocumentV9(db) {
   })
 }
 
+/** @param {Record<string, any>} db */
+function isMacroDocumentV10(db) {
+  return isMacroDocumentV9(db) && Object.values(db).every((macro) =>
+    macro.kind === 'const' || macro.kind === 'sub'
+  )
+}
+
 /** @param {any} style */
 function isInvariantStyleV8(style) {
   return isStyleV7(style) && typeof style.template === 'string'
@@ -202,6 +209,11 @@ function isI18nString(value) {
 function migrateMacroV7toV9(macro) {
   const { default_style: _legacyDefaultStyle, ...current } = macro
   return { ...current, styles: macro.styles.map((style) => ({ ...style })) }
+}
+
+/** @param {any} macro */
+function migrateMacroV9toV10(macro) {
+  return { ...macro, kind: macro.kind === 'partial' || macro.kind === 'sub' ? 'sub' : 'const' }
 }
 
 /** @param {unknown} value @returns {unknown} */
@@ -271,7 +283,7 @@ function migrateMacroDb(db) {
     } else {
       throw new Error(`entry ${JSON.stringify(key)} is not valid v6, v7, safe v8, or v9 data`)
     }
-    entries.push([key, migrated])
+    entries.push([key, migrateMacroV9toV10(migrated)])
   }
   return Object.fromEntries(entries)
 }
@@ -308,6 +320,38 @@ function isSyntaxTreeV2(node) {
   return node.children.every(isSyntaxTreeV2)
 }
 
+/** @param {number[]} path */
+function treeCoordinate(path) {
+  return path.length === 0 ? '#' : `#${path.join('.')}`
+}
+
+/** @param {any} node @param {number[]} [path] @returns {boolean} */
+function isSyntaxTreeV3(node, path = []) {
+  if (!isSyntaxTreeV2(node)) return false
+  if (node.temporary_format !== undefined && node.temporary_format !== 'texttt') return false
+  if (node.env_mode !== undefined) {
+    if (!['formula_inline', 'formula_display', 'text', 'block'].includes(node.env_mode) ||
+        typeof node.temporary_source !== 'string' || node.macro_name !== treeCoordinate(path)) return false
+  } else if (node.temporary_source !== undefined || node.temporary_format !== undefined) {
+    return false
+  }
+  const children = /** @type {any[]} */ (node.children)
+  return children.every((child, index) => isSyntaxTreeV3(child, [...path, index]))
+}
+
+/** @param {any} node @param {number[]} [path] @returns {any} */
+function migrateTreeV2toV3(node, path = []) {
+  const { children: rawChildren, ...rest } = node
+  const children = /** @type {any[]} */ (rawChildren)
+  const temporary = node.env_mode !== undefined
+  return {
+    ...rest,
+    macro_name: temporary ? treeCoordinate(path) : node.macro_name,
+    ...(temporary ? { temporary_source: node.temporary_source ?? node.macro_name } : {}),
+    children: children.map((child, index) => migrateTreeV2toV3(child, [...path, index])),
+  }
+}
+
 // --- Main ---
 
 let exitCode = 0
@@ -336,16 +380,18 @@ for (const target of targets) {
   if (doc && typeof doc === 'object' && !Array.isArray(doc)) {
     if (isSyntaxTreeV1(doc) || isSyntaxTreeV2(doc)) {
       // Syntax tree
-      if (isSyntaxTreeV2(doc)) {
-        console.log(`[skip] ${target} — already tree v2`)
+      if (isSyntaxTreeV3(doc)) {
+        console.log(`[skip] ${target} — already tree v3`)
         continue
       }
-      result = migrateTreeNode(doc)
-      kind = 'tree v1→v2'
+      const wasV2 = isSyntaxTreeV2(doc)
+      const v2 = wasV2 ? doc : migrateTreeNode(doc)
+      result = migrateTreeV2toV3(v2)
+      kind = wasV2 ? 'tree v2→v3' : 'tree v1→v3'
     } else {
       // Macro DB
-      if (isMacroDocumentV9(doc)) {
-        console.log(`[skip] ${target} — already macro v9`)
+      if (isMacroDocumentV10(doc)) {
+        console.log(`[skip] ${target} — already macro v10`)
         continue
       }
       try {
@@ -355,7 +401,7 @@ for (const target of targets) {
         exitCode = 1
         continue
       }
-      kind = 'macro v6/v7/v8→v9'
+      kind = 'macro v6/v7/v8/v9→v10'
     }
   } else {
     console.error(`[error] cannot migrate ${target}: document must be a plain JSON object`)

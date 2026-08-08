@@ -53,7 +53,7 @@ const listAllPeople: SnlMacro = {
 const interfaceMacro: SnlMacro = {
   name: 'interface', description: 'interface documentation block',
   source: { entries: [], urls: [] },
-  kind: 'Syntax',
+  kind: 'const',
   dynamic_arity: false,
   tags: [],
   styles: [

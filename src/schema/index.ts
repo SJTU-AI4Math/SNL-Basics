@@ -4,16 +4,20 @@ export {
   migrateMacroV6toV7,
   migrateMacroV7toV8,
   migrateMacroV7toV9,
+  migrateMacroV9toV10,
   migrateStyleV6toV7,
   isMacroDocumentV7,
   isMacroDocumentV8,
   isMacroDocumentV9,
+  isMacroDocumentV10,
 } from './migrate-macro'
 export type {
   MacroV6,
   MacroStyleV6,
   MacroV7,
   MacroV8,
+  MacroV9,
+  MacroV10,
   MacroV8Style,
   MacroStyleV7Base,
   MacroV7ToV8Options,
@@ -22,6 +26,8 @@ export type {
 export {
   migrateSyntaxTreeDocument,
   migrateTreeNodeV1toV2,
+  migrateTreeNodeV2toV3,
   isSyntaxTreeDocumentV2,
+  isSyntaxTreeDocumentV3,
 } from './migrate-tree'
-export type { SyntaxTreeNodeV1 } from './migrate-tree'
+export type { SyntaxTreeNodeV1, SyntaxTreeNodeV2, SyntaxTreeNodeV3 } from './migrate-tree'

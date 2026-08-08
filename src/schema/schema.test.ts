@@ -5,23 +5,27 @@ import {
   migrateMacroV6toV7,
   migrateMacroV7toV8,
   migrateMacroV7toV9,
+  migrateMacroV9toV10,
   isMacroDocumentV7,
   isMacroDocumentV8,
   isMacroDocumentV9,
+  isMacroDocumentV10,
   migrateSyntaxTreeDocument,
   migrateTreeNodeV1toV2,
+  migrateTreeNodeV2toV3,
   isSyntaxTreeDocumentV2,
+  isSyntaxTreeDocumentV3,
   MACRO_SCHEMA_VERSION,
   TREE_SCHEMA_VERSION,
   PACKAGE_VERSION,
 } from './index'
-import type { MacroV6, MacroStyleV6, SyntaxTreeNodeV1 } from './index'
+import type { MacroV6, MacroStyleV6, SyntaxTreeNodeV1, SyntaxTreeNodeV2 } from './index'
 import type { I18n } from '../runtime'
 
 describe('schema/versions', () => {
   it('exports correct version constants', () => {
-    expect(MACRO_SCHEMA_VERSION).toBe(9)
-    expect(TREE_SCHEMA_VERSION).toBe(2)
+    expect(MACRO_SCHEMA_VERSION).toBe(10)
+    expect(TREE_SCHEMA_VERSION).toBe(3)
     expect(PACKAGE_VERSION).toBe('0.2.0')
   })
 })
@@ -237,7 +241,7 @@ describe('schema/migrate-macro', () => {
     })
     const legacy = { ...current, name: 'Legacy', default_style: { en: 'default' } }
     const normalized = migrateMacroDocument({ Current: current, Legacy: legacy } as any)
-    expect(normalized.Current).toEqual(current)
+    expect(normalized.Current).toEqual({ ...current, kind: 'const' })
     expect(normalized.Legacy).not.toHaveProperty('default_style')
   })
 
@@ -259,7 +263,7 @@ describe('schema/migrate-macro', () => {
       type: 'i18n', default_language: 'en', values: { en: 'English', 'zh-CN': '中文' },
     })
     expect(normalized.styles.slice(1).map((style) => style.style_name)).toEqual(['first', 'other'])
-    expect(migrateMacroV7toV9(legacy as any)).toEqual(normalized)
+    expect(migrateMacroV9toV10(migrateMacroV7toV9(legacy as any))).toEqual(normalized)
   })
 
   it('preserves styles[0] as the fallback when a v8 language map omits en', () => {
@@ -330,6 +334,39 @@ describe('schema/migrate-macro', () => {
     } } as any)).toBe(false)
   })
 
+  it('migrates legacy Macro kinds into the canonical v10 kind vocabulary', () => {
+    const current = migrateMacroV7toV9(migrateMacroV6toV7(v6Macro))
+    expect(migrateMacroV9toV10({ ...current, kind: 'partial' }).kind).toBe('sub')
+    expect(migrateMacroV9toV10({ ...current, kind: 'rule' }).kind).toBe('const')
+    expect(migrateMacroV9toV10({ ...current, kind: 'custom-skin' }).kind).toBe('const')
+    expect(migrateMacroV9toV10({ ...current, kind: undefined }).kind).toBe('const')
+  })
+
+  it('accepts only const and sub as current Macro kinds while retaining permissive v9 validation', () => {
+    const legacy = migrateMacroV7toV9(migrateMacroV6toV7(v6Macro))
+    for (const kind of ['rule', 'custom-skin', 'partial']) {
+      const macro = { ...legacy, kind }
+      expect(isMacroDocumentV9({ X: macro } as any)).toBe(true)
+      expect(isMacroDocumentV10({ X: macro } as any)).toBe(false)
+    }
+    for (const kind of ['const', 'sub']) {
+      expect(isMacroDocumentV10({ X: { ...legacy, kind } } as any)).toBe(true)
+    }
+    expect(isMacroDocumentV10({ X: { ...legacy, kind: undefined } } as any)).toBe(false)
+  })
+
+  it('migrateMacroDocument emits canonical v10 data and preserves unknown fields', () => {
+    const legacy = {
+      ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)),
+      kind: 'partial',
+      extension_data: { owner: 'consumer' },
+    }
+    const migrated = migrateMacroDocument({ X: legacy } as any).X as any
+    expect(migrated.kind).toBe('sub')
+    expect(migrated.extension_data).toEqual({ owner: 'consumer' })
+    expect(isMacroDocumentV10({ X: migrated })).toBe(true)
+  })
+
   it('preserves a valid Macro whose identifier is __proto__', () => {
     const current = migrateMacroV7toV9(migrateMacroV6toV7(v6Macro))
     const macro = {
@@ -350,7 +387,7 @@ describe('schema/migrate-macro', () => {
 
   it('validates complete records and never drops malformed entries', () => {
     expect(isMacroDocumentV7({ X: null } as any)).toBe(false)
-    expect(() => migrateMacroDocument({ bad: 'value' } as any)).toThrow(/not valid v6, v7, v8, or v9/)
+    expect(() => migrateMacroDocument({ bad: 'value' } as any)).toThrow(/not valid v6, v7, v8, v9, or v10/)
 
     const valid = migrateMacroV7toV9({
       ...migrateMacroV6toV7(v6Macro),
@@ -463,10 +500,11 @@ describe('schema/migrate-tree', () => {
     expect(v2.children[1].style_name).toBe('italic')
   })
 
-  it('migrateSyntaxTreeDocument handles full tree', () => {
-    const v2 = migrateSyntaxTreeDocument(v1Node)
-    expect(v2.macro_name).toBe('Add')
-    expect(v2.children.length).toBe(2)
+  it('migrateSyntaxTreeDocument handles full v1→v3 chain', () => {
+    const v3 = migrateSyntaxTreeDocument(v1Node)
+    expect(v3.macro_name).toBe('#')
+    expect(v3.temporary_source).toBe('Add')
+    expect(v3.children.length).toBe(2)
   })
 
   it('isSyntaxTreeDocumentV2 detects v1', () => {
@@ -506,5 +544,61 @@ describe('schema/migrate-tree', () => {
     expect(v2.style_name).toBeUndefined()
     expect(v2.env_mode).toBeUndefined()
     expect(v2.children).toEqual([])
+  })
+
+  it('migrates temporary nodes with deterministic whole-tree coordinates', () => {
+    const v2: SyntaxTreeNodeV2 = {
+      macro_name: 'outer', kind: 'custom-skin', mdata: null,
+      children: [
+        { macro_name: 'same', env_mode: 'text', kind: '', mdata: null, children: [] },
+        { macro_name: 'branch', kind: 'binder', mdata: null, children: [
+          { macro_name: 'same', env_mode: 'formula_inline', kind: '', mdata: null, children: [] },
+        ] },
+      ],
+    }
+    const v3 = migrateTreeNodeV2toV3(v2)
+    expect(v3.macro_name).toBe('outer')
+    expect(v3.kind).toBe('custom-skin')
+    expect(v3.children[0]).toEqual(expect.objectContaining({
+      macro_name: '#0', temporary_source: 'same', env_mode: 'text',
+    }))
+    expect(v3.children[1].children[0]).toEqual(expect.objectContaining({
+      macro_name: '#1.0', temporary_source: 'same', env_mode: 'formula_inline',
+    }))
+  })
+
+  it('assigns # to a temporary root and preserves temporary texttt plus unknown fields', () => {
+    const v2 = {
+      macro_name: 'literal', env_mode: 'text', temporary_format: 'texttt',
+      kind: 'partial', mdata: null, extension_data: { owner: 'consumer' }, children: [],
+    } as SyntaxTreeNodeV2
+    const v3 = migrateSyntaxTreeDocument(v2)
+    expect(v3).toEqual({
+      macro_name: '#', temporary_source: 'literal', env_mode: 'text', temporary_format: 'texttt',
+      kind: 'partial', mdata: null, extension_data: { owner: 'consumer' }, children: [],
+    })
+    expect(isSyntaxTreeDocumentV3(v3 as any)).toBe(true)
+  })
+
+  it('keeps current tree v3 documents idempotent', () => {
+    const current = {
+      macro_name: 'root', kind: 'const-skin', mdata: null, children: [{
+        macro_name: '#0', temporary_source: 'x', env_mode: 'formula_inline',
+        kind: 'sub', mdata: null, children: [],
+      }],
+    }
+    expect(isSyntaxTreeDocumentV2(current)).toBe(true)
+    expect(isSyntaxTreeDocumentV3(current)).toBe(true)
+    expect(migrateSyntaxTreeDocument(current as any)).toEqual(current)
+  })
+
+  it('rejects temporary v3 nodes with missing payload, wrong coordinates, or invalid format', () => {
+    const base = {
+      macro_name: '#', temporary_source: 'x', env_mode: 'text',
+      kind: 'sub', mdata: null, children: [],
+    }
+    expect(isSyntaxTreeDocumentV3({ ...base, temporary_source: undefined } as any)).toBe(false)
+    expect(isSyntaxTreeDocumentV3({ ...base, macro_name: '#0' } as any)).toBe(false)
+    expect(isSyntaxTreeDocumentV3({ ...base, temporary_format: 'code' } as any)).toBe(false)
   })
 })

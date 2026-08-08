@@ -711,7 +711,7 @@ describe('block_template_name validation', () => {
         name: 'list',
         description: '',
         source: { entries: [], urls: [] },
-        kind: 'rule',
+        kind: 'const',
         dynamic_arity: true,
         tags: [],
         styles: [{

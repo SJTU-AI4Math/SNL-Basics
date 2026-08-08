@@ -95,11 +95,10 @@ export interface SnlMacro {
   source: SnlMacroSource
 
   /**
-   * Semantic kind (rule / const / bvar / binder / fvar / custom).
-   * If unset, nodes rendered for this macro get `data-kind="fvar"`.
-   * (There is no more `'default'` kind — un-classified = fvar.)
+   * Canonical semantic behavior. `sub` is structurally transparent; `const`
+   * covers every ordinary Macro, including consumer-defined presentation skins.
    */
-  kind?: string
+  kind?: 'const' | 'sub'
 
   /**
    * True when the macro's child count is not fixed by its template — its

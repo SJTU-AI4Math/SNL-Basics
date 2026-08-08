@@ -21,7 +21,7 @@ function mathMacro(
   }
 }
 
-function fixedMathMacro(name: string, template: string, kind?: string): SnlMacro {
+function fixedMathMacro(name: string, template: string, kind?: 'const' | 'sub'): SnlMacro {
   return {
     name,
     description: '',

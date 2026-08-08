@@ -1,18 +1,12 @@
 /**
- * Migrate syntax tree document from v1 to v2.
+ * Syntax-tree schema migrations.
  *
- * v1 node fields: name, style?, envMode?, kind?, mdata?, children
- * v2 node fields: macro_name, style_name?, env_mode?, kind?, mdata?, children
- *
- * Mapping:
- *   - name → macro_name
- *   - style → style_name
- *   - envMode → env_mode
- *   - Recursive through children
+ * v2 renamed the v1 camelCase fields. v3 separates temporary literal payloads
+ * from deterministic whole-tree coordinate identity.
  */
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 
-/** v1 tree node shape */
+/** v1 tree node shape. */
 export interface SyntaxTreeNodeV1 {
   [key: string]: unknown
   name: string
@@ -24,7 +18,16 @@ export interface SyntaxTreeNodeV1 {
   children: SyntaxTreeNodeV1[]
 }
 
-/** Detect whether a tree node is already v2 */
+/** Published v2 shape. Kinds remain open for consumer presentation skins. */
+export interface SyntaxTreeNodeV2 extends Omit<SnlSyntaxTree, 'children'> {
+  [key: string]: unknown
+  children: SyntaxTreeNodeV2[]
+}
+
+/** Current v3 shape. */
+export type SyntaxTreeNodeV3 = SnlSyntaxTree
+
+/** Detect whether a tree node is already v2. */
 export function isTreeNodeV2(node: Record<string, unknown>): boolean {
   if (!('macro_name' in node) || 'name' in node) return false
   const children = node.children
@@ -33,12 +36,36 @@ export function isTreeNodeV2(node: Record<string, unknown>): boolean {
   )
 }
 
-/** Detect whether a tree document is v2 (checks root) */
+/** Detect whether a tree document is v2 (checks the full tree). */
 export function isSyntaxTreeDocumentV2(node: Record<string, unknown>): boolean {
   return isTreeNodeV2(node)
 }
 
-/** Migrate a single tree node from v1 to v2, recursively */
+function coordinate(path: number[]): string {
+  return path.length === 0 ? '#' : `#${path.join('.')}`
+}
+
+function isTreeNodeV3(node: Record<string, unknown>, path: number[]): boolean {
+  if (typeof node.macro_name !== 'string' || typeof node.kind !== 'string' ||
+      !Object.prototype.hasOwnProperty.call(node, 'mdata') || !Array.isArray(node.children)) return false
+  if (node.temporary_format !== undefined && node.temporary_format !== 'texttt') return false
+  if (node.env_mode !== undefined) {
+    if (!['formula_inline', 'formula_display', 'text', 'block'].includes(String(node.env_mode)) ||
+        typeof node.temporary_source !== 'string' || node.macro_name !== coordinate(path)) return false
+  } else if (node.temporary_source !== undefined || node.temporary_format !== undefined) {
+    return false
+  }
+  return node.children.every((child, index) =>
+    child != null && typeof child === 'object' && !Array.isArray(child) &&
+    isTreeNodeV3(child as Record<string, unknown>, [...path, index]))
+}
+
+/** Validate current schema v3 as one coordinate-aware document. */
+export function isSyntaxTreeDocumentV3(node: Record<string, unknown>): boolean {
+  return isTreeNodeV3(node, [])
+}
+
+/** Migrate a single tree node from v1 to v2, recursively. */
 export function migrateTreeNodeV1toV2(node: SyntaxTreeNodeV1): SnlSyntaxTree {
   const { name, style, envMode, children, ...preserved } = node
   const result: SnlSyntaxTree = {
@@ -48,16 +75,37 @@ export function migrateTreeNodeV1toV2(node: SyntaxTreeNodeV1): SnlSyntaxTree {
     mdata: node.mdata ?? null,
     children: children.map(migrateTreeNodeV1toV2),
   }
-  if (style) {
-    result.style_name = style
-  }
-  if (envMode) {
-    result.env_mode = envMode as SnlSyntaxTree['env_mode']
-  }
+  if (style) result.style_name = style
+  if (envMode) result.env_mode = envMode as SnlSyntaxTree['env_mode']
   return result
 }
 
-/** Migrate a full syntax tree document from v1 to v2 */
-export function migrateSyntaxTreeDocument(root: SyntaxTreeNodeV1): SnlSyntaxTree {
-  return migrateTreeNodeV1toV2(root)
+function migrateTreeNodeV2toV3AtPath(node: SyntaxTreeNodeV2, path: number[]): SnlSyntaxTree {
+  const { children, ...preserved } = node
+  const temporary = node.env_mode !== undefined
+  return {
+    ...preserved,
+    macro_name: temporary ? coordinate(path) : node.macro_name,
+    ...(temporary ? { temporary_source: node.temporary_source ?? node.macro_name } : {}),
+    children: children.map((child, index) => migrateTreeNodeV2toV3AtPath(child, [...path, index])),
+  }
+}
+
+/**
+ * Migrate a whole v2 tree to v3. Coordinates are document-relative, so callers
+ * must pass the root rather than migrating detached nodes independently.
+ */
+export function migrateTreeNodeV2toV3(root: SyntaxTreeNodeV2): SnlSyntaxTree {
+  return migrateTreeNodeV2toV3AtPath(root, [])
+}
+
+/** Migrate a full v1, v2, or v3 syntax-tree document to v3. */
+export function migrateSyntaxTreeDocument(root: SyntaxTreeNodeV1 | SyntaxTreeNodeV2): SnlSyntaxTree {
+  if (isSyntaxTreeDocumentV3(root as unknown as Record<string, unknown>)) {
+    return root as SyntaxTreeNodeV2 as SnlSyntaxTree
+  }
+  const v2 = isSyntaxTreeDocumentV2(root as unknown as Record<string, unknown>)
+    ? root as SyntaxTreeNodeV2
+    : migrateTreeNodeV1toV2(root as SyntaxTreeNodeV1) as SyntaxTreeNodeV2
+  return migrateTreeNodeV2toV3(v2)
 }

@@ -57,8 +57,16 @@ export type MacroStyleV7Base =
       block_template_name?: string
     })
 
+/** v9 macro shape: legacy kinds remain readable for explicit migration. */
+export interface MacroV9 extends Omit<SnlMacro, 'kind'> {
+  kind?: string
+}
+
+/** v10 persisted shape: canonical documents materialize one behavior kind. */
+export type MacroV10 = Omit<SnlMacro, 'kind'> & { kind: 'const' | 'sub' }
+
 /** v7 macro shape: ordered styles, with I18n permitted only in text templates. */
-export interface MacroV7 extends Omit<SnlMacro, 'styles'> {
+export interface MacroV7 extends Omit<MacroV9, 'styles'> {
   styles: MacroStyleV7Base[]
 }
 
@@ -260,7 +268,7 @@ function stylesStructurallyMatch(left: Record<string, unknown>, right: Record<st
 }
 
 /** Upgrade a validated published-v8 macro while preserving implicit and explicit style behavior. */
-function migrateLegacyV8Macro(macro: MacroV7 & { default_style: Record<string, string> }): SnlMacro {
+function migrateLegacyV8Macro(macro: MacroV7 & { default_style: Record<string, string> }): MacroV9 {
   const firstName = macro.styles[0]?.style_name
   const mappedNames = Object.values(macro.default_style)
   if (firstName && mappedNames.every((styleName) => styleName === firstName)) {
@@ -311,7 +319,7 @@ function migrateLegacyV8Macro(macro: MacroV7 & { default_style: Record<string, s
 export function migrateMacroV7toV9(
   macro: MacroV7,
   _options: MacroV7ToV9Options = {},
-): SnlMacro {
+): MacroV9 {
   if (macro.styles.length === 0) throw new Error(`macro "${macro.name}" has no styles`)
   const legacyDefault = (macro as MacroV7 & { default_style?: unknown }).default_style
   if (legacyDefault !== undefined) {
@@ -350,7 +358,7 @@ export type MacroV8Style = SnlMacroStyle extends infer Style
   : never
 
 /** Published schema-v8 record retained for migration/source compatibility. */
-export interface MacroV8 extends Omit<SnlMacro, 'styles'> {
+export interface MacroV8 extends Omit<MacroV9, 'styles'> {
   default_style: Record<string, string>
   styles: MacroV8Style[]
 }
@@ -409,13 +417,27 @@ export function migrateMacroV7toV8(
   return { ...macro, default_style: Object.fromEntries(defaultStyleEntries), styles }
 }
 
-/** Migrate a v6, v7, or published-v8 document to schema v9. */
+/** Canonicalize one v9 Macro for schema v10. */
+export function migrateMacroV9toV10(macro: MacroV9): MacroV10 {
+  return { ...macro, kind: macro.kind === 'partial' || macro.kind === 'sub' ? 'sub' : 'const' }
+}
+
+/** Validate current schema v10 while leaving historical validators permissive. */
+export function isMacroDocumentV10(db: Record<string, unknown>): boolean {
+  if (!isMacroDocumentV9(db)) return false
+  return Object.values(db).every((macro) => {
+    const kind = (macro as Record<string, unknown>).kind
+    return kind === 'const' || kind === 'sub'
+  })
+}
+
+/** Migrate a v6, v7, v8, or v9 document to schema v10. */
 export function migrateMacroDocument(
-  db: Record<string, MacroV6 | MacroV7 | SnlMacro>,
+  db: Record<string, MacroV6 | MacroV7 | MacroV8 | MacroV9 | MacroV10>,
   options: MacroV7ToV9Options = {},
 ): Record<string, SnlMacro> {
   if (!isPlainRecord(db)) throw new Error('macro document must be a plain object')
-  if (isMacroDocumentV9(db as Record<string, unknown>)) return { ...db } as Record<string, SnlMacro>
+  if (isMacroDocumentV10(db as Record<string, unknown>)) return { ...db } as Record<string, SnlMacro>
 
   const entries: Array<[string, SnlMacro]> = []
   for (const [key, input] of Object.entries(db)) {
@@ -428,9 +450,9 @@ export function migrateMacroDocument(
     } else if (isMacroDocumentV6(one)) {
       v7 = migrateMacroV6toV7(input as MacroV6)
     } else {
-      throw new Error(`macro document entry ${JSON.stringify(key)} is not valid v6, v7, v8, or v9 data`)
+      throw new Error(`macro document entry ${JSON.stringify(key)} is not valid v6, v7, v8, v9, or v10 data`)
     }
-    entries.push([key, migrateMacroV7toV9(v7, options)])
+    entries.push([key, migrateMacroV9toV10(migrateMacroV7toV9(v7, options))])
   }
   return Object.fromEntries(entries)
 }

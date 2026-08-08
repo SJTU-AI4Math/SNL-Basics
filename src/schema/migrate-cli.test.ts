@@ -38,12 +38,12 @@ describe('migrate-schema CLI', () => {
         styles: [{ mode: 'formula_inline', template: 'X', tags: [] }],
       },
     })
-    expect(output).toContain('macro v6/v7/v8→v9')
+    expect(output).toContain('macro v6/v7/v8/v9→v10')
     expect((migrated as any).X.styles[0].style_name).toBe('default')
     expect((migrated as any).X).not.toHaveProperty('default_style')
   })
 
-  it('treats the compatible v7 shape as current v9', () => {
+  it('canonicalizes a compatible v9 shape to v10', () => {
     const { output, migrated } = migrate({
       X: {
         name: 'X', description: '', source: { entries: [], urls: [] },
@@ -51,7 +51,8 @@ describe('migrate-schema CLI', () => {
         styles: [{ style_name: 'plain', mode: 'text', template: 'X', tags: [] }],
       },
     })
-    expect(output).toContain('already macro v9')
+    expect(output).toContain('macro v6/v7/v8/v9→v10')
+    expect((migrated as any).X.kind).toBe('const')
     expect((migrated as any).X).not.toHaveProperty('default_style')
   })
 
@@ -64,7 +65,7 @@ describe('migrate-schema CLI', () => {
         styles: [{ style_name: 'plain', mode: 'text', template: 'X', tags: [] }],
       },
     })
-    expect(output).toContain('macro v6/v7/v8→v9')
+    expect(output).toContain('macro v6/v7/v8/v9→v10')
     expect((migrated as any).X).not.toHaveProperty('default_style')
   })
 
@@ -121,8 +122,8 @@ describe('migrate-schema CLI', () => {
       Current: current,
       Legacy: { ...current, name: 'Legacy', default_style: { en: 'default' } },
     })
-    expect(output).toContain('macro v6/v7/v8→v9')
-    expect((migrated as any).Current).toEqual(current)
+    expect(output).toContain('macro v6/v7/v8/v9→v10')
+    expect((migrated as any).Current).toEqual({ ...current, kind: 'const' })
     expect((migrated as any).Legacy).not.toHaveProperty('default_style')
   })
 
@@ -177,7 +178,7 @@ describe('migrate-schema CLI', () => {
       styles: [{ style_name: 'default', mode: 'text', template: 'X', tags: [] }],
     }
     const { output, migrated } = migrate({ macro_name: legacy })
-    expect(output).toContain('macro v6/v7/v8→v9')
+    expect(output).toContain('macro v6/v7/v8/v9→v10')
     expect((migrated as any).macro_name).not.toHaveProperty('default_style')
   })
 
@@ -187,7 +188,9 @@ describe('migrate-schema CLI', () => {
       styles: [{ style_name: 'default', mode: 'text', template: name, tags: [] }],
     })
     const { output, migrated } = migrate({ name: macro('name'), children: macro('children') })
-    expect(output).toContain('already macro v9')
+    expect(output).toContain('macro v6/v7/v8/v9→v10')
+    expect((migrated as any).name.kind).toBe('const')
+    expect((migrated as any).children.kind).toBe('const')
     expect(Object.keys(migrated as object).sort()).toEqual(['children', 'name'])
   })
 
@@ -222,5 +225,32 @@ describe('migrate-schema CLI', () => {
   it('adds required defaults when migrating a minimal v1 tree', () => {
     const { migrated } = migrate({ name: 'x', children: [] })
     expect(migrated).toEqual({ macro_name: 'x', kind: '', mdata: null, children: [] })
+  })
+
+  it('migrates legacy Macro kinds to canonical v10 kinds', () => {
+    const macro = (name: string, kind?: string) => ({
+      name, description: '', source: { entries: [], urls: [] }, dynamic_arity: false, tags: [], kind,
+      styles: [{ style_name: 'default', mode: 'text', template: name, tags: [] }],
+    })
+    const { output, migrated } = migrate({ Partial: macro('Partial', 'partial'), Rule: macro('Rule', 'rule') })
+    expect(output).toContain('macro v6/v7/v8/v9→v10')
+    expect((migrated as any).Partial.kind).toBe('sub')
+    expect((migrated as any).Rule.kind).toBe('const')
+  })
+
+  it('migrates a whole v2 tree to coordinate-aware v3 temporary nodes', () => {
+    const { output, migrated } = migrate({
+      macro_name: 'root', kind: 'custom', mdata: null, children: [{
+        macro_name: 'branch', kind: 'binder', mdata: null, children: [{
+          macro_name: 'literal', env_mode: 'text', temporary_format: 'texttt',
+          kind: '', mdata: null, extension_data: true, children: [],
+        }],
+      }],
+    })
+    expect(output).toContain('tree v2→v3')
+    expect((migrated as any).children[0].children[0]).toEqual({
+      macro_name: '#0.0', temporary_source: 'literal', env_mode: 'text', temporary_format: 'texttt',
+      kind: '', mdata: null, extension_data: true, children: [],
+    })
   })
 })
