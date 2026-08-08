@@ -38,4 +38,6 @@ describe('SnlActivationController', () => {
     expect(replacement).toHaveBeenCalledOnce()
     expect(fallback).not.toHaveBeenCalled()
   })
+
+
 })

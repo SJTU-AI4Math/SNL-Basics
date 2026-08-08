@@ -21,6 +21,7 @@ import {
 } from './index'
 import type { MacroV6, MacroStyleV6, SyntaxTreeNodeV1, SyntaxTreeNodeV2 } from './index'
 import type { I18n } from '../runtime'
+import { resolveSnlSemantics } from '../snl-syntax-tree/semantic-resolver'
 
 describe('schema/versions', () => {
   it('exports correct version constants', () => {
@@ -565,6 +566,17 @@ describe('schema/migrate-tree', () => {
     expect(v3.children[1].children[0]).toEqual(expect.objectContaining({
       macro_name: '#1.0', temporary_source: 'same', env_mode: 'formula_inline',
     }))
+  })
+
+  it('preserves legacy binder identity when migrating v2 to v3', () => {
+    const migrated = migrateTreeNodeV2toV3({
+      macro_name: 'root', kind: '', mdata: null, children: [
+        { macro_name: 'x', kind: 'binder', mdata: null, children: [] },
+        { macro_name: 'x', kind: '', mdata: null, children: [] },
+      ],
+    })
+    expect(migrated.children[0].binder_name).toBe('x')
+    expect(resolveSnlSemantics(migrated, {}).tree.children[1].kind).toBe('bvar')
   })
 
   it('assigns # to a temporary root and preserves temporary texttt plus unknown fields', () => {

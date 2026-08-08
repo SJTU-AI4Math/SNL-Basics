@@ -8,7 +8,10 @@ export function extractExportedBinders(snl: string): Set<string> {
   let tree: SnlSyntaxTree
   try { tree = parseSnlSyntaxTree(snl) } catch { return out }
   const visit = (node: SnlSyntaxTree): void => {
-    if (node.kind === 'binder') { out.add(node.macro_name); return }
+    if (node.kind === 'binder') {
+      out.add(node.binder_name ?? node.temporary_source ?? node.macro_name)
+      return
+    }
     node.children.forEach(visit)
   }
   visit(tree)
@@ -18,7 +21,13 @@ export function extractExportedBinders(snl: string): Set<string> {
 export function applyContextSource(tree: SnlSyntaxTree, source: SnlSyntaxTree | null): void {
   if (!source) return
   const binders = new Set<string>()
-  const collect = (node: SnlSyntaxTree): void => { if (node.kind === 'binder') { binders.add(node.macro_name); return }; node.children.forEach(collect) }
+  const collect = (node: SnlSyntaxTree): void => {
+    if (node.kind === 'binder') {
+      binders.add(node.binder_name ?? node.temporary_source ?? node.macro_name)
+      return
+    }
+    node.children.forEach(collect)
+  }
   collect(source)
   const visit = (node: SnlSyntaxTree): void => {
     const mdata = node.mdata && typeof node.mdata === 'object' ? node.mdata as Record<string, unknown> : undefined

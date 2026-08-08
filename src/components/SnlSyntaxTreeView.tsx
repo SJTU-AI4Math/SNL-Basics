@@ -848,7 +848,7 @@ export function SnlSyntaxTreeView({
     const bindingKey = readBindingSourceKeyFromDom(target)
     const pathAttr = target.getAttribute('data-tree-path')
     const treePath = pathAttr == null ? null : decodeTreePath(pathAttr)
-    const actualNode = treePath == null ? undefined : resolveTreePath(tree, treePath)
+    const actualNode = treePath == null ? undefined : resolveTreePath(renderTree, treePath)
     const bindingEntry = bindingKey
       ? bvarScopeIndexRef.current.get(bindingKey)
       : undefined
@@ -1149,7 +1149,7 @@ export function SnlSyntaxTreeView({
     const interactive: HTMLElement[] = []
     for (const element of container.querySelectorAll<HTMLElement>('[data-tree-path]')) {
       const path = decodeTreePath(element.getAttribute('data-tree-path') ?? '')
-      const node = resolveTreePath(tree, path)
+      const node = resolveTreePath(renderTree, path)
       const macro = node ? resolvedMacros[node.macro_name] : undefined
       if (!macro?.source.entries[0]) continue
       element.tabIndex = 0
@@ -1165,7 +1165,7 @@ export function SnlSyntaxTreeView({
         delete element.dataset.snlKeyboardActivation
       }
     }
-  }, [_interaction_driver, resolvedMacros, result, tree])
+  }, [_interaction_driver, resolvedMacros, result, renderTree])
 
   const dispatchElementActivation = (
     el: HTMLElement,
@@ -1176,7 +1176,7 @@ export function SnlSyntaxTreeView({
     const container = containerRef.current
     if (!container) return
     const path = decodeTreePath(el.getAttribute('data-tree-path') ?? '')
-    const node = resolveTreePath(tree, path)
+    const node = resolveTreePath(renderTree, path)
     if (!node) return
     const macro = resolvedMacros[node.macro_name] ?? null
     const ctx: SnlInteractionContext = {

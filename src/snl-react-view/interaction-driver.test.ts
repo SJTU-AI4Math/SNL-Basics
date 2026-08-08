@@ -233,7 +233,8 @@ describe('SnlSyntaxTreeView delegated interactions', () => {
     await waitFor(() => expect(onClick).toHaveBeenCalledTimes(1))
     const ctx = onClick.mock.calls[0][0] as SnlInteractionContext
     expect(ctx.tree_path).toEqual([0, 0])
-    expect(ctx.node).toBe(tree.children[0].children[0])
+    expect(ctx.node).not.toBe(tree.children[0].children[0])
+    expect(ctx.node.kind).toBe('fvar')
     expect(ctx.node.mdata).toEqual({ identity: 'nested' })
   })
 
@@ -270,6 +271,7 @@ describe('SnlSyntaxTreeView delegated interactions', () => {
     expect(ctx.tree_path).toEqual([1])
     expect(ctx.meta_key).toBe(true)
     expect(ctx.ctrl_key).toBe(false)
-    expect(ctx.node).toBe(tree.children[1])
+    expect(ctx.node).not.toBe(tree.children[1])
+    expect(ctx.node.kind).toBe('fvar')
   })
 })

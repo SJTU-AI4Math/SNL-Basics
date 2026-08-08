@@ -456,7 +456,7 @@ function assignTemporaryCoordinates(node: SnlSyntaxTree, path: number[] = []): v
     node.macro_name = path.length === 0 ? '#' : `#${path.join('.')}`
   }
   if (node.binder_explicit && node.binder_name === undefined) {
-    node.binder_name = node.macro_name
+    node.binder_name = node.temporary_source ?? node.macro_name
   }
   node.children.forEach((child, index) => assignTemporaryCoordinates(child, [...path, index]))
 }

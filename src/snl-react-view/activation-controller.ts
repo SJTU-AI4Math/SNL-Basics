@@ -9,7 +9,7 @@ export interface SnlActivationDispatch<P, E> {
 
 export type SnlActivationHandler<P, E> = (
   dispatch: SnlActivationDispatch<P, E>,
-) => void | Promise<void>
+) => void
 
 export interface SnlActivationControllerOptions<P, E> {
   enabled?: boolean
@@ -47,8 +47,7 @@ export class SnlActivationController<P = unknown, E = unknown> {
     const handler = this.handlers[phase]
     if (handler) {
       try {
-        const result = handler({ phase, event, params: this.params, runDefault: once })
-        if (result !== undefined) void Promise.resolve(result).catch(() => {})
+        handler({ phase, event, params: this.params, runDefault: once })
       } catch { /* consumer activation handlers cannot break the view */ }
       return defaultRan
     }

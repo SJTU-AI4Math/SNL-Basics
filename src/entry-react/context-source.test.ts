@@ -1,9 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import { parseSnlSyntaxTree } from '../snl-react-view/parse'
 import { EntryDataDriver } from './entry-data-driver'
-import { resolveEntryContextSources } from './context-source'
+import { extractExportedBinders, resolveEntryContextSources } from './context-source'
 
 describe('query-driven Entry context source lookup', () => {
+  it('exports binder overrides and temporary payload names, never coordinates', () => {
+    expect(extractExportedBinders('root(@x@alias,@$y$)')).toEqual(new Set(['alias', 'y']))
+  })
+
   it('queries referenced entries and upgrades matching source-bound variables', async () => {
     const tree = parseSnlSyntaxTree('x@ctx')
     const driver = new EntryDataDriver({ queries: {

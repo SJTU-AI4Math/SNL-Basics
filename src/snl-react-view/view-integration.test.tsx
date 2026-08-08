@@ -347,7 +347,8 @@ describe('SnlInteractionDriver integration', () => {
       fireEvent.mouseMove(pointed, { clientX: 3, clientY: 4 })
       act(() => vi.advanceTimersByTime(2000))
       expect(afterTwoSeconds).toHaveBeenCalledTimes(1)
-      expect(afterTwoSeconds.mock.calls[0][0].node).toBe(second.children[1])
+      expect(afterTwoSeconds.mock.calls[0][0].node).not.toBe(second.children[1])
+      expect(afterTwoSeconds.mock.calls[0][0].node).toMatchObject({ macro_name: 'x', kind: 'const' })
     } finally {
       vi.useRealTimers()
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
@@ -530,7 +531,8 @@ describe('SnlInteractionDriver integration', () => {
     try {
       fireEvent.mouseMove(target, { clientX: 20, clientY: 30, shiftKey: true })
       await waitFor(() => expect(hovers).toHaveLength(1))
-      expect(hovers[0].node).toBe(tree.children[1])
+      expect(hovers[0].node).not.toBe(tree.children[1])
+      expect(hovers[0].node).toMatchObject({ macro_name: 'x', kind: 'const' })
       expect(hovers[0].tree_path).toEqual([1])
       expect(hovers[0].client_x).toBe(20)
       expect(hovers[0].shift_key).toBe(true)
@@ -751,7 +753,8 @@ describe('block_template_name validation', () => {
     try {
       fireEvent.mouseMove(host, { clientX: 8, clientY: 9 })
       await waitFor(() => expect(hovers).toHaveLength(1))
-      expect(hovers[0].node).toBe(tree)
+      expect(hovers[0].node).not.toBe(tree)
+      expect(hovers[0].node).toMatchObject({ macro_name: 'list', kind: 'const' })
       expect(hovers[0].tree_path).toEqual([])
     } finally {
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })

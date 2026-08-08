@@ -87,6 +87,9 @@ function migrateTreeNodeV2toV3AtPath(node: SyntaxTreeNodeV2, path: number[]): Sn
     ...preserved,
     macro_name: temporary ? coordinate(path) : node.macro_name,
     ...(temporary ? { temporary_source: node.temporary_source ?? node.macro_name } : {}),
+    ...(node.kind === 'binder' && node.binder_name === undefined
+      ? { binder_name: node.temporary_source ?? node.macro_name }
+      : {}),
     children: children.map((child, index) => migrateTreeNodeV2toV3AtPath(child, [...path, index])),
   }
 }
