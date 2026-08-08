@@ -10,7 +10,7 @@ const macroDriver = new MacroDataDriver({ queries: { query_macro: async () => nu
 const base = (content: EntryData['content'], extra: Partial<EntryData> = {}): EntryData => ({ id: 'e', kind: 'definition', title: 'Ring $R$', content, ...extra })
 const dataDriver = (entries: Record<string, EntryData | undefined> = {}) => new EntryDataDriver({ queries: {
   query_entry: async ({ entry_id, signal }) => { if (signal?.aborted) throw new DOMException('Aborted', 'AbortError'); return entries[entry_id] ?? null },
-  query_entry_kind: async () => ({ id: 'definition', name: 'Definition', coloring: { stroke: '#123456', background: 'transparent' } }),
+  query_entry_kind: async () => ({ id: 'definition', name: 'Definition', coloring: { light: { stroke: '#123456', background: 'transparent' }, dark: { stroke: '#123456', background: 'transparent' } } }),
 } })
 
 afterEach(cleanup)
@@ -72,7 +72,7 @@ describe('Entry surface dispatch', () => {
   })
 
   it('only shows title activation affordances while Ctrl is held over the title', () => {
-    const view = render(<EntrySurface entry={base({})} kind={{ id: 'definition', name: 'Definition', coloring: { stroke: '#123456', background: '#eeeeee' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} interaction_ports={{ on_title_activate: vi.fn() }} />)
+    const view = render(<EntrySurface entry={base({})} kind={{ id: 'definition', name: 'Definition', coloring: { light: { stroke: '#123456', background: '#eeeeee' }, dark: { stroke: '#123456', background: '#eeeeee' } } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} interaction_ports={{ on_title_activate: vi.fn() }} />)
     const title = view.container.querySelector('strong')!
 
     fireEvent.mouseEnter(title)
@@ -86,7 +86,7 @@ describe('Entry surface dispatch', () => {
   })
 
   it('restores the Entry Block white hard-edge glow and uses light gray while Ctrl-hovered', () => {
-    const view = render(<EntrySurface entry={base({ text: 'body' })} kind={{ id: 'definition', name: 'Definition', coloring: { stroke: '#123456', background: '#eeeeee' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
+    const view = render(<EntrySurface entry={base({ text: 'body' })} kind={{ id: 'definition', name: 'Definition', coloring: { light: { stroke: '#123456', background: '#eeeeee' }, dark: { stroke: '#123456', background: '#eeeeee' } } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
     const section = view.container.querySelector('section') as HTMLElement
 
     expect((section as HTMLElement).style.background).toBe('rgb(238, 238, 238)')
@@ -113,6 +113,35 @@ describe('Entry surface dispatch', () => {
     fireEvent.keyUp(window, { key: 'Control' })
   })
 
+  it('exposes customizable Entry Block hover, Ctrl-hover, and Ctrl-click events', () => {
+    const hover = vi.fn(); const ctrlHover = vi.fn(); const ctrlClick = vi.fn()
+    const view = render(<EntrySurface entry={base({})} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} interaction_ports={{ on_block_hover: hover, on_block_ctrl_hover: ctrlHover, on_block_ctrl_click: ctrlClick }} />)
+    const section = view.container.querySelector('section')!
+    fireEvent.pointerEnter(section)
+    fireEvent.pointerLeave(section)
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })
+    fireEvent.pointerEnter(section)
+    fireEvent.click(section, { ctrlKey: true })
+    expect(hover).toHaveBeenCalledWith(expect.objectContaining({ entry: expect.objectContaining({ id: 'e' }), ctrl_key: false }))
+    expect(ctrlHover).toHaveBeenCalledWith(expect.objectContaining({ entry: expect.objectContaining({ id: 'e' }), ctrl_key: true }))
+    expect(ctrlClick).toHaveBeenCalledWith(expect.objectContaining({ entry: expect.objectContaining({ id: 'e' }), ctrl_key: true }), expect.anything())
+  })
+
+  it('selects Entry Kind colors through the Entry driver context reader', () => {
+    const driver = new EntryDataDriver({
+      queries: { query_entry: async () => null, query_entry_kind: async () => null },
+      context_reader: () => ({ color_scheme: 'dark' }),
+    })
+    const kind = { id: 'definition', name: 'Definition', coloring: {
+      light: { stroke: '#111111', background: '#eeeeee' },
+      dark: { stroke: '#abcdef', background: '#123456' },
+    } }
+    const view = render(<EntrySurface entry={base({})} kind={kind} entry_data_driver={driver} macro_data_driver={macroDriver} />)
+    const style = view.container.querySelector('section')?.getAttribute('style') ?? ''
+    expect(style).toContain('rgb(171, 205, 239)')
+    expect(style).toContain('rgb(18, 52, 86)')
+  })
+
   it('shows parse errors and original SNL source', () => {
     const view = render(<EntrySurface entry={base({ snl: '{broken' })} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
     expect(view.container.textContent).toMatch(/SNL parse error/i)
@@ -124,7 +153,7 @@ describe('Entry surface dispatch', () => {
     expect(titleToKatexSource(String.raw`cost \$5 $$ raw $x$`)).toContain(String.raw`\text{cost \$5 \$\$ raw }x`)
     expect(titleToKatexSource('unbalanced $x')).toContain(String.raw`\text{unbalanced \$x}`)
     expect(titleToKatexSource('A&B_{x}')).toBe(String.raw`\text{A\&B\_\{x\}}`)
-    const view = render(<EntrySurface entry={base({ text: 'body' })} kind={{ id: 'definition', name: 'Definition', coloring: { stroke: '#123456', background: '#eeeeee' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} counter_label="1.2" />)
+    const view = render(<EntrySurface entry={base({ text: 'body' })} kind={{ id: 'definition', name: 'Definition', coloring: { light: { stroke: '#123456', background: '#eeeeee' }, dark: { stroke: '#123456', background: '#eeeeee' } } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} counter_label="1.2" />)
     const section = view.container.querySelector('section')!
     expect(section.getAttribute('style')).toContain('rgb(18, 52, 86)')
     expect(view.container.querySelector('[data-entry-body]')?.getAttribute('style')).toContain('color: rgb(17, 17, 17)')
@@ -133,7 +162,7 @@ describe('Entry surface dispatch', () => {
   })
 
   it('treats whitespace-only bodies as empty and preserves literal kind colors', () => {
-    const view = render(<EntrySurface entry={base({ snl: '  ', markdown: '\n', latex: '\t', text: ' ' })} kind={{ id: 'custom', name: 'Custom', coloring: { stroke: 'rebeccapurple', background: 'transparent' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
+    const view = render(<EntrySurface entry={base({ snl: '  ', markdown: '\n', latex: '\t', text: ' ' })} kind={{ id: 'custom', name: 'Custom', coloring: { light: { stroke: 'rebeccapurple', background: 'transparent' }, dark: { stroke: 'rebeccapurple', background: 'transparent' } } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
     expect(view.container.querySelector('[data-entry-body]')).toBeNull()
     expect(view.container.querySelector('section')?.getAttribute('style')).toContain('rebeccapurple')
     expect(view.container.querySelector('section')?.getAttribute('style')).toContain('transparent')
@@ -144,7 +173,7 @@ describe('Entry surface dispatch', () => {
     expect(neutral.container.querySelector('section')?.getAttribute('style')).toContain('rgb(238, 238, 238)')
     neutral.unmount()
 
-    const themed = render(<EntrySurface entry={base({})} kind={{ id: 'custom', name: 'Custom', coloring: { stroke: '', background: '' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
+    const themed = render(<EntrySurface entry={base({})} kind={{ id: 'custom', name: 'Custom', coloring: { light: { stroke: '', background: '' }, dark: { stroke: '', background: '' } } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
     const style = themed.container.querySelector('section')?.getAttribute('style') ?? ''
     expect(style).toContain('var(--vscode-editor-foreground, #ddd)')
     expect(style).toContain('background: transparent')

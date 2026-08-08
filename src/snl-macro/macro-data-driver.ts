@@ -11,6 +11,7 @@
  */
 
 import type { SnlMacro } from './types'
+import { DEFAULT_CONTEXT_READER, type ContextReader, type RenderContext } from '../runtime/render-context'
 
 // ─── Public types ────────────────────────────────────────────────────────────
 
@@ -37,6 +38,7 @@ export interface MacroDataDriverOptions {
   queries: MacroDataQueries
   /** Maximum number of entries (hit + miss) to cache. Default: 256. */
   cache_capacity?: number
+  context_reader?: ContextReader
 }
 
 
@@ -54,6 +56,7 @@ export interface MacroDataDriverOptions {
 export class MacroDataDriver {
   private readonly queries: MacroDataQueries
   private readonly cache_capacity: number
+  private readonly context_reader: ContextReader
 
   // LRU cache: Map preserves insertion order. Stores both hits (SnlMacro) and
   // misses (null) so we don't re-query unknown names.
@@ -65,11 +68,16 @@ export class MacroDataDriver {
 
   constructor(options: MacroDataDriverOptions) {
     this.queries = options.queries
+    this.context_reader = options.context_reader ?? DEFAULT_CONTEXT_READER
     const capacity = options.cache_capacity ?? 256
     if (!Number.isInteger(capacity) || capacity < 0) {
       throw new RangeError('cache_capacity must be a non-negative integer')
     }
     this.cache_capacity = capacity
+  }
+
+  read_context(): RenderContext {
+    return this.context_reader()
   }
 
   /**

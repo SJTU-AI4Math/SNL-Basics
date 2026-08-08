@@ -10,13 +10,13 @@ import {
 describe('DEFAULT_KIND_PALETTE', () => {
   it('has the 5 Lean-Expr defaults + sub helper entry', () => {
     expect(DEFAULT_KIND_PALETTE).toMatchObject({
-      rule: { stroke: '#009C27', background: '#D6FEE0' },
-      const: { stroke: '#005B9C', background: '#DAF0FF' },
-      bvar: { stroke: '#7700E4', background: '#EFDFFF' },
-      binder: { stroke: '#E07B00', background: '#FFEBD2' },
-      fvar: { stroke: '#D20022', background: '#FFD6DC' },
+      rule: { light: { stroke: '#009C27', background: '#D6FEE0' }, dark: { stroke: '#009C27', background: '#D6FEE0' } },
+      const: { light: { stroke: '#005B9C', background: '#DAF0FF' }, dark: { stroke: '#005B9C', background: '#DAF0FF' } },
+      bvar: { light: { stroke: '#7700E4', background: '#EFDFFF' }, dark: { stroke: '#7700E4', background: '#EFDFFF' } },
+      binder: { light: { stroke: '#E07B00', background: '#FFEBD2' }, dark: { stroke: '#E07B00', background: '#FFEBD2' } },
+      fvar: { light: { stroke: '#D20022', background: '#FFD6DC' }, dark: { stroke: '#D20022', background: '#FFD6DC' } },
       // Partial is a hover-transparent kind — see kind-palette.ts.
-      sub: { stroke: 'inherit', background: 'transparent' },
+      sub: { light: { stroke: 'inherit', background: 'transparent' }, dark: { stroke: 'inherit', background: 'transparent' } },
     })
     expect(Object.keys(DEFAULT_KIND_PALETTE)).toHaveLength(6)
   })
@@ -39,13 +39,13 @@ describe('alpha', () => {
 
 describe('paletteToCss', () => {
   it('emits per-kind hover treatment (no base color; text stays original until hovered)', () => {
-    const css = paletteToCss(DEFAULT_KIND_PALETTE)
+    const css = paletteToCss(DEFAULT_KIND_PALETTE, 'light')
     for (const [kind, coloring] of Object.entries(DEFAULT_KIND_PALETTE)) {
       // No base color rule — un-hovered text keeps its native color.
-      expect(css).not.toContain(`.katex-html [data-kind="${kind}"] { color: ${coloring.stroke}; }`)
+      expect(css).not.toContain(`.katex-html [data-kind="${kind}"] { color: ${coloring.light.stroke}; }`)
       // Hover treatment still emitted, and includes the kind's stroke + background.
       expect(css).toContain(`.katex-html .snl-single-hover[data-kind="${kind}"]`)
-      expect(css).toContain(`box-shadow: 0 0 0 1px ${coloring.background};`)
+      expect(css).toContain(`box-shadow: 0 0 0 1px ${alpha(coloring.light.stroke, 0.5)};`)
     }
     // Hover background is the kind background at 50% alpha.
     expect(css).toContain('rgba(214, 254, 224, 0.5)') // rule background @ 50%
@@ -55,19 +55,19 @@ describe('paletteToCss', () => {
   })
 
   it('lets a consumer palette override defaults while defaults fill the rest', () => {
-    const merged: KindPalette = { ...DEFAULT_KIND_PALETTE, const: { stroke: '#123456', background: '#abcdef' } }
-    const css = paletteToCss(merged)
+    const merged: KindPalette = { ...DEFAULT_KIND_PALETTE, const: { light: { stroke: '#123456', background: '#abcdef' }, dark: { stroke: '#fedcba', background: '#654321' } } }
+    const css = paletteToCss(merged, 'dark')
     // Overridden `const` shows up in its hover rule.
     expect(css).toContain('.katex-html .snl-single-hover[data-kind="const"]')
-    expect(css).toContain('color: #123456;')
-    expect(css).toContain('box-shadow: 0 0 0 1px #abcdef;')
+    expect(css).toContain('color: #fedcba;')
+    expect(css).toContain('box-shadow: 0 0 0 1px rgba(254, 220, 186, 0.5);')
     // A default kind (rule) is still present in its hover rule.
     expect(css).toContain('.katex-html .snl-single-hover[data-kind="rule"]')
     expect(css).toContain('color: #009C27;')
   })
 
   it('throws on an unsafe kind name (CSS-injection guard)', () => {
-    expect(() => paletteToCss({ 'x"] { evil': { stroke: '#000', background: '#fff' } })).toThrow()
+    expect(() => paletteToCss({ 'x"] { evil': { light: { stroke: '#000', background: '#fff' }, dark: { stroke: '#fff', background: '#000' } } }, 'light')).toThrow()
     expect(() => assertSafeKindName('bad name')).toThrow()
     expect(() => assertSafeKindName('good-Name_1')).not.toThrow()
   })

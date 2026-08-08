@@ -4,6 +4,17 @@ import { EntryDataDriver, type EntryData } from './entry-data-driver'
 const entry = (id: string): EntryData => ({ id, kind: 'definition', title: id, content: {} })
 
 describe('EntryDataDriver', () => {
+  it('reads the live color scheme from the constructor context reader', () => {
+    let color_scheme: 'light' | 'dark' = 'dark'
+    const driver = new EntryDataDriver({
+      queries: { query_entry: async () => null, query_entry_kind: async () => null },
+      context_reader: () => ({ color_scheme }),
+    })
+    expect(driver.read_context()).toEqual({ color_scheme: 'dark' })
+    color_scheme = 'light'
+    expect(driver.read_context()).toEqual({ color_scheme: 'light' })
+  })
+
   it('deduplicates unsignalled requests and caches hits and misses', async () => {
     const query_entry = vi.fn(async ({ entry_id }: { entry_id: string }) => entry_id === 'x' ? entry('x') : null)
     const driver = new EntryDataDriver({ queries: { query_entry, query_entry_kind: async () => null } })
@@ -74,7 +85,7 @@ describe('EntryDataDriver', () => {
   it('queries kinds and propagates backend errors', async () => {
     const driver = new EntryDataDriver({ queries: {
       query_entry: async () => { throw new Error('offline') },
-      query_entry_kind: async ({ kind_id }) => ({ id: kind_id, name: 'Definition', coloring: { stroke: '#123', background: 'transparent' } }),
+      query_entry_kind: async ({ kind_id }) => ({ id: kind_id, name: 'Definition', coloring: { light: { stroke: '#123', background: 'transparent' }, dark: { stroke: '#123', background: 'transparent' } } }),
     } })
     await expect(driver.query_entry({ entry_id: 'x' })).rejects.toThrow('offline')
     expect((await driver.query_entry_kind({ kind_id: 'definition' }))?.name).toBe('Definition')

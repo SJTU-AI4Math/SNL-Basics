@@ -13,3 +13,9 @@ export {
   type ReaderRuntimeOptions,
   type ReaderRuntimeQueries,
 } from './reader-runtime'
+export {
+  DEFAULT_CONTEXT_READER,
+  type ColorScheme,
+  type ContextReader,
+  type RenderContext,
+} from './render-context'

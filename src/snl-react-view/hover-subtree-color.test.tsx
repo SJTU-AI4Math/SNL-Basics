@@ -57,7 +57,7 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
   })
 
   it('paletteToCss: per-kind hover rules for the 5 defaults; no bracket-syntax fossils; no base color', () => {
-    const generated = paletteToCss(DEFAULT_KIND_PALETTE)
+    const generated = paletteToCss(DEFAULT_KIND_PALETTE, 'light')
     for (const kind of ['rule', 'const', 'binder', 'bvar', 'fvar']) {
       expect(generated).toContain(`.katex-html .snl-single-hover[data-kind="${kind}"]`)
       // No base color rule — un-hovered text keeps its native color (see #1 spec).

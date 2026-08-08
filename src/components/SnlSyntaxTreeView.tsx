@@ -640,10 +640,10 @@ export function SnlSyntaxTreeView({
   }, [tree, macro_data_driver])
 
   const mergedHooks = useMemo(() => ({ ...defaultRenderHooks, ...hooks }), [hooks])
-  const paletteCss = useMemo(
-    () => paletteToCss({ ...DEFAULT_KIND_PALETTE, ...kindPalette }),
-    [kindPalette],
-  )
+  const colorScheme = macro_data_driver.read_context().color_scheme
+  const paletteCss = useMemo(() => {
+    return paletteToCss({ ...DEFAULT_KIND_PALETTE, ...kindPalette }, colorScheme)
+  }, [colorScheme, kindPalette])
   // Derive a SnlMacroRecord-compatible view from the cache (filters out nulls)
   const resolvedMacros: SnlMacroRecord = useMemo(() => {
     const db: SnlMacroRecord = {}

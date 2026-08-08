@@ -19,6 +19,7 @@ export {
   EntryPreviewProvider,
   escapeForKatexText,
   titleToKatexSource,
+  type EntryBlockInteractionContext,
   type EntryInteractionPorts,
   type EntrySurfaceProps,
   type EntryViewProps,
@@ -37,4 +38,5 @@ export {
 } from '../snl-react-view/interaction-driver'
 export type { SnlRenderHooks } from '../snl-react-view/hooks'
 export type { KindPalette } from '../snl-react-view/kind-palette'
+export type { ColorScheme, ContextReader, RenderContext } from '../runtime'
 export { extractExportedBinders, applyContextSource, resolveEntryContextSources } from './context-source'

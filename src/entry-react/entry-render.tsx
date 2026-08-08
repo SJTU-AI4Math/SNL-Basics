@@ -27,10 +27,20 @@ import {
 } from './entry-data-driver'
 import { resolveEntryContextSources } from './context-source'
 
+export interface EntryBlockInteractionContext {
+  entry: EntryData
+  kind: EntryKind | null
+  target: HTMLElement
+  ctrl_key: boolean
+}
+
 export interface EntryInteractionPorts {
   on_title_activate?: (entry_id: string, event: React.MouseEvent) => void | Promise<void>
   on_source_activate?: (pointer: unknown, entry_id: string, event: React.MouseEvent) => void | Promise<void>
   on_preview_activate?: (entry_id: string, event: React.MouseEvent | null) => void | Promise<void>
+  on_block_hover?: (context: EntryBlockInteractionContext) => void | Promise<void>
+  on_block_ctrl_hover?: (context: EntryBlockInteractionContext) => void | Promise<void>
+  on_block_ctrl_click?: (context: EntryBlockInteractionContext, event: React.MouseEvent) => void | Promise<void>
 }
 
 export interface EntrySurfaceProps {
@@ -182,8 +192,9 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
   }
   const bodySurface = contentError ? 'error' : surface(content)
   const html = useMemo(() => titleHtml(entry.title ?? ''), [entry.title])
-  const stroke = resolveEntryStroke(kind?.coloring?.stroke)
-  const background = resolveEntryBackground(kind?.coloring?.background)
+  const entryColors = kind?.coloring?.[props.entry_data_driver.read_context().color_scheme]
+  const stroke = resolveEntryStroke(entryColors?.stroke)
+  const background = resolveEntryBackground(entryColors?.background)
   const kindName = kind?.name || entry.kind
   const preview = React.useContext(EntryPreviewContext)
   const ownedPreviewIds = useRef(new Set<string>())
@@ -193,6 +204,8 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     ownedPreviewIds.current.clear()
   }, [preview])
   const [blockHovered, setBlockHovered] = useState(false)
+  const blockTargetRef = useRef<HTMLElement | null>(null)
+  const blockHoverModeRef = useRef<'hover' | 'ctrl' | null>(null)
   const [titleHovered, setTitleHovered] = useState(false)
   const ctrlPressed = useCtrlPressed()
   const titleActivationActive = Boolean(interaction_ports?.on_title_activate && titleHovered && ctrlPressed)
@@ -223,12 +236,37 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     })
   }, [interaction_driver, interaction_ports, preview])
   const invoke = (result: void | Promise<void> | undefined): void => { if (result instanceof Promise) void result.catch(() => undefined) }
+  useEffect(() => {
+    const target = blockTargetRef.current
+    if (!blockHovered || !target) return
+    const mode = ctrlPressed ? 'ctrl' : 'hover'
+    if (blockHoverModeRef.current === mode) return
+    blockHoverModeRef.current = mode
+    const context: EntryBlockInteractionContext = { entry, kind, target, ctrl_key: ctrlPressed }
+    invoke(ctrlPressed
+      ? interaction_ports?.on_block_ctrl_hover?.(context)
+      : interaction_ports?.on_block_hover?.(context))
+  }, [blockHovered, ctrlPressed, entry, interaction_ports, kind])
   const interactiveBackground = blockHovered ? (ctrlPressed ? '#f3f4f6' : '#ffffff') : background
   return <section
     data-entry-id={entry.id}
     className={props.className}
-    onPointerEnter={() => setBlockHovered(true)}
-    onPointerLeave={() => setBlockHovered(false)}
+    onPointerEnter={(event) => {
+      blockTargetRef.current = event.currentTarget
+      blockHoverModeRef.current = null
+      setBlockHovered(true)
+    }}
+    onPointerLeave={() => {
+      setBlockHovered(false)
+      blockTargetRef.current = null
+      blockHoverModeRef.current = null
+    }}
+    onClick={(event) => {
+      if (!event.ctrlKey) return
+      const target = event.target as HTMLElement
+      if (target.closest('button, a, strong, [data-tree-path], [role="button"]')) return
+      invoke(interaction_ports?.on_block_ctrl_click?.({ entry, kind, target: event.currentTarget, ctrl_key: true }, event))
+    }}
     style={{
       borderLeft: `5px solid ${stroke}`,
       background: interactiveBackground,

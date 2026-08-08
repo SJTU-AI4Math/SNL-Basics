@@ -6,6 +6,7 @@ import {
   type ReaderM,
   type ReaderRuntime,
 } from '../runtime'
+import { DEFAULT_CONTEXT_READER, type ContextReader, type RenderContext } from '../runtime/render-context'
 
 export interface EntryContent {
   snl?: string
@@ -72,7 +73,10 @@ export interface EntryData {
 export interface EntryKind {
   id: string
   name: string
-  coloring?: { stroke?: string; background?: string }
+  coloring?: {
+    light: { stroke: string; background: string }
+    dark: { stroke: string; background: string }
+  }
   numbering?: string
   style?: string
 }
@@ -94,6 +98,7 @@ export interface EntryDataQueries {
 export interface EntryDataDriverOptions {
   queries: EntryDataQueries
   cache_capacity?: number
+  context_reader?: ContextReader
 }
 
 type Cached = EntryData | EntryKind | null
@@ -102,6 +107,7 @@ type Cached = EntryData | EntryKind | null
 export class EntryDataDriver {
   private readonly queries: EntryDataQueries
   private readonly capacity: number
+  private readonly context_reader: ContextReader
   private readonly cache = new Map<string, Cached>()
   private readonly inflight = new Map<string, Promise<Cached>>()
   private epoch = 0
@@ -109,9 +115,14 @@ export class EntryDataDriver {
 
   constructor(options: EntryDataDriverOptions) {
     this.queries = options.queries
+    this.context_reader = options.context_reader ?? DEFAULT_CONTEXT_READER
     const capacity = options.cache_capacity ?? 256
     if (!Number.isInteger(capacity) || capacity < 0) throw new RangeError('cache_capacity must be a non-negative integer')
     this.capacity = capacity
+  }
+
+  read_context(): RenderContext {
+    return this.context_reader()
   }
 
   query_entry(args: EntryQueryArgs): Promise<EntryData | null> {

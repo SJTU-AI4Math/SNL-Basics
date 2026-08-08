@@ -16,12 +16,16 @@ export {
   pure_reader,
   read_localized,
   write_localized,
+  DEFAULT_CONTEXT_READER,
   type I18n,
   type LanguageEnvironment,
   type Localized,
   type ReaderM,
   type ReaderRuntimeOptions,
   type ReaderRuntimeQueries,
+  type ColorScheme,
+  type ContextReader,
+  type RenderContext,
 } from '../runtime'
 
 // === Core types ===
@@ -165,6 +169,7 @@ export {
   paletteToCss,
   assertSafeKindName,
   type KindColoring,
+  type KindColoringVariant,
   type KindPalette,
 } from './kind-palette'
 export type {

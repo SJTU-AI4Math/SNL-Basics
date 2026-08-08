@@ -15,6 +15,17 @@ function makeMacro(name: string): SnlMacro {
 }
 
 describe('MacroDataDriver', () => {
+  it('reads the live color scheme from the constructor context reader', () => {
+    let color_scheme: 'light' | 'dark' = 'light'
+    const driver = new MacroDataDriver({
+      queries: { query_macro: async () => null },
+      context_reader: () => ({ color_scheme }),
+    })
+    expect(driver.read_context()).toEqual({ color_scheme: 'light' })
+    color_scheme = 'dark'
+    expect(driver.read_context()).toEqual({ color_scheme: 'dark' })
+  })
+
   describe('cache hit/miss', () => {
     it('caches a successful query (hit)', async () => {
       const querySpy = vi.fn(async ({ macro_name }: { macro_name: string }) => makeMacro(macro_name))
