@@ -54,6 +54,11 @@ export type {
 } from '../snl-macro/types'
 
 export {
+  migrateMacroDocument,
+  isMacroDocumentV10,
+} from '../schema/migrate-macro'
+
+export {
   applyContextSource,
   extractExportedBinders,
 } from '../entry-react/context-source'
