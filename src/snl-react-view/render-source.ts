@@ -162,23 +162,132 @@ export function wrapHtmlData(
   return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}${srcFragment}${pathFragment}}{${inner}}`
 }
 
+function readBalancedBracedEnd(source: string, openAt: number): number {
+  let depth = 0
+  for (let i = openAt; i < source.length; i += 1) {
+    if (source[i] === '\\') {
+      i += 1
+      continue
+    }
+    if (source[i] === '{') depth += 1
+    else if (source[i] === '}') {
+      depth -= 1
+      if (depth === 0) return i
+    }
+  }
+  return -1
+}
+
+function makeUrlWrapperSafe(source: string): string | null {
+  let escaped = ''
+  for (let i = 0; i < source.length; i += 1) {
+    if (source[i] === '%') {
+      let precedingBackslashes = 0
+      for (let j = i - 1; j >= 0 && source[j] === '\\'; j -= 1) precedingBackslashes += 1
+      if (precedingBackslashes === 0) escaped += '\\'
+      else if (precedingBackslashes % 2 === 0) return null
+    }
+    escaped += source[i]
+  }
+  return escaped
+}
+
+interface OpaqueTexToken {
+  readonly rawLength: number
+  readonly rawSource: string
+  readonly wrapperSafeSource: string | null
+}
+
+/** Read KaTeX constructs whose payload gives `%` literal semantics. */
+function readOpaqueTexToken(source: string, start: number): OpaqueTexToken | null {
+  if (source.startsWith('\\verb', start)) {
+    let delimiterAt = start + '\\verb'.length
+    if (source[delimiterAt] === '*') delimiterAt += 1
+    const delimiter = source[delimiterAt]
+    if (delimiter && !/\s/.test(delimiter)) {
+      const closeAt = source.indexOf(delimiter, delimiterAt + 1)
+      if (closeAt >= 0) {
+        const raw = source.slice(start, closeAt + 1)
+        return { rawLength: raw.length, rawSource: raw, wrapperSafeSource: raw }
+      }
+    }
+  }
+
+  for (const command of ['\\url', '\\href']) {
+    if (!source.startsWith(command, start)) continue
+    if (/[A-Za-z]/.test(source[start + command.length] ?? '')) continue
+    let openAt = start + command.length
+    while (/\s/.test(source[openAt] ?? '')) openAt += 1
+    if (source[openAt] !== '{') continue
+    const closeAt = readBalancedBracedEnd(source, openAt)
+    if (closeAt >= 0) {
+      const raw = source.slice(start, closeAt + 1)
+      return {
+        rawLength: raw.length,
+        rawSource: raw,
+        // A raw `%` is literal to KaTeX's URL parser, but becomes a comment
+        // while the enclosing htmlData argument is tokenized. `\%` has the
+        // same rendered URL/href and remains safe inside that outer argument.
+        wrapperSafeSource: makeUrlWrapperSafe(raw),
+      }
+    }
+  }
+  return null
+}
+
 /** Wrap each top-level alignment segment without crossing `&` / `\\` boundaries. */
 function wrapTopLevelAlignmentSegments(
   latex: string,
   wrap: (segment: string) => string,
 ): string {
   const segments: string[] = []
+  const segmentWrappable: boolean[] = []
   const separators: string[] = []
   let current = ''
+  let currentWrappable = true
   let braceDepth = 0
+  let environmentDepth = 0
   for (let i = 0; i < latex.length; i += 1) {
     const char = latex[i]
+    if (char === '%') {
+      // TeX ignores every token through the next line break. Keep the source
+      // verbatim for KaTeX, but do not let fake environments or separators in
+      // the comment mutate scanner state. Escaped `\%` is consumed by the
+      // backslash branch below and therefore never enters this branch.
+      const commentToken = latex.slice(i).match(/^%[^\r\n]*(?:\r\n?|\n|$)/)?.[0] ?? '%'
+      current += commentToken
+      i += commentToken.length - 1
+      continue
+    }
     if (char === '\\') {
+      const opaqueToken = readOpaqueTexToken(latex, i)
+      if (opaqueToken) {
+        if (opaqueToken.wrapperSafeSource == null) {
+          current += opaqueToken.rawSource
+          currentWrappable = false
+        } else {
+          current += opaqueToken.wrapperSafeSource
+        }
+        i += opaqueToken.rawLength - 1
+        continue
+      }
+      const environmentToken = latex.slice(i).match(
+        /^\\(begin|end)(?:(?:[ \t\r\n]+)|(?:%[^\r\n]*(?:\r\n?|\n)))*\{[^{}]+\}/,
+      )?.[0]
+      if (environmentToken) {
+        current += environmentToken
+        if (environmentToken.startsWith('\\begin')) environmentDepth += 1
+        else environmentDepth = Math.max(0, environmentDepth - 1)
+        i += environmentToken.length - 1
+        continue
+      }
       const next = latex[i + 1]
-      if (next === '\\' && braceDepth === 0) {
+      if (next === '\\' && braceDepth === 0 && environmentDepth === 0) {
         segments.push(current)
+        segmentWrappable.push(currentWrappable)
         separators.push('\\\\')
         current = ''
+        currentWrappable = true
         i += 1
       } else {
         current += char
@@ -191,16 +300,21 @@ function wrapTopLevelAlignmentSegments(
     }
     if (char === '{') braceDepth += 1
     else if (char === '}') braceDepth = Math.max(0, braceDepth - 1)
-    if (char === '&' && braceDepth === 0) {
+    if (char === '&' && braceDepth === 0 && environmentDepth === 0) {
       segments.push(current)
+      segmentWrappable.push(currentWrappable)
       separators.push('&')
       current = ''
+      currentWrappable = true
     } else {
       current += char
     }
   }
   segments.push(current)
-  return segments.map(wrap).map((segment, index) => (
+  segmentWrappable.push(currentWrappable)
+  return segments.map((segment, index) => (
+    segmentWrappable[index] ? wrap(segment) : `${wrap('')}${segment}`
+  )).map((segment, index) => (
     index < separators.length ? `${segment}${separators[index]}` : segment
   )).join('')
 }
@@ -368,7 +482,12 @@ export async function resolveNodeLatex(
       isText ? 'text' : 'formula',
     )
     const body = isText ? `\\text{${filled}}` : filled
-    return wrapHtmlData(node, body, macro, treePath)
+    return isText
+      ? wrapHtmlData(node, body, macro, treePath)
+      : wrapTopLevelAlignmentSegments(
+        body,
+        (segment) => wrapHtmlData(node, segment, macro, treePath),
+      )
   }
 
   // Query-miss fallback for plain-identifier names.
@@ -401,14 +520,12 @@ export async function resolveNodeLatex(
   if (macro?.dynamic_arity) {
     // If template contains #*, fill it (this handles \\begin{pmatrix}#*\\end{pmatrix} etc.)
     if (template.includes('#*')) {
-      const hasEnvironment = /\\begin\{/.test(template)
-      const hasAlignmentSeparator = /(?:^|[^\\])&|\\\\/.test(separator)
       const filled = fillLatexTemplate(
         template,
         { ...childValues, children_joined },
         selfBucket,
       )
-      if (!hasEnvironment && hasAlignmentSeparator) {
+      if (selfBucket === 'formula') {
         return wrapTopLevelAlignmentSegments(
           filled,
           (segment) => wrapHtmlData(node, segment, macro, treePath),
@@ -424,7 +541,12 @@ export async function resolveNodeLatex(
     { ...childValues, children_joined },
     selfBucket,
   )
-  return wrapHtmlData(node, filled, macro, treePath)
+  return selfBucket === 'formula'
+    ? wrapTopLevelAlignmentSegments(
+      filled,
+      (segment) => wrapHtmlData(node, segment, macro, treePath),
+    )
+    : wrapHtmlData(node, filled, macro, treePath)
 }
 
 /**
