@@ -12,6 +12,7 @@ describe('query-driven Entry context source lookup', () => {
     } })
     await resolveEntryContextSources(tree, driver)
     expect(tree.kind).toBe('bvar')
+    expect(tree.source).toEqual({ type: 'entry', entry_id: 'ctx' })
   })
 
   it('marks dangling and non-declaring references without storage assumptions', async () => {

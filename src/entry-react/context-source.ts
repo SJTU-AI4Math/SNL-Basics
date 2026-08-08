@@ -67,11 +67,20 @@ export async function resolveEntryContextSources(
     const mdata = node.mdata && typeof node.mdata === 'object'
       ? node.mdata as Record<string, unknown>
       : {}
-    if (binders === null) mdata.srcStatus = 'dangling'
+    if (binders === null) {
+      node.kind = 'fvar'
+      node.source = undefined
+      mdata.srcStatus = 'dangling'
+    }
     else if (binders?.has(node.macro_name)) {
       node.kind = 'bvar'
+      node.source = { type: 'entry', entry_id: sourceId }
       delete mdata.srcStatus
-    } else mdata.srcStatus = 'srcResolvedNoDecl'
+    } else {
+      node.kind = 'fvar'
+      node.source = undefined
+      mdata.srcStatus = 'srcResolvedNoDecl'
+    }
     node.mdata = mdata
   }
 }
