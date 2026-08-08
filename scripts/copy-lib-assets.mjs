@@ -60,6 +60,7 @@ writeFileSync(join(root, 'dist-lib/core.d.ts'), `export {
   isEmptySnlSyntaxTreeNode,
   isSnlIdentifier,
   isSnlSyntaxTree,
+  isMacroDocumentV10,
   migrateMacroDocument,
   migrateSyntaxTreeDocument,
   isSyntaxTreeDocumentV3,
