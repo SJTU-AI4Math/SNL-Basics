@@ -39,8 +39,9 @@ export class SnlActivationController<P = unknown, E = unknown> {
   dispatch(phase: SnlActivationPhase, event: E, runDefault: () => void): boolean {
     if (!this.enabled) return false
     let defaultRan = false
+    let handlerActive = true
     const once = () => {
-      if (defaultRan) return
+      if (!handlerActive || defaultRan) return
       defaultRan = true
       runDefault()
     }
@@ -49,6 +50,7 @@ export class SnlActivationController<P = unknown, E = unknown> {
       try {
         handler({ phase, event, params: this.params, runDefault: once })
       } catch { /* consumer activation handlers cannot break the view */ }
+      finally { handlerActive = false }
       return defaultRan
     }
     if (this.defaultBehavior) once()

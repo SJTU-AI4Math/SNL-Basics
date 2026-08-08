@@ -39,5 +39,18 @@ describe('SnlActivationController', () => {
     expect(fallback).not.toHaveBeenCalled()
   })
 
+  it('invalidates runDefault after the synchronous handler invocation', async () => {
+    const fallback = vi.fn()
+    const handler = (async ({ runDefault }: { runDefault(): void }) => {
+      await Promise.resolve()
+      runDefault()
+    }) as unknown as (event: { runDefault(): void }) => void
+    const ran = new SnlActivationController({ params: undefined, handlers: { 0: handler } })
+      .dispatch(0, 'event', fallback)
+    expect(ran).toBe(false)
+    await Promise.resolve()
+    expect(fallback).not.toHaveBeenCalled()
+  })
+
 
 })
