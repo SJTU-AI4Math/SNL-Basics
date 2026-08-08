@@ -47,6 +47,7 @@ makeDeclarationsNodeNextCompatible(entryTypes)
 mkdirSync(join(root, 'dist-lib'), { recursive: true })
 copyFileSync(join(root, 'src/snl-react-view/style.css'), join(root, 'dist-lib/style.css'))
 copyFileSync(join(root, 'src/entry-react/style.css'), join(root, 'dist-lib/entry.css'))
+writeFileSync(join(root, 'dist-lib/style-css.d.ts'), 'declare const css: string\nexport default css\n')
 writeFileSync(join(root, 'dist-lib/entry.d.ts'), "export * from './entry-types/entry-react/index.js'\n")
 writeFileSync(join(root, 'dist-lib/core.d.ts'), `export {
   MacroDataDriver,

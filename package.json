@@ -51,8 +51,14 @@
       "import": "./dist-lib/entry.js",
       "default": "./dist-lib/entry.js"
     },
-    "./entry/style.css": "./dist-lib/entry.css",
-    "./style.css": "./dist-lib/style.css"
+    "./entry/style.css": {
+      "types": "./dist-lib/style-css.d.ts",
+      "default": "./dist-lib/entry.css"
+    },
+    "./style.css": {
+      "types": "./dist-lib/style-css.d.ts",
+      "default": "./dist-lib/style.css"
+    }
   },
   "types": "./dist-lib/index.d.ts",
   "typesVersions": {
