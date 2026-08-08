@@ -8,7 +8,7 @@
  * `./hover` subpath entry stay small; `hooks.tsx` re-exports from here so its
  * public surface is unchanged.
  */
-import type { BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
+import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
 import { readBindRefFromDom } from '../snl-syntax-tree/binding'
 
 /**
@@ -70,27 +70,25 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
     const singleHover: HTMLElement | null = target
 
     if ((kind === 'bvar' || kind === 'binder') && bindRef) {
-      const entry = bvarScopeIndex.get(bindRef)
+      const cachedEntry = bvarScopeIndex.get(bindRef)
+      const targetIsIndexed = kind === 'bvar'
+        ? cachedEntry?.bvars.includes(target)
+        : cachedEntry?.binders.includes(target)
+      // A supplied cache can predate async MathSpan descendants. Rebuild only
+      // when it cannot account for the current target; never fall back to the
+      // scope root's single scalar data-bindref, which represents only b1 in a
+      // multi-binder scope.
+      const entry = targetIsIndexed
+        ? cachedEntry
+        : buildBvarScopeIndex(container).get(bindRef)
       let bvars: HTMLElement[]
       let binders: HTMLElement[]
       if (entry) {
         bvars = entry.bvars
         binders = entry.binders
       } else {
-        const scopeRoot = Array.from(
-          container.querySelectorAll<HTMLElement>('[data-scope="binder"]'),
-        ).find((el) => readBindRefFromDom(el) === bindRef)
-        if (!scopeRoot) {
-          bvars = []
-          binders = []
-        } else {
-          bvars = Array.from(
-            scopeRoot.querySelectorAll<HTMLElement>('[data-kind="bvar"]'),
-          ).filter((el) => readBindRefFromDom(el) === bindRef)
-          binders = Array.from(
-            scopeRoot.querySelectorAll<HTMLElement>('[data-kind="binder"]'),
-          ).filter((el) => readBindRefFromDom(el) === bindRef)
-        }
+        bvars = []
+        binders = []
       }
       for (const el of bvars) {
         bvarScope.push(el)

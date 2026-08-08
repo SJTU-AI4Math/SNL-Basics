@@ -97,6 +97,23 @@ describe('applySnlHoverHighlight', () => {
     expect(set.bvarScope).toHaveLength(1)
     expect(set.binderDecl).toHaveLength(1)
   })
+
+  it('recovers a secondary binder ref when a supplied scope index is stale', () => {
+    const container = mount(`
+      <span data-scope="binder" data-bindref="b1" data-kind="rule" data-name="scope">
+        <span id="binder-x" data-kind="binder" data-bindref="b1" data-name="x">x</span>
+        <span id="binder-y" data-kind="binder" data-bindref="b2" data-name="y">y</span>
+        <span id="bvar-x" data-kind="bvar" data-bindref="b1" data-name="x">x</span>
+        <span id="bvar-y" data-kind="bvar" data-bindref="b2" data-name="y">y</span>
+      </span>`)
+
+    applySnlHoverHighlight(byId('bvar-y'), container, { bvarScopeIndex: new Map() })
+
+    expect(byId('bvar-y').classList.contains(SNL_HOVER_CLASS.bvarScope)).toBe(true)
+    expect(byId('binder-y').classList.contains(SNL_HOVER_CLASS.binderDecl)).toBe(true)
+    expect(byId('bvar-x').classList.contains(SNL_HOVER_CLASS.bvarScope)).toBe(false)
+    expect(byId('binder-x').classList.contains(SNL_HOVER_CLASS.binderDecl)).toBe(false)
+  })
 })
 
 describe('clearSnlHoverHighlight', () => {

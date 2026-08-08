@@ -34,7 +34,7 @@ import {
   resolveStyle,
   resolve_style_template,
 } from '../snl-react-view/render-source'
-import { findBinderScopeAncestor, findMinimalHoverRoot } from '../snl-react-view/hover-dom'
+import { findMinimalHoverRoot } from '../snl-react-view/hover-dom'
 import { applySnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
 import {
@@ -788,7 +788,6 @@ export function SnlSyntaxTreeView({
 
   const activateHoverTarget = (
     target: HTMLElement,
-    container: HTMLElement,
     x: number,
     y: number,
     modifiers: { ctrl_key: boolean; meta_key: boolean; shift_key: boolean; alt_key: boolean },
@@ -802,13 +801,19 @@ export function SnlSyntaxTreeView({
     const pathAttr = target.getAttribute('data-tree-path')
     const treePath = pathAttr == null ? null : decodeTreePath(pathAttr)
     const actualNode = treePath == null ? undefined : resolveTreePath(tree, treePath)
+    const bindingEntry = bindRef
+      ? bvarScopeIndexRef.current.get(bindRef)
+      : undefined
+    const bindingScope = bindingEntry?.scopeRoot.contains(target)
+      ? bindingEntry.scopeRoot
+      : null
 
     let variableRole: 'bvar' | 'fvar' | 'none' = 'none'
     let bindingHint = ''
 
     if (kind === 'bvar') {
       if (bindRef) {
-        const binderEl = findBinderScopeAncestor(target, container, bindRef)
+        const binderEl = bindingScope
         if (binderEl) {
           variableRole = 'bvar'
           const bName = binderEl.dataset.name ?? ''
@@ -822,7 +827,7 @@ export function SnlSyntaxTreeView({
         bindingHint = '标注为 bvar 但无 bindRef（未匹配到上层量词引入）。'
       }
     } else if (kind === 'binder' && bindRef) {
-      const binderScopeEl = findBinderScopeAncestor(target, container, bindRef)
+      const binderScopeEl = bindingScope
       if (binderScopeEl) {
         variableRole = 'bvar'
         bindingHint = `binder 引入处 bindRef=${bindRef}（作用域内同 ref 的 bvar 为使用处）。`
@@ -980,6 +985,19 @@ export function SnlSyntaxTreeView({
     hoverMarkedElsRef.current = [...touched]
   }
 
+  const ensureBindingIndexForTarget = (target: HTMLElement, container: HTMLElement): void => {
+    const kind = target.dataset.kind ?? ''
+    const bindRef = readBindRefFromDom(target)
+    if ((kind !== 'binder' && kind !== 'bvar') || !bindRef) return
+    const entry = bvarScopeIndexRef.current.get(bindRef)
+    const targetIsIndexed = kind === 'bvar'
+      ? entry?.bvars.includes(target)
+      : entry?.binders.includes(target)
+    if (!targetIsIndexed) {
+      bvarScopeIndexRef.current = buildBvarScopeIndex(container)
+    }
+  }
+
   const handleKaTeXMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
     const container = containerRef.current
     if (!container) return
@@ -1032,9 +1050,10 @@ export function SnlSyntaxTreeView({
 
     // `applyHoverHighlight` captures `--snl-base-text-color` from the
     // container before marking (see hover-apply.ts), so it is not set here.
+    ensureBindingIndexForTarget(hasName, container)
     applyHoverHighlight(hasName, container)
     setHasHoverTarget(true)
-    activateHoverTarget(hasName, container, event.clientX, event.clientY, {
+    activateHoverTarget(hasName, event.clientX, event.clientY, {
       ctrl_key: event.ctrlKey,
       meta_key: event.metaKey,
       shift_key: event.shiftKey,
@@ -1106,9 +1125,10 @@ export function SnlSyntaxTreeView({
       shift_key: modifiers.shift_key,
       alt_key: modifiers.alt_key,
     }
+    ensureBindingIndexForTarget(el, container)
     applyHoverHighlight(el, container)
     setHasHoverTarget(true)
-    activateHoverTarget(el, container, clientX, clientY, modifiers, true)
+    activateHoverTarget(el, clientX, clientY, modifiers, true)
     if (_interaction_driver) void _interaction_driver.dispatch_click(ctx).catch(() => {})
   }
 

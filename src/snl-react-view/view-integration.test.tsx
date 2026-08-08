@@ -12,6 +12,7 @@ import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
 import { testDriver } from './test-helpers'
 import type { SnlMacroRecord } from '../snl-macro/types'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
+import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
 
 const db: SnlMacroRecord = {
   sum: {
@@ -142,6 +143,51 @@ describe('data-tree-path DOM attribute', () => {
 })
 
 describe('SnlInteractionDriver integration', () => {
+  it('treats secondary binders exactly like the first binder for highlight and hover semantics', async () => {
+    const events: Array<{ name: string; variableRole: string }> = []
+    const tree = parseSnlSyntaxTree('scope(@x,@y,x,y)')
+    const view = render(
+      <SnlSyntaxTreeView
+        tree={tree}
+        macro_data_driver={testDriver({})}
+        hooks={{ onHover: ({ name, variableRole }) => { events.push({ name, variableRole }) } }}
+      />,
+    )
+    const binderY = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-kind="binder"][data-bindref="b2"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const binderX = view.container.querySelector<HTMLElement>('[data-kind="binder"][data-bindref="b1"]')!
+    const bvarX = view.container.querySelector<HTMLElement>('[data-kind="bvar"][data-bindref="b1"]')!
+    const bvarY = view.container.querySelector<HTMLElement>('[data-kind="bvar"][data-bindref="b2"]')!
+    let pointed = bvarX
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [pointed] })
+    try {
+      fireEvent.mouseMove(bvarX, { clientX: 5, clientY: 6 })
+      expect(bvarX.classList.contains('snl-bvar-scope')).toBe(true)
+      expect(binderX.classList.contains('snl-binder-decl')).toBe(true)
+      expect(events.at(-1)).toEqual({ name: 'x', variableRole: 'bvar' })
+
+      pointed = bvarY
+      fireEvent.mouseMove(bvarY, { clientX: 7, clientY: 8 })
+      expect(bvarY.classList.contains('snl-bvar-scope')).toBe(true)
+      expect(binderY.classList.contains('snl-binder-decl')).toBe(true)
+      expect(bvarX.classList.contains('snl-bvar-scope')).toBe(false)
+      expect(binderX.classList.contains('snl-binder-decl')).toBe(false)
+      expect(events.at(-1)).toEqual({ name: 'y', variableRole: 'bvar' })
+
+      pointed = binderY
+      fireEvent.mouseMove(binderY, { clientX: 9, clientY: 10 })
+      expect(bvarY.classList.contains('snl-bvar-scope')).toBe(true)
+      expect(binderY.classList.contains('snl-binder-decl')).toBe(true)
+      expect(events.at(-1)).toEqual({ name: 'y', variableRole: 'bvar' })
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
   it('separates immediate, 1-second, and 2-second hover hooks and locks at 2 seconds', async () => {
     const immediate = vi.fn()
     const afterOneSecond = vi.fn()
