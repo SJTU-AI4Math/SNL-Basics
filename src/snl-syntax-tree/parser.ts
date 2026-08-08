@@ -339,9 +339,6 @@ class Parser {
           node.binder_name = target.value
         } else {
           node.postfix = { type: 'name', name: target.value }
-          // Keep the v2 projection until the Tree-v3 migration lands.
-          const baseMdata = node.mdata && typeof node.mdata === 'object' ? node.mdata : {}
-          node.mdata = { ...(baseMdata as Record<string, unknown>), src: target.value }
         }
       }
     }

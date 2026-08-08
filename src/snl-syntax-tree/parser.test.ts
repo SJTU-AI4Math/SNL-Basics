@@ -175,35 +175,40 @@ describe('parseSnlSyntaxTree', () => {
     expect(kinds.every((kind) => kind === '')).toBe(true)
   })
 
-  describe('src postfix (cat 2026-07-09 context-entry)', () => {
-    it('attaches mdata.src on a bare IDENT', () => {
+  describe('structured src postfix (cat 2026-07-09 context-entry)', () => {
+    it('attaches a name postfix on a bare IDENT', () => {
       const tree = parseSnlSyntaxTree('x@context-linalg-vars')
       expect(tree.macro_name).toBe('x')
-      expect((tree.mdata as { src?: string }).src).toBe('context-linalg-vars')
+      expect(tree.postfix).toEqual({ type: 'name', name: 'context-linalg-vars' })
+      expect(tree.mdata).toBeNull()
     })
 
     it('attaches src alongside [style]', () => {
       const tree = parseSnlSyntaxTree('x@ctx[styled]')
       expect(tree.macro_name).toBe('x')
       expect(tree.style_name).toBe('styled')
-      expect((tree.mdata as { src?: string }).src).toBe('ctx')
+      expect(tree.postfix).toEqual({ type: 'name', name: 'ctx' })
+      expect(tree.mdata).toBeNull()
     })
 
     it('attaches src alongside (args)', () => {
       const tree = parseSnlSyntaxTree('foo@src-entry(a, b)')
       expect(tree.macro_name).toBe('foo')
-      expect((tree.mdata as { src?: string }).src).toBe('src-entry')
+      expect(tree.postfix).toEqual({ type: 'name', name: 'src-entry' })
+      expect(tree.mdata).toBeNull()
       expect(tree.children).toHaveLength(2)
     })
 
     it('carries src across `%…%` and `$…$` delim forms', () => {
       const t1 = parseSnlSyntaxTree('%hello%@ctx')
       expect(t1.env_mode).toBe('text')
-      expect((t1.mdata as { src?: string }).src).toBe('ctx')
+      expect(t1.postfix).toEqual({ type: 'name', name: 'ctx' })
+      expect(t1.mdata).toBeNull()
 
       const t2 = parseSnlSyntaxTree('$x + y$@formula-ctx')
       expect(t2.env_mode).toBe('formula_inline')
-      expect((t2.mdata as { src?: string }).src).toBe('formula-ctx')
+      expect(t2.postfix).toEqual({ type: 'name', name: 'formula-ctx' })
+      expect(t2.mdata).toBeNull()
     })
 
     it('a postfix name overrides the name exported by a binder leaf', () => {
@@ -221,8 +226,9 @@ describe('parseSnlSyntaxTree', () => {
     it('nested src inside an arg list', () => {
       const tree = parseSnlSyntaxTree('outer(x@ctx, y)')
       expect(tree.macro_name).toBe('outer')
-      expect((tree.children[0].mdata as { src?: string }).src).toBe('ctx')
-      expect(tree.children[1].mdata as { src?: string } | null).not.toMatchObject({ src: expect.anything() })
+      expect(tree.children[0].postfix).toEqual({ type: 'name', name: 'ctx' })
+      expect(tree.children[0].mdata).toBeNull()
+      expect(tree.children[1].postfix).toBeUndefined()
     })
   })
 })

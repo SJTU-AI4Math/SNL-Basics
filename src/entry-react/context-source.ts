@@ -22,7 +22,8 @@ export function applyContextSource(tree: SnlSyntaxTree, source: SnlSyntaxTree | 
   collect(source)
   const visit = (node: SnlSyntaxTree): void => {
     const mdata = node.mdata && typeof node.mdata === 'object' ? node.mdata as Record<string, unknown> : undefined
-    if (typeof mdata?.src === 'string' && node.kind !== 'binder' && binders.has(node.macro_name)) node.kind = 'bvar'
+    const sourceId = node.postfix?.type === 'name' ? node.postfix.name : mdata?.src
+    if (typeof sourceId === 'string' && node.kind !== 'binder' && binders.has(node.macro_name)) node.kind = 'bvar'
     node.children.forEach(visit)
   }
   visit(tree)
@@ -47,7 +48,8 @@ export async function resolveEntryContextSources(
   const referenced: SourceNode[] = []
   const visit = (node: SnlSyntaxTree): void => {
     const mdata = node.mdata && typeof node.mdata === 'object' ? node.mdata as Record<string, unknown> : undefined
-    if (typeof mdata?.src === 'string' && mdata.src) referenced.push({ node, sourceId: mdata.src })
+    const sourceId = node.postfix?.type === 'name' ? node.postfix.name : mdata?.src
+    if (typeof sourceId === 'string' && sourceId) referenced.push({ node, sourceId })
     node.children.forEach(visit)
   }
   visit(tree)

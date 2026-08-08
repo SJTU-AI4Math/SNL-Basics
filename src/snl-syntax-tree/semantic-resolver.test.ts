@@ -63,6 +63,19 @@ describe('Macro-aware SNL semantic resolution', () => {
     expect(result.tree.children.slice(1).map((node) => node.kind)).toEqual(['bvar', 'bvar', 'bvar'])
   })
 
+  it('allows an explicit tree path to reference an arbitrary non-sub node', () => {
+    const result = resolveSnlSemantics(
+      parseSnlSyntaxTree('root(C,y@#0)'),
+      db(['root'], ['C']),
+    )
+    expect(result.tree.children[0].kind).toBe('const')
+    expect(result.tree.children[0].binder_name).toBeUndefined()
+    expect(result.tree.children[1]).toMatchObject({
+      kind: 'bvar',
+      source: { type: 'tree_path', path: [0] },
+    })
+  })
+
   it('falls back to fvar and reports dangling explicit sources', () => {
     const implicit = resolveSnlSemantics(parseSnlSyntaxTree('missing'), {})
     expect(implicit.tree.kind).toBe('fvar')

@@ -164,11 +164,17 @@ export function resolveSnlSemantics(
         resolved = { type: 'entry', entry_id: node.postfix.name }
       }
     } else if (node.postfix?.type === 'tree_path') {
-      const target = sources.find((source) => equalPath(source.path, node.postfix!.type === 'tree_path' ? node.postfix!.path : []))
+      const target = located.find((candidate) =>
+        candidate.node.kind !== 'sub' &&
+        equalPath(
+          candidate.path,
+          node.postfix!.type === 'tree_path' ? node.postfix!.path : [],
+        ),
+      )
       if (target) resolved = { type: 'tree_path', path: [...target.path] }
       else diagnostics.push({
         code: 'SNL_DANGLING_TREE_SOURCE', severity: 'warning', tree_path: [...path],
-        message: `tree source #${node.postfix.path.join('.')} does not name a binder source`,
+        message: `tree source #${node.postfix.path.join('.')} does not name a semantic node`,
       })
     } else {
       const requestedName = node.postfix?.type === 'binder_name'
