@@ -579,6 +579,14 @@ describe('schema/migrate-tree', () => {
     expect(resolveSnlSemantics(migrated, {}).tree.children[1].kind).toBe('bvar')
   })
 
+  it('converts legacy derived binding metadata into structured Tree3 source syntax', () => {
+    const migrated = migrateTreeNodeV2toV3({
+      macro_name: 'x', kind: 'bvar', mdata: { src: 'ctx', bindRef: 'b1', keep: 1 }, children: [],
+    })
+    expect(migrated.postfix).toEqual({ type: 'name', name: 'ctx' })
+    expect(migrated.mdata).toEqual({ keep: 1 })
+  })
+
   it('assigns # to a temporary root and preserves temporary texttt plus unknown fields', () => {
     const v2 = {
       macro_name: 'literal', env_mode: 'text', temporary_format: 'texttt',

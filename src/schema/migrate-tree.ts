@@ -83,8 +83,16 @@ export function migrateTreeNodeV1toV2(node: SyntaxTreeNodeV1): SnlSyntaxTree {
 function migrateTreeNodeV2toV3AtPath(node: SyntaxTreeNodeV2, path: number[]): SnlSyntaxTree {
   const { children, ...preserved } = node
   const temporary = node.env_mode !== undefined
+  const metadata = node.mdata && typeof node.mdata === 'object' && !Array.isArray(node.mdata)
+    ? { ...(node.mdata as Record<string, unknown>) }
+    : null
+  const legacySrc = typeof metadata?.src === 'string' ? metadata.src : undefined
+  if (metadata) { delete metadata.src; delete metadata.bindRef }
+  const mdata = metadata && Object.keys(metadata).length > 0 ? metadata : null
   return {
     ...preserved,
+    mdata,
+    ...(legacySrc && node.postfix === undefined ? { postfix: { type: 'name' as const, name: legacySrc } } : {}),
     macro_name: temporary ? coordinate(path) : node.macro_name,
     ...(temporary ? { temporary_source: node.temporary_source ?? node.macro_name } : {}),
     ...(node.kind === 'binder' && node.binder_name === undefined
