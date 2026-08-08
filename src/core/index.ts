@@ -13,6 +13,8 @@ export {
   createSnlSyntaxTreeNode,
   isEmptySnlSyntaxTreeNode,
   isSnlSyntaxTree,
+  type SnlPostfix,
+  type SnlResolvedSource,
   type SnlSyntaxTree,
 } from '../snl-syntax-tree/types'
 
@@ -26,6 +28,11 @@ export { serializeSnlSyntaxTree } from '../snl-react-view/serialize'
 export { tryParseSnlSyntaxTree } from '../snl-react-view/parse'
 export { SnlDslFormatter } from '../snl-syntax-tree/formatter'
 export { annotateBindings } from '../snl-syntax-tree/annotate-bind'
+export {
+  resolveSnlSemantics,
+  type SnlDiagnostic,
+  type SnlSemanticResolution,
+} from '../snl-syntax-tree/semantic-resolver'
 export { fillLatexTemplate } from '../snl-syntax-tree/template'
 
 export {

@@ -35,9 +35,9 @@ export const DEFAULT_KIND_PALETTE: KindPalette = {
   // Partial: subtree that is NOT a complete syntactic node (e.g. matrix rows,
   // implementation-only helper macros). Palette entry exists so the base
   // (un-hovered) text color inherits from the parent — but the hover
-  // machinery in `findMinimalHoverRoot` skips partial-kind nodes, so a
-  // partial never highlights or shows a tooltip on its own.
-  partial: { stroke: 'inherit', background: 'transparent' },
+  // machinery in `findMinimalHoverRoot` skips sub-kind nodes, so a
+  // sub never highlights or shows a tooltip on its own.
+  sub: { stroke: 'inherit', background: 'transparent' },
 }
 
 /**

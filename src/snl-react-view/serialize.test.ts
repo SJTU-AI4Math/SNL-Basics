@@ -55,4 +55,14 @@ describe('serializeSnlSyntaxTree', () => {
     expect(parseSnlSyntaxTree('f()').children).toHaveLength(0)
     expect(roundTrip('f()')).toBe('f')
   })
+
+  it('round-trips leaf binders and every source postfix', () => {
+    expect(roundTrip('F(@x@xy,y@#0,z@#xy,w@entry.id)')).toBe(
+      'F(@x@xy,y@#0,z@#xy,w@entry.id)',
+    )
+  })
+
+  it('round-trips coordinate-named temporary envelopes by payload', () => {
+    expect(roundTrip('F(%$x$ is a number%,`a_b`)')).toBe('F(%$x$ is a number%,`a_b`)')
+  })
 })

@@ -21,10 +21,15 @@ import {
   type SnlInteractionContext,
   type TreePath,
 } from '../snl-react-view/interaction-driver'
-import { getBindRef, getSrc, readBindRefFromDom } from '../snl-syntax-tree/binding'
-import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
+import { getBindRef, getSrc, getTreeSourcePath } from '../snl-syntax-tree/binding'
+import {
+  buildBvarScopeIndex,
+  readBindingSourceKeyFromDom,
+  type BvarScopeEntry,
+} from '../snl-syntax-tree/bvar-scope-index'
 import { tightenHoverBoxes } from '../snl-react-view/tighten-hover-boxes'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { resolveSnlSemantics } from '../snl-syntax-tree/semantic-resolver'
 import { useCtrlPressed } from '../snl-react-view/use-ctrl-pressed'
 import {
   assert_valid_style_template,
@@ -39,6 +44,10 @@ import { findMinimalHoverRoot } from '../snl-react-view/hover-dom'
 import { applySnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
 import { resolveRenderedKind } from '../snl-react-view/kind-behavior'
+import {
+  DEFAULT_SNL_ACTIVATION_CONTROLLER,
+  type SnlActivationDispatcher,
+} from '../snl-react-view/activation-controller'
 import {
   DEFAULT_KIND_PALETTE,
   paletteToCss,
@@ -81,6 +90,8 @@ export interface SnlSyntaxTreeViewProps {
   onResolved?: (latexSource: string) => void
   /** Override tooltip / hover / description / renderer behavior. Merged over defaults. */
   hooks?: SnlRenderHooks
+  /** Initialization-time switch/replacement/params policy for phases 0/1/2. */
+  activation_controller?: SnlActivationDispatcher<SnlHoverPhaseEvent>
 }
 
 /** Internal tooltip state = public SnlTooltipState + interaction key for staleness checks. */
@@ -183,7 +194,7 @@ function MathSpan({
  */
 /**
  * Resolve the kind we should stamp on a rendered node's DOM. Mirrors
- * wrapHtmlData's priority: node.kind > queried macro kind > root 'partial' /
+ * wrapHtmlData's priority: node.kind > queried macro kind > root 'sub' /
  * descendant 'fvar'. Kept in
  * sync so TextRun spans hover-highlight exactly like KaTeX \htmlData
  * output. Empty-string kind (createSnlSyntaxTreeNode default) falls
@@ -231,6 +242,8 @@ function TextRun({
   if (bindRef) dataAttrs['data-bindref'] = bindRef
   const srcVal = getSrc(node)
   if (srcVal) dataAttrs['data-src'] = srcVal
+  const sourcePath = getTreeSourcePath(node)
+  if (sourcePath !== undefined) dataAttrs['data-source-path'] = sourcePath
 
   const wrap = (children: ReactNode): ReactElement => kind === 'sub'
     ? <>{children}</>
@@ -558,6 +571,7 @@ export function SnlSyntaxTreeView({
   kindPalette,
   onResolved,
   hooks,
+  activation_controller = DEFAULT_SNL_ACTIVATION_CONTROLLER,
 }: SnlSyntaxTreeViewProps) {
   const renderLanguage = reader_runtime?.query_environment().language ?? 'en'
   // Query all macros used by this tree through the single driver backend. The
@@ -636,24 +650,32 @@ export function SnlSyntaxTreeView({
     return db
   }, [macroCache])
 
+  const semanticResolution = useMemo(
+    () => macroStatus === 'ready'
+      ? resolveSnlSemantics(tree, resolvedMacros)
+      : { tree, diagnostics: [] },
+    [macroStatus, resolvedMacros, tree],
+  )
+  const renderTree = semanticResolution.tree
+
   const treePaths = useMemo(() => {
     const paths = new WeakMap<SnlSyntaxTree, string>()
     const visit = (node: SnlSyntaxTree, path: string): void => {
       paths.set(node, path)
       node.children.forEach((child, index) => visit(child, path ? `${path}.${index}` : `${index}`))
     }
-    visit(tree, '')
+    visit(renderTree, '')
     return paths
-  }, [tree])
+  }, [renderTree])
 
   // Determine root mode from the cache
-  const rootMacro = macroCache[tree.macro_name] ?? null
+  const rootMacro = macroCache[renderTree.macro_name] ?? null
   const rootBucket = macroStatus === 'ready'
-    ? modeBucket(nodeMode(tree, rootMacro, renderLanguage))
+    ? modeBucket(nodeMode(renderTree, rootMacro, renderLanguage))
     : 'formula'
   const isKatexRoot = macroStatus === 'ready' && rootBucket === 'formula'
   const { loading, error, result } = useSnlSyntaxTreeRender(
-    tree,
+    renderTree,
     macro_data_driver,
     reader_runtime,
     katexOptions,
@@ -713,7 +735,7 @@ export function SnlSyntaxTreeView({
     if (!el) return
     lastHtmlRef.current = null
     el.innerHTML = ''
-  }, [isKatexRoot, tree])
+  }, [isKatexRoot, renderTree])
 
   useEffect(() => {
     const el = containerRef.current
@@ -735,7 +757,7 @@ export function SnlSyntaxTreeView({
     if (!el) return
     lastHtmlRef.current = null
     bvarScopeIndexRef.current = buildBvarScopeIndex(el)
-  }, [isKatexRoot, tree])
+  }, [isKatexRoot, renderTree])
 
   const clearHoverTimers = () => {
     if (prefetchTimerRef.current) {
@@ -817,50 +839,49 @@ export function SnlSyntaxTreeView({
     const tooltipY = y + 12
     const name = target.dataset.name ?? ''
     const kind = target.dataset.kind ?? ''
-    const bindRef = readBindRefFromDom(target)
+    const bindingKey = readBindingSourceKeyFromDom(target)
     const pathAttr = target.getAttribute('data-tree-path')
     const treePath = pathAttr == null ? null : decodeTreePath(pathAttr)
     const actualNode = treePath == null ? undefined : resolveTreePath(tree, treePath)
-    const bindingEntry = bindRef
-      ? bvarScopeIndexRef.current.get(bindRef)
+    const bindingEntry = bindingKey
+      ? bvarScopeIndexRef.current.get(bindingKey)
       : undefined
-    const bindingScope = bindingEntry?.scopeRoot.contains(target)
-      ? bindingEntry.scopeRoot
-      : null
+    const bindingScope = bindingEntry?.scopeRoot ?? null
 
     let variableRole: 'bvar' | 'fvar' | 'none' = 'none'
     let bindingHint = ''
 
     if (kind === 'bvar') {
-      if (bindRef) {
-        const binderEl = bindingScope
-        if (binderEl) {
+      if (bindingKey || target.dataset.src) {
+        if (bindingScope) {
           variableRole = 'bvar'
-          const bName = binderEl.dataset.name ?? ''
-          bindingHint = `绑定变量：bindRef=${bindRef}，对应量词 binder「${bName}」。`
+          const sourceName = bindingScope.dataset.name ?? ''
+          bindingHint = `绑定变量：source=${bindingKey}，对应 source「${sourceName}」。`
+        } else if (target.dataset.src) {
+          variableRole = 'bvar'
+          bindingHint = `外部 Entry source：${target.dataset.src}。`
         } else {
           variableRole = 'fvar'
-          bindingHint = `标注为 bvar（bindRef=${bindRef}），但未找到带 data-scope="binder" 的祖先。`
+          bindingHint = `标注为 bvar（source=${bindingKey}），但 source path 已失效。`
         }
       } else {
         variableRole = 'fvar'
-        bindingHint = '标注为 bvar 但无 bindRef（未匹配到上层量词引入）。'
+        bindingHint = '标注为 bvar 但无有效 source。'
       }
-    } else if (kind === 'binder' && bindRef) {
-      const binderScopeEl = bindingScope
-      if (binderScopeEl) {
+    } else if (kind === 'binder' && bindingKey) {
+      if (bindingScope) {
         variableRole = 'bvar'
-        bindingHint = `binder 引入处 bindRef=${bindRef}（作用域内同 ref 的 bvar 为使用处）。`
+        bindingHint = `binder source=${bindingKey}（同 source path 的 bvar 为使用处）。`
       } else {
         variableRole = 'fvar'
-        bindingHint = `binder 但未找到 binder scope（bindRef=${bindRef}）。`
+        bindingHint = `binder 但 source path 已失效（${bindingKey}）。`
       }
     } else if (kind === 'fvar') {
       variableRole = 'fvar'
       bindingHint = '自由变量 occurrence。'
     }
 
-    const key = `${pathAttr ?? 'unresolved'}|${name}|${kind}|${bindRef}`
+    const key = `${pathAttr ?? 'unresolved'}|${name}|${kind}|${bindingKey}`
     if (tooltip?.locked && !lockImmediately) return
 
     let session = hoverSessionRef.current?.key === key
@@ -883,6 +904,14 @@ export function SnlSyntaxTreeView({
       clientX: x,
       clientY: y,
     } : null
+    if (!hoverEvent) return
+    const phase = lockImmediately ? 2 : 0
+    if (!activation_controller.dispatch(phase, hoverEvent, () => {})) return
+    const activationContainer = containerRef.current
+    if (activationContainer) {
+      ensureBindingIndexForTarget(target, activationContainer)
+      applyHoverHighlight(target, activationContainer, phase)
+    }
     const interactionMacro = actualNode ? (resolvedMacros[actualNode.macro_name] ?? null) : null
     if (actualNode && treePath) {
       if (!lockImmediately) invokeHook(mergedHooks.onHover, hoverEvent!)
@@ -949,18 +978,26 @@ export function SnlSyntaxTreeView({
     }, 500)
 
     showTimerRef.current = window.setTimeout(() => {
-      if (hoverEvent) invokeHook(mergedHooks.onHover1s, hoverEvent)
-      setTooltip((prev) => {
-        if (!prev || prev.interactionKey !== key) return prev
-        return { ...prev, visible: true }
+      activation_controller.dispatch(1, hoverEvent, () => {
+        const container = containerRef.current
+        if (container) applyHoverHighlight(target, container, 1)
+        invokeHook(mergedHooks.onHover1s, hoverEvent)
+        setTooltip((prev) => {
+          if (!prev || prev.interactionKey !== key) return prev
+          return { ...prev, visible: true }
+        })
       })
     }, 1000)
 
     lockTimerRef.current = window.setTimeout(() => {
-      if (hoverEvent) invokeHook(mergedHooks.onHover2s, hoverEvent)
-      setTooltip((prev) => {
-        if (!prev || prev.interactionKey !== key) return prev
-        return { ...prev, visible: true, locked: true }
+      activation_controller.dispatch(2, hoverEvent, () => {
+        const container = containerRef.current
+        if (container) applyHoverHighlight(target, container, 2)
+        invokeHook(mergedHooks.onHover2s, hoverEvent)
+        setTooltip((prev) => {
+          if (!prev || prev.interactionKey !== key) return prev
+          return { ...prev, visible: true, locked: true }
+        })
       })
     }, 2000)
   }
@@ -992,11 +1029,16 @@ export function SnlSyntaxTreeView({
    * path now (猫猫 2026-07-29). The ref bookkeeping stays here because it is a
    * React-lifecycle concern the shared helper has no business knowing about.
    */
-  const applyHoverHighlight = (target: HTMLElement, container: HTMLElement) => {
+  const applyHoverHighlight = (
+    target: HTMLElement,
+    container: HTMLElement,
+    phase: 0 | 1 | 2 = 0,
+  ) => {
     clearHoverMarks()
     const set = applySnlHoverHighlight(target, container, {
       strategy: mergedHooks.highlightStrategy ?? defaultRenderHooks.highlightStrategy!,
       bvarScopeIndex: bvarScopeIndexRef.current,
+      phase,
     })
     const touched = new Set<HTMLElement>()
     if (set.singleHover) touched.add(set.singleHover)
@@ -1007,9 +1049,9 @@ export function SnlSyntaxTreeView({
 
   const ensureBindingIndexForTarget = (target: HTMLElement, container: HTMLElement): void => {
     const kind = target.dataset.kind ?? ''
-    const bindRef = readBindRefFromDom(target)
-    if ((kind !== 'binder' && kind !== 'bvar') || !bindRef) return
-    const entry = bvarScopeIndexRef.current.get(bindRef)
+    const bindingKey = readBindingSourceKeyFromDom(target)
+    if ((kind !== 'binder' && kind !== 'bvar') || !bindingKey) return
+    const entry = bvarScopeIndexRef.current.get(bindingKey)
     const targetIsIndexed = kind === 'bvar'
       ? entry?.bvars.includes(target)
       : entry?.binders.includes(target)
@@ -1047,12 +1089,12 @@ export function SnlSyntaxTreeView({
     const hit = topmost
       ? findMinimalHoverRoot(topmost, container)
       : null
-    // findMinimalHoverRoot already skips partial-kind ancestors, but its
+    // findMinimalHoverRoot already skips sub-kind ancestors, but its
     // fallback returns the raw `start` when nothing matches. Guard on both
-    // "has data-name" AND "not partial" so hovering into empty space above a
-    // partial node clears the highlight instead of latching onto it.
+    // "has data-name" AND "not sub" so hovering into empty space above a
+    // sub node clears the highlight instead of latching onto it.
     const hasName =
-      hit && hit.hasAttribute('data-name') && hit.dataset.kind !== 'partial'
+      hit && hit.hasAttribute('data-name') && hit.dataset.kind !== 'sub'
         ? hit
         : null
 
@@ -1070,8 +1112,6 @@ export function SnlSyntaxTreeView({
 
     // `applyHoverHighlight` captures `--snl-base-text-color` from the
     // container before marking (see hover-apply.ts), so it is not set here.
-    ensureBindingIndexForTarget(hasName, container)
-    applyHoverHighlight(hasName, container)
     setHasHoverTarget(true)
     activateHoverTarget(hasName, event.clientX, event.clientY, {
       ctrl_key: event.ctrlKey,
@@ -1145,8 +1185,6 @@ export function SnlSyntaxTreeView({
       shift_key: modifiers.shift_key,
       alt_key: modifiers.alt_key,
     }
-    ensureBindingIndexForTarget(el, container)
-    applyHoverHighlight(el, container)
     setHasHoverTarget(true)
     activateHoverTarget(el, clientX, clientY, modifiers, true)
     if (_interaction_driver) void _interaction_driver.dispatch_click(ctx).catch(() => {})
@@ -1158,7 +1196,17 @@ export function SnlSyntaxTreeView({
     if (!container) return
     let el: HTMLElement | null = event.target as HTMLElement
     while (el && el !== container && !el.hasAttribute('data-tree-path')) el = el.parentElement
-    if (!el || !el.hasAttribute('data-tree-path')) return
+    if (!el || !el.hasAttribute('data-tree-path')) {
+      interactionGenerationRef.current += 1
+      infoRequestRef.current = null
+      hoverSessionRef.current = null
+      clearHoverTimers()
+      clearHoverMarks()
+      setHasHoverTarget(false)
+      setHoverKey('')
+      setTooltip(null)
+      return
+    }
     dispatchElementActivation(el, event.clientX, event.clientY, {
       ctrl_key: event.ctrlKey,
       meta_key: event.metaKey,
@@ -1226,6 +1274,7 @@ export function SnlSyntaxTreeView({
             'data-scope': node.scope,
             'data-bindref': getBindRef(node) ?? undefined,
             'data-src': getSrc(node) ?? undefined,
+            'data-source-path': getTreeSourcePath(node),
           }
       if (Renderer) {
         return (
@@ -1313,7 +1362,7 @@ export function SnlSyntaxTreeView({
         onClick={handleClick}
         onKeyDown={handleKeyDown}
       >
-        {isKatexRoot ? null : renderNode(tree)}
+        {isKatexRoot ? null : renderNode(renderTree)}
       </div>
       {tooltip ? mergedHooks.renderTooltip?.(tooltip) ?? null : null}
     </div>

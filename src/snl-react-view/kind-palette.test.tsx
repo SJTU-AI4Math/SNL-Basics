@@ -8,7 +8,7 @@ import {
 } from './kind-palette'
 
 describe('DEFAULT_KIND_PALETTE', () => {
-  it('has the 5 Lean-Expr defaults + partial helper entry', () => {
+  it('has the 5 Lean-Expr defaults + sub helper entry', () => {
     expect(DEFAULT_KIND_PALETTE).toMatchObject({
       rule: { stroke: '#009C27', background: '#D6FEE0' },
       const: { stroke: '#005B9C', background: '#DAF0FF' },
@@ -16,7 +16,7 @@ describe('DEFAULT_KIND_PALETTE', () => {
       binder: { stroke: '#E07B00', background: '#FFEBD2' },
       fvar: { stroke: '#D20022', background: '#FFD6DC' },
       // Partial is a hover-transparent kind — see kind-palette.ts.
-      partial: { stroke: 'inherit', background: 'transparent' },
+      sub: { stroke: 'inherit', background: 'transparent' },
     })
     expect(Object.keys(DEFAULT_KIND_PALETTE)).toHaveLength(6)
   })

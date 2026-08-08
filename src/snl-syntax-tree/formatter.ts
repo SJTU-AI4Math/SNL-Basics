@@ -42,26 +42,31 @@ export class SnlDslFormatter {
 
   /** Parse and format an SNL DSL expression. */
   public format(source: string): string {
-    return this.formatNode(parseSnlSyntaxTree(source), 0)
+    return this.formatNode(parseSnlSyntaxTree(source), 0, ' ')
   }
 
-  private formatNode(node: SnlSyntaxTree, indentationLevel: number): string {
+  /** Format an existing tree; use an empty argument gap for compact persistence. */
+  public formatTree(node: SnlSyntaxTree, argumentGap = ' '): string {
+    return this.formatNode(node, 0, argumentGap)
+  }
+
+  private formatNode(node: SnlSyntaxTree, indentationLevel: number, argumentGap: string): string {
     const name = this.formatNodeHead(node)
     if (node.children.length === 0) {
       return name
     }
 
     if (this.parenthesisDepth(node) <= this.inlineParenthesisDepth) {
-      const children = node.children.map((child) => this.formatNode(child, 0))
+      const children = node.children.map((child) => this.formatNode(child, 0, argumentGap))
       // An empty slot formats to the empty string, so `f(a,,b)` round trips.
       // Joining with ', ' would emit `f(a, , b)`; that reparses identically
       // but reads worse, so empty slots keep a tight comma.
-      return `${name}(${joinArgumentList(children, ' ')})`
+      return `${name}(${joinArgumentList(children, argumentGap)})`
     }
 
     const indentation = ' '.repeat(this.indentSpaces * (indentationLevel + 1))
     const children = node.children.map((child) =>
-      `${indentation}${this.formatNode(child, indentationLevel + 1)}`,
+      `${indentation}${this.formatNode(child, indentationLevel + 1, argumentGap)}`,
     )
     return `${name}(\n${children.join(',\n')}\n${' '.repeat(this.indentSpaces * indentationLevel)})`
   }

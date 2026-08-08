@@ -67,9 +67,9 @@ const interfaceMacro: SnlMacro = {
 }
 
 const enumerateMacro: SnlMacro = {
-  name: 'enumerate', description: 'ordered partial block',
+  name: 'enumerate', description: 'ordered sub block',
   source: { entries: [], urls: [] },
-  kind: 'partial',
+  kind: 'sub',
   dynamic_arity: true,
   tags: [],
   styles: [
@@ -297,7 +297,7 @@ describe('text-mode template splicing (regression)', () => {
     })
   })
 
-  it('preserves a literal newline before interface #1 and marks enumerate as partial', async () => {
+  it('preserves a literal newline and keeps enumerate sub metadata-transparent', async () => {
     const fields = createSnlSyntaxTreeNode('enumerate', {
       children: [leaf('name'), leaf('kind')],
     })
@@ -310,10 +310,11 @@ describe('text-mode template splicing (regression)', () => {
     await waitFor(() => {
       const root = container.querySelector('.snl-text[data-name="interface"]')
       const lineBreak = root?.querySelector('br')
-      const enumerateHost = root?.querySelector<HTMLElement>('[data-name="enumerate"]')
+      const enumerateHost = root?.querySelector<HTMLElement>('.snl-block-host')
       expect(lineBreak).not.toBeNull()
       expect(enumerateHost).not.toBeNull()
-      expect(enumerateHost?.dataset.kind).toBe('partial')
+      expect(enumerateHost?.dataset.name).toBeUndefined()
+      expect(enumerateHost?.dataset.kind).toBeUndefined()
       expect(lineBreak!.compareDocumentPosition(enumerateHost!)).toBe(
         Node.DOCUMENT_POSITION_FOLLOWING,
       )

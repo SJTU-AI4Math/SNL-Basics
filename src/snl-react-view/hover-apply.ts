@@ -56,6 +56,7 @@ export interface ApplySnlHoverHighlightOptions {
    * and pass it in (that is what `SnlSyntaxTreeView` does).
    */
   bvarScopeIndex?: Map<string, BvarScopeEntry>
+  phase?: 0 | 1 | 2
 }
 
 /**
@@ -85,7 +86,7 @@ export function applySnlHoverHighlight(
 
   const strategy = options.strategy ?? defaultHighlightStrategy
   const index = options.bvarScopeIndex ?? buildBvarScopeIndex(container)
-  const set = strategy.computeHighlightSet(target, container, index)
+  const set = strategy.computeHighlightSet(target, container, index, options.phase)
 
   if (set.singleHover) {
     set.singleHover.classList.add(SNL_HOVER_CLASS.singleHover)

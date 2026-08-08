@@ -24,6 +24,7 @@ export type { SnlHighlightSet, SnlHighlightStrategy } from '../snl-react-view/ho
 export { findMinimalHoverRoot, findBinderScopeAncestor } from '../snl-react-view/hover-dom'
 export {
   buildBvarScopeIndex,
+  readBindingSourceKeyFromDom,
   type BvarScopeEntry,
 } from '../snl-syntax-tree/bvar-scope-index'
 export { readBindRefFromDom, readSrcFromDom } from '../snl-syntax-tree/binding'

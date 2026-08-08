@@ -27,7 +27,7 @@ import {
   read_localized,
 } from '../runtime'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
-import { getBindRef, getSrc } from '../snl-syntax-tree/binding'
+import { getBindRef, getSrc, getTreeSourcePath } from '../snl-syntax-tree/binding'
 import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
 import { fillLatexTemplate } from '../snl-syntax-tree/template'
 import { isEmptySnlSyntaxTreeNode, type SnlSyntaxTree } from '../snl-syntax-tree/types'
@@ -156,10 +156,14 @@ export function wrapHtmlData(
   const bindRefFragment = ref ? `,bindRef=${sanitizeHtmlDataAttr(ref)}` : ''
   const srcVal = getSrc(node)
   const srcFragment = srcVal ? `,src=${sanitizeHtmlDataAttr(srcVal)}` : ''
+  const sourcePath = getTreeSourcePath(node)
+  const sourcePathFragment = sourcePath !== undefined
+    ? `,source-path=${sanitizeHtmlDataAttr(sourcePath)}`
+    : ''
   const scopeFragment = node.scope ? `,scope=${sanitizeHtmlDataAttr(node.scope)}` : ''
   const styleFragment = node.style_name ? `,style=${sanitizeHtmlDataAttr(node.style_name)}` : ''
   const pathFragment = treePath ? `,tree-path=${encodeTreePath(treePath)}` : ''
-  return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}${srcFragment}${pathFragment}}{${inner}}`
+  return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}${srcFragment}${sourcePathFragment}${pathFragment}}{${inner}}`
 }
 
 function readBalancedBracedEnd(source: string, openAt: number): number {

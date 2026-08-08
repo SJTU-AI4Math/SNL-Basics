@@ -13,6 +13,7 @@ import { testDriver } from './test-helpers'
 import type { SnlMacroRecord } from '../snl-macro/types'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
+import { SnlActivationController } from './activation-controller'
 
 const db: SnlMacroRecord = {
   sum: {
@@ -140,7 +141,42 @@ describe('data-tree-path DOM attribute', () => {
 })
 
 describe('SnlInteractionDriver integration', () => {
-  it('treats secondary binders exactly like the first binder for highlight and hover semantics', async () => {
+  it('allows an initialized activation controller to replace phase 0 with custom params', async () => {
+    const replacement = vi.fn()
+    const onHover = vi.fn()
+    const controller = new SnlActivationController({
+      params: { consumer: 'canvas' },
+      handlers: {
+        0: ({ params }) => { replacement(params) },
+      },
+    })
+    const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x')] })
+    const view = render(
+      <SnlSyntaxTreeView
+        tree={tree}
+        macro_data_driver={driver}
+        activation_controller={controller}
+        hooks={{ onHover }}
+      />,
+    )
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [target] })
+    try {
+      fireEvent.mouseMove(target, { clientX: 1, clientY: 2 })
+      expect(replacement).toHaveBeenCalledWith({ consumer: 'canvas' })
+      expect(onHover).not.toHaveBeenCalled()
+      expect(target.classList.contains('snl-single-hover')).toBe(false)
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
+  it('uses tree paths symmetrically for multiple binder sources across all phases', async () => {
     const events: Array<{ name: string; variableRole: string }> = []
     const tree = parseSnlSyntaxTree('scope(@x,@y,x,y)')
     const view = render(
@@ -151,36 +187,39 @@ describe('SnlInteractionDriver integration', () => {
       />,
     )
     const binderY = await waitFor(() => {
-      const found = view.container.querySelector<HTMLElement>('[data-kind="binder"][data-bindref="b2"]')
+      const found = view.container.querySelector<HTMLElement>('[data-kind="binder"][data-tree-path="1"]')
       expect(found).not.toBeNull()
       return found!
     })
-    const binderX = view.container.querySelector<HTMLElement>('[data-kind="binder"][data-bindref="b1"]')!
-    const bvarX = view.container.querySelector<HTMLElement>('[data-kind="bvar"][data-bindref="b1"]')!
-    const bvarY = view.container.querySelector<HTMLElement>('[data-kind="bvar"][data-bindref="b2"]')!
+    const binderX = view.container.querySelector<HTMLElement>('[data-kind="binder"][data-tree-path="0"]')!
+    const bvarX = view.container.querySelector<HTMLElement>('[data-kind="bvar"][data-source-path="0"]')!
+    const bvarY = view.container.querySelector<HTMLElement>('[data-kind="bvar"][data-source-path="1"]')!
     let pointed = bvarX
     const original = document.elementsFromPoint
     Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [pointed] })
+    vi.useFakeTimers()
     try {
       fireEvent.mouseMove(bvarX, { clientX: 5, clientY: 6 })
-      expect(bvarX.classList.contains('snl-bvar-scope')).toBe(true)
-      expect(binderX.classList.contains('snl-binder-decl')).toBe(true)
+      expect(bvarX.classList.contains('snl-single-hover')).toBe(true)
+      expect(binderX.classList.contains('snl-binder-decl')).toBe(false)
       expect(events.at(-1)).toEqual({ name: 'x', variableRole: 'bvar' })
+      act(() => vi.advanceTimersByTime(1000))
+      expect(binderX.classList.contains('snl-binder-decl')).toBe(true)
+      expect(bvarX.classList.contains('snl-bvar-scope')).toBe(false)
+      act(() => vi.advanceTimersByTime(1000))
+      expect(bvarX.classList.contains('snl-bvar-scope')).toBe(true)
 
-      pointed = bvarY
-      fireEvent.mouseMove(bvarY, { clientX: 7, clientY: 8 })
+      fireEvent.click(view.container.querySelector('.katex-html')!)
+      pointed = binderY
+      fireEvent.mouseMove(binderY, { clientX: 9, clientY: 10 })
+      expect(bvarY.classList.contains('snl-bvar-scope')).toBe(false)
+      act(() => vi.advanceTimersByTime(1000))
       expect(bvarY.classList.contains('snl-bvar-scope')).toBe(true)
       expect(binderY.classList.contains('snl-binder-decl')).toBe(true)
       expect(bvarX.classList.contains('snl-bvar-scope')).toBe(false)
-      expect(binderX.classList.contains('snl-binder-decl')).toBe(false)
-      expect(events.at(-1)).toEqual({ name: 'y', variableRole: 'bvar' })
-
-      pointed = binderY
-      fireEvent.mouseMove(binderY, { clientX: 9, clientY: 10 })
-      expect(bvarY.classList.contains('snl-bvar-scope')).toBe(true)
-      expect(binderY.classList.contains('snl-binder-decl')).toBe(true)
       expect(events.at(-1)).toEqual({ name: 'y', variableRole: 'bvar' })
     } finally {
+      vi.useRealTimers()
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
     }
   })

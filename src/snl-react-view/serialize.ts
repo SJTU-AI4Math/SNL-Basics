@@ -1,4 +1,7 @@
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { SnlDslFormatter } from '../snl-syntax-tree/formatter'
+
+const compactFormatter = new SnlDslFormatter(0, Number.MAX_SAFE_INTEGER)
 
 /**
  * Serialize a tree back to Parser-readable source:
@@ -9,10 +12,5 @@ import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
  * bracket (the view then falls back to the macro's default `styles[0]`).
  */
 export function serializeSnlSyntaxTree(node: SnlSyntaxTree): string {
-  const stylePart = node.style_name ? `[${node.style_name}]` : ''
-  const childrenPart =
-    node.children.length > 0
-      ? `(${node.children.map((child) => serializeSnlSyntaxTree(child)).join(',')})`
-      : ''
-  return `${node.macro_name}${stylePart}${childrenPart}`
+  return compactFormatter.formatTree(node, '')
 }

@@ -14,6 +14,10 @@ export type SnlPostfix =
   | { type: 'tree_path'; path: number[] }
   | { type: 'binder_name'; name: string }
 
+export type SnlResolvedSource =
+  | { type: 'tree_path'; path: number[] }
+  | { type: 'entry'; entry_id: string }
+
 export interface SnlSyntaxTree {
   /** Macro name — key into `SnlMacroRecord`. */
   macro_name: string
@@ -59,6 +63,8 @@ export interface SnlSyntaxTree {
   binder_name?: string
   /** Parsed postfix syntax; semantic resolution happens after Macro lookup. */
   postfix?: SnlPostfix
+  /** Canonical resolved source; tree positions are the only local identity. */
+  source?: SnlResolvedSource
   /** Meta data (e.g. `{ bindRef }`) written by binding annotation. */
   mdata: unknown
   /** Child nodes. */

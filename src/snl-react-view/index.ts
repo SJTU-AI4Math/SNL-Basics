@@ -33,7 +33,7 @@ export type {
   SnlMacroSource,
   SnlTextMacroStyle,
 } from '../snl-macro/types'
-export type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+export type { SnlPostfix, SnlResolvedSource as SnlTreeResolvedSource, SnlSyntaxTree } from '../snl-syntax-tree/types'
 export {
   createEmptySnlSyntaxTreeNode,
   createSnlSyntaxTreeNode,
@@ -100,6 +100,11 @@ export { parseSnlSyntaxTree, tryParseSnlSyntaxTree, SnlSyntaxTreeParseError } fr
 export { serializeSnlSyntaxTree } from './serialize'
 export { SnlDslFormatter } from '../snl-syntax-tree/formatter'
 export { annotateBindings } from '../snl-syntax-tree/annotate-bind'
+export {
+  resolveSnlSemantics,
+  type SnlDiagnostic,
+  type SnlSemanticResolution,
+} from '../snl-syntax-tree/semantic-resolver'
 export { isSnlIdentifier } from '../snl-syntax-tree/identifier'
 export {
   analyzeSnlTreeSources,
@@ -112,6 +117,15 @@ export { SnlSyntaxTreeView, type SnlSyntaxTreeViewProps } from '../components/Sn
 
 // === Hooks & customization ===
 export { defaultRenderHooks, defaultHighlightStrategy, defaultRenderers } from './hooks'
+export {
+  DEFAULT_SNL_ACTIVATION_CONTROLLER,
+  SnlActivationController,
+  type SnlActivationControllerOptions,
+  type SnlActivationDispatch,
+  type SnlActivationDispatcher,
+  type SnlActivationHandler,
+  type SnlActivationPhase,
+} from './activation-controller'
 export { HTMLDATA_KATEX_DEFAULTS } from './katex-defaults'
 
 // === Hover highlighting against already-rendered DOM ===
@@ -123,7 +137,11 @@ export { HTMLDATA_KATEX_DEFAULTS } from './katex-defaults'
 // 是 SNL-Basics 里就确定的行为，你到底有没有复用代码?" — it was hand-copied,
 // and the copy drifted (missing `--snl-base-text-color`, so nested subtrees
 // inside a hovered node never reverted to the base colour).
-export { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
+export {
+  buildBvarScopeIndex,
+  readBindingSourceKeyFromDom,
+  type BvarScopeEntry,
+} from '../snl-syntax-tree/bvar-scope-index'
 export { findMinimalHoverRoot, findBinderScopeAncestor } from './hover-dom'
 export { readBindRefFromDom, readSrcFromDom } from '../snl-syntax-tree/binding'
 export {

@@ -22,6 +22,7 @@ export function getBindRef(node: SnlSyntaxTree): string | undefined {
  * EntryRender resolves it against the workspace entry pool.
  */
 export function getSrc(node: SnlSyntaxTree): string | undefined {
+  if (node.source?.type === 'entry') return node.source.entry_id
   if (!node.mdata || typeof node.mdata !== 'object') {
     return undefined
   }
@@ -30,6 +31,10 @@ export function getSrc(node: SnlSyntaxTree): string | undefined {
     return undefined
   }
   return String(v)
+}
+
+export function getTreeSourcePath(node: SnlSyntaxTree): string | undefined {
+  return node.source?.type === 'tree_path' ? node.source.path.join('.') : undefined
 }
 
 export function bindRefAttrFragment(ref: string | undefined): string {

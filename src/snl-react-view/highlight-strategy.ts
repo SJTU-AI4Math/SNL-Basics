@@ -8,8 +8,11 @@
  * `./hover` subpath entry stay small; `hooks.tsx` re-exports from here so its
  * public surface is unchanged.
  */
-import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
-import { readBindRefFromDom } from '../snl-syntax-tree/binding'
+import {
+  buildBvarScopeIndex,
+  readBindingSourceKeyFromDom,
+  type BvarScopeEntry,
+} from '../snl-syntax-tree/bvar-scope-index'
 
 /**
  * The set of DOM elements a hover interaction should decorate. The view applies
@@ -47,6 +50,7 @@ export interface SnlHighlightStrategy {
     target: HTMLElement,
     container: HTMLElement,
     bvarScopeIndex: Map<string, BvarScopeEntry>,
+    phase?: 0 | 1 | 2,
   ): SnlHighlightSet
 }
 
@@ -59,9 +63,9 @@ export interface SnlHighlightStrategy {
  * the one interaction that spans siblings rather than nested ancestors.
  */
 export const defaultHighlightStrategy: SnlHighlightStrategy = {
-  computeHighlightSet(target, container, bvarScopeIndex) {
+  computeHighlightSet(target, container, bvarScopeIndex, phase = 2) {
     const kind = target.dataset.kind ?? ''
-    const bindRef = readBindRefFromDom(target)
+    const sourceKey = readBindingSourceKeyFromDom(target)
 
     const bvarScope: HTMLElement[] = []
     const binderDecl: HTMLElement[] = []
@@ -69,8 +73,8 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
     // text colours via inheritance, so no bulk `hovered` set is needed.
     const singleHover: HTMLElement | null = target
 
-    if ((kind === 'bvar' || kind === 'binder') && bindRef) {
-      const cachedEntry = bvarScopeIndex.get(bindRef)
+    if (phase >= 1 && (kind === 'bvar' || kind === 'binder') && sourceKey) {
+      const cachedEntry = bvarScopeIndex.get(sourceKey)
       const targetIsIndexed = kind === 'bvar'
         ? cachedEntry?.bvars.includes(target)
         : cachedEntry?.binders.includes(target)
@@ -80,7 +84,7 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
       // multi-binder scope.
       const entry = targetIsIndexed
         ? cachedEntry
-        : buildBvarScopeIndex(container).get(bindRef)
+        : buildBvarScopeIndex(container).get(sourceKey)
       let bvars: HTMLElement[]
       let binders: HTMLElement[]
       if (entry) {
@@ -90,12 +94,11 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
         bvars = []
         binders = []
       }
-      for (const el of bvars) {
-        bvarScope.push(el)
-      }
-      for (const el of binders) {
-        binderDecl.push(el)
-      }
+      // Phase 1 adds the source subtree for bvar and all references for binder.
+      // Phase 2 additionally adds all same-source bvars for a bvar target.
+      if (entry && sourceKey.startsWith('#')) binderDecl.push(entry.scopeRoot)
+      else binderDecl.push(...binders)
+      if (kind === 'binder' || phase >= 2) bvarScope.push(...bvars)
     }
 
     return { singleHover, bvarScope, binderDecl }

@@ -40,17 +40,17 @@ const db: SnlMacroRecord = {
   'pmatrix.spaced': mathMacro('pmatrix.spaced', { template: '\\begin {pmatrix}#*\\end {pmatrix}', separator: ' \\\\ ' }),
   'pmatrix.commented': mathMacro('pmatrix.commented', { template: '\\begin % row\n{pmatrix}#*\\end % row\n{pmatrix}', separator: ' \\\\ ' }),
   'matrix.row': mathMacro('matrix.row', { separator: ' & ' }),
-  'matrix.fixed-row': fixedMathMacro('matrix.fixed-row', '#0 & #1', 'partial'),
+  'matrix.fixed-row': fixedMathMacro('matrix.fixed-row', '#0 & #1', 'sub'),
   'matrix.commented-row': fixedMathMacro(
     'matrix.commented-row',
     String.raw`% \begin{fake} & \\
 #0 & #1`,
-    'partial',
+    'sub',
   ),
-  'matrix.verb-row': fixedMathMacro('matrix.verb-row', String.raw`\verb|%| & #0`, 'partial'),
-  'matrix.url-row': fixedMathMacro('matrix.url-row', String.raw`\url{https://x/%20} & #0`, 'partial'),
-  'matrix.url-backslash-row': fixedMathMacro('matrix.url-backslash-row', String.raw`\url{\\%} & #0`, 'partial'),
-  'matrix.href-backslash-row': fixedMathMacro('matrix.href-backslash-row', String.raw`\href{\\%}{link} & #0`, 'partial'),
+  'matrix.verb-row': fixedMathMacro('matrix.verb-row', String.raw`\verb|%| & #0`, 'sub'),
+  'matrix.url-row': fixedMathMacro('matrix.url-row', String.raw`\url{https://x/%20} & #0`, 'sub'),
+  'matrix.url-backslash-row': fixedMathMacro('matrix.url-backslash-row', String.raw`\url{\\%} & #0`, 'sub'),
+  'matrix.href-backslash-row': fixedMathMacro('matrix.href-backslash-row', String.raw`\href{\\%}{link} & #0`, 'sub'),
 }
 
 function leaf(name: string): SnlSyntaxTree {
@@ -85,7 +85,7 @@ describe('variadic pmatrix / matrix.row', () => {
     expect(view.container.querySelector('.katex-error')).toBeNull()
   })
 
-  it('keeps a fixed-arity partial alignment node KaTeX-valid without losing metadata', async () => {
+  it('keeps a fixed-arity sub alignment node KaTeX-valid without its own metadata', async () => {
     const fixedRow = createSnlSyntaxTreeNode('matrix.fixed-row', {
       children: [leaf('a'), leaf('b')],
     })
@@ -95,8 +95,8 @@ describe('variadic pmatrix / matrix.row', () => {
     await waitFor(() => expect(view.container.querySelector('.mtable')).not.toBeNull())
     expect(view.container.querySelector('.katex-error')).toBeNull()
     expect(view.container.querySelectorAll(
-      '[data-name="matrix.fixed-row"][data-kind="partial"][data-tree-path="0"]',
-    )).toHaveLength(2)
+      '[data-name="matrix.fixed-row"][data-tree-path="0"]',
+    )).toHaveLength(0)
     expect(view.container.querySelector('[data-name="a"][data-tree-path="0.0"]')).not.toBeNull()
     expect(view.container.querySelector('[data-name="b"][data-tree-path="0.1"]')).not.toBeNull()
   })
@@ -112,7 +112,7 @@ describe('variadic pmatrix / matrix.row', () => {
     expect(view.container.querySelector('.katex-error')).toBeNull()
     expect(view.container.querySelectorAll(
       '[data-name="matrix.commented-row"][data-tree-path="0"]',
-    )).toHaveLength(2)
+    )).toHaveLength(0)
   })
 
   it.each([
@@ -127,7 +127,7 @@ describe('variadic pmatrix / matrix.row', () => {
     expect(view.container.querySelector('.katex-error')).toBeNull()
     expect(view.container.querySelectorAll(
       `[data-name="${macroName}"][data-tree-path="0"]`,
-    )).toHaveLength(2)
+    )).toHaveLength(0)
   })
 
   it.each([
@@ -153,7 +153,7 @@ describe('variadic pmatrix / matrix.row', () => {
     expect(link.getAttribute('href')).toBe(expectedHref)
     expect(view.container.querySelectorAll(
       `[data-name="${macroName}"][data-tree-path="0"]`,
-    ).length).toBeGreaterThan(0)
+    )).toHaveLength(0)
   })
 
   it('renders pmatrix(matrix.row(a,b), matrix.row(c,d)) to a KaTeX matrix', async () => {

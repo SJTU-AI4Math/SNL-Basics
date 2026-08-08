@@ -1,31 +1,53 @@
 import { readBindRefFromDom } from './binding'
 
-/** 与 annotate-bind 的 bindRef 一致：每个 binder scope 对应一块作用域，域内同 ref 的 bvar/binder 节点 */
 export interface BvarScopeEntry {
-  /** 该 bindRef 的最小 binder-scope 子树根 */
+  /** Canonical source subtree (legacy name retained for API compatibility). */
   scopeRoot: HTMLElement
   bvars: HTMLElement[]
   binders: HTMLElement[]
 }
 
-/**
- * KaTeX 注入 innerHTML 后调用：为每个 bindRef 选择能包含其全部 binder/bvar
- * 节点的最小 data-scope="binder" 根。嵌套 scope 可共享 ref，也可拥有不同 ref。
- */
+/** Canonical local source key. No allocated binder ID exists. */
+export function readBindingSourceKeyFromDom(element: HTMLElement): string {
+  const kind = element.dataset.kind ?? ''
+  if (kind === 'bvar' && element.dataset.sourcePath !== undefined) {
+    return `#${element.dataset.sourcePath}`
+  }
+  if (kind === 'binder' && element.dataset.treePath !== undefined) {
+    return `#${element.dataset.treePath}`
+  }
+  return readBindRefFromDom(element)
+}
+
+/** Build source-tree-path → source subtree + all bvar references. */
 export function buildBvarScopeIndex(container: HTMLElement): Map<string, BvarScopeEntry> {
   const map = new Map<string, BvarScopeEntry>()
-  const scopeRoots = Array.from(
-    container.querySelectorAll<HTMLElement>('[data-scope="binder"]'),
-  )
   const allBinders = Array.from(container.querySelectorAll<HTMLElement>('[data-kind="binder"]'))
   const allBvars = Array.from(container.querySelectorAll<HTMLElement>('[data-kind="bvar"]'))
+
+  const sourcePaths = new Set(
+    allBvars
+      .map((element) => element.dataset.sourcePath)
+      .filter((value): value is string => value !== undefined),
+  )
+  for (const sourcePath of sourcePaths) {
+    const source = Array.from(container.querySelectorAll<HTMLElement>('[data-tree-path]'))
+      .find((element) => element.dataset.treePath === sourcePath)
+    if (!source) continue
+    const bvars = allBvars.filter((element) => element.dataset.sourcePath === sourcePath)
+    const binders = source.dataset.kind === 'binder' ? [source] : []
+    map.set(`#${sourcePath}`, { scopeRoot: source, bvars, binders })
+  }
+
+  // Tree2 compatibility only. Tree3 never allocates bindRef.
+  const scopeRoots = Array.from(container.querySelectorAll<HTMLElement>('[data-scope="binder"]'))
   const refs = new Set<string>()
   for (const element of [...scopeRoots, ...allBinders, ...allBvars]) {
     const ref = readBindRefFromDom(element)
     if (ref) refs.add(ref)
   }
-
   for (const ref of refs) {
+    if (map.has(ref)) continue
     const binders = allBinders.filter((element) => readBindRefFromDom(element) === ref)
     const bvars = allBvars.filter((element) => readBindRefFromDom(element) === ref)
     const members = [...binders, ...bvars]
@@ -34,8 +56,6 @@ export function buildBvarScopeIndex(container: HTMLElement): Map<string, BvarSco
         ? members.every((member) => root.contains(member))
         : readBindRefFromDom(root) === ref,
     )
-    // Any two candidates containing all members are nested in a valid syntax
-    // tree. Choose the deepest one, i.e. the minimal containing scope.
     const scopeRoot = candidates.find((candidate) =>
       !candidates.some((other) => other !== candidate && candidate.contains(other)),
     )
