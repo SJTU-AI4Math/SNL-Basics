@@ -465,7 +465,7 @@ describe('SnlInteractionDriver integration', () => {
     }
   })
 
-  it('uses a pointer cursor only while Ctrl is held over a highlighted subtree', async () => {
+  it('uses a pointer cursor whenever a clickable SNL node is hovered', async () => {
     const tree = createSnlSyntaxTreeNode('sum', {
       children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')],
     })
@@ -490,13 +490,13 @@ describe('SnlInteractionDriver integration', () => {
       const baseColor = interactionSurface.style.getPropertyValue('--snl-base-text-color')
       expect(baseColor).not.toBe('')
       expect(baseColor).toBe(window.getComputedStyle(interactionSurface).color)
-      expect(interactionSurface.style.cursor).not.toBe('pointer')
+      expect(interactionSurface.style.cursor).toBe('pointer')
 
       fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })
       expect(interactionSurface.style.cursor).toBe('pointer')
 
       fireEvent.keyUp(window, { key: 'Control' })
-      expect(interactionSurface.style.cursor).not.toBe('pointer')
+      expect(interactionSurface.style.cursor).toBe('pointer')
 
       fireEvent.mouseLeave(interactionSurface)
       fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })

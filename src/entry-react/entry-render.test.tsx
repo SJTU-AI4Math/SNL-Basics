@@ -73,20 +73,39 @@ describe('Entry surface dispatch', () => {
 
   it('only shows title activation affordances while Ctrl is held over the title', () => {
     const view = render(<EntrySurface entry={base({})} kind={{ id: 'definition', name: 'Definition', coloring: { stroke: '#123456', background: '#eeeeee' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} interaction_ports={{ on_title_activate: vi.fn() }} />)
-    const section = view.container.querySelector('section')!
     const title = view.container.querySelector('strong')!
 
     fireEvent.mouseEnter(title)
     expect((title as HTMLElement).style.cursor).not.toBe('pointer')
-    expect((section as HTMLElement).style.background).toBe('rgb(238, 238, 238)')
 
     fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })
     expect((title as HTMLElement).style.cursor).toBe('pointer')
-    expect((section as HTMLElement).style.background).toBe('rgb(243, 244, 246)')
 
     fireEvent.keyUp(window, { key: 'Control' })
     expect((title as HTMLElement).style.cursor).not.toBe('pointer')
+  })
+
+  it('restores the Entry Block white hard-edge glow and uses light gray while Ctrl-hovered', () => {
+    const view = render(<EntrySurface entry={base({ text: 'body' })} kind={{ id: 'definition', name: 'Definition', coloring: { stroke: '#123456', background: '#eeeeee' } }} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
+    const section = view.container.querySelector('section') as HTMLElement
+
     expect((section as HTMLElement).style.background).toBe('rgb(238, 238, 238)')
+    expect(section.style.boxShadow).toBe('none')
+
+    fireEvent.pointerEnter(section)
+    expect(section.style.background).toBe('rgb(255, 255, 255)')
+    expect(section.style.boxShadow).toBe('inset 0 0 0 5px #123456')
+
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })
+    expect(section.style.background).toBe('rgb(243, 244, 246)')
+    expect(section.style.boxShadow).toBe('inset 0 0 0 5px #123456')
+
+    fireEvent.keyUp(window, { key: 'Control' })
+    expect(section.style.background).toBe('rgb(255, 255, 255)')
+
+    fireEvent.pointerLeave(section)
+    expect(section.style.background).toBe('rgb(238, 238, 238)')
+    expect(section.style.boxShadow).toBe('none')
   })
 
   it('shows parse errors and original SNL source', () => {

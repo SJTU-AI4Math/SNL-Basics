@@ -30,7 +30,7 @@ import {
 import { tightenHoverBoxes } from '../snl-react-view/tighten-hover-boxes'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { resolveSnlSemantics, type SnlDiagnostic } from '../snl-syntax-tree/semantic-resolver'
-import { useCtrlPressed } from '../snl-react-view/use-ctrl-pressed'
+
 import {
   assert_valid_style_template,
   modeBucket,
@@ -691,7 +691,7 @@ export function SnlSyntaxTreeView({
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
   const [hasHoverTarget, setHasHoverTarget] = useState(false)
-  const ctrlPressed = useCtrlPressed(hasHoverTarget)
+
   const prefetchTimerRef = useRef<number | null>(null)
   const showTimerRef = useRef<number | null>(null)
   const lockTimerRef = useRef<number | null>(null)
@@ -1362,7 +1362,7 @@ export function SnlSyntaxTreeView({
         key={isKatexRoot ? 'katex' : 'react'}
         ref={containerRef}
         className="katex-html"
-        style={{ cursor: ctrlPressed && hasHoverTarget ? 'pointer' : undefined }}
+        style={{ cursor: hasHoverTarget ? 'pointer' : undefined }}
         onMouseMove={handleKaTeXMouseMove}
         onMouseLeave={handleKaTeXMouseLeave}
         onClick={handleClick}

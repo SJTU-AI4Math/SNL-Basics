@@ -192,8 +192,9 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     for (const id of ownedPreviewIds.current) preview.cancelUnfrozen(id)
     ownedPreviewIds.current.clear()
   }, [preview])
+  const [blockHovered, setBlockHovered] = useState(false)
   const [titleHovered, setTitleHovered] = useState(false)
-  const ctrlPressed = useCtrlPressed(titleHovered)
+  const ctrlPressed = useCtrlPressed(blockHovered || titleHovered)
   const titleActivationActive = Boolean(interaction_ports?.on_title_activate && titleHovered && ctrlPressed)
   const effectiveInteractionDriver = useMemo(() => {
     if (!preview) return interaction_driver
@@ -222,7 +223,21 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     })
   }, [interaction_driver, interaction_ports, preview])
   const invoke = (result: void | Promise<void> | undefined): void => { if (result instanceof Promise) void result.catch(() => undefined) }
-  return <section data-entry-id={entry.id} className={props.className} style={{ borderLeft: `5px solid ${stroke}`, background: titleActivationActive ? '#f3f4f6' : background, width: '100%', transition: 'background-color 150ms ease', ...props.style }}>
+  const interactiveBackground = blockHovered ? (ctrlPressed ? '#f3f4f6' : '#ffffff') : background
+  return <section
+    data-entry-id={entry.id}
+    className={props.className}
+    onPointerEnter={() => setBlockHovered(true)}
+    onPointerLeave={() => setBlockHovered(false)}
+    style={{
+      borderLeft: `5px solid ${stroke}`,
+      background: interactiveBackground,
+      boxShadow: blockHovered ? `inset 0 0 0 5px ${stroke}` : 'none',
+      width: '100%',
+      transition: 'background-color 150ms ease, box-shadow 150ms ease',
+      ...props.style,
+    }}
+  >
     <header style={{ padding: '0.275rem 0.8rem', display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
       <strong onMouseEnter={() => setTitleHovered(true)} onMouseLeave={() => setTitleHovered(false)} onClick={(event) => invoke(interaction_ports?.on_title_activate?.(entry.id, event))} style={{ color: stroke, fontSize: '1.25rem', flex: '1 1 auto', cursor: titleActivationActive ? 'pointer' : undefined }}>
         {kindName}{counter_label ? ` ${counter_label}` : ''} -- <span dangerouslySetInnerHTML={{ __html: html }} />
