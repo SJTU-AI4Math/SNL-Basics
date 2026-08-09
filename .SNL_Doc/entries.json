@@ -342,21 +342,7 @@
       "pattern": "export\\s+interface\\s+SnlMacroSource\\b"
     }
   },
-  {
-    "id": "mac.const.bundled-macro-db",
-    "kind": "constant",
-    "title": "Bundled Macro Database",
-    "content": {
-      "snl": "%The core mathematical macro DB bundled with SNL-Basics. It covers foundational symbols from algebra, analysis, topology, logic, and other areas, such as \\forall, \\exists, \\in, R, plus, and div. At runtime it can be combined with a user macro DB using mergeMacroDb to form the final rendering DB.%",
-      "markdown": "The core mathematical macro DB bundled with SNL-Basics. It covers foundational symbols from algebra, analysis, topology, logic, and other areas, such as `\\forall`, `\\exists`, `\\in`, `R`, `plus`, and `div`. At runtime it can be combined with a user macro DB using `mergeMacroDb` to form the final rendering DB."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-macro/bundled-db.ts",
-      "mode": "regex",
-      "pattern": "export\\s+const\\s+bundledMacroDb\\b"
-    }
-  },
+
   {
     "id": "rv.comp.snl-syntax-tree-view",
     "kind": "component",
@@ -1802,17 +1788,7 @@
     "contribution_info": null,
     "pointer": null
   },
-  {
-    "id": "sec.macro.databases",
-    "kind": "section",
-    "title": "Bundled Databases",
-    "content": {
-      "snl": "%Bundled macro database constants.%",
-      "markdown": "Bundled macro database constants."
-    },
-    "contribution_info": null,
-    "pointer": null
-  },
+
   {
     "id": "sec.syntax.interfaces",
     "kind": "section",
@@ -1981,10 +1957,10 @@
   {
     "id": "sec.public.macro-db",
     "kind": "section",
-    "title": "Macro Database",
+    "title": "Macro Data Access",
     "content": {
-      "snl": "%Bundled macro data, loading, caching, and template queries.%",
-      "markdown": "Bundled macro data, loading, caching, and template queries."
+      "snl": "%Consumer-owned macro data queries, loading, caching, and template resolution.%",
+      "markdown": "Consumer-owned macro data queries, loading, caching, and template resolution."
     },
     "contribution_info": null,
     "pointer": null
@@ -2077,17 +2053,7 @@
     "contribution_info": null,
     "pointer": null
   },
-  {
-    "id": "sub.public.macro-db.bundled",
-    "kind": "subsection",
-    "title": "Bundled Data",
-    "content": {
-      "snl": "%Bundled macro database exports.%",
-      "markdown": "Bundled macro database exports."
-    },
-    "contribution_info": null,
-    "pointer": null
-  },
+
   {
     "id": "sub.public.macro-db.loading",
     "kind": "subsection",
