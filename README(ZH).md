@@ -43,26 +43,29 @@ SNL-Basics 由 **Claude Opus + 基于 ChatGPT 的 Hermes Agent 通过 vibe codin
 未来的接口整理很可能会让大量精心手写的集成代码作废。如果你现在就要用，我们建议把集成层
 写得尽量薄、尽量可自动生成、或者尽量易于重新生成，并锁定精确版本号。
 
-需要说明的是，本库本身是**经过完整测试的**（300 个测试），并已在 SNL-Doc-Extension 中
+需要说明的是，本库本身有**完整的自动化测试套件**，并已在 SNL-Doc-Extension 中
 投入实际使用。上面的警告针对的是接口的*稳定性与设计品味*，而不是正确性。
 
 ---
 
 ## 可运行的示例
 
-[`examples/basic-demo`](examples/basic-demo) 是一个自包含的 Vite + React 应用，它
-**从打包出的 tarball 安装** SNL-Basics —— 也就是 npm 使用者拿到的完全相同的东西 ——
-并且只从公开入口导入。它既是发布包的集成测试，也是参考集成范例。
+[`examples/basic-demo`](examples/basic-demo) 是一个自包含的 Vite + React 本地集成应用。
+它通过 `file:../..` 链接仓库根包，只从公开包入口导入，并完整走
+`EntryPreviewProvider` + `EntrySurface` 的 Entry 渲染路径。生命周期脚本会自动安装
+缺失的根构建依赖并重建 `dist-lib`，fresh clone 不需要预先生成 tarball。
 
 ```bash
-npm run build:lib && npm pack      # 产出 sjtu-ai4math-snl-basics-<ver>.tgz
 cd examples/basic-demo
-npm install                        # 通过 file:../../ 解析该 tarball
+npm install                        # 自动准备并构建本地根包
 npm run dev                        # 或者：npm run build
 ```
 
-它演示了 parse → `annotateBindings` → `SnlSyntaxTreeView` 的完整流程（使用消费者提供的 MacroDataDriver）、
-实时编辑、style 方括号切换、序列化后的树，以及生成的 KaTeX 源码。
+它演示实时 SNL 编辑、Entry 渲染、由 Macro source 触发的递归 Entry 浮窗、点击 pin
+以及点击空白处清除。序列化语法树和 outline 仅作为 Parser 诊断，不参与渲染或悬浮。
+
+发布 tarball 的兼容性由独立的 clean-consumer 发布门禁验证；这个 source-linked demo
+是本地参考集成，不能作为 npm 已发布字节的证据。
 
 ## 功能与接口一览
 

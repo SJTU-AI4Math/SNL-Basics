@@ -5,6 +5,8 @@ describe('basic demo Entry integration route', () => {
   it('renders and previews through the public Entry path rather than the bare syntax-tree view', () => {
     const app = readFileSync(new URL('../../examples/basic-demo/src/App.tsx', import.meta.url), 'utf8')
     const main = readFileSync(new URL('../../examples/basic-demo/src/main.tsx', import.meta.url), 'utf8')
+    const readme = readFileSync(new URL('../../README.md', import.meta.url), 'utf8')
+    const readmeZh = readFileSync(new URL('../../README(ZH).md', import.meta.url), 'utf8')
     const pkg = JSON.parse(readFileSync(new URL('../../examples/basic-demo/package.json', import.meta.url), 'utf8')) as { dependencies: Record<string, string>; scripts: Record<string, string> }
     const prepareScript = readFileSync(new URL('../../examples/basic-demo/scripts/prepare-local-package.mjs', import.meta.url), 'utf8')
     expect(app).toContain('EntryPreviewProvider')
@@ -21,5 +23,9 @@ describe('basic demo Entry integration route', () => {
     expect(pkg.scripts.prebuild).toBe('node scripts/prepare-local-package.mjs')
     expect(prepareScript).toContain("process.platform === 'win32'")
     expect(prepareScript).toContain("['run', 'build:lib']")
+    expect(readme).toContain('links the repository root through `file:../..`')
+    expect(readmeZh).toContain('通过 `file:../..` 链接仓库根包')
+    expect(readme).not.toContain('from the packed tarball')
+    expect(readmeZh).not.toContain('从打包出的 tarball 安装')
   })
 })

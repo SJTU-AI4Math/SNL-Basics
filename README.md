@@ -53,7 +53,7 @@ to invalidate a large amount of carefully hand-written integration work. If you
 do use it now, we recommend you keep your integration thin, generated, or
 otherwise cheap to regenerate — and pin an exact version.
 
-The library is nonetheless **fully tested** (300 tests) and used in production
+The library is nonetheless covered by a **full automated test suite** and used in production
 by SNL-Doc-Extension. The caveat is about interface *stability and taste*, not
 correctness.
 
@@ -62,21 +62,25 @@ correctness.
 ## Runnable example
 
 [`examples/basic-demo`](examples/basic-demo) is a self-contained Vite + React
-app that installs SNL-Basics **from the packed tarball** — exactly what npm
-consumers get — and imports only from the public entry points. It is the
-integration test for the published package as well as the reference
-integration.
+local-integration app. It links the repository root through `file:../..`,
+imports only public package entry points, and renders through the complete Entry
+route (`EntryPreviewProvider` + `EntrySurface`). Its lifecycle hooks automatically
+install missing root build dependencies and rebuild `dist-lib`, so a fresh clone
+does not need a pre-generated tarball.
 
 ```bash
-npm run build:lib && npm pack      # produces sjtu-ai4math-snl-basics-<ver>.tgz
 cd examples/basic-demo
-npm install                        # resolves the tarball via file:../../
+npm install                        # bootstraps and builds the local root package
 npm run dev                        # or: npm run build
 ```
 
-It demonstrates parse → `annotateBindings` → `SnlSyntaxTreeView` with a
-consumer-owned `MacroDataDriver`, live editing, the
-serialized tree, and the generated KaTeX source.
+It demonstrates live SNL editing, Entry rendering, source-backed recursive Entry
+previews, click-to-pin and blank-click dismissal. The serialized syntax tree and
+outline remain parser diagnostics only.
+
+Packed-artifact compatibility is verified separately by the release tarball
+clean-consumer gates; this source-linked demo is the reference local integration,
+not evidence about bytes published to npm.
 
 ## Feature overview
 
@@ -538,7 +542,7 @@ on `import type { … } from '@sjtu-ai4math/snl-basics'`.
 ```bash
 npm install
 npm run build:lib   # emits dist-lib/ (JS + types + style.css + core macro DB)
-npm test            # vitest — 300 tests
+npm test            # full Vitest suite
 npm run dev         # interactive demo (src/App.tsx)
 npm pack            # produce the publishable tarball
 ```
