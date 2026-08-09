@@ -62,8 +62,11 @@ export interface MacroV9 extends Omit<SnlMacro, 'kind'> {
   kind?: string
 }
 
-/** v10 persisted shape: canonical documents materialize one behavior kind. */
-export type MacroV10 = Omit<SnlMacro, 'kind'> & { kind: 'const' | 'sub' }
+/** v10 persisted shape: documents materialize a display kind; `partial` is renamed to `sub`. */
+export type MacroV10 = Omit<SnlMacro, 'kind' | 'default_style'> & {
+  kind: string
+  default_style?: never
+}
 
 /** v7 macro shape: ordered styles, with I18n permitted only in text templates. */
 export interface MacroV7 extends Omit<MacroV9, 'styles'> {
@@ -419,7 +422,13 @@ export function migrateMacroV7toV8(
 
 /** Canonicalize one v9 Macro for schema v10. */
 export function migrateMacroV9toV10(macro: MacroV9): MacroV10 {
-  return { ...macro, kind: macro.kind === 'partial' || macro.kind === 'sub' ? 'sub' : 'const' }
+  const { default_style: _legacyDefaultStyle, ...current } = macro
+  return {
+    ...current,
+    kind: macro.kind === 'partial' || macro.kind === 'sub'
+      ? 'sub'
+      : typeof macro.kind === 'string' && macro.kind.length > 0 ? macro.kind : 'const',
+  }
 }
 
 /** Validate current schema v10 while leaving historical validators permissive. */
@@ -427,7 +436,7 @@ export function isMacroDocumentV10(db: Record<string, unknown>): boolean {
   if (!isMacroDocumentV9(db)) return false
   return Object.values(db).every((macro) => {
     const kind = (macro as Record<string, unknown>).kind
-    return kind === 'const' || kind === 'sub'
+    return typeof kind === 'string' && kind.length > 0 && kind !== 'partial'
   })
 }
 

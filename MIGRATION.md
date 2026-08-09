@@ -4,9 +4,20 @@
 
 ## Package 0.2.0
 
-- Macro schema 10 permits only persisted `const | sub` kinds. Consumer-defined
-  Entry kinds are still preserved for appearance, but Basics gives every kind
-  except `sub`, `binder`, `bvar`, and `fvar` const behavior.
+- Macro schema 10 preserves consumer-defined kind strings for metadata and
+  palette lookup. Persisted `partial` is renamed to `sub`; a missing kind is
+  materialized as `const`. Only `sub`, `binder`, `bvar`, and `fvar` select
+  special behavior, while every other string follows const behavior without
+  losing its presentation identity.
+- Kind palettes and Entry Kind coloring accept either the legacy flat
+  `{ stroke, background }` pair or a theme-aware `{ light, dark }` pair. Flat
+  input applies to both themes; `paletteToCss(palette)` remains a light-context
+  shorthand.
+- The public runtime `SnlMacro` type still accepts the deprecated 0.1.x
+  `default_style` map and honors language → `en` → `styles[0]` selection so an
+  existing query backend can upgrade directly. Schema 10 remains canonical:
+  `migrateMacroDocument` removes the map and current-document validation rejects
+  it.
 - Tree schema 3 replaces persisted `partial` with `sub`, removes derived
   `bindRef`, and stores structured source references. Basics does not silently
   rewrite consumer storage; run the schema migration or the Extension workspace

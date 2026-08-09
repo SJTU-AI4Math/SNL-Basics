@@ -4,7 +4,7 @@ import type { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import type { LanguageEnvironment, ReaderRuntime } from '../runtime'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
 import { tryParseSnlSyntaxTree } from '../snl-react-view/parse'
-import type { KindPalette } from '../snl-react-view/kind-palette'
+import { resolveKindColoring, type KindPalette } from '../snl-react-view/kind-palette'
 import { SnlInteractionDriver, type SnlInteractionContext } from '../snl-react-view/interaction-driver'
 import type { SnlRenderHooks } from '../snl-react-view/hooks'
 import { useCtrlPressed } from '../snl-react-view/use-ctrl-pressed'
@@ -192,7 +192,9 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
   }
   const bodySurface = contentError ? 'error' : surface(content)
   const html = useMemo(() => titleHtml(entry.title ?? ''), [entry.title])
-  const entryColors = kind?.coloring?.[props.entry_data_driver.read_context().color_scheme]
+  const entryColors = kind?.coloring
+    ? resolveKindColoring(kind.coloring, props.entry_data_driver.read_context().color_scheme)
+    : undefined
   const stroke = resolveEntryStroke(entryColors?.stroke)
   const background = resolveEntryBackground(entryColors?.background)
   const kindName = kind?.name || entry.kind

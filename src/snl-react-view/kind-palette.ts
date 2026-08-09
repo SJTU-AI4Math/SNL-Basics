@@ -8,20 +8,37 @@ export interface KindColoringVariant {
   background: string
 }
 
+/** Legacy Entry Kind input allowed either flat field to be omitted. */
+export interface LegacyKindColoring {
+  stroke?: string
+  background?: string
+  light?: never
+  dark?: never
+}
+
+/** Complete legacy palette pair, excluding theme keys. */
+export type FlatKindColoring = KindColoringVariant & { light?: never; dark?: never }
+
 /** Theme-aware colors for a semantic kind. */
-export interface KindColoring {
+export interface ThemedKindColoring {
   light: KindColoringVariant
   dark: KindColoringVariant
+  stroke?: never
+  background?: never
 }
+
+/** Legacy flat colors remain a supported input and apply to both themes. */
+export type KindColoring = FlatKindColoring | ThemedKindColoring
+export type CompatibleKindColoring = LegacyKindColoring | ThemedKindColoring
 
 export type KindPalette = Record<string, KindColoring>
 
-const themed = (stroke: string, background: string): KindColoring => ({
+const themed = (stroke: string, background: string): ThemedKindColoring => ({
   light: { stroke, background },
   dark: { stroke, background },
 })
 
-export const DEFAULT_KIND_PALETTE: KindPalette = {
+export const DEFAULT_KIND_PALETTE: Record<string, ThemedKindColoring> = {
   rule: themed('#009C27', '#D6FEE0'),
   const: themed('#005B9C', '#DAF0FF'),
   bvar: themed('#7700E4', '#EFDFFF'),
@@ -56,11 +73,45 @@ export function assertSafeKindName(name: string): void {
   }
 }
 
+export function resolveKindColoring(
+  coloring: KindColoring,
+  colorScheme: ColorScheme,
+): KindColoringVariant
+export function resolveKindColoring(
+  coloring: CompatibleKindColoring,
+  colorScheme: ColorScheme,
+): LegacyKindColoring | KindColoringVariant
+export function resolveKindColoring(
+  coloring: CompatibleKindColoring,
+  colorScheme: ColorScheme,
+): LegacyKindColoring | KindColoringVariant {
+  const hasTheme = 'light' in coloring || 'dark' in coloring
+  const hasFlat = 'stroke' in coloring || 'background' in coloring
+  if (hasTheme && hasFlat) {
+    throw new Error('kind coloring cannot mix flat and theme-aware fields')
+  }
+  if (hasTheme) {
+    const light = coloring.light
+    const dark = coloring.dark
+    if (!isCompleteColoringVariant(light) || !isCompleteColoringVariant(dark)) {
+      throw new Error('theme-aware kind coloring requires complete light and dark variants')
+    }
+    return colorScheme === 'light' ? light : dark
+  }
+  return coloring
+}
+
+function isCompleteColoringVariant(value: unknown): value is KindColoringVariant {
+  return !!value && typeof value === 'object' && !Array.isArray(value) &&
+    typeof (value as Record<string, unknown>).stroke === 'string' &&
+    typeof (value as Record<string, unknown>).background === 'string'
+}
+
 /** Macro CSS: stroke border and background are 50% alpha; text uses solid stroke. */
-export function paletteToCss(palette: KindPalette, colorScheme: ColorScheme): string {
+export function paletteToCss(palette: KindPalette, colorScheme: ColorScheme = 'light'): string {
   const blocks = Object.entries(palette).map(([kind, variants]) => {
     assertSafeKindName(kind)
-    const colors = variants[colorScheme]
+    const colors = resolveKindColoring(variants, colorScheme)
     return `.katex-html .snl-single-hover[data-kind="${kind}"] {
   color: ${colors.stroke};
   background: ${alpha(colors.background, 0.5)};
@@ -68,12 +119,12 @@ export function paletteToCss(palette: KindPalette, colorScheme: ColorScheme): st
   border-radius: 5px;
 }`
   })
-  const bvar = palette.bvar?.[colorScheme]
+  const bvar = palette.bvar ? resolveKindColoring(palette.bvar, colorScheme) : undefined
   if (bvar) blocks.push(`.katex-html [data-kind="bvar"].snl-bvar-scope {
   color: ${bvar.stroke};
   background: ${alpha(bvar.background, 0.5)};
 }`)
-  const binder = palette.binder?.[colorScheme]
+  const binder = palette.binder ? resolveKindColoring(palette.binder, colorScheme) : undefined
   if (binder) blocks.push(`.katex-html [data-kind="binder"].snl-binder-decl,
 .katex-html [data-kind="binder"].snl-binder-decl.snl-single-hover {
   color: ${binder.stroke};

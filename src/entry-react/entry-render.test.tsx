@@ -155,6 +155,20 @@ describe('Entry surface dispatch', () => {
     expect(style).toContain('rgb(18, 52, 86)')
   })
 
+  it('accepts legacy flat Entry Kind colors in every render context', () => {
+    const driver = new EntryDataDriver({
+      queries: { query_entry: async () => null, query_entry_kind: async () => null },
+      context_reader: () => ({ color_scheme: 'dark' }),
+    })
+    const kind = { id: 'definition', name: 'Definition', coloring: {
+      stroke: '#abcdef', background: '#123456',
+    } }
+    const view = render(<EntrySurface entry={base({})} kind={kind} entry_data_driver={driver} macro_data_driver={macroDriver} />)
+    const style = view.container.querySelector('section')?.getAttribute('style') ?? ''
+    expect(style).toContain('rgb(171, 205, 239)')
+    expect(style).toContain('rgb(18, 52, 86)')
+  })
+
   it('shows parse errors and original SNL source', () => {
     const view = render(<EntrySurface entry={base({ snl: '{broken' })} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} />)
     expect(view.container.textContent).toMatch(/SNL parse error/i)

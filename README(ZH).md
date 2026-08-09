@@ -305,8 +305,9 @@ round-trip 闭合的。
   formula 与 block style 的 template 是语言无关字符串；`text` style 的 template 可以是字符串或 `I18n`。语言在同一个 style 内解析 projection，不改变 `style_name`。
 
 - **Kind** —— 单一语义标签。Basics 只有 `sub`、`binder`、`bvar`、`fvar`
-  四种内置特殊行为；其他 Entry Kind 保留原始标签用于外观，但行为均等同 `const`。
-  持久 Macro 只使用 `const | sub`。临时根节点默认是无 metadata 的 `sub`；
+  四种内置特殊行为；其他 Entry 与 Macro Kind 保留原始标签用于外观和 metadata，
+  但行为均等同 `const`。持久 Macro 中的 `partial` 迁移为 `sub`，只有缺失的 Kind
+  才物化为 `const`。临时根节点默认是无 metadata 的 `sub`；
   未命中 Macro 的名称经语义解析后成为 `fvar`。
 - **Syntax tree（语法树）** —— 解析后的表示
   （`{ macro_name, style_name?, kind, mdata, children }`）。渲染时每个节点按其 style 的

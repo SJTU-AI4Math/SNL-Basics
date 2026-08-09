@@ -37,6 +37,15 @@ export {
   type TreePath,
 } from '../snl-react-view/interaction-driver'
 export type { SnlRenderHooks } from '../snl-react-view/hooks'
-export type { KindPalette } from '../snl-react-view/kind-palette'
+export {
+  resolveKindColoring,
+  type KindColoring,
+  type CompatibleKindColoring,
+  type FlatKindColoring,
+  type LegacyKindColoring,
+  type KindColoringVariant,
+  type ThemedKindColoring,
+  type KindPalette,
+} from '../snl-react-view/kind-palette'
 export type { ColorScheme, ContextReader, RenderContext } from '../runtime'
 export { extractExportedBinders, applyContextSource, resolveEntryContextSources } from './context-source'

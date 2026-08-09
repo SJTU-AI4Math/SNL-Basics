@@ -167,9 +167,14 @@ export {
   DEFAULT_KIND_PALETTE,
   alpha,
   paletteToCss,
+  resolveKindColoring,
   assertSafeKindName,
   type KindColoring,
+  type CompatibleKindColoring,
+  type FlatKindColoring,
+  type LegacyKindColoring,
   type KindColoringVariant,
+  type ThemedKindColoring,
   type KindPalette,
 } from './kind-palette'
 export type {

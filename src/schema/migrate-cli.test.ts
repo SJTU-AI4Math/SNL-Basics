@@ -56,6 +56,25 @@ describe('migrate-schema CLI', () => {
     expect((migrated as any).X).not.toHaveProperty('default_style')
   })
 
+  it('preserves custom kinds, normalizes empty kinds, and is idempotent at v10', () => {
+    const base = {
+      name: 'X', description: '', source: { entries: [], urls: [] },
+      dynamic_arity: false, tags: [],
+      styles: [{ style_name: 'plain', mode: 'text', template: 'X', tags: [] }],
+    }
+    const first = migrate({
+      Custom: { ...base, name: 'Custom', kind: 'custom-skin' },
+      Empty: { ...base, name: 'Empty', kind: '' },
+      Partial: { ...base, name: 'Partial', kind: 'partial' },
+    })
+    expect((first.migrated as any).Custom.kind).toBe('custom-skin')
+    expect((first.migrated as any).Empty.kind).toBe('const')
+    expect((first.migrated as any).Partial.kind).toBe('sub')
+
+    const second = migrate(first.migrated)
+    expect(second.migrated).toEqual(first.migrated)
+  })
+
   it('removes a redundant legacy language default map', () => {
     const { output, migrated } = migrate({
       X: {
@@ -227,7 +246,7 @@ describe('migrate-schema CLI', () => {
     expect(migrated).toEqual({ macro_name: 'x', kind: '', mdata: null, children: [] })
   })
 
-  it('migrates legacy Macro kinds to canonical v10 kinds', () => {
+  it('renames partial to sub while preserving custom Macro kinds in v10', () => {
     const macro = (name: string, kind?: string) => ({
       name, description: '', source: { entries: [], urls: [] }, dynamic_arity: false, tags: [], kind,
       styles: [{ style_name: 'default', mode: 'text', template: name, tags: [] }],
@@ -235,7 +254,7 @@ describe('migrate-schema CLI', () => {
     const { output, migrated } = migrate({ Partial: macro('Partial', 'partial'), Rule: macro('Rule', 'rule') })
     expect(output).toContain('macro v6/v7/v8/v9→v10')
     expect((migrated as any).Partial.kind).toBe('sub')
-    expect((migrated as any).Rule.kind).toBe('const')
+    expect((migrated as any).Rule.kind).toBe('rule')
   })
 
   it('migrates a whole v2 tree to coordinate-aware v3 temporary nodes', () => {

@@ -95,10 +95,11 @@ export interface SnlMacro {
   source: SnlMacroSource
 
   /**
-   * Canonical semantic behavior. `sub` is structurally transparent; `const`
-   * covers every ordinary Macro, including consumer-defined presentation skins.
+   * Display kind preserved in rendered metadata and palette lookup. `sub` is
+   * structurally transparent; every other non-built-in string uses const
+   * behavior while retaining its own presentation identity.
    */
-  kind?: 'const' | 'sub'
+  kind?: string
 
   /**
    * True when the macro's child count is not fixed by its template — its
@@ -107,6 +108,13 @@ export interface SnlMacro {
    * changes the arity contract at the call site.
    */
   dynamic_arity: boolean
+
+  /**
+   * @deprecated 0.1.x runtime compatibility only. Current persisted documents
+   * localize inside one text style and use styles[0] as the implicit default.
+   * Schema migration removes this map.
+   */
+  default_style?: Record<string, string>
 
   /**
    * All render styles in order. `styles[0]` is the single implicit default.

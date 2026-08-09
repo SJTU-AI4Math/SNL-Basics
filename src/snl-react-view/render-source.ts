@@ -61,17 +61,18 @@ export function sanitizeHtmlDataAttr(value: string): string {
 
 /**
  * Resolve which {@link SnlMacroStyle} renders a node. An explicit parser
- * `[style]` selector wins; otherwise the ordered first style is the sole default.
+ * `[style]` selector wins. Legacy 0.1.x runtime inputs may still select a
+ * language default; current persisted data uses the ordered first style.
  */
 export function resolveStyle(
   node: SnlSyntaxTree,
   macro: SnlMacro,
-  _language = 'en',
+  language = 'en',
 ): SnlMacroStyle {
   if (macro.styles.length === 0) {
     throw new Error(`macro "${macro.name}" has no styles`)
   }
-  const resolvedName = node.style_name
+  const resolvedName = node.style_name ?? macro.default_style?.[language] ?? macro.default_style?.en
   if (resolvedName == null) return macro.styles[0]
   const style = macro.styles.find((s) => s.style_name === resolvedName)
   if (!style) {

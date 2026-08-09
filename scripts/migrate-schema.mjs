@@ -170,7 +170,7 @@ function isMacroDocumentV9(db) {
 /** @param {Record<string, any>} db */
 function isMacroDocumentV10(db) {
   return isMacroDocumentV9(db) && Object.values(db).every((macro) =>
-    macro.kind === 'const' || macro.kind === 'sub'
+    typeof macro.kind === 'string' && macro.kind.length > 0 && macro.kind !== 'partial'
   )
 }
 
@@ -213,7 +213,12 @@ function migrateMacroV7toV9(macro) {
 
 /** @param {any} macro */
 function migrateMacroV9toV10(macro) {
-  return { ...macro, kind: macro.kind === 'partial' || macro.kind === 'sub' ? 'sub' : 'const' }
+  return {
+    ...macro,
+    kind: macro.kind === 'partial' || macro.kind === 'sub'
+      ? 'sub'
+      : typeof macro.kind === 'string' && macro.kind.length > 0 ? macro.kind : 'const',
+  }
 }
 
 /** @param {unknown} value @returns {unknown} */

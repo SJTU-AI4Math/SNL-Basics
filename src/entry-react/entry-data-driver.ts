@@ -7,6 +7,7 @@ import {
   type ReaderRuntime,
 } from '../runtime'
 import { DEFAULT_CONTEXT_READER, type ContextReader, type RenderContext } from '../runtime/render-context'
+import type { CompatibleKindColoring } from '../snl-react-view/kind-palette'
 
 export interface EntryContent {
   snl?: string
@@ -73,10 +74,7 @@ export interface EntryData {
 export interface EntryKind {
   id: string
   name: string
-  coloring?: {
-    light: { stroke: string; background: string }
-    dark: { stroke: string; background: string }
-  }
+  coloring?: CompatibleKindColoring
   numbering?: string
   style?: string
 }

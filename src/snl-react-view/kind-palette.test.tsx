@@ -59,6 +59,39 @@ describe('paletteToCss', () => {
     expect(css).toContain('.snl-binder-decl')
   })
 
+  it('accepts a legacy flat palette and defaults one-argument calls to light', () => {
+    const legacy: KindPalette = {
+      rule: { stroke: '#123456', background: '#abcdef' },
+      bvar: { stroke: '#654321', background: '#fedcba' },
+      binder: { stroke: '#111111', background: '#eeeeee' },
+    }
+    const css = paletteToCss(legacy)
+    expect(css).toContain('color: #123456;')
+    expect(css).toContain('rgba(171, 205, 239, 0.5)')
+    expect(css).toContain('.snl-bvar-scope')
+    expect(css).toContain('.snl-binder-decl')
+  })
+
+  it('rejects malformed hybrid flat and themed coloring at runtime', () => {
+    expect(() => paletteToCss({
+      rule: {
+        stroke: '#123456',
+        background: '#abcdef',
+        light: { stroke: '#111111', background: '#eeeeee' },
+        dark: { stroke: '#eeeeee', background: '#111111' },
+      } as any,
+    })).toThrow(/cannot mix flat and theme-aware/i)
+    expect(() => paletteToCss({
+      rule: { light: { stroke: '#111111', background: '#eeeeee' } } as any,
+    })).toThrow(/requires complete light and dark/i)
+    expect(() => paletteToCss({
+      rule: {
+        light: { stroke: '#111111' },
+        dark: { stroke: '#eeeeee', background: '#111111' },
+      } as any,
+    })).toThrow(/requires complete light and dark/i)
+  })
+
   it('lets a consumer palette override defaults while defaults fill the rest', () => {
     const merged: KindPalette = { ...DEFAULT_KIND_PALETTE, const: { light: { stroke: '#123456', background: '#abcdef' }, dark: { stroke: '#fedcba', background: '#654321' } } }
     const css = paletteToCss(merged, 'dark')

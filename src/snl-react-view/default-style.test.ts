@@ -30,6 +30,13 @@ describe('implicit default style', () => {
     expect(resolveStyle(implicitNode, macro(), 'en').style_name).toBe('first')
   })
 
+  it('honors a legacy 0.1.5 default_style map without weakening explicit selection', () => {
+    const legacy = { ...macro(), default_style: { en: 'first', 'zh-CN': 'other' } }
+    expect(resolveStyle(implicitNode, legacy, 'zh-CN').style_name).toBe('other')
+    expect(resolveStyle(implicitNode, legacy, 'fr').style_name).toBe('first')
+    expect(resolveStyle({ ...implicitNode, style_name: 'first' }, legacy, 'zh-CN').style_name).toBe('first')
+  })
+
   it('keeps an explicit [style] authoritative', () => {
     const explicitNode = { ...implicitNode, style_name: 'other' }
     expect(resolveStyle(explicitNode, macro(), 'zh-CN').style_name).toBe('other')

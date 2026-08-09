@@ -335,24 +335,21 @@ describe('schema/migrate-macro', () => {
     } } as any)).toBe(false)
   })
 
-  it('migrates legacy Macro kinds into the canonical v10 kind vocabulary', () => {
+  it('preserves custom Macro kinds while normalizing only structural partial and missing kinds', () => {
     const current = migrateMacroV7toV9(migrateMacroV6toV7(v6Macro))
     expect(migrateMacroV9toV10({ ...current, kind: 'partial' }).kind).toBe('sub')
-    expect(migrateMacroV9toV10({ ...current, kind: 'rule' }).kind).toBe('const')
-    expect(migrateMacroV9toV10({ ...current, kind: 'custom-skin' }).kind).toBe('const')
+    expect(migrateMacroV9toV10({ ...current, kind: 'rule' }).kind).toBe('rule')
+    expect(migrateMacroV9toV10({ ...current, kind: 'custom-skin' }).kind).toBe('custom-skin')
     expect(migrateMacroV9toV10({ ...current, kind: undefined }).kind).toBe('const')
+    expect(migrateMacroV9toV10({ ...current, kind: '' }).kind).toBe('const')
   })
 
-  it('accepts only const and sub as current Macro kinds while retaining permissive v9 validation', () => {
+  it('accepts materialized custom v10 kinds while rejecting the legacy partial spelling', () => {
     const legacy = migrateMacroV7toV9(migrateMacroV6toV7(v6Macro))
-    for (const kind of ['rule', 'custom-skin', 'partial']) {
-      const macro = { ...legacy, kind }
-      expect(isMacroDocumentV9({ X: macro } as any)).toBe(true)
-      expect(isMacroDocumentV10({ X: macro } as any)).toBe(false)
-    }
-    for (const kind of ['const', 'sub']) {
+    for (const kind of ['const', 'sub', 'rule', 'custom-skin']) {
       expect(isMacroDocumentV10({ X: { ...legacy, kind } } as any)).toBe(true)
     }
+    expect(isMacroDocumentV10({ X: { ...legacy, kind: 'partial' } } as any)).toBe(false)
     expect(isMacroDocumentV10({ X: { ...legacy, kind: undefined } } as any)).toBe(false)
   })
 

@@ -348,8 +348,11 @@ serialize round-trips.
 
 - **Kind** — one semantic tag. Basics has built-in behavior only for `sub`,
   `binder`, `bvar`, and `fvar`; every other Entry kind uses const behavior while
-  retaining its original tag for appearance. Persisted Macro definitions use
-  only `const | sub`. Temporary roots default to metadata-transparent `sub`;
+  retaining its original tag for appearance. Persisted Macro definitions keep
+  their consumer-defined kind strings; `partial` migrates to `sub`, and only a
+  missing kind materializes as `const`. Every other Macro kind uses const
+  behavior without losing its palette/metadata identity. Temporary roots default
+  to metadata-transparent `sub`;
   unresolved names become `fvar` after Macro-aware semantic resolution.
 - **Syntax tree** — the parsed representation
   (`{ macro_name, style_name?, kind, mdata, children }`). At render time each
