@@ -66,10 +66,6 @@ function buildTree(source: string): SnlSyntaxTree {
   return tree
 }
 
-function colorScheme(): 'light' | 'dark' {
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
 export default function App() {
   const [expression, setExpression] = useState(INITIAL_INPUT)
   const [renderedSource, setRenderedSource] = useState(INITIAL_INPUT)
@@ -78,14 +74,14 @@ export default function App() {
 
   const macroDriver = useMemo(() => new MacroDataDriver({
     queries: { query_macro: async ({ macro_name }) => macroDb[macro_name] ?? null },
-    context_reader: () => ({ color_scheme: colorScheme() }),
+    context_reader: () => ({ color_scheme: 'light' }),
   }), [])
   const entryDriver = useMemo(() => new EntryDataDriver({
     queries: {
       query_entry: async ({ entry_id }) => entries[entry_id] ?? null,
       query_entry_kind: async ({ kind_id }) => entryKinds[kind_id] ?? null,
     },
-    context_reader: () => ({ color_scheme: colorScheme() }),
+    context_reader: () => ({ color_scheme: 'light' }),
   }), [])
 
   const treeString = useMemo(() => serializeSnlSyntaxTree(tree), [tree])

@@ -9,6 +9,8 @@ describe('basic demo Entry integration route', () => {
     expect(app).toContain('EntrySurface')
     expect(app).toContain('EntryDataDriver')
     expect(app).not.toContain('SnlSyntaxTreeView')
+    expect(app).not.toContain('prefers-color-scheme: dark')
+    expect(app).toContain("color_scheme: 'light'")
     expect(main).toContain('@sjtu-ai4math/snl-basics/entry/style.css')
   })
 })
