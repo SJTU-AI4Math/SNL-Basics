@@ -344,20 +344,6 @@
       }
     },
     {
-      "id": "entry-sub-public-macro-db-bundled",
-      "label": "Entry",
-      "props": {
-        "entryId": "sub.public.macro-db.bundled"
-      }
-    },
-    {
-      "id": "entry-mac-const-bundled-macro-db",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.const.bundled-macro-db"
-      }
-    },
-    {
       "id": "entry-sub-public-macro-db-loading",
       "label": "Entry",
       "props": {
@@ -828,16 +814,6 @@
     {
       "from": "entry-overview-public-api",
       "to": "entry-sec-public-macro-db",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sec-public-macro-db",
-      "to": "entry-sub-public-macro-db-bundled",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-macro-db-bundled",
-      "to": "entry-mac-const-bundled-macro-db",
       "label": "branch"
     },
     {

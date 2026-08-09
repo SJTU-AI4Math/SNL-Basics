@@ -1,4 +1,4 @@
 {
   "title": "snl-macro",
-  "description": "The macro database data model and bundled data."
+  "description": "The consumer-owned macro data model, query driver, cache, and template interfaces."
 }

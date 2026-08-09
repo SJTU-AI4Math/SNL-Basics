@@ -15,13 +15,6 @@
       }
     },
     {
-      "id": "sec-macro-databases",
-      "label": "Entry",
-      "props": {
-        "entryId": "sec.macro.databases"
-      }
-    },
-    {
       "id": "b5b10656-6b0d-4cb5-925b-f444331767f6",
       "label": "Entry",
       "props": {
@@ -40,13 +33,6 @@
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-source"
-      }
-    },
-    {
-      "id": "a7e5cf72-8f62-4f00-b14d-f96c2729dbf2",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.const.bundled-macro-db"
       }
     },
     {
@@ -195,16 +181,6 @@
     {
       "from": "sec-macro-interfaces",
       "to": "a504abbd-facb-455f-9bb2-79a4ba303901",
-      "label": "branch"
-    },
-    {
-      "from": "b912b4dd-8112-424b-8246-3ab8205b590e",
-      "to": "sec-macro-databases",
-      "label": "branch"
-    },
-    {
-      "from": "sec-macro-databases",
-      "to": "a7e5cf72-8f62-4f00-b14d-f96c2729dbf2",
       "label": "branch"
     },
     {
