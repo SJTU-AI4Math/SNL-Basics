@@ -58,7 +58,7 @@ function Harness(): ReactElement {
 
 function PinHarness(): ReactElement {
   const popovers = useHoverPopovers<string>()
-  return <button onClick={(event) => popovers.pin('entry-a', event.currentTarget, 20, 30, null)}>pin</button>
+  return <><button onClick={(event) => popovers.pin('entry-a', event.currentTarget, 20, 30, null)}>pin</button><div data-testid="stopped-blank" onPointerDown={(event) => event.stopPropagation()}>blank</div></>
 }
 
 function SwitchPinHarness(): ReactElement {
@@ -163,6 +163,10 @@ describe('HoverPopoverProvider', () => {
     fireEvent.pointerDown(screen.getByText('inside popover'))
     expect(screen.getByText('inside popover')).toBeTruthy()
     fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByText('inside popover')).toBeNull()
+
+    fireEvent.click(screen.getByText('pin'))
+    fireEvent.pointerDown(screen.getByTestId('stopped-blank'))
     expect(screen.queryByText('inside popover')).toBeNull()
 
     fireEvent.click(screen.getByText('pin'))
