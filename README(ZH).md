@@ -486,7 +486,7 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 ```bash
 npm install
 npm run build:lib   # 产出 dist-lib/（JS + 类型 + style.css + 核心宏数据库）
-npm test            # vitest —— 300 个测试
+npm test            # 完整 Vitest 测试套件
 npm run dev         # 交互式 demo（src/App.tsx）
 npm pack            # 产出可发布的 tarball
 ```

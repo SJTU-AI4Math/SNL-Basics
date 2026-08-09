@@ -27,5 +27,7 @@ describe('basic demo Entry integration route', () => {
     expect(readmeZh).toContain('通过 `file:../..` 链接仓库根包')
     expect(readme).not.toContain('from the packed tarball')
     expect(readmeZh).not.toContain('从打包出的 tarball 安装')
+    expect(readme).not.toContain('300')
+    expect(readmeZh).not.toContain('300')
   })
 })
