@@ -4,8 +4,8 @@
     "kind": "npm-package",
     "title": "SNL Basics React Package",
     "content": {
-      "snl": "%The npm distribution unit for SNL-Basics at version 0.2.0 in its public beta series. It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, complete Entry rendering, and the bundled macro database. The package is public on npm under @sjtu-ai4math/snl-basics. The package.json#files allowlist restricts the tarball to dist-lib plus npm-mandated metadata.%",
-      "markdown": "The npm distribution unit for SNL-Basics at version `0.2.0` in its public beta series. It exposes SNL syntax-tree parsing, KaTeX-in-React rendering, complete Entry rendering, and the bundled macro database. The package is public on npm under `@sjtu-ai4math/snl-basics`. The `package.json#files` allowlist restricts the tarball to `dist-lib` plus npm-mandated metadata."
+      "snl": "%The package manifest for SNL-Basics version 0.2.0 in its public beta series. The package name is @sjtu-ai4math/snl-basics, and its public entry points expose SNL syntax-tree parsing, KaTeX-in-React rendering, and complete Entry rendering. Macro data remains consumer-owned. Publication status is external registry state and is not inferred from repository metadata. The package.json#files allowlist includes dist-lib and the maintained package documentation and license files.%",
+      "markdown": "The package manifest for SNL-Basics version `0.2.0` in its public beta series. The package name is `@sjtu-ai4math/snl-basics`, and its public entry points expose SNL syntax-tree parsing, KaTeX-in-React rendering, and complete Entry rendering. Macro data remains consumer-owned. Publication status is external registry state and is not inferred from repository metadata. The `package.json#files` allowlist includes `dist-lib`, `README.md`, `README(ZH).md`, `MIGRATION.md`, and `LICENSE`."
     },
     "contribution_info": null,
     "pointer": {
@@ -784,8 +784,8 @@
     "kind": "concept",
     "title": "npm Distribution Surface (files Allowlist)",
     "content": {
-      "snl": "%package.json#files: ['dist-lib'] fixes the tarball contents. npm pack --dry-run shows that the current tarball contains only seven files and is 29 kB. Repository paths such as docs/, .SNL_Doc/, and spike-*.mjs are not included in the package.%",
-      "markdown": "`package.json#files: ['dist-lib']` fixes the tarball contents. `npm pack --dry-run` shows that the current tarball contains only seven files and is 29 kB. Repository paths such as `docs/`, `.SNL_Doc/`, and `spike-*.mjs` are not included in the package."
+      "snl": "%package.json#files is the canonical tarball allowlist. It includes dist-lib together with README.md, README(ZH).md, MIGRATION.md, and LICENSE; npm also contributes mandatory package metadata. The exact file count and byte size are measured afresh from each npm pack result rather than recorded as constants. Repository-only paths such as docs/, .SNL_Doc/, and spike-*.mjs remain excluded unless the allowlist changes.%",
+      "markdown": "`package.json#files` is the canonical tarball allowlist. It includes `dist-lib` together with `README.md`, `README(ZH).md`, `MIGRATION.md`, and `LICENSE`; npm also contributes mandatory package metadata. The exact file count and byte size are measured afresh from each `npm pack` result rather than recorded as constants. Repository-only paths such as `docs/`, `.SNL_Doc/`, and `spike-*.mjs` remain excluded unless the allowlist changes."
     },
     "contribution_info": null,
     "pointer": null
@@ -795,8 +795,8 @@
     "kind": "concept",
     "title": "Formalization Decision for Deep-Path Imports (Pending)",
     "content": {
-      "snl": "%Three options exist: (a) retain the deep-path imports unchanged, (b) add the @snl-basics/parser subpath export, or (c) split the package into @snl-basics/core and @sjtu-ai4math/snl-basics. The short-term preference is (a), and the medium-term preference is (b), depending on the schedule for actually publishing SNL-Basics as a public npm package.%",
-      "markdown": "Three options exist: (a) retain the deep-path imports unchanged, (b) add the `@snl-basics/parser` subpath export, or (c) split the package into `@snl-basics/core` and `@sjtu-ai4math/snl-basics`. The short-term preference is (a), and the medium-term preference is (b), depending on the schedule for actually publishing SNL-Basics as a public npm package."
+      "snl": "%The current package exports the host-safe @sjtu-ai4math/snl-basics/core subpath but does not expose a parser-only subpath. Consumers must use documented public entry points or explicitly vendor source; any SNL-Agent-Toolkit migration requires an API audit before replacing deep imports. This decision is independent of whether a registry release exists.%",
+      "markdown": "The current package exports the host-safe `@sjtu-ai4math/snl-basics/core` subpath but does not expose a parser-only subpath. Consumers must use documented public entry points or explicitly vendor source; any SNL-Agent-Toolkit migration requires an API audit before replacing deep imports. This decision is independent of whether a registry release exists."
     },
     "contribution_info": null,
     "pointer": null
