@@ -288,7 +288,6 @@ export function HoverPopoverProvider<TSubject>({
 
   const [popovers, setPopovers] = useState<HoverPopover<TSubject>[]>([])
   const popoversRef = useRef(popovers)
-  popoversRef.current = popovers
   const updatePopovers = useCallback((
     update: (current: HoverPopover<TSubject>[]) => HoverPopover<TSubject>[],
   ): void => {
