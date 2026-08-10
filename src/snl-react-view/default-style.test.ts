@@ -10,8 +10,8 @@ function macro(): SnlMacro {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     styles: [
-      { style_name: 'first', mode: 'formula_inline', template: 'FIRST', tags: [] },
-      { style_name: 'other', mode: 'text', template: 'OTHER', tags: [] },
+      { style_name: 'first',  template: { mode: 'formula_inline', body: 'FIRST' }, tags: [] },
+      { style_name: 'other',  template: { mode: 'text', body: 'OTHER' }, tags: [] },
     ],
     tags: [],
   }
@@ -35,6 +35,13 @@ describe('implicit default style', () => {
     expect(resolveStyle(implicitNode, legacy, 'zh-CN').style_name).toBe('other')
     expect(resolveStyle(implicitNode, legacy, 'fr').style_name).toBe('first')
     expect(resolveStyle({ ...implicitNode, style_name: 'first' }, legacy, 'zh-CN').style_name).toBe('first')
+  })
+
+  it('ignores inherited prototype names in a legacy default_style map', () => {
+    const legacy = { ...macro(), default_style: { en: 'first' } }
+    for (const language of ['toString', 'constructor', '__proto__']) {
+      expect(resolveStyle(implicitNode, legacy, language).style_name).toBe('first')
+    }
   })
 
   it('keeps an explicit [style] authoritative', () => {

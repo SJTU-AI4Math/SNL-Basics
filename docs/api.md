@@ -1,6 +1,6 @@
 # `@sjtu-ai4math/snl-basics` — Public API Reference
 
-Current beta surface for v0.2.0. Import from the package root:
+Current beta surface for v0.3.0. Import from the package root:
 
 ```ts
 import { MacroDataDriver, SnlSyntaxTreeView } from '@sjtu-ai4math/snl-basics'
@@ -31,12 +31,18 @@ interface I18n<Language extends string, Value = string> {
 }
 type Localized<Language extends string, Value = string> = Value | I18n<Language, Value>
 
-interface SnlMacroStyle {
-  style_name: string
+interface SnlMacroTemplate {
+  type?: never // reserved by the enclosing I18n discriminator
   mode: 'formula_inline' | 'formula_display' | 'text' | 'block'
-  template: string | I18n<string, string> // I18n only when mode === 'text'
+  body: string
   separator?: string
   block_template_name?: string
+  [consumer_extension: string]: unknown
+}
+
+interface SnlMacroStyle {
+  style_name: string
+  template: Localized<string, SnlMacroTemplate>
   tags: string[]
 }
 
@@ -51,14 +57,15 @@ interface SnlMacro {
 }
 ```
 
-Dynamic styles place `#*` in `template`; `separator` joins its expanded children.
-`block_template_name` is valid only when `mode === 'block'`. All styles of one
-macro must have the same arity contract.
+Dynamic templates place `#*` in `body`; `separator` joins expanded children.
+`block_template_name` is valid only when `mode === 'block'`. All localized
+projections within one Style must have the same escape-aware arity contract;
+different explicit Styles may intentionally omit or reveal children.
 
 When source omits an explicit `[style]`, `styles[0]` is the sole implicit
-default. An explicit `[style]` always wins. Formula and block templates are
-invariant strings; text templates may be strings or `I18n` values resolved by
-the injected language environment.
+default. An explicit `[style]` always wins. Language resolves one complete
+TemplateSpec atomically, including mode, body, separator, block renderer, and
+consumer-owned projection extensions.
 
 Plain Macro and style identifiers accept the legacy ASCII set (`A-Z`, `a-z`,
 `0-9`, `_`, leading `\\`, and subsequent `.`/`-`) plus visible non-ASCII

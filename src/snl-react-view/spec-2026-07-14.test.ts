@@ -15,7 +15,7 @@ const db: SnlMacroRecord = {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     tags: [],
-    styles: [{ style_name: 'default', mode: 'formula_inline', template: '\\mathbb{T}(#0)', tags: [] }],
+    styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: '\\mathbb{T}(#0)' }, tags: [] }],
   },
   // Dynamic-arity macro — template MUST contain #* per v0.10.0 contract.
   // separator is used to join children at the #* slot.
@@ -27,9 +27,9 @@ const db: SnlMacroRecord = {
     styles: [
       {
         style_name: 'default',
-        mode: 'formula_inline',
-        template: '#*',
-        separator: ' \\vee ', tags: [] },
+
+        template: { mode: 'formula_inline', body: '#*', separator: ' \\vee ' },
+         tags: [] },
     ],
   },
   // Dynamic-arity with delimiters and empty template.
@@ -41,9 +41,9 @@ const db: SnlMacroRecord = {
     styles: [
       {
         style_name: 'default',
-        mode: 'formula_inline',
-        template: '#*',
-        separator: ', ', tags: [] },
+
+        template: { mode: 'formula_inline', body: '#*', separator: ', ' },
+         tags: [] },
     ],
   },
 }

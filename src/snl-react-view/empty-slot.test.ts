@@ -17,7 +17,7 @@ describe('empty argument slot rendering', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: false,
       tags: [],
-      styles: [{ style_name: 'default', mode: 'formula_inline', template: '#0 + #1', tags: [] }],
+      styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: '#0 + #1' }, tags: [] }],
     },
     join_comma: {
       name: 'join_comma',
@@ -25,7 +25,7 @@ describe('empty argument slot rendering', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: true,
       tags: [],
-      styles: [{ style_name: 'default', mode: 'formula_inline', template: '#*', separator: ', ', tags: [] }],
+      styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: '#*', separator: ', ' },  tags: [] }],
     },
   }
   const driver = testDriver(db)

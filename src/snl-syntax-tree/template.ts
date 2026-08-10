@@ -44,6 +44,25 @@ function missingArgPlaceholder(
   return `\\mathord{\\htmlClass{snlMissingArg}{${glyph}}}`
 }
 
+/** Analyze the exact escape-aware placeholder grammar used by the renderer. */
+export function analyzeLatexTemplatePlaceholders(template: string): {
+  positional_arity: number
+  variadic: boolean
+  invalid: boolean
+} {
+  const ESCAPED_HASH = '\u0001ESCAPED_HASH\u0001'
+  const source = template.replace(/\\#/g, ESCAPED_HASH)
+  let maxIndex = -1
+  for (const match of source.matchAll(/#(\d{1,2})(?!\d)/g)) {
+    maxIndex = Math.max(maxIndex, Number(match[1]))
+  }
+  return {
+    positional_arity: maxIndex + 1,
+    variadic: /#\*/.test(source),
+    invalid: /#\d{3,}/.test(source),
+  }
+}
+
 export function fillLatexTemplate(
   template: string,
   values: Record<string, string | number | undefined>,
@@ -58,7 +77,7 @@ export function fillLatexTemplate(
   // Pass 2: `#0`..`#99` → values.child0..child99. A missing slot emits a
   // visible, brace-balanced placeholder (`\htmlClass{snlMissingArg}{...}`)
   // rather than an empty string.
-  out = out.replace(/#(\d{1,2})/g, (_, digits: string) => {
+  out = out.replace(/#(\d{1,2})(?!\d)/g, (_, digits: string) => {
     const index = Number(digits)
     const value = values[`child${index}`]
     return value === undefined ? missingArgPlaceholder(index, mode) : String(value)

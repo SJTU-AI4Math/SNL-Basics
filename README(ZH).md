@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.2.0 · MIT License · Beta** — [English README](README.md)
+**v0.3.0 · MIT License · Beta** — [English README](README.md)
 
 结构化自然语言（Structured Natural Language, SNL）基础库 —— 将宏 DSL 解析为语法树，
 并渲染为带悬停交互的 KaTeX-in-React。
@@ -261,14 +261,14 @@ export default defineConfig({
 ## Style 与 `[style]` 方括号
 
 一个宏声明一个或多个以 `style_name` 为键的渲染 **style**。`styles[0]` 是唯一隐式默认 style。
-一个宏的所有 style **必须接受相同的 arity** —— style 只改变渲染输出，绝不改变子节点数量。
-正是这条不变量保证了切换 style 永远是安全的：
+同一 localized Style 内的所有语言 projection 必须具有相同的 escape-aware placeholder contract。
+不同显式 Style 可以有意隐藏或显示不同子节点；选择 Style 不会改变已解析的语法树：
 
 ```
 node := IDENT ('[' IDENT ']')? ('(' args ')')?
 ```
 
-可选的 `[style]` 方括号用于显式选定 style，并且永远优先。不写时使用 `styles[0]`。语言只解析所选 text style 内部的本地化 template，不会切换 style。
+可选的 `[style]` 方括号用于显式选定 Style，并且永远优先。不写时使用 `styles[0]`。语言在所选 Style 内原子解析一个完整的本地化 TemplateSpec，不会切换 Style。
 
 ```ts
 parseSnlSyntaxTree('Pow.pow(x, 2)')          // styles[0]
@@ -296,13 +296,16 @@ round-trip 闭合的。
     dynamic_arity: false,
     tags: [],
     styles: [
-      { style_name: 'prose', mode: 'text', template: { type: 'i18n', default_language: 'en', values: { en: '#0 implies #1', 'zh-CN': '#0 蕴含 #1' } }, tags: [] },
-      { style_name: 'double', mode: 'formula_inline', template: '#0 \\Rightarrow #1', tags: [] },
+      { style_name: 'prose', tags: [], template: { type: 'i18n', default_language: 'en', values: {
+        en: { mode: 'text', body: '#0 implies #1' },
+        'zh-CN': { mode: 'text', body: '#0 蕴含 #1' },
+      } } },
+      { style_name: 'double', tags: [], template: { mode: 'formula_inline', body: '#0 \\Rightarrow #1' } },
     ],
   }
   ```
 
-  formula 与 block style 的 template 是语言无关字符串；`text` style 的 template 可以是字符串或 `I18n`。语言在同一个 style 内解析 projection，不改变 `style_name`。
+  每个 Style 的 `template` 是完整 TemplateSpec 或其 I18n；语言在同一个 Style 内原子选择 mode、body、separator、block renderer 与使用方扩展，不改变 `style_name`。
 
 - **Kind** —— 单一语义标签。Basics 只有 `sub`、`binder`、`bvar`、`fvar`
   四种内置特殊行为；其他 Entry 与 Macro Kind 保留原始标签用于外观和 metadata，
@@ -487,10 +490,11 @@ const hooks: SnlRenderHooks = {
 ```tsx
 import { defaultRenderers, type SnlBlockRenderer } from '@sjtu-ai4math/snl-basics'
 
-// 宏数据库条目（v7 形态）：
+// 宏数据库条目（v11 形态）：
 // { name: 'MyCallout', dynamic_arity: true,
-//   styles: [{ style_name: 'default', mode: 'block', template: '',
-//              block_template_name: 'callout', tags: [] }], tags: [] }
+//   styles: [{ style_name: 'default', tags: [],
+//     template: { mode: 'block', body: '#*',
+//                 block_template_name: 'callout' } }], tags: [] }
 const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
   <aside className="callout">
     {node.children.map((child, i) => (
@@ -508,10 +512,9 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 
 ## 输出后端
 
-输出后端（Typst / LaTeX / Markdown / 纯文本）属于**使用方的关注点**，已不再是本库的一部分
-（在 0.4.0 中移除）。`SnlMacro` 现在只携带渲染字段（`name`、`description`、`source`、
-`dynamic_arity`、`tags`、`styles`）。需要输出这些格式的下游扩展自行拥有其扩展后的宏形态
-（带 per-style 后端）与转换代码（参见 SNL-Doc-Extension）。
+输出后端（Typst / LaTeX / Markdown / 纯文本）属于**使用方的关注点**。Basics 不解释
+这些字段；下游扩展可以把 opaque backend 数据放在每个完整的 `style.template` projection
+中，使语言选择与 mode、body、separator 和 block renderer 保持原子一致。
 
 ## API 参考
 
@@ -533,5 +536,5 @@ npm pack            # 产出可发布的 tarball
 
 ## 版本与许可证
 
-- **版本：** `0.2.0`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
+- **版本：** `0.3.0`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
 - **许可证：** [MIT](LICENSE)

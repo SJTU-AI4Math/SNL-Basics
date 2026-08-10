@@ -1,9 +1,11 @@
 export type {
-  SnlInvariantMacroStyle,
+  SnlBlockMacroTemplate,
+  SnlFormulaMacroTemplate,
   SnlMacro,
   SnlMacroSource,
   SnlMacroStyle,
-  SnlTextMacroStyle,
+  SnlMacroTemplate,
+  SnlTextMacroTemplate,
 } from './types'
 export {
   MacroDataDriver,

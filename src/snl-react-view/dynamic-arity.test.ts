@@ -12,7 +12,7 @@ describe('dynamic #* + separator expansion', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: true,
       tags: [],
-      styles: [{ style_name: 'default', mode: 'formula_inline', template: '#*', separator: ', ', tags: [] }],
+      styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: '#*', separator: ', ' },  tags: [] }],
     },
     wrap_braces: {
       name: 'wrap_braces',
@@ -20,7 +20,7 @@ describe('dynamic #* + separator expansion', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: true,
       tags: [],
-      styles: [{ style_name: 'default', mode: 'formula_inline', template: '\\{#*\\}', separator: '; ', tags: [] }],
+      styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: '\\{#*\\}', separator: '; ' },  tags: [] }],
     },
     no_sep: {
       name: 'no_sep',
@@ -28,7 +28,7 @@ describe('dynamic #* + separator expansion', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: true,
       tags: [],
-      styles: [{ style_name: 'default', mode: 'formula_inline', template: '#*', tags: [] }],
+      styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: '#*' }, tags: [] }],
     },
   }
   const driver = testDriver(db)

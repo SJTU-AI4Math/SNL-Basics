@@ -1,23 +1,31 @@
 import { describe, expect, it } from 'vitest'
 import type { EntryContent } from '../entry-react/entry-data-driver'
 import type { I18n } from '../runtime'
-import type { SnlMacro, SnlMacroStyle } from './types'
+import type { SnlMacro, SnlMacroStyle, SnlMacroTemplate } from './types'
 
-const localized: I18n<string, string> = {
+const localizedText: I18n<string, string> = {
   type: 'i18n',
   default_language: 'en',
   values: { en: 'Group', 'zh-CN': '群' },
 }
 
+const localizedTemplate: I18n<string, SnlMacroTemplate> = {
+  type: 'i18n',
+  default_language: 'en',
+  values: {
+    en: { mode: 'text', body: '#0 is a group', separator: ', ' },
+    'zh-CN': { mode: 'text', body: '#0 是群', separator: '、' },
+  },
+}
+
 describe('localized content schema', () => {
-  it('stores localized text in one semantic Macro style', () => {
+  it('stores whole localized templates in one semantic Macro style', () => {
     const style: SnlMacroStyle = {
       style_name: 'prose',
-      mode: 'text',
-      template: localized,
+      template: localizedTemplate,
       tags: [],
     }
-    expect(style.template).toEqual(localized)
+    expect(style.template).toEqual(localizedTemplate)
   })
 
   it('uses styles[0] as the only implicit default without a language-to-style map', () => {
@@ -27,8 +35,8 @@ describe('localized content schema', () => {
       source: { entries: [], urls: [] },
       dynamic_arity: false,
       styles: [
-        { style_name: 'prose', mode: 'text', template: localized, tags: [] },
-        { style_name: 'compact', mode: 'text', template: 'Group', tags: [] },
+        { style_name: 'prose', template: localizedTemplate, tags: [] },
+        { style_name: 'compact', template: { mode: 'text', body: 'Group' }, tags: [] },
       ],
       tags: [],
     }
@@ -36,44 +44,36 @@ describe('localized content schema', () => {
     expect(macro).not.toHaveProperty('default_style')
   })
 
+  it('allows a language projection to change render mode atomically', () => {
+    const style: SnlMacroStyle = {
+      style_name: 'mixed',
+      tags: [],
+      template: {
+        type: 'i18n',
+        default_language: 'en',
+        values: {
+          en: { mode: 'formula_inline', body: '#0' },
+          'zh-CN': { mode: 'block', body: '#*', block_template_name: 'enumerate' },
+        },
+      },
+    }
+    expect(style.template).toHaveProperty('values.zh-CN.block_template_name', 'enumerate')
+  })
+
   it('continues to accept I18n for non-SNL Entry content', () => {
     const content: EntryContent = {
       snl: 'Group(G)',
-      markdown: localized,
-      typst: localized,
-      latex: localized,
-      text: localized,
+      markdown: localizedText,
+      typst: localizedText,
+      latex: localizedText,
+      text: localizedText,
     }
-    expect(content.markdown).toEqual(localized)
+    expect(content.markdown).toEqual(localizedText)
   })
 })
 
-const _text_style: SnlMacroStyle = {
-  style_name: 'text',
-  mode: 'text',
-  template: localized,
-  tags: [],
-}
-
-// @ts-expect-error formula templates are language-invariant strings
-const _formula_style: SnlMacroStyle = {
-  style_name: 'formula',
-  mode: 'formula_inline',
-  template: localized,
-  tags: [],
-}
-
-// @ts-expect-error block templates are language-invariant strings
-const _block_style: SnlMacroStyle = {
-  style_name: 'block',
-  mode: 'block',
-  template: localized,
-  tags: [],
-}
-
 const _entry_content: EntryContent = {
   // @ts-expect-error SNL source is language-invariant structured syntax
-  snl: localized,
+  snl: localizedText,
 }
-
-void [_text_style, _formula_style, _block_style, _entry_content]
+void _entry_content

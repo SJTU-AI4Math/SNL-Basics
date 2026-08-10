@@ -10,7 +10,7 @@ const macro = (name: string, kind: 'const' | 'sub' = 'const'): SnlMacro => ({
   kind,
   dynamic_arity: false,
   tags: [],
-  styles: [{ style_name: 'default', mode: 'formula_inline', template: name, tags: [] }],
+  styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: name }, tags: [] }],
 })
 
 const db = (...entries: Array<[string, ('const' | 'sub')?]>): SnlMacroRecord => Object.fromEntries(

@@ -259,7 +259,7 @@ describe('recursive Entry preview', () => {
   it('queries and renders a referenced Entry in a generic popover', async () => {
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name }) => macro_name === 'ref' ? {
       name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
-      styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
+      styles: [{ style_name: 'default', template: { mode: 'formula_inline', body: '\\text{reference}' }, tags: [] }],
     } : null } })
     const entries = dataDriver({
       root: base({ snl: 'ref' }, { id: 'root', title: 'Root' }),
@@ -289,7 +289,10 @@ describe('recursive Entry preview', () => {
     })
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
       name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
-      styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
+      styles: [{
+        style_name: 'default', tags: [],
+        template: { mode: 'formula_inline', body: '\\text{reference}' },
+      }],
     }) } })
     const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'leased child' }, { id: 'child' }) })
     const view = render(<EntryPreviewProvider entry_data_driver={entries} macro_data_driver={refMacroDriver} dismiss_controller={dismissal} options={{ openDelayMs: 0, fadeMs: 0 }}><EntryView entry_id="root" entry_data_driver={entries} macro_data_driver={refMacroDriver} /></EntryPreviewProvider>)
@@ -316,7 +319,7 @@ describe('recursive Entry preview', () => {
   it('pins the referenced Entry popover on primary click', async () => {
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
       name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
-      styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
+      styles: [{ style_name: 'default', template: { mode: 'formula_inline', body: '\\text{reference}' }, tags: [] }],
     }) } })
     const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'pinned child body' }, { id: 'child' }) })
     const view = render(<EntryPreviewProvider entry_data_driver={entries} macro_data_driver={refMacroDriver} options={{ openDelayMs: 0, fadeMs: 0 }}><EntryView entry_id="root" entry_data_driver={entries} macro_data_driver={refMacroDriver} /></EntryPreviewProvider>)
@@ -342,7 +345,7 @@ describe('recursive Entry preview', () => {
   it('cancels a transient preview when its owning Entry unmounts', async () => {
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
       name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
-      styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
+      styles: [{ style_name: 'default', template: { mode: 'formula_inline', body: '\\text{reference}' }, tags: [] }],
     }) } })
     const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'orphan child' }, { id: 'child' }) })
     const provider = (show: boolean) => <EntryPreviewProvider entry_data_driver={entries} macro_data_driver={refMacroDriver} options={{ openDelayMs: 1000, fadeMs: 0 }}>
@@ -369,7 +372,7 @@ describe('recursive Entry preview', () => {
   it('can disable hover previews while retaining click-to-pin', async () => {
     const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
       name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
-      styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
+      styles: [{ style_name: 'default', template: { mode: 'formula_inline', body: '\\text{reference}' }, tags: [] }],
     }) } })
     const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'click only child' }, { id: 'child' }) })
     const view = render(<EntryPreviewProvider entry_data_driver={entries} macro_data_driver={refMacroDriver} options={{ openDelayMs: 0, fadeMs: 0, hoverEnabled: false }}><EntryView entry_id="root" entry_data_driver={entries} macro_data_driver={refMacroDriver} /></EntryPreviewProvider>)

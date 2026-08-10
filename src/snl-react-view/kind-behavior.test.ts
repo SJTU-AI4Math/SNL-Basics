@@ -7,7 +7,7 @@ const node: SnlSyntaxTree = { macro_name: 'Demo', kind: '', mdata: null, childre
 const macro: SnlMacro = {
   name: 'Demo', description: '', source: { entries: [], urls: [] }, kind: 'custom-skin',
   dynamic_arity: false,
-  styles: [{ style_name: 'default', mode: 'formula_inline', template: 'D', tags: [] }],
+  styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: 'D' }, tags: [] }],
   tags: [],
 }
 

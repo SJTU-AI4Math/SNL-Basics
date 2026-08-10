@@ -9,7 +9,7 @@ import { testDriver } from './test-helpers'
 const macro = (name: string, template: string, kind?: 'const' | 'sub'): SnlMacro => ({
   name, description: '', source: { entries: [], urls: [] }, kind,
   dynamic_arity: false, tags: [],
-  styles: [{ style_name: 'default', mode: 'formula_inline', template, tags: [] }],
+  styles: [{ style_name: 'default', template: { mode: 'formula_inline', body: template }, tags: [] }],
 })
 
 const base: SnlMacroRecord = { scope: macro('scope', '#0\\;#1') }

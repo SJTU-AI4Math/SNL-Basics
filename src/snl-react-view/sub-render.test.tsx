@@ -16,9 +16,9 @@ const macro = (
   description: '',
   source: { entries: [], urls: [] },
   kind,
-  dynamic_arity: false,
+  dynamic_arity: template.includes('#*'),
   tags: [],
-  styles: [{ style_name: 'default', mode, template, tags: [] }],
+  styles: [{ style_name: 'default', template: { mode, body: template }, tags: [] }],
 })
 
 const db: SnlMacroRecord = {
@@ -49,9 +49,9 @@ describe('sub metadata transparency', () => {
   it('emits no text metadata and leaves the literal content in its parent surface', async () => {
     const tree = createSnlSyntaxTreeNode('SubText', { children: [leaf('x')] })
     const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
-    await waitFor(() => expect(container.textContent).toContain('before'))
+    await waitFor(() => expect(container.querySelector('[data-name="x"]')).not.toBeNull())
+    expect(container.textContent).toContain('before')
     expect(container.querySelector('[data-name="SubText"]')).toBeNull()
-    expect(container.querySelector('[data-name="x"]')).not.toBeNull()
   })
 
   it('emits no block host metadata while retaining child metadata', async () => {

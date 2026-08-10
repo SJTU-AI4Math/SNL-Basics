@@ -2,6 +2,18 @@
 
 **Date:** 2026-07-01
 
+## Package 0.3.0
+
+- Macro schema 11 moves every render field into one complete TemplateSpec at
+  `style.template`. The template may be invariant or localized as a whole;
+  language never mixes mode, body, separator, block renderer, or consumer
+  extensions from different projections.
+- Each localized projection within one Style has the same escape-aware
+  placeholder contract. Separate explicit Styles may intentionally omit or
+  reveal children while preserving the same parsed syntax tree.
+- Run `node scripts/migrate-schema.mjs --write --target <path>` to migrate mixed
+  Macro v6-v10 records to v11. Current v11 documents are fixed points.
+
 ## Package 0.2.0
 
 - Macro schema 10 preserves consumer-defined kind strings for metadata and
@@ -13,11 +25,11 @@
   `{ stroke, background }` pair or a theme-aware `{ light, dark }` pair. Flat
   input applies to both themes; `paletteToCss(palette)` remains a light-context
   shorthand.
-- The public runtime `SnlMacro` type still accepts the deprecated 0.1.x
-  `default_style` map and honors language → `en` → `styles[0]` selection so an
-  existing query backend can upgrade directly. Schema 10 remains canonical:
-  `migrateMacroDocument` removes the map and current-document validation rejects
-  it.
+- The public runtime `SnlMacro` type accepted the deprecated 0.1.x
+  `default_style` map and honored language → `en` → `styles[0]` selection so an
+  existing query backend could upgrade directly. Schema 10 was canonical for
+  package 0.2.x: `migrateMacroDocument` removed the map and current-document
+  validation rejected it.
 - Tree schema 3 replaces persisted `partial` with `sub`, removes derived
   `bindRef`, and stores structured source references. Basics does not silently
   rewrite consumer storage; run the schema migration or the Extension workspace
@@ -182,35 +194,34 @@ node scripts/migrate-schema.mjs --target macros.json
 node scripts/migrate-schema.mjs --write --target macros.json
 ```
 
-Idempotent — skips documents already in the current v9 shape. A legacy
-A redundant legacy `default_style` map is removed automatically when every
-mapping points to `styles[0]`. Published v8 language-split defaults are upgraded
-when all mapped styles differ only in `style_name` and string `template`: the
-migrator inserts a localized synthetic `styles[0]` and retains every old style
+Idempotent — skips entries already in the current v11 shape, including inside
+mixed-version documents. A redundant legacy `default_style` map is removed
+automatically when every mapping points to `styles[0]`. Published v8 language-split defaults are upgraded
+by projecting each selected complete render template: the migrator inserts a
+localized synthetic `styles[0]` and retains every old style
 so explicit v8 `[style]` source keeps resolving. When the legacy map contains
 `en`, that mapped Style remains the fallback for unmapped locales; when it does
-not, the synthetic template stores the old `styles[0]` text as its fallback.
-Structurally incompatible maps are rejected rather than silently changing
-rendering semantics.
+not, the synthetic template stores the old `styles[0]` complete projection as its fallback.
+Mapped Styles with incompatible invariant metadata such as tags are rejected
+rather than silently changing rendering semantics.
 
-## Macro schema v9 localization correction
+## Macro schema v11 template-scope localization
 
-`styles[0]` is the sole implicit style. Formula and block templates remain
-language-invariant strings. A text-style template may be a string or an `I18n`
-value:
+`styles[0]` is the sole implicit style. Each Style keeps invariant identity and
+tags while its `template` is either one complete TemplateSpec or an `I18n` of
+complete TemplateSpecs:
 
 ```json
 {
   "styles": [
     {
       "style_name": "prose",
-      "mode": "text",
       "template": {
         "type": "i18n",
         "default_language": "en",
         "values": {
-          "en": "#0 is a group",
-          "zh-CN": "#0 是群"
+          "en": { "mode": "text", "body": "#0 is a group" },
+          "zh-CN": { "mode": "text", "body": "#0 是群" }
         }
       },
       "tags": []
@@ -220,10 +231,11 @@ value:
 ```
 
 Explicit `Macro[style](...)` selection is unchanged and always takes priority.
-Language resolves a projection inside the selected text style; it never selects
-a different style. `migrateMacroV7toV9` preserves localized text templates and
-never splits them into synthetic language styles. Entry content I18n is
-unchanged.
+Language resolves one complete projection inside the selected Style; it never
+selects a different Style. Mode, body, separator, block renderer, and consumer
+backends therefore cannot fall back independently. All projections within one
+Style share one escape-aware arity contract; separate explicit Styles may
+intentionally omit or reveal children. Entry content I18n is unchanged.
 
 ### Consumer upgrade path
 

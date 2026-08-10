@@ -6,10 +6,12 @@ import {
   migrateMacroV7toV8,
   migrateMacroV7toV9,
   migrateMacroV9toV10,
+  migrateMacroV10toV11,
   isMacroDocumentV7,
   isMacroDocumentV8,
   isMacroDocumentV9,
   isMacroDocumentV10,
+  isMacroDocumentV11,
   migrateSyntaxTreeDocument,
   migrateTreeNodeV1toV2,
   migrateTreeNodeV2toV3,
@@ -25,9 +27,9 @@ import { resolveSnlSemantics } from '../snl-syntax-tree/semantic-resolver'
 
 describe('schema/versions', () => {
   it('exports correct version constants', () => {
-    expect(MACRO_SCHEMA_VERSION).toBe(10)
+    expect(MACRO_SCHEMA_VERSION).toBe(11)
     expect(TREE_SCHEMA_VERSION).toBe(3)
-    expect(PACKAGE_VERSION).toBe('0.2.0')
+    expect(PACKAGE_VERSION).toBe('0.3.0')
   })
 })
 
@@ -102,7 +104,7 @@ describe('schema/migrate-macro', () => {
     const result = migrateMacroDocument(db)
     expect(result.Add.name).toBe('Add')
     expect(result.Add.styles[0].style_name).toBe('default')
-    expect(result.Add.styles[0].separator).toBe(', ')
+    expect(result.Add.styles[0].template).toMatchObject({ separator: ', ' })
     expect(result.Add).not.toHaveProperty('default_style')
   })
 
@@ -168,13 +170,20 @@ describe('schema/migrate-macro', () => {
     }
     const source = {
       ...migrateMacroV6toV7(v6Macro),
+      dynamic_arity: false,
       styles: [{ style_name: 'prose', mode: 'text' as const, template: i18n, tags: [] }],
     }
     const v8 = migrateMacroV7toV8(source, { split_localized_templates: true })
     expect(isMacroDocumentV8({ X: v8 } as any)).toBe(true)
     expect(v8.default_style).toEqual({ en: 'prose', 'zh-CN': 'prose_zh_CN' })
     const v9 = migrateMacroDocument({ X: v8 } as any).X
-    expect(v9.styles[0].template).toEqual(i18n)
+    expect(v9.styles[0].template).toEqual({
+      type: 'i18n', default_language: 'en',
+      values: {
+        en: { mode: 'text', body: 'English #0' },
+        'zh-CN': { mode: 'text', body: '中文 #0' },
+      },
+    })
     expect(v9.styles.slice(1).map((style) => style.style_name)).toEqual(['prose', 'prose_zh_CN'])
   })
 
@@ -226,23 +235,25 @@ describe('schema/migrate-macro', () => {
   it('strips a redundant legacy default_style map without changing style order', () => {
     const current = migrateMacroV7toV9({
       ...migrateMacroV6toV7(v6Macro),
+      dynamic_arity: false,
       styles: [{ style_name: 'default', mode: 'text', template: 'X', tags: [] }],
     })
     const legacy = { ...current, default_style: { en: 'default', 'zh-CN': 'default' } }
     expect(isMacroDocumentV8({ X: legacy } as any)).toBe(true)
     const normalized = migrateMacroDocument({ X: legacy } as any)
     expect(normalized.X).not.toHaveProperty('default_style')
-    expect(normalized.X.styles).toEqual(current.styles)
+    expect(normalized.X).toEqual(migrateMacroV10toV11(migrateMacroV9toV10(current)))
   })
 
   it('normalizes a mixed current-v9 and safely redundant legacy-v8 database', () => {
     const current = migrateMacroV7toV9({
       ...migrateMacroV6toV7(v6Macro),
+      dynamic_arity: false,
       styles: [{ style_name: 'default', mode: 'text', template: 'X', tags: [] }],
     })
     const legacy = { ...current, name: 'Legacy', default_style: { en: 'default' } }
     const normalized = migrateMacroDocument({ Current: current, Legacy: legacy } as any)
-    expect(normalized.Current).toEqual({ ...current, kind: 'const' })
+    expect(normalized.Current).toEqual(migrateMacroV10toV11(migrateMacroV9toV10(current)))
     expect(normalized.Legacy).not.toHaveProperty('default_style')
   })
 
@@ -256,15 +267,20 @@ describe('schema/migrate-macro', () => {
     })
     const legacy = {
       ...current,
+      dynamic_arity: false,
       default_style: { en: 'first', 'zh-CN': 'other' },
     }
     expect(isMacroDocumentV8({ X: legacy } as any)).toBe(true)
     const normalized = migrateMacroDocument({ X: legacy } as any).X
     expect(normalized.styles[0].template).toEqual({
-      type: 'i18n', default_language: 'en', values: { en: 'English', 'zh-CN': '中文' },
+      type: 'i18n', default_language: 'en', values: {
+        en: { mode: 'text', body: 'English' },
+        'zh-CN': { mode: 'text', body: '中文' },
+      },
     })
     expect(normalized.styles.slice(1).map((style) => style.style_name)).toEqual(['first', 'other'])
-    expect(migrateMacroV9toV10(migrateMacroV7toV9(legacy as any))).toEqual(normalized)
+    expect(migrateMacroV10toV11(migrateMacroV9toV10(migrateMacroV7toV9(legacy as any))))
+      .toEqual(normalized)
   })
 
   it('preserves styles[0] as the fallback when a v8 language map omits en', () => {
@@ -276,12 +292,16 @@ describe('schema/migrate-macro', () => {
           { style_name: 'chinese', mode: 'text', template: '中文', tags: [] },
         ],
       }),
+      dynamic_arity: false,
       default_style: { 'zh-CN': 'chinese' },
     }
     const normalized = migrateMacroDocument({ X: legacy } as any).X
     expect(normalized.styles[0].template).toEqual({
       type: 'i18n', default_language: 'en',
-      values: { en: 'English fallback', 'zh-CN': '中文' },
+      values: {
+        en: { mode: 'text', body: 'English fallback' },
+        'zh-CN': { mode: 'text', body: '中文' },
+      },
     })
     expect(normalized.styles.slice(1).map((style) => style.style_name)).toEqual(['fallback', 'chinese'])
   })
@@ -292,33 +312,51 @@ describe('schema/migrate-macro', () => {
         ...migrateMacroV6toV7(v6Macro),
         styles: [
           { style_name: 'formula', mode: 'formula_inline', template: '#0', tags: [] },
-          { style_name: 'english', mode: 'text', template: 'English', tags: [] },
-          { style_name: 'chinese', mode: 'text', template: '中文', tags: [] },
+          { style_name: 'english', mode: 'text', template: 'English #0', tags: [] },
+          { style_name: 'chinese', mode: 'text', template: '中文 #0', tags: [] },
         ],
       }),
+      dynamic_arity: false,
       default_style: { en: 'english', 'zh-CN': 'chinese' },
     }
     const normalized = migrateMacroDocument({ X: legacy } as any).X
     expect(normalized.styles[0].template).toEqual({
-      type: 'i18n', default_language: 'en', values: { en: 'English', 'zh-CN': '中文' },
+      type: 'i18n', default_language: 'en', values: {
+        en: { mode: 'text', body: 'English #0' },
+        'zh-CN': { mode: 'text', body: '中文 #0' },
+      },
     })
     expect(normalized.styles.slice(1).map((style) => style.style_name))
       .toEqual(['formula', 'english', 'chinese'])
   })
 
-  it('rejects a nonredundant v8 map whose styles are structurally incompatible', () => {
+  it('migrates structurally different language defaults as whole template projections', () => {
     const legacy = {
       ...migrateMacroV7toV9({
         ...migrateMacroV6toV7(v6Macro),
         styles: [
-          { style_name: 'first', mode: 'text', template: 'English', tags: [] },
-          { style_name: 'other', mode: 'formula_inline', template: 'X', tags: [] },
+          { style_name: 'first', mode: 'text', template: '#*', separator: ', ', tags: [] },
+          {
+            style_name: 'other', mode: 'block', template: '#*', separator: '、',
+            block_template_name: 'enumerate', tags: [],
+          },
         ],
       }),
       default_style: { en: 'first', 'zh-CN': 'other' },
     }
     expect(isMacroDocumentV8({ X: legacy } as any)).toBe(true)
-    expect(() => migrateMacroDocument({ X: legacy } as any)).toThrow(/cannot be merged safely/)
+    const normalized = migrateMacroDocument({ X: legacy } as any).X
+    expect(normalized.styles[0].template).toEqual({
+      type: 'i18n',
+      default_language: 'en',
+      values: {
+        en: { mode: 'text', body: '#*', separator: ', ' },
+        'zh-CN': {
+          mode: 'block', body: '#*', separator: '、', block_template_name: 'enumerate',
+        },
+      },
+    })
+    expect(normalized.styles.slice(1).map((style) => style.style_name)).toEqual(['first', 'other'])
   })
 
   it('accepts Unicode Macro and style names under the Parser identifier policy', () => {
@@ -353,16 +391,149 @@ describe('schema/migrate-macro', () => {
     expect(isMacroDocumentV10({ X: { ...legacy, kind: undefined } } as any)).toBe(false)
   })
 
-  it('migrateMacroDocument emits canonical v10 data and preserves unknown fields', () => {
+  it('migrateMacroDocument emits canonical v11 data and preserves opaque extensions', () => {
     const legacy = {
       ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)),
       kind: 'partial',
       extension_data: { owner: 'consumer' },
-    }
+    } as any
+    legacy.styles[0].typst = { built_in: 'consumer-backend' }
     const migrated = migrateMacroDocument({ X: legacy } as any).X as any
     expect(migrated.kind).toBe('sub')
     expect(migrated.extension_data).toEqual({ owner: 'consumer' })
-    expect(isMacroDocumentV10({ X: migrated })).toBe(true)
+    expect(migrated.styles[0].template.typst).toEqual({ built_in: 'consumer-backend' })
+    expect(isMacroDocumentV11({ X: migrated })).toBe(true)
+  })
+
+  it('preserves __proto__ as an own locale key in v8 localized-default migration', () => {
+    const current = migrateMacroV7toV9({
+      ...migrateMacroV6toV7(v6Macro), dynamic_arity: false,
+      styles: [
+        { style_name: 'english', mode: 'text', template: 'English #0', tags: [] },
+        { style_name: 'proto', mode: 'text', template: 'Proto #0', tags: [] },
+      ],
+    })
+    const default_style = JSON.parse('{"en":"english","__proto__":"proto"}')
+    const migrated = migrateMacroDocument({ X: { ...current, default_style } } as any).X as any
+    const values = migrated.styles[0].template.values
+    expect(Object.hasOwn(values, '__proto__')).toBe(true)
+    expect(values.__proto__.body).toBe('Proto #0')
+  })
+
+  it('rejects hybrid, retired, escaped-variadic, and fixed-variadic v11 data', () => {
+    const makeBase = () => migrateMacroDocument({ X: {
+      ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)), kind: 'const',
+    } } as any).X as any
+
+    const hybrid = makeBase()
+    hybrid.dynamic_arity = false
+    hybrid.styles[0].template = { type: 'i18n', mode: 'text', body: '#0' }
+    expect(isMacroDocumentV11({ X: hybrid })).toBe(false)
+
+    for (const field of [
+      'tag', 'mode', 'separator', 'block_template_name',
+      'variadic_left', 'variadic_join', 'variadic_right', 'react_renderer_key',
+    ]) {
+      const retired = makeBase()
+      retired.styles[0][field] = 'legacy'
+      expect(isMacroDocumentV11({ X: retired })).toBe(false)
+    }
+
+    const escapedDynamic = makeBase()
+    escapedDynamic.styles[0].template = { mode: 'text', body: '\\#*' }
+    expect(isMacroDocumentV11({ X: escapedDynamic })).toBe(false)
+
+    const fixedVariadic = makeBase()
+    fixedVariadic.dynamic_arity = false
+    fixedVariadic.styles[0].template = { mode: 'text', body: '#*' }
+    expect(isMacroDocumentV11({ X: fixedVariadic })).toBe(false)
+  })
+
+  it('rejects v11 localized projections with inconsistent or invalid dynamic arity', () => {
+    const base = migrateMacroDocument({ X: {
+      ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)), kind: 'const',
+    } } as any).X as any
+    base.styles[0].template = {
+      type: 'i18n', default_language: 'en',
+      values: {
+        en: { mode: 'text', body: '#0' },
+        'zh-CN': { mode: 'text', body: '#0 #1' },
+      },
+    }
+    expect(isMacroDocumentV11({ X: base })).toBe(false)
+    base.styles[0].template.values['zh-CN'] = { mode: 'text', body: '#0' }
+    base.dynamic_arity = true
+    expect(isMacroDocumentV11({ X: base })).toBe(false)
+  })
+
+  it('closes mixed-version, out-of-range, tag, and v6 extension migration seams', () => {
+    const v10 = {
+      ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)), kind: 'const',
+    } as any
+    const v11 = migrateMacroDocument({ Current: v10 }).Current as any
+    const mixed = migrateMacroDocument({ Current: v11, Legacy: v10 } as any)
+    expect(isMacroDocumentV11(mixed)).toBe(true)
+
+    const crossStyle = structuredClone(v11)
+    crossStyle.dynamic_arity = false
+    crossStyle.styles = [
+      { style_name: 'one', tags: [], template: { mode: 'text', body: '#0' } },
+      { style_name: 'two', tags: [], template: { mode: 'text', body: '#0 #1' } },
+    ]
+    // Style identity may intentionally choose a presentation that omits children.
+    expect(isMacroDocumentV11({ X: crossStyle })).toBe(true)
+
+    const outOfRange = structuredClone(v11)
+    outOfRange.dynamic_arity = false
+    outOfRange.styles[0].template = { mode: 'text', body: '#100' }
+    expect(isMacroDocumentV11({ X: outOfRange })).toBe(false)
+
+    const tagMap = {
+      ...v10,
+      default_style: { en: 'english', 'zh-CN': 'chinese' },
+      styles: [
+        { style_name: 'english', mode: 'text', template: '#0', tags: ['en-tag'] },
+        { style_name: 'chinese', mode: 'text', template: '#0', tags: ['zh-tag'] },
+      ],
+    }
+    expect(() => migrateMacroDocument({ X: tagMap } as any)).toThrow(/tags cannot be localized/)
+
+    const v6Extended = {
+      ...v6Macro,
+      macro_backend: { keep: true },
+      styles: v6Macro.styles.map((style) => ({ ...style, consumer_backend: { keep: 42 } })),
+    } as any
+    const migratedExtended = migrateMacroDocument({ X: v6Extended }).X as any
+    expect(migratedExtended.macro_backend).toEqual({ keep: true })
+    expect(migratedExtended.styles[0].template.consumer_backend).toEqual({ keep: 42 })
+
+    const collidingExtension = structuredClone(v10)
+    collidingExtension.styles[0].body = { opaque: true }
+    expect(() => migrateMacroDocument({ X: collidingExtension } as any))
+      .toThrow(/extension.*body.*collides/i)
+
+    const collidingV6Separator = {
+      ...v6Macro,
+      styles: v6Macro.styles.map((style) => ({
+        ...style,
+        separator: { opaque: 'must-survive-or-reject' },
+      })),
+    }
+    expect(() => migrateMacroDocument({ X: collidingV6Separator } as any))
+      .toThrow(/v6 extension.*separator.*collides/i)
+
+    const misplacedStyleExtension = structuredClone(v11)
+    misplacedStyleExtension.styles[0].consumer_backend = { ignored: true }
+    expect(isMacroDocumentV11({ X: misplacedStyleExtension })).toBe(false)
+
+    const hybridLocalizedEnvelope = structuredClone(v11)
+    const validProjection = structuredClone(v11.styles[0].template)
+    hybridLocalizedEnvelope.styles[0].template = {
+      type: 'i18n', default_language: 'en', values: { en: validProjection },
+      mode: 'block', body: 'IGNORED', separator: 'DROP',
+      block_template_name: 'ignored',
+    } as any
+    expect(isMacroDocumentV11({ X: hybridLocalizedEnvelope })).toBe(false)
   })
 
   it('preserves a valid Macro whose identifier is __proto__', () => {
@@ -385,7 +556,7 @@ describe('schema/migrate-macro', () => {
 
   it('validates complete records and never drops malformed entries', () => {
     expect(isMacroDocumentV7({ X: null } as any)).toBe(false)
-    expect(() => migrateMacroDocument({ bad: 'value' } as any)).toThrow(/not valid v6, v7, v8, v9, or v10/)
+    expect(() => migrateMacroDocument({ bad: 'value' } as any)).toThrow(/not valid v6–v11/)
 
     const valid = migrateMacroV7toV9({
       ...migrateMacroV6toV7(v6Macro),

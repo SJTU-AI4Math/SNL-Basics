@@ -19,8 +19,9 @@
  * regardless.
  */
 
-import type { SnlMacro, SnlMacroStyle } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroStyle, SnlMacroTemplate } from '../snl-macro/types'
 import {
+  type I18n,
   type LanguageEnvironment,
   type ReaderM,
   type ReaderRuntime,
@@ -29,7 +30,7 @@ import {
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { getBindRef, getSrc, getTreeSourcePath } from '../snl-syntax-tree/binding'
 import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
-import { fillLatexTemplate } from '../snl-syntax-tree/template'
+import { analyzeLatexTemplatePlaceholders, fillLatexTemplate } from '../snl-syntax-tree/template'
 import { isEmptySnlSyntaxTreeNode, type SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { encodeTreePath, type TreePath } from './interaction-driver'
 import { resolveRenderedKind } from './kind-behavior'
@@ -69,10 +70,18 @@ export function resolveStyle(
   macro: SnlMacro,
   language = 'en',
 ): SnlMacroStyle {
+  assert_valid_macro_templates(macro)
   if (macro.styles.length === 0) {
     throw new Error(`macro "${macro.name}" has no styles`)
   }
-  const resolvedName = node.style_name ?? macro.default_style?.[language] ?? macro.default_style?.en
+  const legacyDefaults = macro.default_style
+  const mappedLanguage = legacyDefaults && Object.prototype.hasOwnProperty.call(legacyDefaults, language)
+    ? legacyDefaults[language]
+    : undefined
+  const mappedEnglish = legacyDefaults && Object.prototype.hasOwnProperty.call(legacyDefaults, 'en')
+    ? legacyDefaults.en
+    : undefined
+  const resolvedName = node.style_name ?? mappedLanguage ?? mappedEnglish
   if (resolvedName == null) return macro.styles[0]
   const style = macro.styles.find((s) => s.style_name === resolvedName)
   if (!style) {
@@ -84,47 +93,103 @@ export function resolveStyle(
   return style
 }
 
+/** Validate one complete untrusted template projection. */
+function assert_valid_template_spec(template: unknown, styleName: string): void {
+  if (!template || typeof template !== 'object' || Array.isArray(template)) {
+    throw new Error(`style "${styleName}" has a malformed template projection`)
+  }
+  const value = template as Record<string, unknown>
+  if ('type' in value ||
+      !['formula_inline', 'formula_display', 'text', 'block'].includes(String(value.mode)) ||
+      typeof value.body !== 'string' ||
+      analyzeLatexTemplatePlaceholders(value.body as string).invalid ||
+      (value.separator !== undefined && typeof value.separator !== 'string') ||
+      (value.block_template_name !== undefined &&
+        (value.mode !== 'block' || typeof value.block_template_name !== 'string'))) {
+    throw new Error(`style "${styleName}" has a malformed template projection`)
+  }
+}
+
+function template_arity_contract(body: string): string {
+  const analysis = analyzeLatexTemplatePlaceholders(body)
+  return `${analysis.variadic ? 'dynamic' : 'fixed'}:${analysis.positional_arity}`
+}
+
+const RETIRED_STYLE_FIELDS = [
+  'tag', 'mode', 'separator', 'block_template_name',
+  'variadic_left', 'variadic_join', 'variadic_right', 'react_renderer_key',
+] as const
+const CURRENT_STYLE_FIELDS = new Set(['style_name', 'tags', 'template'])
+const LOCALIZED_TEMPLATE_FIELDS = new Set(['type', 'default_language', 'values'])
+
 /** Validate an untrusted style before renderer-specific dispatch. */
-export function assert_valid_style_template(style: SnlMacroStyle): void {
+export function assert_valid_style_template(style: SnlMacroStyle, dynamicArity?: boolean): void {
+  const rawStyle = style as unknown as Record<string, unknown>
+  if (RETIRED_STYLE_FIELDS.some((field) => field in rawStyle)) {
+    throw new Error(`style "${style.style_name}" has retired template fields outside template`)
+  }
+  if (Object.keys(rawStyle).some((field) => !CURRENT_STYLE_FIELDS.has(field))) {
+    throw new Error(`style "${style.style_name}" has fields outside the schema v11 Style boundary`)
+  }
   const template = (style as { template: unknown }).template
-  if (style.mode !== 'text') {
-    if (typeof template !== 'string') {
-      throw new Error(`style "${style.style_name}" may localize templates only in text mode`)
+  if (template && typeof template === 'object' && !Array.isArray(template) &&
+      (template as Record<string, unknown>).type === 'i18n') {
+    const localized = template as Record<string, unknown>
+    const values = localized.values
+    if (Object.keys(localized).some((field) => !LOCALIZED_TEMPLATE_FIELDS.has(field)) ||
+        typeof localized.default_language !== 'string' ||
+        !values || typeof values !== 'object' || Array.isArray(values) ||
+        !Object.prototype.hasOwnProperty.call(values, localized.default_language)) {
+      throw new Error(`style "${style.style_name}" has a malformed localized template`)
+    }
+    const arityContracts = new Set<string>()
+    for (const value of Object.values(values as Record<string, unknown>)) {
+      assert_valid_template_spec(value, style.style_name)
+      const body = (value as SnlMacroTemplate).body
+      arityContracts.add(template_arity_contract(body))
+      if (dynamicArity !== undefined &&
+          analyzeLatexTemplatePlaceholders(body).variadic !== dynamicArity) {
+        throw new Error(`style "${style.style_name}" template variadic marker disagrees with macro arity`)
+      }
+    }
+    if (arityContracts.size !== 1) {
+      throw new Error(`style "${style.style_name}" has localized templates with inconsistent arity`)
     }
     return
   }
-  if (typeof template === 'string') return
-  if (!template || typeof template !== 'object' || Array.isArray(template)) {
-    throw new Error(`style "${style.style_name}" has a malformed localized template`)
-  }
-  const localized = template as Record<string, unknown>
-  const values = localized.values
-  if (localized.type !== 'i18n' || typeof localized.default_language !== 'string' ||
-      !values || typeof values !== 'object' || Array.isArray(values) ||
-      Object.values(values as Record<string, unknown>).some((value) => typeof value !== 'string') ||
-      !Object.prototype.hasOwnProperty.call(values, localized.default_language) ||
-      typeof (values as Record<string, unknown>)[localized.default_language] !== 'string') {
-    throw new Error(`style "${style.style_name}" has a malformed localized template`)
+  assert_valid_template_spec(template, style.style_name)
+  if (dynamicArity !== undefined &&
+      analyzeLatexTemplatePlaceholders((template as SnlMacroTemplate).body).variadic !== dynamicArity) {
+    throw new Error(`style "${style.style_name}" template variadic marker disagrees with macro arity`)
   }
 }
 
-/** Read a validated style template in the local language environment. */
+/** Validate every Style; localized projections share a contract within each Style. */
+export function assert_valid_macro_templates(macro: SnlMacro): void {
+  for (const style of macro.styles) {
+    assert_valid_style_template(style, macro.dynamic_arity)
+  }
+}
+
+/** Read one validated complete template projection in the local language environment. */
 export function read_style_template(
   style: SnlMacroStyle,
-): ReaderM<LanguageEnvironment<string>, string> {
-  assert_valid_style_template(style)
-  const template = (style as { template: unknown }).template
-  if (style.mode !== 'text' || typeof template === 'string') return () => template as string
-  return read_localized(template as Extract<SnlMacroStyle, { mode: 'text' }>['template'])
+  dynamicArity?: boolean,
+): ReaderM<LanguageEnvironment<string>, SnlMacroTemplate> {
+  assert_valid_style_template(style, dynamicArity)
+  const template = style.template
+  if (!('type' in template)) return () => template as SnlMacroTemplate
+  return read_localized(template as I18n<string, SnlMacroTemplate>)
 }
 
-/** Resolve a style template at a renderer boundary. */
+/** Resolve one complete style template atomically at a renderer boundary. */
 export function resolve_style_template(
   style: SnlMacroStyle,
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
   language?: string,
-): string {
-  const reader = read_style_template(style)
+  dynamicArity?: boolean,
+): SnlMacroTemplate {
+  const reader = read_style_template(style, dynamicArity)
   if (language !== undefined) return reader({ language })
   if (reader_runtime) return reader_runtime.run_reader(reader)
   return reader({ language: 'en' })
@@ -338,8 +403,8 @@ function wrapTopLevelAlignmentSegments(
  */
 export function wrapForParent(
   childLatex: string,
-  childMode: SnlMacroStyle['mode'],
-  parentMode: SnlMacroStyle['mode'],
+  childMode: SnlMacroTemplate['mode'],
+  parentMode: SnlMacroTemplate['mode'],
 ): string {
   const childBucket = modeBucket(childMode)
   const parentBucket = modeBucket(parentMode)
@@ -358,7 +423,7 @@ export function wrapForParent(
  * identically for splicing purposes — only the ROOT render decides
  * KaTeX displayMode.
  */
-export function modeBucket(mode: SnlMacroStyle['mode']): 'formula' | 'text' | 'block' {
+export function modeBucket(mode: SnlMacroTemplate['mode']): 'formula' | 'text' | 'block' {
   if (mode === 'block') return 'block'
   if (mode === 'text') return 'text'
   return 'formula'
@@ -374,11 +439,13 @@ export function nodeMode(
   node: SnlSyntaxTree,
   macro: SnlMacro | null,
   language = 'en',
-): SnlMacroStyle['mode'] {
+): SnlMacroTemplate['mode'] {
   if (node.env_mode) return node.env_mode
   if (!macro) return 'formula_inline'
   try {
-    return resolveStyle(node, macro, language).mode
+    return resolve_style_template(
+      resolveStyle(node, macro, language), undefined, language, macro.dynamic_arity,
+    ).mode
   } catch {
     return 'formula_inline'
   }
@@ -430,10 +497,13 @@ export async function resolveNodeLatex(
   }
   const macro = node.env_mode ? null : await driver.query_macro({ macro_name: node.macro_name, signal })
   const style = macro ? resolveStyle(node, macro, sampled_language) : undefined
+  const resolvedTemplate = style
+    ? resolve_style_template(style, reader_runtime, sampled_language, macro?.dynamic_arity)
+    : undefined
   const hasDbMacro = Boolean(macro)
 
-  const selfMode: SnlMacroStyle['mode'] =
-    node.env_mode ?? style?.mode ?? 'formula_inline'
+  const selfMode: SnlMacroTemplate['mode'] =
+    node.env_mode ?? resolvedTemplate?.mode ?? 'formula_inline'
   const selfBucket = modeBucket(selfMode)
 
   const childRawList = await Promise.all(
@@ -449,14 +519,19 @@ export async function resolveNodeLatex(
 
   const wrappedChildren = await Promise.all(childRawList.map(async (latex, index) => {
     const child = node.children[index]
-    let cMode: SnlMacroStyle['mode'] = 'formula_inline'
+    let cMode: SnlMacroTemplate['mode'] = 'formula_inline'
     if (child?.env_mode) {
       cMode = child.env_mode
     } else {
       const childMacro = await driver.query_macro({ macro_name: child.macro_name, signal })
       if (childMacro) {
         try {
-          cMode = resolveStyle(child, childMacro, sampled_language).mode
+          cMode = resolve_style_template(
+            resolveStyle(child, childMacro, sampled_language),
+            reader_runtime,
+            sampled_language,
+            childMacro.dynamic_arity,
+          ).mode
         } catch {
           cMode = 'formula_inline'
         }
@@ -517,13 +592,13 @@ export async function resolveNodeLatex(
     }
   }
 
-  const template = style ? resolve_style_template(style, reader_runtime, sampled_language) : node.macro_name
+  const template = resolvedTemplate?.body ?? node.macro_name
 
   const childValues = Object.fromEntries(
     wrappedChildren.map((latex, index) => [`child${index}`, latex]),
   )
   const defaultSep = selfBucket === 'text' ? '' : ', '
-  const separator = style?.separator ?? defaultSep
+  const separator = resolvedTemplate?.separator ?? defaultSep
   const children_joined = wrappedChildren.join(separator)
 
   // Dynamic-arity macro handling
@@ -581,12 +656,17 @@ export async function resolveRootLatex(
     sampled_language,
   )
   const macro = root.env_mode ? null : await driver.query_macro({ macro_name: root.macro_name, signal })
-  let rootMode: SnlMacroStyle['mode'] = 'formula_inline'
+  let rootMode: SnlMacroTemplate['mode'] = 'formula_inline'
   if (root.env_mode) {
     rootMode = root.env_mode
   } else if (macro) {
     try {
-      rootMode = resolveStyle(root, macro, sampled_language).mode
+      rootMode = resolve_style_template(
+        resolveStyle(root, macro, sampled_language),
+        reader_runtime,
+        sampled_language,
+        macro.dynamic_arity,
+      ).mode
     } catch {
       rootMode = 'formula_inline'
     }

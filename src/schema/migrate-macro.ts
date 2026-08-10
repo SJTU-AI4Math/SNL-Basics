@@ -6,8 +6,9 @@
  * implicit default and localization stays inside each text style.
  */
 import type { I18n } from '../runtime'
-import type { SnlMacro, SnlMacroStyle } from '../snl-macro/types'
+import type { SnlMacro, SnlMacroTemplate } from '../snl-macro/types'
 import { isSnlIdentifier } from '../snl-syntax-tree/identifier'
+import { analyzeLatexTemplatePlaceholders } from '../snl-syntax-tree/template'
 
 /** v6 style shape (pre-v7 migration). */
 export interface MacroStyleV6 {
@@ -57,18 +58,31 @@ export type MacroStyleV7Base =
       block_template_name?: string
     })
 
-/** v9 macro shape: legacy kinds remain readable for explicit migration. */
-export interface MacroV9 extends Omit<SnlMacro, 'kind'> {
+/** v9 macro shape: ordered direct-field styles with localized text bodies. */
+export interface MacroV9 {
+  name: string
+  description: string
+  source: { entries: string[]; urls: string[] }
   kind?: string
+  dynamic_arity: boolean
+  default_style?: Record<string, string>
+  styles: MacroStyleV7Base[]
+  tags: string[]
 }
 
-/** v10 persisted shape: documents materialize a display kind; `partial` is renamed to `sub`. */
-export type MacroV10 = Omit<SnlMacro, 'kind' | 'default_style'> & {
+/** v10 persisted shape: display kind materialized; direct-field styles retained. */
+export type MacroV10 = Omit<MacroV9, 'kind' | 'default_style'> & {
   kind: string
   default_style?: never
 }
 
-/** v7 macro shape: ordered styles, with I18n permitted only in text templates. */
+/** v11 persisted shape: each style localizes one complete TemplateSpec atomically. */
+export type MacroV11 = Omit<SnlMacro, 'kind' | 'default_style'> & {
+  kind: string
+  default_style?: never
+}
+
+/** v7 macro shape: ordered styles, with I18n permitted only in text bodies. */
 export interface MacroV7 extends Omit<MacroV9, 'styles'> {
   styles: MacroStyleV7Base[]
 }
@@ -212,7 +226,22 @@ export function isMacroDocumentV9(db: Record<string, unknown>): boolean {
 
 /** Migrate one style from v6 to v7, losslessly. */
 export function migrateStyleV6toV7(style: MacroStyleV6): MacroStyleV7Base {
-  const { variadic_left, variadic_join, variadic_right } = style
+  if (Object.prototype.hasOwnProperty.call(style, 'separator')) {
+    throw new Error('v6 extension field "separator" collides with the managed v7/v11 separator field')
+  }
+  const {
+    tag: _tag,
+    style_name: _styleName,
+    mode: _mode,
+    template: _template,
+    variadic_left,
+    variadic_join,
+    variadic_right,
+    react_renderer_key: _reactRendererKey,
+    block_template_name: _blockTemplateName,
+    tags: _tags,
+    ...extensions
+  } = style as MacroStyleV6 & Record<string, unknown>
   const separator = variadic_join
   let template = style.template
   const hasLegacyDynamicFields =
@@ -224,6 +253,7 @@ export function migrateStyleV6toV7(style: MacroStyleV6): MacroStyleV7Base {
     throw new Error('block_template_name is valid only in block mode')
   }
   return {
+    ...extensions,
     style_name: style.tag ?? style.style_name ?? 'default',
     mode: style.mode as MacroStyleV7Base['mode'],
     template,
@@ -235,14 +265,25 @@ export function migrateStyleV6toV7(style: MacroStyleV6): MacroStyleV7Base {
 
 /** Migrate one macro from v6 to v7. */
 export function migrateMacroV6toV7(macro: MacroV6): MacroV7 {
+  const {
+    name,
+    description,
+    source,
+    kind,
+    dynamic_arity,
+    tags,
+    styles,
+    ...extensions
+  } = macro as MacroV6 & Record<string, unknown>
   return {
-    name: macro.name,
-    description: macro.description,
-    source: macro.source,
-    kind: macro.kind,
-    dynamic_arity: macro.dynamic_arity,
-    tags: macro.tags ?? [],
-    styles: macro.styles.map(migrateStyleV6toV7),
+    ...extensions,
+    name,
+    description,
+    source,
+    kind,
+    dynamic_arity,
+    tags: tags ?? [],
+    styles: styles.map(migrateStyleV6toV7),
   }
 }
 
@@ -276,7 +317,7 @@ function migrateLegacyV8Macro(macro: MacroV7 & { default_style: Record<string, s
   const mappedNames = Object.values(macro.default_style)
   if (firstName && mappedNames.every((styleName) => styleName === firstName)) {
     const { default_style: _legacyDefaultStyle, ...current } = macro
-    return { ...current, styles: current.styles as SnlMacroStyle[] }
+    return { ...current, styles: current.styles as MacroStyleV7Base[] }
   }
 
   const byName = new Map(macro.styles.map((style) => [style.style_name, style]))
@@ -313,9 +354,9 @@ function migrateLegacyV8Macro(macro: MacroV7 & { default_style: Record<string, s
     ...mapped[0].style!,
     style_name: syntheticName,
     template: { type: 'i18n' as const, default_language: 'en', values },
-  } as SnlMacroStyle
+  } as MacroStyleV7Base
   const { default_style: _legacyDefaultStyle, ...current } = macro
-  return { ...current, styles: [synthetic, ...(current.styles as SnlMacroStyle[])] }
+  return { ...current, styles: [synthetic, ...(current.styles as MacroStyleV7Base[])] }
 }
 
 /** Preserve ordered styles and localized text templates in schema v9. */
@@ -338,14 +379,14 @@ export function migrateMacroV7toV9(
           `macro "${macro.name}" style "${style.style_name}" has a malformed localized template`,
         )
       }
-      return { ...style } as SnlMacroStyle
+      return { ...style } as MacroStyleV7Base
     }
     if (typeof style.template !== 'string') {
       throw new Error(
         `macro "${macro.name}" style "${style.style_name}" may localize templates only in text mode`,
       )
     }
-    return { ...style } as SnlMacroStyle
+    return { ...style } as MacroStyleV7Base
   })
   const { default_style: _legacyDefaultStyle, ...current } = macro as MacroV7 & {
     default_style?: Record<string, string>
@@ -354,8 +395,8 @@ export function migrateMacroV7toV9(
 }
 
 /** Published schema-v8 Style: every Template is language-invariant. */
-export type MacroV8Style = SnlMacroStyle extends infer Style
-  ? Style extends SnlMacroStyle
+export type MacroV8Style = MacroStyleV7Base extends infer Style
+  ? Style extends MacroStyleV7Base
     ? Omit<Style, 'template'> & { template: string }
     : never
   : never
@@ -440,28 +481,203 @@ export function isMacroDocumentV10(db: Record<string, unknown>): boolean {
   })
 }
 
-/** Migrate a v6, v7, v8, or v9 document to schema v10. */
+function directStyleTemplate(style: MacroStyleV7Base, body: string): SnlMacroTemplate {
+  const {
+    style_name: _styleName,
+    tags: _tags,
+    mode: _mode,
+    template: _template,
+    separator: _separator,
+    block_template_name: _blockTemplateName,
+    ...extensions
+  } = style as unknown as Record<string, unknown>
+  for (const field of ['body', 'type'] as const) {
+    if (Object.prototype.hasOwnProperty.call(extensions, field)) {
+      throw new Error(`style extension field "${field}" collides with schema v11 TemplateSpec`)
+    }
+  }
+  return {
+    ...extensions,
+    mode: style.mode,
+    body,
+    ...(style.separator !== undefined ? { separator: style.separator } : {}),
+    ...(style.mode === 'block' && style.block_template_name !== undefined
+      ? { block_template_name: style.block_template_name }
+      : {}),
+  } as SnlMacroTemplate
+}
+
+function migrateDirectStyleToV11(style: MacroStyleV7Base): SnlMacro['styles'][number] {
+  const template = typeof style.template === 'string'
+    ? directStyleTemplate(style, style.template)
+    : {
+        type: 'i18n' as const,
+        default_language: style.template.default_language,
+        values: Object.fromEntries(Object.entries(style.template.values).map(([language, body]) => {
+          if (body === undefined) return [language, undefined]
+          return [language, directStyleTemplate(style, body)]
+        })),
+      }
+  return { style_name: style.style_name, tags: [...style.tags], template }
+}
+
+/** Lift one schema-v10 Macro into atomic template-scope localization. */
+export function migrateMacroV10toV11(macro: MacroV10): MacroV11 {
+  return { ...macro, styles: macro.styles.map(migrateDirectStyleToV11) }
+}
+
+/**
+ * Migrate a published-v8 language-to-style default without changing explicit
+ * style selectors. A synthetic first style carries the old implicit behavior;
+ * every old named style remains available with its original invariant template.
+ */
+export function migrateMacroV8toV11(macro: MacroV8): MacroV11 {
+  const normalized = migrateMacroV9toV10(macro)
+  const firstName = macro.styles[0]?.style_name
+  const mappedNames = Object.values(macro.default_style)
+  if (firstName && mappedNames.every((name) => name === firstName)) {
+    return migrateMacroV10toV11(normalized)
+  }
+
+  const byName = new Map(macro.styles.map((style) => [style.style_name, style]))
+  const hasEnglishDefault = Object.prototype.hasOwnProperty.call(macro.default_style, 'en')
+  const values = Object.create(null) as Record<string, SnlMacroTemplate>
+  const mappedStyles: MacroV8Style[] = []
+  for (const [language, styleName] of Object.entries(macro.default_style)) {
+    const style = byName.get(styleName)
+    if (!style) throw new Error(`macro "${macro.name}" default_style references unknown style "${styleName}"`)
+    values[language] = directStyleTemplate(style, style.template)
+    mappedStyles.push(style)
+  }
+  if (!hasEnglishDefault) {
+    const first = macro.styles[0]
+    if (!first) throw new Error(`macro "${macro.name}" has no styles`)
+    values.en = directStyleTemplate(first, first.template)
+    mappedStyles.push(first)
+  }
+
+  const selectedTags = new Set(mappedStyles.map((style) => JSON.stringify(style.tags)))
+  if (selectedTags.size !== 1) {
+    throw new Error(`macro "${macro.name}" has a legacy default_style map whose selected Style tags cannot be localized`)
+  }
+
+  const used = new Set(macro.styles.map((style) => style.style_name))
+  const stem = `${firstName ?? 'default'}_localized_default`
+  let style_name = stem
+  let suffix = 2
+  while (used.has(style_name)) style_name = `${stem}_${suffix++}`
+  const synthetic = {
+    style_name,
+    tags: [...mappedStyles[0].tags],
+    template: { type: 'i18n' as const, default_language: 'en', values },
+  }
+  const lifted = migrateMacroV10toV11(normalized)
+  return { ...lifted, styles: [synthetic, ...lifted.styles] }
+}
+
+function isTemplateSpec(value: unknown): value is SnlMacroTemplate {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const spec = value as Record<string, unknown>
+  if ('type' in spec ||
+      !['formula_inline', 'formula_display', 'text', 'block'].includes(String(spec.mode)) ||
+      typeof spec.body !== 'string' ||
+      (spec.separator !== undefined && typeof spec.separator !== 'string')) return false
+  return spec.block_template_name === undefined ||
+    (spec.mode === 'block' && typeof spec.block_template_name === 'string')
+}
+
+const LOCALIZED_TEMPLATE_FIELDS = new Set(['type', 'default_language', 'values'])
+
+function templateSpecs(value: unknown): SnlMacroTemplate[] | null {
+  if (isTemplateSpec(value)) return [value]
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const localized = value as Record<string, unknown>
+  if (localized.type !== 'i18n' || typeof localized.default_language !== 'string' ||
+      Object.keys(localized).some((field) => !LOCALIZED_TEMPLATE_FIELDS.has(field)) ||
+      !localized.values || typeof localized.values !== 'object' || Array.isArray(localized.values)) return null
+  const values = localized.values as Record<string, unknown>
+  if (!Object.prototype.hasOwnProperty.call(values, localized.default_language) ||
+      Object.keys(values).length === 0 || !Object.values(values).every(isTemplateSpec)) return null
+  return Object.values(values) as SnlMacroTemplate[]
+}
+
+function templateArityContract(template: SnlMacroTemplate): string {
+  const analysis = analyzeLatexTemplatePlaceholders(template.body)
+  return `${analysis.variadic ? 'dynamic' : 'fixed'}:${analysis.positional_arity}`
+}
+
+const RETIRED_STYLE_FIELDS = [
+  'tag', 'mode', 'separator', 'block_template_name',
+  'variadic_left', 'variadic_join', 'variadic_right', 'react_renderer_key',
+] as const
+const CURRENT_STYLE_FIELDS = new Set(['style_name', 'tags', 'template'])
+
+/** Validate current schema v11. */
+export function isMacroDocumentV11(db: Record<string, unknown>): boolean {
+  if (!isPlainRecord(db)) return false
+  for (const macro of Object.values(db)) {
+    if (!macro || typeof macro !== 'object' || Array.isArray(macro)) return false
+    const value = macro as Record<string, unknown>
+    if (!isMacroBase(value) || typeof value.kind !== 'string' || value.kind.length === 0 ||
+        value.kind === 'partial' || 'default_style' in value) return false
+    if (!Array.isArray(value.styles) || value.styles.length === 0) return false
+    const names: string[] = []
+    for (const input of value.styles) {
+      if (!input || typeof input !== 'object' || Array.isArray(input)) return false
+      const style = input as Record<string, unknown>
+      const specs = templateSpecs(style.template)
+      if (typeof style.style_name !== 'string' || !isSnlIdentifier(style.style_name) ||
+          !isStringArray(style.tags) || !specs ||
+          RETIRED_STYLE_FIELDS.some((field) => field in style) ||
+          Object.keys(style).some((field) => !CURRENT_STYLE_FIELDS.has(field))) return false
+      const arityContracts = new Set(specs.map(templateArityContract))
+      if (arityContracts.size !== 1 || specs.some((spec) => {
+        const analysis = analyzeLatexTemplatePlaceholders(spec.body)
+        return analysis.invalid || analysis.variadic !== value.dynamic_arity
+      })) return false
+      names.push(style.style_name)
+    }
+    if (new Set(names).size !== names.length) return false
+  }
+  return true
+}
+
+/** Migrate a v6–v10 document to schema v11. */
 export function migrateMacroDocument(
-  db: Record<string, MacroV6 | MacroV7 | MacroV8 | MacroV9 | MacroV10>,
+  db: Record<string, MacroV6 | MacroV7 | MacroV8 | MacroV9 | MacroV10 | MacroV11>,
   options: MacroV7ToV9Options = {},
 ): Record<string, SnlMacro> {
   if (!isPlainRecord(db)) throw new Error('macro document must be a plain object')
-  if (isMacroDocumentV10(db as Record<string, unknown>)) return { ...db } as Record<string, SnlMacro>
+  if (isMacroDocumentV11(db as Record<string, unknown>)) return { ...db } as Record<string, SnlMacro>
 
   const entries: Array<[string, SnlMacro]> = []
   for (const [key, input] of Object.entries(db)) {
     const one = { [key]: input } as Record<string, unknown>
+    if (isMacroDocumentV11(one)) {
+      entries.push([key, input as MacroV11])
+      continue
+    }
+    if (isMacroDocumentV8(one)) {
+      entries.push([key, migrateMacroV8toV11(input as MacroV8)])
+      continue
+    }
+    if (isMacroDocumentV10(one)) {
+      entries.push([key, migrateMacroV10toV11(input as MacroV10)])
+      continue
+    }
     let v7: MacroV7
     if (isMacroDocumentV9(one) || isMacroDocumentV7(one)) {
       v7 = input as MacroV7
-    } else if (isMacroDocumentV8(one)) {
-      v7 = input as MacroV7 & { default_style: Record<string, string> }
     } else if (isMacroDocumentV6(one)) {
       v7 = migrateMacroV6toV7(input as MacroV6)
     } else {
-      throw new Error(`macro document entry ${JSON.stringify(key)} is not valid v6, v7, v8, v9, or v10 data`)
+      throw new Error(`macro document entry ${JSON.stringify(key)} is not valid v6–v11 data`)
     }
-    entries.push([key, migrateMacroV9toV10(migrateMacroV7toV9(v7, options))])
+    entries.push([key, migrateMacroV10toV11(migrateMacroV9toV10(migrateMacroV7toV9(v7, options)))])
   }
-  return Object.fromEntries(entries)
+  const migrated = Object.fromEntries(entries)
+  if (!isMacroDocumentV11(migrated)) {
+    throw new Error('migrated macro document violates schema v11 template or arity invariants')
+  }
+  return migrated
 }

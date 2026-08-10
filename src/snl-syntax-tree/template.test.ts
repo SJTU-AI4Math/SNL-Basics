@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fillLatexTemplate } from './template'
+import { analyzeLatexTemplatePlaceholders, fillLatexTemplate } from './template'
 
 describe('fillLatexTemplate', () => {
   it('substitutes #0 / #1 with child slots', () => {
@@ -25,6 +25,13 @@ describe('fillLatexTemplate', () => {
 
   it('supports 2-digit indices (#12)', () => {
     expect(fillLatexTemplate('#12', { child12: 'z' })).toBe('z')
+  })
+
+  it('does not consume a prefix of malformed 3-digit placeholders', () => {
+    expect(analyzeLatexTemplatePlaceholders('#100')).toEqual({
+      positional_arity: 0, variadic: false, invalid: true,
+    })
+    expect(fillLatexTemplate('#100', { child10: 'wrong' })).toBe('#100')
   })
 
   it('renders out-of-range #N as a visible numbered slot, not empty', () => {

@@ -23,7 +23,7 @@ const db: SnlMacroRecord = {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     tags: [],
-    styles: [{ style_name: 'default', mode: 'formula_inline', template: '#0 + #1', tags: [] }],
+    styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: '#0 + #1' }, tags: [] }],
   },
   x: {
     name: 'x',
@@ -31,7 +31,7 @@ const db: SnlMacroRecord = {
     source: { entries: [], urls: [] },
     dynamic_arity: false,
     tags: [],
-    styles: [{ style_name: 'default', mode: 'formula_inline', template: 'x', tags: [] }],
+    styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: 'x' }, tags: [] }],
   },
 }
 const driver = testDriver(db)
@@ -84,7 +84,7 @@ describe('data-tree-path DOM attribute', () => {
       c: {
         name: 'c', description: '', source: { entries: [], urls: [] }, kind: 'const',
         dynamic_arity: false, tags: [],
-        styles: [{ style_name: 'default', mode: 'formula_inline', template: 'c', tags: [] }],
+        styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: 'c' }, tags: [] }],
       },
     }
     const { container } = render(
@@ -94,17 +94,34 @@ describe('data-tree-path DOM attribute', () => {
     expect(container.querySelector('[data-tree-path=""]')?.getAttribute('data-kind')).toBe('const')
   })
 
+  it('preserves a __proto__ Macro through the async render cache', async () => {
+    const protoMacro = {
+      name: '__proto__', description: '', source: { entries: [], urls: [] }, kind: 'const',
+      dynamic_arity: false, tags: [],
+      styles: [{ style_name: 'default', template: { mode: 'text', body: 'proto-rendered' }, tags: [] }],
+    }
+    const protoDb = JSON.parse(`{"__proto__":${JSON.stringify(protoMacro)}}`) as SnlMacroRecord
+    const protoDriver = new MacroDataDriver({
+      queries: { query_macro: async ({ macro_name }) => protoDb[macro_name] ?? null },
+    })
+    const { container } = render(
+      <SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('__proto__')} macro_data_driver={protoDriver} />,
+    )
+    await waitFor(() => expect(container.textContent).toContain('proto-rendered'))
+    expect(container.querySelector('[data-name="__proto__"]')?.getAttribute('data-kind')).toBe('const')
+  })
+
   it('uses const for registered native text and block Macros without an explicit kind', async () => {
     const nativeDb: SnlMacroRecord = {
       prose: {
         name: 'prose', description: '', source: { entries: [], urls: [] },
         dynamic_arity: false, tags: [],
-        styles: [{ style_name: 'default', mode: 'text', template: 'prose', tags: [] }],
+        styles: [{ style_name: 'default',  template: { mode: 'text', body: 'prose' }, tags: [] }],
       },
       group: {
         name: 'group', description: '', source: { entries: [], urls: [] },
         dynamic_arity: true, tags: [],
-        styles: [{ style_name: 'default', mode: 'block', template: '#*', tags: [] }],
+        styles: [{ style_name: 'default',  template: { mode: 'block', body: '#*' }, tags: [] }],
       },
     }
     const view = render(
@@ -246,7 +263,10 @@ describe('SnlInteractionDriver integration', () => {
     const blockMacro = {
       name: 'interactive.block', description: '', source: { entries: ['entry'], urls: [] }, kind: 'const',
       dynamic_arity: false, tags: [],
-      styles: [{ style_name: 'default', mode: 'block' as const, template: '', block_template_name: 'interactive', tags: [] }],
+      styles: [{
+        style_name: 'default', tags: [],
+        template: { mode: 'block' as const, body: '', block_template_name: 'interactive' },
+      }],
     }
     const tree = createSnlSyntaxTreeNode('interactive.block')
     const view = render(<SnlSyntaxTreeView
@@ -851,7 +871,7 @@ describe('macro query lifecycle', () => {
         source: { entries: [], urls: [] },
         dynamic_arity: false,
         tags: [],
-        styles: [{ style_name: 'default', mode: 'text', template: 'old backend', tags: [] }],
+        styles: [{ style_name: 'default',  template: { mode: 'text', body: 'old backend' }, tags: [] }],
       },
     }
     const tree = createSnlSyntaxTreeNode('label')
@@ -886,7 +906,7 @@ describe('macro query lifecycle', () => {
 })
 
 describe('block_template_name validation', () => {
-  it('ignores block_template_name on non-block (formula) mode styles', async () => {
+  it('rejects block_template_name on non-block template projections', async () => {
     const formulaDb = {
       bad: {
         name: 'bad',
@@ -896,9 +916,9 @@ describe('block_template_name validation', () => {
         tags: [],
         styles: [{
           style_name: 'default',
-          mode: 'formula_inline',
-          template: '\\texttt{bad}',
-          block_template_name: 'should_be_ignored',
+
+          template: { mode: 'formula_inline', body: '\\texttt{bad}', block_template_name: 'should_be_ignored' },
+
           tags: [],
         }],
       },
@@ -907,9 +927,7 @@ describe('block_template_name validation', () => {
       <SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('bad')} macro_data_driver={testDriver(formulaDb)} />,
     )
     await waitFor(() => {
-      // Should render as KaTeX formula, NOT trigger a block renderer lookup
-      const katex = container.querySelector('.katex')
-      expect(katex).not.toBeNull()
+      expect(container.querySelector('.katex-error')?.textContent).toMatch(/malformed template projection/)
     })
   })
 
@@ -926,9 +944,9 @@ describe('block_template_name validation', () => {
         tags: [],
         styles: [{
           style_name: 'default',
-          mode: 'block',
-          template: '#*',
-          block_template_name: 'test-block',
+
+          template: { mode: 'block', body: '#*', block_template_name: 'test-block' },
+
           tags: [],
         }],
       },

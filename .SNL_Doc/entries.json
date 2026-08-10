@@ -4,8 +4,8 @@
     "kind": "npm-package",
     "title": "SNL Basics React Package",
     "content": {
-      "snl": "%The package manifest for SNL-Basics version 0.2.0 in its public beta series. The package name is @sjtu-ai4math/snl-basics, and its public entry points expose SNL syntax-tree parsing, KaTeX-in-React rendering, and complete Entry rendering. Macro data remains consumer-owned. Publication status is external registry state and is not inferred from repository metadata. The package.json#files allowlist includes dist-lib and the maintained package documentation and license files.%",
-      "markdown": "The package manifest for SNL-Basics version `0.2.0` in its public beta series. The package name is `@sjtu-ai4math/snl-basics`, and its public entry points expose SNL syntax-tree parsing, KaTeX-in-React rendering, and complete Entry rendering. Macro data remains consumer-owned. Publication status is external registry state and is not inferred from repository metadata. The `package.json#files` allowlist includes `dist-lib`, `README.md`, `README(ZH).md`, `MIGRATION.md`, and `LICENSE`."
+      "snl": "%The package manifest for SNL-Basics version 0.3.0 in its public beta series. The package name is @sjtu-ai4math/snl-basics, and its public entry points expose SNL syntax-tree parsing, KaTeX-in-React rendering, and complete Entry rendering. Macro data remains consumer-owned. Publication status is external registry state and is not inferred from repository metadata. The package.json#files allowlist includes dist-lib and the maintained package documentation and license files.%",
+      "markdown": "The package manifest for SNL-Basics version `0.3.0` in its public beta series. The package name is `@sjtu-ai4math/snl-basics`, and its public entry points expose SNL syntax-tree parsing, KaTeX-in-React rendering, and complete Entry rendering. Macro data remains consumer-owned. Publication status is external registry state and is not inferred from repository metadata. The `package.json#files` allowlist includes `dist-lib`, `README.md`, `README(ZH).md`, `MIGRATION.md`, and `LICENSE`."
     },
     "contribution_info": null,
     "pointer": {

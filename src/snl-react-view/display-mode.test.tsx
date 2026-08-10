@@ -16,8 +16,8 @@ function fracMacro(name: string, display?: 'inline' | 'block'): SnlMacro {
     styles: [
       {
         style_name: 'default',
-        mode: display === 'block' ? 'formula_display' : 'formula_inline',
-        template: '\\frac{#0}{#1}',
+
+        template: { mode: display === 'block' ? 'formula_display' : 'formula_inline', body: '\\frac{#0}{#1}' },
         tags: [],
       },
     ],

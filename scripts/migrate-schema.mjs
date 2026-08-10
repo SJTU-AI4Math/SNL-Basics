@@ -4,7 +4,7 @@
  * Applies:
  *   - Macro v6 → v7: tag→style_name, react_renderer_key→block_template_name,
  *     variadic_left/join/right → separator + template with #*, tags: []
- *   - Macro v7/v8/v9 → v10: canonical const/sub kinds
+ *   - Macro v7/v8/v9/v10 → v11: complete TemplateSpec localization and canonical const/sub kinds
  *   - Syntax tree v1/v2 → v3: temporary payload/coordinate separation
  *
  * NOTE: SnlMacro.name stays as `name` (NOT renamed to macro_name).
@@ -40,35 +40,44 @@ if (targets.length === 0) {
 // --- Macro v6→v7 migration (source-equivalent to src/schema/migrate-macro.ts) ---
 
 function migrateStyleV6toV7(style) {
-  const { variadic_left, variadic_join, variadic_right, tag, react_renderer_key, tags, ...rest } = style
-  let template = rest.template || ''
-  const hasLegacyDynamicFields = variadic_left !== undefined || variadic_join !== undefined || variadic_right !== undefined
-  if (hasLegacyDynamicFields) {
-    template = `${variadic_left ?? ''}#*${variadic_right ?? ''}`
+  if (Object.prototype.hasOwnProperty.call(style, 'separator')) {
+    throw new Error('v6 extension field "separator" collides with the managed v7/v11 separator field')
   }
-  const blockTemplateName = react_renderer_key ?? rest.block_template_name
-  if (blockTemplateName && rest.mode !== 'block') {
+  const {
+    variadic_left, variadic_join, variadic_right,
+    tag: _tag, style_name: _styleName, mode: _mode, template: _template,
+    react_renderer_key: _reactRendererKey, block_template_name: _blockTemplateName,
+    tags: _tags, ...extensions
+  } = style
+  let template = style.template || ''
+  const hasLegacyDynamicFields = variadic_left !== undefined || variadic_join !== undefined || variadic_right !== undefined
+  if (hasLegacyDynamicFields) template = `${variadic_left ?? ''}#*${variadic_right ?? ''}`
+  const blockTemplateName = style.react_renderer_key ?? style.block_template_name
+  if (blockTemplateName && style.mode !== 'block') {
     throw new Error('block_template_name is valid only in block mode')
   }
   return {
-    style_name: tag ?? rest.style_name ?? 'default',
-    mode: rest.mode,
+    ...extensions,
+    style_name: style.tag ?? style.style_name ?? 'default',
+    mode: style.mode,
     template,
     ...(variadic_join !== undefined ? { separator: variadic_join } : {}),
-    ...(blockTemplateName ? { block_template_name: blockTemplateName } : {}),
-    tags: tags ?? [],
+    ...(style.mode === 'block' && blockTemplateName ? { block_template_name: blockTemplateName } : {}),
+    tags: style.tags ?? [],
   }
 }
 
 function migrateMacroV6toV7(macro) {
+  const { name, description, source, kind, dynamic_arity, tags, styles, ...extensions } = macro
   return {
-    name: macro.name,
-    description: macro.description,
-    source: macro.source,
-    ...(macro.kind !== undefined ? { kind: macro.kind } : {}),
-    dynamic_arity: macro.dynamic_arity,
-    tags: macro.tags ?? [],
-    styles: (macro.styles || []).map(migrateStyleV6toV7),
+    ...extensions,
+    name,
+    description,
+    source,
+    ...(kind !== undefined ? { kind } : {}),
+    dynamic_arity,
+    tags: tags ?? [],
+    styles: (styles || []).map(migrateStyleV6toV7),
   }
 }
 
@@ -213,64 +222,149 @@ function migrateMacroV7toV9(macro) {
 
 /** @param {any} macro */
 function migrateMacroV9toV10(macro) {
+  const { default_style: _legacyDefaultStyle, ...current } = macro
   return {
-    ...macro,
+    ...current,
     kind: macro.kind === 'partial' || macro.kind === 'sub'
       ? 'sub'
       : typeof macro.kind === 'string' && macro.kind.length > 0 ? macro.kind : 'const',
   }
 }
 
-/** @param {unknown} value @returns {unknown} */
-function canonicalize(value) {
-  if (Array.isArray(value)) return value.map(canonicalize)
-  if (!value || typeof value !== 'object') return value
-  return Object.fromEntries(Object.entries(value).sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, item]) => [key, canonicalize(item)]))
+/** @param {string} template */
+function analyzePlaceholders(template) {
+  const source = template.replace(/\\#/g, '\u0001ESCAPED_HASH\u0001')
+  let maxIndex = -1
+  for (const match of source.matchAll(/#(\d{1,2})(?!\d)/g)) maxIndex = Math.max(maxIndex, Number(match[1]))
+  return { positional_arity: maxIndex + 1, variadic: /#\*/.test(source), invalid: /#\d{3,}/.test(source) }
 }
 
-/** @param {any} left @param {any} right */
-function stylesStructurallyMatch(left, right) {
-  const { style_name: _leftName, template: _leftTemplate, ...leftStructure } = left
-  const { style_name: _rightName, template: _rightTemplate, ...rightStructure } = right
-  return JSON.stringify(canonicalize(leftStructure)) === JSON.stringify(canonicalize(rightStructure))
+/** @param {any} style @param {string} body */
+function directStyleTemplate(style, body) {
+  const {
+    style_name: _styleName, tags: _tags, mode: _mode, template: _template,
+    separator: _separator, block_template_name: _blockTemplateName, ...extensions
+  } = style
+  for (const field of ['body', 'type']) {
+    if (Object.prototype.hasOwnProperty.call(extensions, field)) {
+      throw new Error(`style extension field ${JSON.stringify(field)} collides with schema v11 TemplateSpec`)
+    }
+  }
+  return {
+    ...extensions,
+    mode: style.mode,
+    body,
+    ...(style.separator !== undefined ? { separator: style.separator } : {}),
+    ...(style.mode === 'block' && style.block_template_name !== undefined
+      ? { block_template_name: style.block_template_name } : {}),
+  }
+}
+
+/** @param {any} style */
+function migrateDirectStyleToV11(style) {
+  const template = typeof style.template === 'string'
+    ? directStyleTemplate(style, style.template)
+    : {
+        type: 'i18n',
+        default_language: style.template.default_language,
+        values: Object.fromEntries(Object.entries(style.template.values)
+          .map(([language, body]) => [language, directStyleTemplate(style, body)])),
+      }
+  return { style_name: style.style_name, tags: [...style.tags], template }
 }
 
 /** @param {any} macro */
-function migrateLegacyV8Macro(macro) {
-  const firstName = macro.styles[0].style_name
-  const styles = /** @type {any[]} */ (macro.styles)
+function migrateMacroV10toV11(macro) {
+  return { ...macro, styles: macro.styles.map(migrateDirectStyleToV11) }
+}
+
+/** @param {any} macro */
+function migrateMacroV8toV11(macro) {
+  const normalized = migrateMacroV9toV10(macro)
+  const firstName = macro.styles[0]?.style_name
   const mappedNames = Object.values(macro.default_style)
-  if (mappedNames.every((styleName) => styleName === firstName)) return migrateMacroV7toV9(macro)
-  const byName = new Map(styles.map((style) => [style.style_name, style]))
-  const mapped = Object.entries(macro.default_style).map(([language, styleName]) => ({
-    language, style: byName.get(styleName),
-  }))
-  const base = mapped[0]?.style
-  const firstStyle = styles[0]
+  if (firstName && mappedNames.every((name) => name === firstName)) return migrateMacroV10toV11(normalized)
+
+  const byName = new Map(macro.styles.map((style) => [style.style_name, style]))
   const hasEnglishDefault = Object.prototype.hasOwnProperty.call(macro.default_style, 'en')
-  const unsafeFirstStyleFallback = !hasEnglishDefault && (
-    !firstStyle || firstStyle.mode !== 'text' || typeof firstStyle.template !== 'string' ||
-    !base || !stylesStructurallyMatch(base, firstStyle)
-  )
-  if (!base || unsafeFirstStyleFallback || mapped.some(({ style }) =>
-      !style || style.mode !== 'text' || typeof style.template !== 'string' ||
-      !stylesStructurallyMatch(base, style))) {
-    throw new Error(`macro ${JSON.stringify(macro.name)} has legacy default styles that cannot be merged safely`)
+  const values = Object.create(null)
+  const mappedStyles = []
+  for (const [language, styleName] of Object.entries(macro.default_style)) {
+    const style = byName.get(styleName)
+    if (!style) throw new Error(`macro ${JSON.stringify(macro.name)} default_style references unknown style ${JSON.stringify(styleName)}`)
+    values[language] = directStyleTemplate(style, style.template)
+    mappedStyles.push(style)
   }
-  const used = new Set(styles.map((style) => style.style_name))
-  const stem = `${firstName}_localized_default`
-  let name = stem
+  if (!hasEnglishDefault) {
+    const first = macro.styles[0]
+    if (!first) throw new Error(`macro ${JSON.stringify(macro.name)} has no styles`)
+    values.en = directStyleTemplate(first, first.template)
+    mappedStyles.push(first)
+  }
+  if (new Set(mappedStyles.map((style) => JSON.stringify(style.tags))).size !== 1) {
+    throw new Error(`macro ${JSON.stringify(macro.name)} has a legacy default_style map whose selected Style tags cannot be localized`)
+  }
+  const used = new Set(macro.styles.map((style) => style.style_name))
+  const stem = `${firstName ?? 'default'}_localized_default`
+  let style_name = stem
   let suffix = 2
-  while (used.has(name)) name = `${stem}_${suffix++}`
-  const values = Object.fromEntries(mapped.map(({ language, style }) => [language, style.template]))
-  if (!hasEnglishDefault) values.en = firstStyle.template
-  const synthetic = {
-    ...base, style_name: name,
-    template: { type: 'i18n', default_language: 'en', values },
+  while (used.has(style_name)) style_name = `${stem}_${suffix++}`
+  const lifted = migrateMacroV10toV11(normalized)
+  return {
+    ...lifted,
+    styles: [{ style_name, tags: [...mappedStyles[0].tags], template: { type: 'i18n', default_language: 'en', values } }, ...lifted.styles],
   }
-  const current = migrateMacroV7toV9(macro)
-  return { ...current, styles: [synthetic, ...current.styles] }
+}
+
+/** @param {any} value */
+function isTemplateSpec(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || 'type' in value ||
+      !MODES.has(value.mode) || typeof value.body !== 'string' ||
+      (value.separator !== undefined && typeof value.separator !== 'string')) return false
+  return value.block_template_name === undefined ||
+    (value.mode === 'block' && typeof value.block_template_name === 'string')
+}
+
+const LOCALIZED_TEMPLATE_FIELDS = new Set(['type', 'default_language', 'values'])
+
+/** @param {any} value @returns {any[] | null} */
+function templateSpecs(value) {
+  if (isTemplateSpec(value)) return [value]
+  if (!value || typeof value !== 'object' || Array.isArray(value) || value.type !== 'i18n' ||
+      Object.keys(value).some((field) => !LOCALIZED_TEMPLATE_FIELDS.has(field)) ||
+      typeof value.default_language !== 'string' || !value.values ||
+      typeof value.values !== 'object' || Array.isArray(value.values) ||
+      !Object.prototype.hasOwnProperty.call(value.values, value.default_language) ||
+      Object.keys(value.values).length === 0 || !Object.values(value.values).every(isTemplateSpec)) return null
+  return Object.values(value.values)
+}
+
+const CURRENT_STYLE_FIELDS = new Set(['style_name', 'tags', 'template'])
+
+/** @param {Record<string, any>} db */
+function isMacroDocumentV11(db) {
+  return Object.values(db).every((macro) => {
+    if (!isMacroBase(macro) || typeof macro.kind !== 'string' || macro.kind.length === 0 ||
+        macro.kind === 'partial' || 'default_style' in macro || !Array.isArray(macro.styles) || macro.styles.length === 0) return false
+    const names = []
+    for (const style of macro.styles) {
+      if (!style || typeof style !== 'object' || Array.isArray(style) ||
+          typeof style.style_name !== 'string' || !isSnlIdentifier(style.style_name) ||
+          !isStringArray(style.tags) || Object.keys(style).some((field) => !CURRENT_STYLE_FIELDS.has(field))) return false
+      const specs = templateSpecs(style.template)
+      if (!specs) return false
+      const contracts = new Set(specs.map((spec) => {
+        const analysis = analyzePlaceholders(spec.body)
+        return `${analysis.variadic ? 'dynamic' : 'fixed'}:${analysis.positional_arity}`
+      }))
+      if (contracts.size !== 1 || specs.some((spec) => {
+        const analysis = analyzePlaceholders(spec.body)
+        return analysis.invalid || analysis.variadic !== macro.dynamic_arity
+      })) return false
+      names.push(style.style_name)
+    }
+    return new Set(names).size === names.length
+  })
 }
 
 /** @param {Record<string, any>} db */
@@ -279,18 +373,19 @@ function migrateMacroDb(db) {
   for (const [key, macro] of Object.entries(db)) {
     const one = { [key]: macro }
     let migrated
-    if (isMacroDocumentV9(one) || isMacroDocumentV7(one)) {
-      migrated = migrateMacroV7toV9(macro)
-    } else if (isMacroDocumentLegacyDefault(one)) {
-      migrated = migrateLegacyV8Macro(macro)
+    if (isMacroDocumentV11(one)) migrated = macro
+    else if (isMacroDocumentV10(one)) migrated = migrateMacroV10toV11(macro)
+    else if (isMacroDocumentLegacyDefault(one)) migrated = migrateMacroV8toV11(macro)
+    else if (isMacroDocumentV9(one) || isMacroDocumentV7(one)) {
+      migrated = migrateMacroV10toV11(migrateMacroV9toV10(migrateMacroV7toV9(macro)))
     } else if (isMacroDocumentV6(one)) {
-      migrated = migrateMacroV7toV9(migrateMacroV6toV7(macro))
-    } else {
-      throw new Error(`entry ${JSON.stringify(key)} is not valid v6, v7, safe v8, or v9 data`)
-    }
-    entries.push([key, migrateMacroV9toV10(migrated)])
+      migrated = migrateMacroV10toV11(migrateMacroV9toV10(migrateMacroV7toV9(migrateMacroV6toV7(macro))))
+    } else throw new Error(`entry ${JSON.stringify(key)} is not valid v6–v11 data`)
+    entries.push([key, migrated])
   }
-  return Object.fromEntries(entries)
+  const result = Object.fromEntries(entries)
+  if (!isMacroDocumentV11(result)) throw new Error('migrated macro document violates schema v11')
+  return result
 }
 
 // --- Syntax tree v1→v2 migration (source-equivalent to src/schema/migrate-tree.ts) ---
@@ -395,8 +490,8 @@ for (const target of targets) {
       kind = wasV2 ? 'tree v2→v3' : 'tree v1→v3'
     } else {
       // Macro DB
-      if (isMacroDocumentV10(doc)) {
-        console.log(`[skip] ${target} — already macro v10`)
+      if (isMacroDocumentV11(doc)) {
+        console.log(`[skip] ${target} — already macro v11`)
         continue
       }
       try {
@@ -406,7 +501,7 @@ for (const target of targets) {
         exitCode = 1
         continue
       }
-      kind = 'macro v6/v7/v8/v9→v10'
+      kind = 'macro v6/v7/v8/v9/v10→v11'
     }
   } else {
     console.error(`[error] cannot migrate ${target}: document must be a plain JSON object`)

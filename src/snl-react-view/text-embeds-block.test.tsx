@@ -18,7 +18,7 @@ const proseWithList: SnlMacro = {
   dynamic_arity: false,
   tags: [],
   styles: [
-    { style_name: 'default', mode: 'text', template: '注意以下几点：#0', tags: [] },
+    { style_name: 'default',  template: { mode: 'text', body: '注意以下几点：#0' }, tags: [] },
   ],
 }
 const enumerateMacro: SnlMacro = {
@@ -29,9 +29,9 @@ const enumerateMacro: SnlMacro = {
   styles: [
     {
       style_name: 'default',
-      mode: 'block',
-      template: '',
-      block_template_name: 'enumerate', tags: [],
+
+      template: { mode: 'block', body: '#*', block_template_name: 'enumerate' },
+       tags: [],
     },
   ],
 }

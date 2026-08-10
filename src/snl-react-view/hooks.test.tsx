@@ -10,7 +10,7 @@ const macro: SnlMacro = {
   kind: 'const',
   dynamic_arity: false,
   tags: [],
-  styles: [{ style_name: 'infix', mode: 'formula_inline', template: '#0 + #1', tags: [] }],
+  styles: [{ style_name: 'infix',  template: { mode: 'formula_inline', body: '#0 + #1' }, tags: [] }],
 }
 
 describe('defaultRenderHooks', () => {

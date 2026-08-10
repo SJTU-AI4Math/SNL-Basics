@@ -323,11 +323,12 @@ function TextRun({
   const style = macro
     ? resolveStyle(node, macro, language)
     : undefined
+  const resolvedTemplate = style
+    ? resolve_style_template(style, reader_runtime, language, macro?.dynamic_arity)
+    : undefined
   const template = isSyntheticTemplate
     ? temporarySource
-    : style
-      ? resolve_style_template(style, reader_runtime, language)
-      : ''
+    : resolvedTemplate?.body ?? ''
   const children = node.children
 
   // Build the ordered fragment list by scanning the template for
@@ -361,7 +362,7 @@ function TextRun({
     }
   } else {
     // No template: emit every child joined by the style's separator.
-    const sep = style?.separator ?? ''
+    const sep = resolvedTemplate?.separator ?? ''
     children.forEach((_, i) => {
       if (i > 0 && sep) parts.push({ kind: 'text', value: sep })
       parts.push({ kind: 'child', index: i })
@@ -378,7 +379,7 @@ function TextRun({
       if (p.index === '*') {
         // Variadic slot — emit every child in order, separated by the
         // style's join (default '' in text mode, matching KaTeX path).
-        const sep = style?.separator ?? ''
+        const sep = resolvedTemplate?.separator ?? ''
         return (
           <Fragment key={i}>
             {children.map((child, ci) => (
@@ -662,7 +663,7 @@ export function SnlSyntaxTreeView({
 
     void (async () => {
       try {
-        const resolved: Record<string, SnlMacro | null> = {}
+        const resolved = Object.create(null) as Record<string, SnlMacro | null>
         await Promise.all(
           [...names].map(async (name) => {
             resolved[name] = await macro_data_driver.query_macro({ macro_name: name, signal: controller.signal })
@@ -696,7 +697,7 @@ export function SnlSyntaxTreeView({
   }, [colorScheme, kindPalette])
   // Derive a SnlMacroRecord-compatible view from the cache (filters out nulls)
   const resolvedMacros: SnlMacroRecord = useMemo(() => {
-    const db: SnlMacroRecord = {}
+    const db = Object.create(null) as SnlMacroRecord
     for (const [k, v] of Object.entries(macroCache)) {
       if (v) db[k] = v
     }
@@ -1386,16 +1387,22 @@ export function SnlSyntaxTreeView({
   const renderNode = (node: SnlSyntaxTree, pathStr = ''): ReactElement => {
     const macro = resolvedMacros[node.macro_name] ?? null
     let selectedStyle: SnlMacro['styles'][number] | undefined
+    let selectedTemplate: ReturnType<typeof resolve_style_template> | undefined
     try {
       selectedStyle = macro ? resolveStyle(node, macro, renderLanguage) : undefined
-      if (selectedStyle) assert_valid_style_template(selectedStyle)
+      if (selectedStyle) {
+        assert_valid_style_template(selectedStyle, macro?.dynamic_arity)
+        selectedTemplate = resolve_style_template(
+          selectedStyle, reader_runtime, renderLanguage, macro?.dynamic_arity,
+        )
+      }
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : String(reason)
       return <span className="katex-error snl-render-error" role="alert">SNL render error: {message}</span>
     }
     const mode = nodeMode(node, macro, renderLanguage)
     if (mode === 'block') {
-      const key = selectedStyle?.block_template_name
+      const key = selectedTemplate?.block_template_name
       const Renderer = key ? mergedHooks.renderers?.[key] : undefined
       const blockKind = resolveNodeKind(node, resolvedMacros, pathStr === '')
       const blockDataAttrs: Record<string, string | undefined> = blockKind === 'sub'

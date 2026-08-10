@@ -17,7 +17,7 @@ function mathMacro(
     source: { entries: [], urls: [] },
     dynamic_arity: true,
     tags: [],
-    styles: [{ style_name: 'default', mode: 'formula_inline', template: opts.template ?? '#*', separator: opts.separator, tags: [] }],
+    styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: opts.template ?? '#*', separator: opts.separator },  tags: [] }],
   }
 }
 
@@ -29,7 +29,7 @@ function fixedMathMacro(name: string, template: string, kind?: 'const' | 'sub'):
     dynamic_arity: false,
     kind,
     tags: [],
-    styles: [{ style_name: 'default', mode: 'formula_inline', template, tags: [] }],
+    styles: [{ style_name: 'default', template: { mode: 'formula_inline', body: template }, tags: [] }],
   }
 }
 

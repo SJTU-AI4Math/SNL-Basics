@@ -35,8 +35,8 @@ const eqDualMode: SnlMacro = {
   dynamic_arity: false,
   tags: [],
   styles: [
-    { style_name: 'infix', mode: 'formula_inline', template: '#0 = #1', tags: [] },
-    { style_name: 'prose', mode: 'text', template: '#0 与 #1 相等', tags: [] },
+    { style_name: 'infix',  template: { mode: 'formula_inline', body: '#0 = #1' }, tags: [] },
+    { style_name: 'prose',  template: { mode: 'text', body: '#0 与 #1 相等' }, tags: [] },
   ],
 }
 
@@ -46,7 +46,7 @@ const listAllPeople: SnlMacro = {
   dynamic_arity: true,
   tags: [],
   styles: [
-    { style_name: 'default', mode: 'text', template: '所有人：#*', separator: '、', tags: [] },
+    { style_name: 'default',  template: { mode: 'text', body: '所有人：#*', separator: '、' },  tags: [] },
   ],
 }
 
@@ -59,8 +59,8 @@ const interfaceMacro: SnlMacro = {
   styles: [
     {
       style_name: 'default',
-      mode: 'text',
-      template: 'interface #0 consists of the following data:\n#1',
+
+      template: { mode: 'text', body: 'interface #0 consists of the following data:\n#1' },
       tags: [],
     },
   ],
@@ -75,9 +75,9 @@ const enumerateMacro: SnlMacro = {
   styles: [
     {
       style_name: 'default',
-      mode: 'block',
-      template: '#*',
-      block_template_name: 'enumerate',
+
+      template: { mode: 'block', body: '#*', block_template_name: 'enumerate' },
+
       tags: [],
     },
   ],
@@ -134,11 +134,13 @@ describe('text-mode template splicing (regression)', () => {
       ...eqDualMode,
       styles: [{
         style_name: 'prose',
-        mode: 'text',
         template: {
           type: 'i18n',
           default_language: 'en',
-          values: { en: '#0 equals #1', 'zh-CN': '#0 等于 #1' },
+          values: {
+            en: { mode: 'text', body: '#0 equals #1' },
+            'zh-CN': { mode: 'text', body: '#0 等于 #1' },
+          },
         },
         tags: [],
       }],
@@ -156,8 +158,15 @@ describe('text-mode template splicing (regression)', () => {
   it('samples one language for every text node in a React render tree', async () => {
     let reads = 0
     const localizedStyle = (en: string, zh: string) => ({
-      style_name: 'default', mode: 'text' as const,
-      template: { type: 'i18n' as const, default_language: 'en', values: { en, 'zh-CN': zh } },
+      style_name: 'default',
+      template: {
+        type: 'i18n' as const,
+        default_language: 'en',
+        values: {
+          en: { mode: 'text' as const, body: en },
+          'zh-CN': { mode: 'text' as const, body: zh },
+        },
+      },
       tags: [],
     })
     const macros: SnlMacroRecord = {
@@ -188,15 +197,14 @@ describe('text-mode template splicing (regression)', () => {
   })
 
   it.each(['formula_inline', 'block'] as const)(
-    'surfaces malformed localized templates in %s mode',
+    'surfaces malformed whole-template localization near %s data',
     async (mode) => {
       const malformed = {
         name: 'Malformed', description: '', source: { entries: [], urls: [] },
         dynamic_arity: false, tags: [],
         styles: [{
-          style_name: 'default', mode,
+          style_name: 'default',
           template: { type: 'i18n', default_language: 'en', values: { en: 'bad' } },
-          ...(mode === 'block' ? { block_template_name: 'enumerate' } : {}),
           tags: [],
         }],
       } as unknown as SnlMacro
@@ -205,7 +213,7 @@ describe('text-mode template splicing (regression)', () => {
             Parent: {
               name: 'Parent', description: '', source: { entries: [], urls: [] },
               dynamic_arity: false, tags: [],
-              styles: [{ style_name: 'default', mode: 'text', template: '#0', tags: [] }],
+              styles: [{ style_name: 'default',  template: { mode: 'text', body: '#0' }, tags: [] }],
             },
             Malformed: malformed,
           }
@@ -217,8 +225,8 @@ describe('text-mode template splicing (regression)', () => {
         <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(macros)} />,
       )
       await waitFor(() => {
-        const error = container.querySelector('[role="alert"]')
-        expect(error?.textContent).toMatch(/SNL render error:.*text mode/)
+        const error = container.querySelector('.katex-error')
+        expect(error?.textContent).toMatch(/template projection/)
       })
     },
   )

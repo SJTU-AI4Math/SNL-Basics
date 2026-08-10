@@ -33,7 +33,7 @@ export {
   type SnlDiagnostic,
   type SnlSemanticResolution,
 } from '../snl-syntax-tree/semantic-resolver'
-export { fillLatexTemplate } from '../snl-syntax-tree/template'
+export { analyzeLatexTemplatePlaceholders, fillLatexTemplate } from '../snl-syntax-tree/template'
 
 export {
   analyzeSnlTreeSources,
@@ -51,10 +51,15 @@ export type {
   SnlMacroRecord,
   SnlMacroSource,
   SnlMacroStyle,
+  SnlMacroTemplate,
+  SnlFormulaMacroTemplate,
+  SnlTextMacroTemplate,
+  SnlBlockMacroTemplate,
 } from '../snl-macro/types'
 
 export {
   migrateMacroDocument,
+  isMacroDocumentV11,
   isMacroDocumentV10,
 } from '../schema/migrate-macro'
 export {

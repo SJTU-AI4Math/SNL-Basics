@@ -1,16 +1,16 @@
 import type { I18n } from '../runtime'
 
 /**
- * SnlMacro v9 (on-disk) — the single source of truth for a macro.
+ * SnlMacro v11 (on-disk) — the single source of truth for a macro.
  *
- * The first style is the single implicit default. Text styles may localize their
- * template inside that style; formula and block render programs remain invariant.
+ * The first style is the single implicit default. Every style may localize one
+ * complete render template atomically; style identity and tags remain invariant.
  * Explicit `[style]` always wins and never depends on the current language.
  *
  * A macro is a globally-unique named renderer. Multiple macros MAY share the
  * same source entry (e.g. FOL.implies.infix and FOL.implies.double both refer to the
- * "implication" entry). Consumer-owned output backends (Typst / LaTeX / Markdown /
- * plain text) live in downstream extensions, not in this render-only library.
+ * Consumer-owned output backends (Typst / LaTeX / Markdown / plain text) remain
+ * opaque extension fields on the complete template projection.
  *
  * v7 on-disk changes vs v6:
  *  - `SnlMacroStyle.tag` renamed to `style_name` — consistent with tree-node
@@ -34,56 +34,53 @@ export interface SnlMacroSource {
 }
 
 /**
- * A single render style of a macro. All styles of a macro MUST accept the same
- * arity (that hard invariant lives on {@link SnlMacro.dynamic_arity}); a style
- * only varies the render *output*, never the child count. This is what makes
- * switching styles (via the parser's `[style]` bracket) always safe without
- * spec input.
- *
- * `mode` lives per style so a single macro can carry a formula style
- * ("a = b") alongside a prose style ("a 与 b 相等").
+ * One complete render template. Localization selects this object atomically:
+ * mode, body, separator and block renderer can never come from different
+ * language projections.
  */
-interface SnlMacroStyleBase {
-  /**
-   * Style name — the token used in `foo[style_name](…)`. Must satisfy the shared
-   * {@link isSnlIdentifier} policy and be unique within a macro's `styles` array.
+interface SnlMacroTemplateBase {
+  /** Opaque consumer-owned render extensions travel with this projection.
+   * `type` is reserved by the enclosing localization discriminator.
    */
-  style_name: string
-  /**
-   * Separator string for `#*` expansion in dynamic-arity macros.
-   * Defaults to `', '` for formula modes, `''` for text mode.
-   * Ignored when the macro is not dynamic_arity.
-   */
+  [key: string]: unknown
+  /** Reserved for `Localized` envelopes; never valid inside a projection. */
+  type?: never
+  /** Render program containing positional placeholders (`#0`, `#1`, `#*`). */
+  body: string
+  /** Separator used when expanding `#*`; ignored for fixed-arity macros. */
   separator?: string
-  /** Free-text labels used by downstream search indices. */
-  tags: string[]
 }
 
-/** Formula templates are language-invariant render programs. */
-export interface SnlFormulaMacroStyle extends SnlMacroStyleBase {
+export interface SnlFormulaMacroTemplate extends SnlMacroTemplateBase {
   mode: 'formula_inline' | 'formula_display'
-  template: string
   block_template_name?: never
 }
 
-/** Block templates are invariant and may select a block renderer. */
-export interface SnlBlockMacroStyle extends SnlMacroStyleBase {
+export interface SnlTextMacroTemplate extends SnlMacroTemplateBase {
+  mode: 'text'
+  block_template_name?: never
+}
+
+export interface SnlBlockMacroTemplate extends SnlMacroTemplateBase {
   mode: 'block'
-  template: string
   block_template_name?: string
 }
 
-/** Formula and block templates are language-invariant render programs. */
-export type SnlInvariantMacroStyle = SnlFormulaMacroStyle | SnlBlockMacroStyle
+export type SnlMacroTemplate =
+  | SnlFormulaMacroTemplate
+  | SnlTextMacroTemplate
+  | SnlBlockMacroTemplate
 
-/** Text styles keep language projections inside one semantic style. */
-export interface SnlTextMacroStyle extends SnlMacroStyleBase {
-  mode: 'text'
-  template: string | I18n<string, string>
-  block_template_name?: never
+/**
+ * A semantic style identity selected by `foo[style_name](…)`. Its complete
+ * render template may be invariant or localized; tags and identity never vary
+ * with language.
+ */
+export interface SnlMacroStyle {
+  style_name: string
+  tags: string[]
+  template: SnlMacroTemplate | I18n<string, SnlMacroTemplate>
 }
-
-export type SnlMacroStyle = SnlInvariantMacroStyle | SnlTextMacroStyle
 
 export interface SnlMacro {
   /** Globally unique macro name, e.g. "FOL.eq", "FOL.forall", "FOL.forall.typed" */
@@ -111,7 +108,7 @@ export interface SnlMacro {
 
   /**
    * @deprecated 0.1.x runtime compatibility only. Current persisted documents
-   * localize inside one text style and use styles[0] as the implicit default.
+   * localize the complete template inside one style and use styles[0] as default.
    * Schema migration removes this map.
    */
   default_style?: Record<string, string>

@@ -12,7 +12,7 @@ function node(
   return { macro_name: name, kind, mdata, children }
 }
 
-const style = [{ style_name: 'default', mode: 'formula_inline' as const, template: '#0', tags: [] as string[] }]
+const style = [{ style_name: 'default',  template: { mode: 'formula_inline' as const, body: '#0' }, tags: [] as string[] }]
 
 const macroDb: SnlMacroRecord = {
   'macro.entry': {

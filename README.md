@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.2.0 · MIT License · Beta** — [中文版 README](README(ZH).md)
+**v0.3.0 · MIT License · Beta** — [中文版 README](README(ZH).md)
 
 Structured Natural Language (SNL) base library — parse a macro DSL into syntax
 trees and render them to KaTeX-in-React with hover interactions.
@@ -286,17 +286,18 @@ arity* are **styles**, not separate macros — see below.
 ## Styles & the `[style]` bracket
 
 A macro declares one or more render **styles** keyed by `style_name`.
-`styles[0]` is the single implicit default. All styles of a macro **must accept
-the same arity** — a style only varies the render output, never the child count.
-This is the invariant that makes switching styles always safe:
+`styles[0]` is the single implicit default. Every language projection within
+one localized Style must have the same escape-aware placeholder contract.
+Separate explicit Styles may intentionally omit or reveal children; selecting
+one never changes the parsed syntax tree:
 
 ```
 node := IDENT ('[' IDENT ']')? ('(' args ')')?
 ```
 
 The optional `[style]` bracket picks a style and always wins. Without it,
-`styles[0]` is selected. Language changes resolve a localized `template` inside
-the selected text style; they never switch styles.
+`styles[0]` is selected. Language changes resolve one complete localized
+TemplateSpec inside the selected Style; they never switch Styles.
 
 ```ts
 parseSnlSyntaxTree('Pow.pow(x, 2)')               // styles[0]
@@ -329,22 +330,28 @@ serialize round-trips.
     styles: [
       {
         style_name: 'prose',
-        mode: 'text',
         template: {
           type: 'i18n',
           default_language: 'en',
-          values: { en: '#0 implies #1', 'zh-CN': '#0 蕴含 #1' },
+          values: {
+            en: { mode: 'text', body: '#0 implies #1' },
+            'zh-CN': { mode: 'text', body: '#0 蕴含 #1' },
+          },
         },
         tags: [],
       },
-      { style_name: 'double', mode: 'formula_inline', template: '#0 \\Rightarrow #1', tags: [] },
+      {
+        style_name: 'double',
+        template: { mode: 'formula_inline', body: '#0 \\Rightarrow #1' },
+        tags: [],
+      },
     ],
   }
   ```
 
-  Formula and block templates are invariant strings. A `mode: 'text'` template
-  may be either a string or an `I18n` value; localization resolves inside that
-  style without changing `style_name`.
+  Every Style owns one complete template or an `I18n` of complete templates.
+  Locale selection atomically chooses `mode`, `body`, `separator`, block
+  renderer, and consumer output backends without changing `style_name` or tags.
 
 - **Kind** — one semantic tag. Basics has built-in behavior only for `sub`,
   `binder`, `bvar`, and `fvar`; every other Entry kind uses const behavior while
@@ -551,10 +558,11 @@ Register a renderer keyed by the resolved style's `block_template_name`. Spread
 ```tsx
 import { defaultRenderers, type SnlBlockRenderer } from '@sjtu-ai4math/snl-basics'
 
-// Macro DB entry (v7 shape):
+// Macro DB entry (v11 shape):
 // { name: 'MyCallout', dynamic_arity: true,
-//   styles: [{ style_name: 'default', mode: 'block', template: '',
-//              block_template_name: 'callout', tags: [] }], tags: [] }
+//   styles: [{ style_name: 'default', tags: [],
+//     template: { mode: 'block', body: '#*',
+//                 block_template_name: 'callout' } }], tags: [] }
 const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
   <aside className="callout">
     {node.children.map((child, i) => (
@@ -573,11 +581,9 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 ## Output backends
 
 Output backends (Typst / LaTeX / Markdown / plain text) are **consumer-side
-concerns** and are no longer part of this library (removed in 0.4.0). A `SnlMacro`
-now carries only render fields (`name`, `description`, `source`,
-`dynamic_arity`, `tags`, `styles`). Downstream extensions that need to emit those formats
-own their own extended macro shape (with per-style backends) and conversion code
-(see SNL-Doc-Extension).
+concerns**. Basics does not interpret them; downstream extensions may attach
+opaque backend data to each complete `style.template` projection so language
+selection remains atomic with mode, body, separator, and block renderer.
 
 ## API reference
 
@@ -600,5 +606,5 @@ npm pack            # produce the publishable tarball
 
 ## Version & License
 
-- **Version:** `0.2.0` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
+- **Version:** `0.3.0` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
 - **License:** [MIT](LICENSE)

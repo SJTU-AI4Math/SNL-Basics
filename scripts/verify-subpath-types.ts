@@ -21,8 +21,14 @@ import {
   type SnlDeactivationDispatch,
   type SnlDeactivationHandler,
 } from '../dist-lib/entry.js';
+import {
+  analyzeLatexTemplatePlaceholders,
+  isMacroDocumentV11,
+  type SnlMacroTemplate,
+} from '../dist-lib/core.js';
 
 const options: ApplySnlHoverHighlightOptions = {};
+const coreTemplate: SnlMacroTemplate = { mode: 'text', body: '#0' };
 const legacyMacro: SnlMacro = {
   name: 'Compat.rule',
   description: '0.1.x declaration compatibility',
@@ -30,7 +36,11 @@ const legacyMacro: SnlMacro = {
   kind: 'rule',
   dynamic_arity: false,
   default_style: { en: 'default' },
-  styles: [{ style_name: 'default', mode: 'formula_inline', template: '#0', tags: [] }],
+  styles: [{
+    style_name: 'default',
+    template: { mode: 'formula_inline', body: '#0' },
+    tags: [],
+  }],
   tags: [],
 };
 const legacyPalette: KindPalette = {
@@ -82,6 +92,9 @@ void [
   findBinderScopeAncestor,
   findMinimalHoverRoot,
   options,
+  coreTemplate,
+  analyzeLatexTemplatePlaceholders('#0'),
+  isMacroDocumentV11,
   legacyMacro,
   legacyEntryKind,
   malformedHybridEntryKind,

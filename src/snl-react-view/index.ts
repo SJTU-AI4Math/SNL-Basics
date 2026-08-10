@@ -30,12 +30,14 @@ export {
 
 // === Core types ===
 export type {
-  SnlInvariantMacroStyle,
+  SnlBlockMacroTemplate,
+  SnlFormulaMacroTemplate,
   SnlMacro,
   SnlMacroRecord,
   SnlMacroStyle,
   SnlMacroSource,
-  SnlTextMacroStyle,
+  SnlMacroTemplate,
+  SnlTextMacroTemplate,
 } from '../snl-macro/types'
 export type { SnlPostfix, SnlResolvedSource as SnlTreeResolvedSource, SnlSyntaxTree } from '../snl-syntax-tree/types'
 export {
@@ -68,11 +70,14 @@ export {
   isMacroDocumentV8,
   isMacroDocumentV9,
   isMacroDocumentV10,
+  isMacroDocumentV11,
   migrateMacroDocument,
   migrateMacroV6toV7,
   migrateMacroV7toV8,
   migrateMacroV7toV9,
   migrateMacroV9toV10,
+  migrateMacroV10toV11,
+  migrateMacroV8toV11,
   migrateStyleV6toV7,
   migrateSyntaxTreeDocument,
   migrateTreeNodeV1toV2,
@@ -87,6 +92,7 @@ export {
   type MacroV8,
   type MacroV9,
   type MacroV10,
+  type MacroV11,
   type MacroV8Style,
   type MacroStyleV6,
   type MacroStyleV7Base,
@@ -229,7 +235,7 @@ export {
 } from './hover-popovers'
 
 // === Advanced / low-level (kept for downstream consumers) ===
-export { fillLatexTemplate } from '../snl-syntax-tree/template'
+export { analyzeLatexTemplatePlaceholders, fillLatexTemplate } from '../snl-syntax-tree/template'
 
 export {
   modeBucket,

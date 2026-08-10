@@ -5,11 +5,14 @@ export {
   migrateMacroV7toV8,
   migrateMacroV7toV9,
   migrateMacroV9toV10,
+  migrateMacroV10toV11,
+  migrateMacroV8toV11,
   migrateStyleV6toV7,
   isMacroDocumentV7,
   isMacroDocumentV8,
   isMacroDocumentV9,
   isMacroDocumentV10,
+  isMacroDocumentV11,
 } from './migrate-macro'
 export type {
   MacroV6,
@@ -18,6 +21,7 @@ export type {
   MacroV8,
   MacroV9,
   MacroV10,
+  MacroV11,
   MacroV8Style,
   MacroStyleV7Base,
   MacroV7ToV8Options,
