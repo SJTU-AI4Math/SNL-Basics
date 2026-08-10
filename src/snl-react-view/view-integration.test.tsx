@@ -14,6 +14,7 @@ import type { SnlMacroRecord } from '../snl-macro/types'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
 import { SnlActivationController } from './activation-controller'
+import { SnlDeactivationController } from './deactivation-controller'
 
 const db: SnlMacroRecord = {
   sum: {
@@ -160,6 +161,156 @@ describe('data-tree-path DOM attribute', () => {
 })
 
 describe('SnlInteractionDriver integration', () => {
+  it('exposes generation-safe leases that cannot clear a newer activation', async () => {
+    const contexts: SnlInteractionContext[] = []
+    const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')] })
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} interaction_driver={new SnlInteractionDriver({ on_click: (context) => { contexts.push(context) } })} />)
+    const first = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const second = view.container.querySelector<HTMLElement>('[data-tree-path="1"]')!
+    fireEvent.click(first)
+    await waitFor(() => expect(contexts).toHaveLength(1))
+    fireEvent.click(second)
+    await waitFor(() => expect(contexts).toHaveLength(2))
+    expect(contexts[0].activation!.activation_id).not.toBe(contexts[1].activation!.activation_id)
+    expect(contexts[0].activation!.request_deactivate('explicit')).toBe(false)
+    expect(second.classList.contains('snl-single-hover')).toBe(true)
+    expect(contexts[1].activation!.request_deactivate('explicit')).toBe(true)
+    expect(second.classList.contains('snl-single-hover')).toBe(false)
+    expect(contexts[1].activation!.request_deactivate('explicit')).toBe(false)
+  })
+
+  it('lets a controller veto pointer-leave while default blank activation still clears', async () => {
+    const reasons: string[] = []
+    const controller = new SnlDeactivationController({
+      params: null,
+      handlers: { 'pointer-leave': ({ reason }) => { reasons.push(reason) } },
+    })
+    const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x')] })
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} deactivation_controller={controller} />)
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const surface = view.container.querySelector<HTMLElement>('.katex-html')!
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [target] })
+    try {
+      fireEvent.mouseMove(target, { clientX: 1, clientY: 2 })
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+      fireEvent.mouseLeave(surface)
+      expect(reasons).toEqual(['pointer-leave'])
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+      fireEvent.click(surface)
+      expect(target.classList.contains('snl-single-hover')).toBe(false)
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
+  it('preserves the legacy hidden tooltip snapshot on pointer-leave and clears it on blank click', async () => {
+    const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x')] })
+    const view = render(<SnlSyntaxTreeView
+      tree={tree}
+      macro_data_driver={driver}
+      hooks={{ renderTooltip: (state) => <span data-testid="tooltip-state">{state.visible ? 'visible' : 'hidden'}</span> }}
+    />)
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const surface = view.container.querySelector<HTMLElement>('.katex-html')!
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [target] })
+    try {
+      fireEvent.mouseMove(target, { clientX: 1, clientY: 2 })
+      await waitFor(() => expect(view.getByTestId('tooltip-state').textContent).toBe('hidden'))
+      fireEvent.mouseLeave(surface)
+      expect(view.getByTestId('tooltip-state').textContent).toBe('hidden')
+      fireEvent.click(surface)
+      expect(view.queryByTestId('tooltip-state')).toBeNull()
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
+  it('lets native and ARIA controls inside a Block consume pointer and keyboard interaction before SNL activation', async () => {
+    const localClicks = vi.fn()
+    const snlClicks = vi.fn()
+    const snlHovers = vi.fn()
+    const blockMacro = {
+      name: 'interactive.block', description: '', source: { entries: ['entry'], urls: [] }, kind: 'const',
+      dynamic_arity: false, tags: [],
+      styles: [{ style_name: 'default', mode: 'block' as const, template: '', block_template_name: 'interactive', tags: [] }],
+    }
+    const tree = createSnlSyntaxTreeNode('interactive.block')
+    const view = render(<SnlSyntaxTreeView
+      tree={tree}
+      macro_data_driver={testDriver({ 'interactive.block': blockMacro })}
+      interaction_driver={new SnlInteractionDriver({ on_click: snlClicks, on_hover: snlHovers })}
+      hooks={{ renderers: { interactive: () => <>
+        <button type="button" onClick={localClicks}>toggle block<svg data-testid="toggle-icon"><path /></svg></button>
+        <div role="radio" tabIndex={0} data-testid="radio-control" onClick={localClicks}>choice</div>
+        <div role="separator" tabIndex={0} data-testid="separator-control" onClick={localClicks}>resize</div>
+        <div role="progressbar" tabIndex={0} data-testid="progress-control" onClick={localClicks}>progress</div>
+        <span role="doc-noteref" tabIndex={0} data-testid="noteref-control" onClick={localClicks}>note</span>
+        <span role="cell" data-testid="plain-cell">plain cell</span>
+        <div role="separator" data-testid="plain-separator">plain separator</div>
+      </> } }}
+    />)
+    const button = await waitFor(() => view.getByRole('button', { name: 'toggle block' }))
+    const icon = view.getByTestId('toggle-icon').querySelector('path')!
+    const ariaControls = [
+      view.getByTestId('radio-control'),
+      view.getByTestId('separator-control'),
+      view.getByTestId('progress-control'),
+      view.getByTestId('noteref-control'),
+    ]
+    const plainStructures = [
+      view.getByTestId('plain-cell'),
+      view.getByTestId('plain-separator'),
+    ]
+    expect(button.closest('[data-tree-path]')).not.toBeNull()
+    let pointTarget: Element = button
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [pointTarget] })
+    try {
+      for (const structure of plainStructures) {
+        pointTarget = structure
+        fireEvent.mouseMove(structure, { clientX: 1, clientY: 2 })
+        fireEvent.click(structure)
+      }
+      expect(snlClicks).toHaveBeenCalled()
+      expect(snlHovers).toHaveBeenCalled()
+      snlClicks.mockClear()
+      snlHovers.mockClear()
+
+      pointTarget = icon
+      fireEvent.mouseMove(icon, { clientX: 1, clientY: 2 })
+      fireEvent.click(icon)
+      expect(localClicks).toHaveBeenCalledOnce()
+      expect(snlClicks).not.toHaveBeenCalled()
+      expect(snlHovers).not.toHaveBeenCalled()
+      expect(fireEvent.keyDown(icon, { key: 'Enter' })).toBe(true)
+      for (const control of ariaControls) {
+        pointTarget = control
+        fireEvent.mouseMove(control, { clientX: 1, clientY: 2 })
+        fireEvent.click(control)
+        expect(fireEvent.keyDown(control, { key: 'Enter' })).toBe(true)
+      }
+      expect(localClicks).toHaveBeenCalledTimes(5)
+      expect(snlClicks).not.toHaveBeenCalled()
+      expect(snlHovers).not.toHaveBeenCalled()
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
   it('allows an initialized activation controller to replace phase 0 with custom params', async () => {
     const replacement = vi.fn()
     const onHover = vi.fn()
@@ -293,6 +444,44 @@ describe('SnlInteractionDriver integration', () => {
     } finally {
       vi.useRealTimers()
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
+  it('does not let a phase default resurrect an activation deactivated reentrantly by its controller', async () => {
+    let lease: SnlInteractionContext['activation']
+    const controller = new SnlActivationController({
+      params: null,
+      handlers: {
+        1: ({ runDefault }) => {
+          expect(lease?.request_deactivate('explicit')).toBe(true)
+          runDefault()
+        },
+      },
+    })
+    const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x')] })
+    const view = render(<SnlSyntaxTreeView
+      tree={tree}
+      macro_data_driver={driver}
+      activation_controller={controller}
+      interaction_driver={new SnlInteractionDriver({ on_hover: (context) => { lease = context.activation } })}
+    />)
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [target] })
+    vi.useFakeTimers()
+    try {
+      fireEvent.mouseMove(target, { clientX: 1, clientY: 2 })
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+      act(() => vi.advanceTimersByTime(1000))
+      expect(target.classList.contains('snl-single-hover')).toBe(false)
+      expect(view.container.querySelector('.snl-binder-decl, .snl-bvar-scope')).toBeNull()
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+      vi.useRealTimers()
     }
   })
 

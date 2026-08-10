@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import type { ReactElement } from 'react'
+import { StrictMode, useLayoutEffect, type ReactElement } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   HoverPopoverProvider,
@@ -11,6 +11,8 @@ import {
   useHoverPopovers,
   type HoverPopover,
 } from './hover-popovers'
+import { HoverPopoverDismissController, type HoverPopoverDismissRequest } from './popover-dismiss-controller'
+import type { SnlActivationLease } from './deactivation-controller'
 
 afterEach(() => {
   cleanup()
@@ -86,6 +88,259 @@ function ApiObserver({ onValue }: { onValue(api: ReturnType<typeof useHoverPopov
 }
 
 describe('HoverPopoverProvider', () => {
+  it('dispatches one immutable all-scope request and deactivates targets leaf-first', () => {
+    const order: string[] = []
+    const requests: unknown[] = []
+    const controller = new HoverPopoverDismissController({
+      params: { owner: 'test' },
+      on_request: ({ request, runDefault }) => {
+        requests.push(request)
+        expect(Object.isFrozen(request)).toBe(true)
+        expect(Object.isFrozen(request.targets)).toBe(true)
+        runDefault()
+      },
+    })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(
+      <HoverPopoverProvider<string>
+        dismiss_controller={controller}
+        renderPopover={(popover) => <span>{popover.subject}</span>}
+        options={{ openDelayMs: 0, fadeMs: 0 }}
+      >
+        <ApiObserver onValue={(value) => { api = value }} />
+      </HoverPopoverProvider>,
+    )
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    const lease = (id: string): SnlActivationLease => ({
+      activation_id: Number(id),
+      request_deactivate: () => { order.push(id); return true },
+    })
+    act(() => {
+      const root = api!.spawn('root', origin, 1, 1, null, { activation: lease('1') })
+      const child = api!.spawn('child', origin, 2, 2, root, { activation: lease('2') })
+      api!.spawn('grandchild', origin, 3, 3, child, { activation: lease('3') })
+    })
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(requests).toHaveLength(1)
+    expect(requests[0]).toMatchObject({ reason: 'escape', scope: { kind: 'all' }, cancelable: true })
+    expect(order).toEqual(['3', '2', '1'])
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(0)
+    origin.remove()
+  })
+
+  it('supports controlled veto and descendant/subtree explicit scopes', () => {
+    const requests: Array<{ reason: string; scope: { kind: string }; targets: readonly { id: string }[] }> = []
+    let accept = false
+    const controller = new HoverPopoverDismissController({
+      params: null,
+      on_request: ({ request, runDefault }) => {
+        requests.push(request)
+        if (accept) runDefault()
+      },
+    })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(<HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={(p) => <span>{p.subject}</span>} options={{ openDelayMs: 0, fadeMs: 0 }}><ApiObserver onValue={(value) => { api = value }} /></HoverPopoverProvider>)
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let root = ''; let child = ''
+    act(() => {
+      root = api!.spawn('root', origin, 1, 1, null)
+      child = api!.spawn('child', origin, 2, 2, root)
+      api!.spawn('grandchild', origin, 3, 3, child)
+    })
+    act(() => api!.dismissDescendants(child))
+    expect(requests.at(-1)).toMatchObject({ reason: 'explicit-api', scope: { kind: 'descendants' } })
+    expect(screen.getByText('grandchild')).toBeTruthy()
+    accept = true
+    act(() => api!.dismissSubtree(child))
+    expect(requests.at(-1)).toMatchObject({ reason: 'explicit-api', scope: { kind: 'subtree' } })
+    expect(screen.getByText('root')).toBeTruthy()
+    expect(screen.queryByText('child')).toBeNull()
+    expect(screen.queryByText('grandchild')).toBeNull()
+    const requestCount = requests.length
+    act(() => api!.dismissSubtree(child))
+    expect(requests).toHaveLength(requestCount)
+    origin.remove()
+  })
+
+  it('dispatches one non-overlapping pointer-exit request for a nested unfrozen tree', () => {
+    const requests: HoverPopoverDismissRequest<string>[] = []
+    const controller = new HoverPopoverDismissController<null, string>({
+      params: null,
+      on_request: ({ request, runDefault }) => { requests.push(request); runDefault() },
+    })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(<HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={(p) => <span>{p.subject}</span>} options={{ openDelayMs: 0, fadeMs: 0 }}><ApiObserver onValue={(value) => { api = value }} /></HoverPopoverProvider>)
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    act(() => {
+      const root = api!.spawn('root', origin, 1, 1, null)
+      api!.spawn('child', origin, 2, 2, root)
+    })
+    fireEvent.pointerMove(document, { clientX: 900, clientY: 700 })
+    expect(requests).toHaveLength(1)
+    expect(requests[0].reason).toBe('pointer-exit')
+    expect(requests[0].targets.map((target) => target.subject)).toEqual(['child', 'root'])
+    origin.remove()
+  })
+
+  it('makes accepted dismissal authoritative within the same call stack', () => {
+    const requests: HoverPopoverDismissRequest<string>[] = []
+    const deactivated = vi.fn(() => true)
+    const controller = new HoverPopoverDismissController<null, string>({
+      params: null,
+      on_request: ({ request, runDefault }) => { requests.push(request); runDefault() },
+    })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(<HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={(p) => <span>{p.subject}</span>} options={{ openDelayMs: 0, fadeMs: 1000 }}><ApiObserver onValue={(value) => { api = value }} /></HoverPopoverProvider>)
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let id = ''
+    act(() => { id = api!.spawn('root', origin, 1, 1, null, { activation: { activation_id: 1, request_deactivate: deactivated } }) })
+    act(() => {
+      api!.dismissSubtree(id)
+      api!.dismissSubtree(id)
+    })
+    expect(requests).toHaveLength(1)
+    expect(deactivated).toHaveBeenCalledOnce()
+    expect(document.querySelector(`[data-popover-id="${id}"]`)?.getAttribute('data-phase')).toBe('closing')
+    origin.remove()
+  })
+
+  it('reserves accepted targets before a deactivation lease can reenter dismissal', () => {
+    const requests: HoverPopoverDismissRequest<string>[] = []
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    let id = ''
+    let deactivations = 0
+    const controller = new HoverPopoverDismissController<null, string>({
+      params: null,
+      on_request: ({ request, runDefault }) => { requests.push(request); runDefault() },
+    })
+    render(<HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={(p) => <span>{p.subject}</span>} options={{ openDelayMs: 0, fadeMs: 1000 }}><ApiObserver onValue={(value) => { api = value }} /></HoverPopoverProvider>)
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    act(() => {
+      id = api!.spawn('root', origin, 1, 1, null, { activation: {
+        activation_id: 1,
+        request_deactivate: () => {
+          deactivations += 1
+          if (deactivations === 1) api!.dismissSubtree(id)
+          return true
+        },
+      } })
+    })
+    act(() => api!.dismissSubtree(id))
+    expect(requests).toHaveLength(1)
+    expect(deactivations).toBe(1)
+    origin.remove()
+  })
+
+  it('uses a synchronously rebound activation lease when immediately dismissed', () => {
+    const oldLease = vi.fn(() => true)
+    const newLease = vi.fn(() => true)
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(<HoverPopoverProvider<string> renderPopover={(p) => <span>{p.subject}</span>} options={{ openDelayMs: 0, fadeMs: 0 }}><ApiObserver onValue={(value) => { api = value }} /></HoverPopoverProvider>)
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let id = ''
+    act(() => { id = api!.spawn('root', origin, 1, 1, null, { activation: { activation_id: 1, request_deactivate: oldLease } }) })
+    act(() => {
+      expect(api!.preview('root', origin, 2, 2, null, { activation: { activation_id: 2, request_deactivate: newLease } })).toBe(id)
+      api!.dismissSubtree(id)
+    })
+    expect(oldLease).not.toHaveBeenCalled()
+    expect(newLease).toHaveBeenCalledOnce()
+    origin.remove()
+  })
+
+  it('flushes pending and live removal notifications before a teardown callback can reenter', () => {
+    const requests: HoverPopoverDismissRequest<string>[] = []
+    const removed: string[] = []
+    const deactivated = vi.fn(() => true)
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    let reentered = false
+    let ghostId = ''
+    const controller = new HoverPopoverDismissController<null, string>({
+      params: null,
+      on_request: ({ request, runDefault }) => { requests.push(request); runDefault() },
+      on_removed: (targets) => {
+        removed.push(...targets.map((target) => target.subject))
+        if (!reentered) {
+          reentered = true
+          api!.dismissAll()
+          ghostId = api!.spawn('ghost', document.body, 0, 0, null)
+        }
+      },
+    })
+    const view = render(<HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={(p) => <span>{p.subject}</span>} options={{ openDelayMs: 0, fadeMs: 1000 }}><ApiObserver onValue={(value) => { api = value }} /></HoverPopoverProvider>)
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let pending = ''
+    act(() => {
+      pending = api!.spawn('pending', origin, 1, 1, null, { activation: { activation_id: 1, request_deactivate: deactivated } })
+      api!.spawn('live', origin, 2, 2, null, { activation: { activation_id: 2, request_deactivate: deactivated } })
+    })
+    act(() => api!.dismissSubtree(pending))
+    expect(deactivated).toHaveBeenCalledOnce()
+    view.unmount()
+    expect(requests).toHaveLength(1)
+    expect(deactivated).toHaveBeenCalledOnce()
+    expect(removed.sort()).toEqual(['live', 'pending'])
+    expect(api!.isAlive(ghostId)).toBe(false)
+    origin.remove()
+  })
+
+  it('re-arms the provider before descendant layout effects replay in StrictMode', () => {
+    const observed: Array<{ id: string; alive: boolean }> = []
+
+    function Harness() {
+      const api = useHoverPopovers<string>()
+      useLayoutEffect(() => {
+        const id = api.spawn('layout', document.body, 0, 0, null)
+        observed.push({ id, alive: api.isAlive(id) })
+      }, [api])
+      return null
+    }
+
+    render(
+      <StrictMode>
+        <HoverPopoverProvider<string>
+          renderPopover={(popover) => <span>{popover.subject}</span>}
+          options={{ openDelayMs: 0, fadeMs: 0 }}
+        >
+          <Harness />
+        </HoverPopoverProvider>
+      </StrictMode>,
+    )
+
+    expect(observed).toHaveLength(2)
+    expect(observed.every(({ alive }) => alive)).toBe(true)
+    expect(screen.getAllByText('layout')).toHaveLength(1)
+  })
+
+  it('forces non-cancelable owner-unmount but does not dispatch on provider teardown', () => {
+    const requests: Array<{ reason: string; cancelable: boolean }> = []
+    const controller = new HoverPopoverDismissController({
+      params: null,
+      on_request: ({ request }) => { requests.push(request) },
+    })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    const view = render(<HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={() => <span>preview</span>} options={{ openDelayMs: 0, fadeMs: 0 }}><ApiObserver onValue={(value) => { api = value }} /></HoverPopoverProvider>)
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let id = ''
+    act(() => { id = api!.spawn('root', origin, 1, 1, null) })
+    act(() => api!.cancelUnfrozen(id, 'owner-unmount'))
+    expect(requests).toHaveLength(1)
+    expect(requests[0]).toMatchObject({ reason: 'owner-unmount', cancelable: false })
+    expect(screen.queryByText('preview')).toBeNull()
+    act(() => { api!.spawn('next', origin, 1, 1, null) })
+    view.unmount()
+    expect(requests).toHaveLength(1)
+    origin.remove()
+  })
+
   it('makes click-only pins visible immediately without waiting for hover delay', () => {
     vi.useFakeTimers()
     let phase: HoverPopover<string>['phase'] | null = null
@@ -147,6 +402,21 @@ describe('HoverPopoverProvider', () => {
     expect(screen.queryByText('origin:first-origin')).toBeNull()
     expect(screen.getByText('origin:second-origin')).toBeTruthy()
     expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(1)
+  })
+
+  it('keeps the old sibling and still creates the new pin when sibling dismissal is vetoed', () => {
+    const reasons: string[] = []
+    const controller = new HoverPopoverDismissController({
+      params: null,
+      on_request: ({ request }) => { reasons.push(request.reason) },
+    })
+    render(<HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={(popover) => <div>origin:{popover.originElement?.id}</div>} options={{ openDelayMs: 0, fadeMs: 0 }}><SwitchPinHarness /></HoverPopoverProvider>)
+    fireEvent.click(screen.getByText('pin first'))
+    fireEvent.click(screen.getByText('pin second'))
+    expect(reasons).toEqual(['sibling-replaced'])
+    expect(screen.getByText('origin:first-origin')).toBeTruthy()
+    expect(screen.getByText('origin:second-origin')).toBeTruthy()
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(2)
   })
 
   it('dismisses pinned popovers on outside pointer-down and Escape', () => {

@@ -367,6 +367,45 @@ const hooks: SnlRenderHooks = {
 
 切换节点或整棵 tree 会建立新 session 并取消旧阶段。consumer hook 即使抛错，也不会打断默认的显示/锁定状态机。
 
+### 可控的激活清除与分层浮窗销毁
+
+激活清除与浮窗图变更是两个独立能力。真实交互上下文携带可选的、generation-safe 的
+`activation` lease；旧 lease 不能误清更新的节点。consumer 可用
+`SnlDeactivationController` 定制单个 View 的清除策略，再用
+`HoverPopoverDismissController` 独立控制递归浮窗：
+
+```tsx
+const deactivation = new SnlDeactivationController({
+  params: { surface: 'proof' },
+  handlers: { 'pointer-leave': ({ runDefault }) => runDefault() },
+})
+
+const dismissal = new HoverPopoverDismissController<{ surface: string }, string>({
+  params: { surface: 'proof' },
+  on_request: ({ request, runDefault }) => {
+    if (request.reason !== 'escape') runDefault()
+  },
+})
+
+<EntryPreviewProvider
+  entry_data_driver={entries}
+  macro_data_driver={macros}
+  deactivation_controller={deactivation}
+  dismiss_controller={dismissal}
+>
+  {content}
+</EntryPreviewProvider>
+```
+
+销毁范围为 `descendants`、`subtree`、`unfrozen-subtree` 和 `all`。一次请求只携带一个完整、不可变、从叶到根排列的目标快照。`runDefault()` 只能在同步 handler 调用栈内执行一次；
+Promise/thenable 的失败会被隔离，但不能延期持有默认能力。`owner-unmount` 可观察但不可阻止。
+Provider teardown 不派发 request/deactivation policy，强制移除全部层，但每个真实移除目标仍只完成一次
+`on_removed` 通知。若 consumer veto `sibling-replaced`，旧兄弟保留，而新 pin 仍会创建，二者按明确策略共存。
+
+Block 内的原生控件、ARIA 语义控件和 `[data-snl-interaction-boundary]` 会优先拥有 pointer、hover 及
+Enter/Space 交互，SNL delegated activation 在结构边界处直接避让，不依赖子 renderer 恰好调用
+`stopPropagation()`。
+
 ```tsx
 <SnlSyntaxTreeView
   tree={tree}

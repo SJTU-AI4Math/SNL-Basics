@@ -18,6 +18,7 @@
 
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import type { SnlMacro } from '../snl-macro/types'
+import type { SnlActivationLease } from './deactivation-controller'
 
 // ─── TreePath ────────────────────────────────────────────────────────────────
 
@@ -73,6 +74,8 @@ export interface SnlInteractionContext {
   readonly macro: SnlMacro | null
   /** The DOM element that triggered the event. */
   readonly target: HTMLElement
+  /** Generation-safe handle for clearing exactly this activation. Real view events provide it. */
+  readonly activation?: SnlActivationLease
   /** Client X coordinate of the pointer. */
   readonly client_x: number
   /** Client Y coordinate of the pointer. */

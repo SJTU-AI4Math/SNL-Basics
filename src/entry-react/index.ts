@@ -38,6 +38,26 @@ export {
 } from '../snl-react-view/interaction-driver'
 export type { SnlRenderHooks } from '../snl-react-view/hooks'
 export {
+  DEFAULT_SNL_DEACTIVATION_CONTROLLER,
+  SnlDeactivationController,
+  type SnlActivationLease,
+  type SnlActivationSnapshot,
+  type SnlDeactivationControllerOptions,
+  type SnlDeactivationDispatch,
+  type SnlDeactivationHandler,
+  type SnlDeactivationReason,
+} from '../snl-react-view/deactivation-controller'
+export {
+  DEFAULT_HOVER_POPOVER_DISMISS_CONTROLLER,
+  HoverPopoverDismissController,
+  type HoverPopoverDismissControllerOptions,
+  type HoverPopoverDismissDispatch,
+  type HoverPopoverDismissReason,
+  type HoverPopoverDismissRequest,
+  type HoverPopoverDismissScope,
+  type HoverPopoverDismissTarget,
+} from '../snl-react-view/popover-dismiss-controller'
+export {
   resolveKindColoring,
   type KindColoring,
   type CompatibleKindColoring,

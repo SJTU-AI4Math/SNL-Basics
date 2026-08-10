@@ -5,8 +5,22 @@ import {
   type ApplySnlHoverHighlightOptions,
 } from '../dist-lib/hover.js';
 import { ReaderRuntime } from '../dist-lib/runtime.js';
-import { paletteToCss, type KindPalette, type SnlMacro } from '../dist-lib/index.js';
-import type { EntryKind } from '../dist-lib/entry.js';
+import {
+  paletteToCss,
+  type KindPalette,
+  type SnlMacro,
+  type SnlSyntaxTreeViewProps,
+} from '../dist-lib/index.js';
+import {
+  HoverPopoverDismissController,
+  SnlDeactivationController,
+  type EntryKind,
+  type EntryPreviewProviderProps,
+  type HoverPopoverDismissDispatch,
+  type HoverPopoverDismissReason,
+  type SnlDeactivationDispatch,
+  type SnlDeactivationHandler,
+} from '../dist-lib/entry.js';
 
 const options: ApplySnlHoverHighlightOptions = {};
 const legacyMacro: SnlMacro = {
@@ -44,6 +58,25 @@ const incompleteThemeEntryKind: EntryKind = {
   // @ts-expect-error a theme-aware coloring requires both light and dark
   coloring: { light: { stroke: '#111111', background: '#eeeeee' } },
 };
+const deactivationController = new SnlDeactivationController<{ consumer: string }, PointerEvent>({
+  params: { consumer: 'packed-root' },
+  handlers: { explicit: ({ runDefault }) => runDefault() },
+});
+const typedDeactivationDispatch: SnlDeactivationDispatch<{ consumer: string }, PointerEvent> | null = null;
+const typedDeactivationHandler: SnlDeactivationHandler<{ consumer: string }, PointerEvent> = ({ runDefault }) => runDefault();
+const typedDismissDispatch: HoverPopoverDismissDispatch<{ consumer: string }, string> | null = null;
+const typedDismissReason: HoverPopoverDismissReason = 'explicit-api';
+const dismissController = new HoverPopoverDismissController<{ consumer: string }, string>({
+  params: { consumer: 'packed-entry' },
+  on_request: ({ runDefault }) => runDefault(),
+});
+const viewControllers: Pick<SnlSyntaxTreeViewProps, 'deactivation_controller'> = {
+  deactivation_controller: deactivationController,
+};
+const entryControllers: Pick<EntryPreviewProviderProps, 'deactivation_controller' | 'dismiss_controller'> = {
+  deactivation_controller: deactivationController,
+  dismiss_controller: dismissController,
+};
 void [
   applySnlHoverHighlight,
   findBinderScopeAncestor,
@@ -53,6 +86,12 @@ void [
   legacyEntryKind,
   malformedHybridEntryKind,
   incompleteThemeEntryKind,
+  viewControllers,
+  entryControllers,
+  typedDeactivationDispatch,
+  typedDeactivationHandler,
+  typedDismissDispatch,
+  typedDismissReason,
   paletteToCss(legacyPalette),
   new ReaderRuntime({ queries: { query_environment: () => ({ language: 'en' }) } }),
 ];

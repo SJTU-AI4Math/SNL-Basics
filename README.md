@@ -420,6 +420,54 @@ const hooks: SnlRenderHooks = {
 A node or tree change creates a new session and cancels stale phases. Consumer
 hook failures are isolated from the default show/lock state machine.
 
+### Controlled deactivation and layered popover dismissal
+
+Activation clearing is separate from popover graph mutation. A real interaction
+context carries an optional generation-safe `activation` lease; stale leases
+cannot clear a newer node. Consumers can veto or replace local clearing with a
+`SnlDeactivationController`, and can independently control recursive popover
+requests with `HoverPopoverDismissController`:
+
+```tsx
+const deactivation = new SnlDeactivationController({
+  params: { surface: 'proof' },
+  handlers: {
+    'pointer-leave': ({ runDefault }) => runDefault(),
+  },
+})
+
+const dismissal = new HoverPopoverDismissController<{ surface: string }, string>({
+  params: { surface: 'proof' },
+  on_request: ({ request, runDefault }) => {
+    if (request.reason !== 'escape') runDefault()
+  },
+})
+
+<EntryPreviewProvider
+  entry_data_driver={entries}
+  macro_data_driver={macros}
+  deactivation_controller={deactivation}
+  dismiss_controller={dismissal}
+>
+  {content}
+</EntryPreviewProvider>
+```
+
+Dismiss scopes are `descendants`, `subtree`, `unfrozen-subtree`, and `all`.
+Each request contains one immutable leaf-to-root target snapshot. `runDefault()`
+is a synchronous, once-only capability and expires when the handler returns;
+promise/thenable failures are absorbed but cannot defer that capability.
+`owner-unmount` is observable but non-cancelable. Provider teardown bypasses
+request/deactivation policy, force-removes every layer, and still emits each
+`on_removed` completion exactly once. Vetoing `sibling-replaced` controls only
+the old sibling's dismissal: the newly requested pin is still created, so both
+siblings coexist by explicit consumer policy.
+
+Native controls inside rendered Blocks (`button`, links, form controls, semantic
+ARIA controls, or `[data-snl-interaction-boundary]`) own pointer, hover, and
+Enter/Space interaction before delegated SNL activation. This boundary is
+structural and does not depend on a child renderer calling `stopPropagation()`.
+
 ```tsx
 <SnlSyntaxTreeView
   tree={tree}

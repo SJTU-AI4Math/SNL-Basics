@@ -49,6 +49,13 @@ import {
   type SnlActivationDispatcher,
 } from '../snl-react-view/activation-controller'
 import {
+  DEFAULT_SNL_DEACTIVATION_CONTROLLER,
+  type SnlActivationLease,
+  type SnlActivationSnapshot,
+  type SnlDeactivationController,
+  type SnlDeactivationReason,
+} from '../snl-react-view/deactivation-controller'
+import {
   DEFAULT_KIND_PALETTE,
   paletteToCss,
   type KindPalette,
@@ -66,6 +73,46 @@ interface RenderResult {
   latex: string
   html: string
   reqId: number
+}
+
+const ARIA_WIDGET_ROLES = [
+  'alertdialog', 'application', 'button', 'checkbox', 'combobox', 'dialog',
+  'doc-backlink', 'doc-biblioref', 'doc-glossref', 'doc-noteref', 'grid',
+  'gridcell', 'link', 'listbox', 'menu', 'menubar', 'menuitem', 'menuitemcheckbox',
+  'menuitemradio', 'option', 'progressbar', 'radio', 'radiogroup', 'scrollbar',
+  'searchbox', 'slider', 'spinbutton', 'switch', 'tab', 'tablist', 'textbox',
+  'toolbar', 'tree', 'treegrid', 'treeitem',
+] as const
+
+const ARIA_FOCUSABLE_STRUCTURE_ROLES = [
+  'columnheader', 'doc-pagebreak', 'row', 'rowheader', 'separator',
+] as const
+
+const OWNED_INTERACTION_SELECTOR = [
+  'button',
+  'a[href]',
+  'input',
+  'select',
+  'textarea',
+  'option',
+  'summary',
+  'label',
+  'audio[controls]',
+  'video[controls]',
+  '[contenteditable]:not([contenteditable="false"])',
+  ...ARIA_WIDGET_ROLES.map((role) => `[role~="${role}"]`),
+  ...ARIA_FOCUSABLE_STRUCTURE_ROLES.map((role) => `[role~="${role}"][tabindex]`),
+  '[data-snl-interaction-boundary]',
+].join(',')
+
+/** True when a descendant control owns the event before its SNL activation root. */
+function hasOwnedInteractionBoundary(start: Element, activationRoot: HTMLElement): boolean {
+  let current: Element | null = start
+  while (current && current !== activationRoot) {
+    if (current.matches(OWNED_INTERACTION_SELECTOR)) return true
+    current = current.parentElement
+  }
+  return false
 }
 
 /** Props for {@link SnlSyntaxTreeView}. */
@@ -92,6 +139,8 @@ export interface SnlSyntaxTreeViewProps {
   hooks?: SnlRenderHooks
   /** Initialization-time switch/replacement/params policy for phases 0/1/2. */
   activation_controller?: SnlActivationDispatcher<SnlHoverPhaseEvent>
+  /** Synchronous policy for clearing the current activation. */
+  deactivation_controller?: SnlDeactivationController<any, any>
   /** Resolver warnings/errors for editor surfaces; rendering remains fail-closed. */
   onDiagnostics?: (diagnostics: readonly SnlDiagnostic[]) => void
 }
@@ -574,6 +623,7 @@ export function SnlSyntaxTreeView({
   onResolved,
   hooks,
   activation_controller = DEFAULT_SNL_ACTIVATION_CONTROLLER,
+  deactivation_controller = DEFAULT_SNL_DEACTIVATION_CONTROLLER,
   onDiagnostics,
 }: SnlSyntaxTreeViewProps) {
   const renderLanguage = reader_runtime?.query_environment().language ?? 'en'
@@ -697,6 +747,11 @@ export function SnlSyntaxTreeView({
   const lockTimerRef = useRef<number | null>(null)
   const hoverSessionIdRef = useRef(0)
   const hoverSessionRef = useRef<{ key: string; session: SnlHoverSession } | null>(null)
+  const activationIdRef = useRef(0)
+  const currentActivationRef = useRef<{
+    snapshot: SnlActivationSnapshot
+    lease: SnlActivationLease
+  } | null>(null)
   const interactionGenerationRef = useRef(0)
   const interactionIdentityRef = useRef({ tree, driver: macro_data_driver })
   const infoRequestRef = useRef<{ key: string; generation: number } | null>(null)
@@ -713,6 +768,7 @@ export function SnlSyntaxTreeView({
 
   useEffect(() => {
     return () => {
+      currentActivationRef.current = null
       interactionGenerationRef.current += 1
       hoverSessionRef.current = null
       infoRequestRef.current = null
@@ -780,6 +836,77 @@ export function SnlSyntaxTreeView({
     }
   }
 
+  const clearHoverMarks = () => {
+    hoverMarkedElsRef.current.forEach((el) => {
+      el.classList.remove('snl-bvar-scope', 'snl-binder-decl', 'snl-single-hover')
+    })
+    hoverMarkedElsRef.current = []
+  }
+
+  const clearActivationState = (preserveHiddenTooltip = false): void => {
+    interactionGenerationRef.current += 1
+    infoRequestRef.current = null
+    hoverSessionRef.current = null
+    clearHoverTimers()
+    clearHoverMarks()
+    setHasHoverTarget(false)
+    setHoverKey('')
+    setTooltip((previous) => preserveHiddenTooltip && previous
+      ? { ...previous, visible: false }
+      : null)
+  }
+
+  const createActivation = (
+    node: SnlSyntaxTree,
+    treePath: TreePath,
+    target: HTMLElement,
+    phase: 0 | 1 | 2,
+  ): SnlActivationLease => {
+    const current = currentActivationRef.current
+    if (current && current.snapshot.target === target) {
+      current.snapshot = Object.freeze({ ...current.snapshot, phase })
+      return current.lease
+    }
+    const activationId = ++activationIdRef.current
+    const lease: SnlActivationLease = Object.freeze({
+      activation_id: activationId,
+      request_deactivate: (reason: SnlDeactivationReason, cause?: unknown): boolean => {
+        const active = currentActivationRef.current
+        if (!active || active.snapshot.activation_id !== activationId) return false
+        return deactivation_controller.dispatch(reason, active.snapshot, cause, () => {
+          const latest = currentActivationRef.current
+          if (!latest || latest.snapshot.activation_id !== activationId) return
+          currentActivationRef.current = null
+          const causeType = cause && typeof cause === 'object' && 'type' in cause
+            ? String((cause as { type?: unknown }).type ?? '')
+            : ''
+          clearActivationState(
+            reason === 'pointer-leave' ||
+            (reason === 'blank-activation' && causeType === 'mousemove'),
+          )
+        })
+      },
+    })
+    currentActivationRef.current = {
+      snapshot: Object.freeze({
+        activation_id: activationId,
+        node,
+        tree_path: Object.freeze([...treePath]),
+        target,
+        phase,
+      }),
+      lease,
+    }
+    return lease
+  }
+
+  const updateActivationPhase = (lease: SnlActivationLease, phase: 0 | 1 | 2): boolean => {
+    const current = currentActivationRef.current
+    if (!current || current.snapshot.activation_id !== lease.activation_id) return false
+    current.snapshot = Object.freeze({ ...current.snapshot, phase })
+    return true
+  }
+
   const resolveInfo = async (
     name: string,
     variableRole: 'bvar' | 'fvar' | 'none',
@@ -840,7 +967,7 @@ export function SnlSyntaxTreeView({
     y: number,
     modifiers: { ctrl_key: boolean; meta_key: boolean; shift_key: boolean; alt_key: boolean },
     lockImmediately = false,
-  ) => {
+  ): SnlActivationLease | null => {
     const tooltipX = x + 12
     const tooltipY = y + 12
     const name = target.dataset.name ?? ''
@@ -888,7 +1015,17 @@ export function SnlSyntaxTreeView({
     }
 
     const key = `${pathAttr ?? 'unresolved'}|${name}|${kind}|${bindingKey}`
-    if (tooltip?.locked && !lockImmediately) return
+    if (tooltip?.locked && !lockImmediately) return null
+
+    const active = currentActivationRef.current
+    if (active && active.snapshot.target !== target) {
+      const retired = active.lease.request_deactivate('superseded', {
+        next_node: actualNode,
+        next_tree_path: treePath,
+        next_target: target,
+      })
+      if (!retired) return null
+    }
 
     let session = hoverSessionRef.current?.key === key
       ? hoverSessionRef.current.session
@@ -910,9 +1047,10 @@ export function SnlSyntaxTreeView({
       clientX: x,
       clientY: y,
     } : null
-    if (!hoverEvent) return
+    if (!hoverEvent) return null
     const phase = lockImmediately ? 2 : 0
-    if (!activation_controller.dispatch(phase, hoverEvent, () => {})) return
+    if (!activation_controller.dispatch(phase, hoverEvent, () => {})) return null
+    const activation = createActivation(actualNode!, treePath!, target, phase)
     const activationContainer = containerRef.current
     if (activationContainer) {
       ensureBindingIndexForTarget(target, activationContainer)
@@ -933,6 +1071,7 @@ export function SnlSyntaxTreeView({
           meta_key: modifiers.meta_key,
           shift_key: modifiers.shift_key,
           alt_key: modifiers.alt_key,
+          activation,
         }).catch(() => {})
       }
     }
@@ -949,7 +1088,7 @@ export function SnlSyntaxTreeView({
           ? { ...prev, x: tooltipX, y: tooltipY }
           : prev)
       }
-      return
+      return activation
     }
 
     const macro = resolvedMacros[name]
@@ -976,7 +1115,7 @@ export function SnlSyntaxTreeView({
 
     if (lockImmediately) {
       beginInfoRequest(key, name, variableRole, bindingHint)
-      return
+      return activation
     }
 
     prefetchTimerRef.current = window.setTimeout(() => {
@@ -985,6 +1124,7 @@ export function SnlSyntaxTreeView({
 
     showTimerRef.current = window.setTimeout(() => {
       activation_controller.dispatch(1, hoverEvent, () => {
+        if (!updateActivationPhase(activation, 1)) return
         const container = containerRef.current
         if (container) applyHoverHighlight(target, container, 1)
         invokeHook(mergedHooks.onHover1s, hoverEvent)
@@ -997,6 +1137,7 @@ export function SnlSyntaxTreeView({
 
     lockTimerRef.current = window.setTimeout(() => {
       activation_controller.dispatch(2, hoverEvent, () => {
+        if (!updateActivationPhase(activation, 2)) return
         const container = containerRef.current
         if (container) applyHoverHighlight(target, container, 2)
         invokeHook(mergedHooks.onHover2s, hoverEvent)
@@ -1006,19 +1147,14 @@ export function SnlSyntaxTreeView({
         })
       })
     }, 2000)
-  }
-
-  const clearHoverMarks = () => {
-    hoverMarkedElsRef.current.forEach((el) => {
-      el.classList.remove('snl-bvar-scope', 'snl-binder-decl', 'snl-single-hover')
-    })
-    hoverMarkedElsRef.current = []
+    return activation
   }
 
   useEffect(() => {
     const previous = interactionIdentityRef.current
     if (previous.tree === tree && previous.driver === macro_data_driver) return
     interactionIdentityRef.current = { tree, driver: macro_data_driver }
+    currentActivationRef.current = null
     interactionGenerationRef.current += 1
     infoRequestRef.current = null
     hoverSessionRef.current = null
@@ -1088,31 +1224,28 @@ export function SnlSyntaxTreeView({
     const topmost = document
       .elementsFromPoint(event.clientX, event.clientY)
       .find(
-        (el): el is HTMLElement =>
-          el instanceof HTMLElement && container.contains(el),
+        (el): el is Element =>
+          el instanceof Element && container.contains(el),
       )
+    const hoverStart = topmost instanceof HTMLElement ? topmost : topmost?.parentElement ?? null
 
-    const hit = topmost
-      ? findMinimalHoverRoot(topmost, container)
+    const hit = hoverStart
+      ? findMinimalHoverRoot(hoverStart, container)
       : null
     // findMinimalHoverRoot already skips sub-kind ancestors, but its
     // fallback returns the raw `start` when nothing matches. Guard on both
     // "has data-name" AND "not sub" so hovering into empty space above a
     // sub node clears the highlight instead of latching onto it.
     const hasName =
-      hit && hit.hasAttribute('data-name') && hit.dataset.kind !== 'sub'
+      hit && hit.hasAttribute('data-name') && hit.dataset.kind !== 'sub' &&
+      (!topmost || !hasOwnedInteractionBoundary(topmost, hit))
         ? hit
         : null
 
     if (!hasName) {
-      interactionGenerationRef.current += 1
-      infoRequestRef.current = null
-      hoverSessionRef.current = null
-      clearHoverMarks()
-      setHasHoverTarget(false)
-      setHoverKey('')
-      clearHoverTimers()
-      setTooltip((prev) => (prev ? { ...prev, visible: false } : null))
+      const active = currentActivationRef.current
+      if (active) active.lease.request_deactivate('blank-activation', event.nativeEvent)
+      else clearActivationState(true)
       return
     }
 
@@ -1133,14 +1266,9 @@ export function SnlSyntaxTreeView({
       void _interaction_driver.dispatch_leave().catch(() => {})
     }
     if (tooltip?.locked) return
-    interactionGenerationRef.current += 1
-    infoRequestRef.current = null
-    hoverSessionRef.current = null
-    clearHoverMarks()
-    setHasHoverTarget(false)
-    setHoverKey('')
-    clearHoverTimers()
-    setTooltip((prev) => (prev ? { ...prev, visible: false } : null))
+    const active = currentActivationRef.current
+    if (active) active.lease.request_deactivate('pointer-leave')
+    else clearActivationState(true)
   }
 
   useEffect(() => {
@@ -1179,11 +1307,14 @@ export function SnlSyntaxTreeView({
     const node = resolveTreePath(renderTree, path)
     if (!node) return
     const macro = resolvedMacros[node.macro_name] ?? null
+    const activation = activateHoverTarget(el, clientX, clientY, modifiers, true)
+    if (!activation) return
     const ctx: SnlInteractionContext = {
       node,
       tree_path: path,
       macro,
       target: el,
+      activation,
       client_x: clientX,
       client_y: clientY,
       ctrl_key: modifiers.ctrl_key,
@@ -1192,7 +1323,6 @@ export function SnlSyntaxTreeView({
       alt_key: modifiers.alt_key,
     }
     setHasHoverTarget(true)
-    activateHoverTarget(el, clientX, clientY, modifiers, true)
     if (_interaction_driver) void _interaction_driver.dispatch_click(ctx).catch(() => {})
   }
 
@@ -1203,16 +1333,13 @@ export function SnlSyntaxTreeView({
     let el: HTMLElement | null = event.target as HTMLElement
     while (el && el !== container && !el.hasAttribute('data-tree-path')) el = el.parentElement
     if (!el || !el.hasAttribute('data-tree-path')) {
-      interactionGenerationRef.current += 1
-      infoRequestRef.current = null
-      hoverSessionRef.current = null
-      clearHoverTimers()
-      clearHoverMarks()
-      setHasHoverTarget(false)
-      setHoverKey('')
-      setTooltip(null)
+      const active = currentActivationRef.current
+      if (active) active.lease.request_deactivate('blank-activation', event.nativeEvent)
+      else clearActivationState()
       return
     }
+    const eventTarget = event.target instanceof Element ? event.target : null
+    if (eventTarget && hasOwnedInteractionBoundary(eventTarget, el)) return
     dispatchElementActivation(el, event.clientX, event.clientY, {
       ctrl_key: event.ctrlKey,
       meta_key: event.metaKey,
@@ -1223,10 +1350,11 @@ export function SnlSyntaxTreeView({
 
   const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return
-    const target = event.target instanceof HTMLElement
+    const target = event.target instanceof Element
       ? event.target.closest<HTMLElement>('[data-snl-keyboard-activation="true"]')
       : null
     if (!target || !event.currentTarget.contains(target)) return
+    if (event.target instanceof Element && hasOwnedInteractionBoundary(event.target, target)) return
     event.preventDefault()
     const rect = target.getBoundingClientRect()
     dispatchElementActivation(target, rect.left + rect.width / 2, rect.top + rect.height / 2, {
