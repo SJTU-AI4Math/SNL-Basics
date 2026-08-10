@@ -255,17 +255,39 @@ describe('SnlInteractionDriver integration', () => {
       interaction_driver={new SnlInteractionDriver({ on_click: snlClicks, on_hover: snlHovers })}
       hooks={{ renderers: { interactive: () => <>
         <button type="button" onClick={localClicks}>toggle block<svg data-testid="toggle-icon"><path /></svg></button>
-        <div role="radio" tabIndex={0} data-testid="radio-control">choice</div>
+        <div role="radio" tabIndex={0} data-testid="radio-control" onClick={localClicks}>choice</div>
+        <div role="separator" tabIndex={0} data-testid="separator-control" onClick={localClicks}>resize</div>
+        <div role="progressbar" tabIndex={0} data-testid="progress-control" onClick={localClicks}>progress</div>
+        <span role="cell" data-testid="plain-cell">plain cell</span>
+        <div role="separator" data-testid="plain-separator">plain separator</div>
       </> } }}
     />)
     const button = await waitFor(() => view.getByRole('button', { name: 'toggle block' }))
     const icon = view.getByTestId('toggle-icon').querySelector('path')!
-    const radio = view.getByTestId('radio-control')
+    const ariaControls = [
+      view.getByTestId('radio-control'),
+      view.getByTestId('separator-control'),
+      view.getByTestId('progress-control'),
+    ]
+    const plainStructures = [
+      view.getByTestId('plain-cell'),
+      view.getByTestId('plain-separator'),
+    ]
     expect(button.closest('[data-tree-path]')).not.toBeNull()
     let pointTarget: Element = button
     const original = document.elementsFromPoint
     Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [pointTarget] })
     try {
+      for (const structure of plainStructures) {
+        pointTarget = structure
+        fireEvent.mouseMove(structure, { clientX: 1, clientY: 2 })
+        fireEvent.click(structure)
+      }
+      expect(snlClicks).toHaveBeenCalled()
+      expect(snlHovers).toHaveBeenCalled()
+      snlClicks.mockClear()
+      snlHovers.mockClear()
+
       pointTarget = icon
       fireEvent.mouseMove(icon, { clientX: 1, clientY: 2 })
       fireEvent.click(icon)
@@ -273,10 +295,13 @@ describe('SnlInteractionDriver integration', () => {
       expect(snlClicks).not.toHaveBeenCalled()
       expect(snlHovers).not.toHaveBeenCalled()
       expect(fireEvent.keyDown(icon, { key: 'Enter' })).toBe(true)
-      pointTarget = radio
-      fireEvent.mouseMove(radio, { clientX: 1, clientY: 2 })
-      fireEvent.click(radio)
-      expect(fireEvent.keyDown(radio, { key: 'Enter' })).toBe(true)
+      for (const control of ariaControls) {
+        pointTarget = control
+        fireEvent.mouseMove(control, { clientX: 1, clientY: 2 })
+        fireEvent.click(control)
+        expect(fireEvent.keyDown(control, { key: 'Enter' })).toBe(true)
+      }
+      expect(localClicks).toHaveBeenCalledTimes(4)
       expect(snlClicks).not.toHaveBeenCalled()
       expect(snlHovers).not.toHaveBeenCalled()
     } finally {

@@ -76,10 +76,15 @@ interface RenderResult {
 }
 
 const ARIA_WIDGET_ROLES = [
-  'button', 'checkbox', 'combobox', 'grid', 'gridcell', 'link', 'listbox',
-  'menu', 'menubar', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'option',
-  'radio', 'radiogroup', 'scrollbar', 'searchbox', 'slider', 'spinbutton',
-  'switch', 'tab', 'tablist', 'textbox', 'toolbar', 'tree', 'treegrid', 'treeitem',
+  'alertdialog', 'application', 'button', 'checkbox', 'combobox', 'dialog', 'grid',
+  'gridcell', 'link', 'listbox', 'menu', 'menubar', 'menuitem', 'menuitemcheckbox',
+  'menuitemradio', 'option', 'progressbar', 'radio', 'radiogroup', 'scrollbar',
+  'searchbox', 'slider', 'spinbutton', 'switch', 'tab', 'tablist', 'textbox',
+  'toolbar', 'tree', 'treegrid', 'treeitem',
+] as const
+
+const ARIA_FOCUSABLE_STRUCTURE_ROLES = [
+  'columnheader', 'row', 'rowheader', 'separator',
 ] as const
 
 const OWNED_INTERACTION_SELECTOR = [
@@ -95,6 +100,7 @@ const OWNED_INTERACTION_SELECTOR = [
   'video[controls]',
   '[contenteditable]:not([contenteditable="false"])',
   ...ARIA_WIDGET_ROLES.map((role) => `[role~="${role}"]`),
+  ...ARIA_FOCUSABLE_STRUCTURE_ROLES.map((role) => `[role~="${role}"][tabindex]`),
   '[data-snl-interaction-boundary]',
 ].join(',')
 
