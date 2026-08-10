@@ -288,9 +288,11 @@ export function HoverPopoverProvider<TSubject>({
 
   const [popovers, setPopovers] = useState<HoverPopover<TSubject>[]>([])
   const popoversRef = useRef(popovers)
+  const disposedRef = useRef(false)
   const updatePopovers = useCallback((
     update: (current: HoverPopover<TSubject>[]) => HoverPopover<TSubject>[],
   ): void => {
+    if (disposedRef.current) return
     const next = update(popoversRef.current)
     popoversRef.current = next
     setPopovers(next)
@@ -446,6 +448,7 @@ export function HoverPopoverProvider<TSubject>({
     owner?: HoverPopoverOwner,
   ): string => {
     const id = `snl-popover-${++popoverCounter}`
+    if (disposedRef.current) return id
     const isElement = typeof HTMLElement !== 'undefined' && origin instanceof HTMLElement
     const originRect = isElement ? origin.getBoundingClientRect() : origin as DOMRect
     const bounds = parentId
@@ -594,7 +597,7 @@ export function HoverPopoverProvider<TSubject>({
     requestDismiss('explicit-api', { kind: 'all' })
   }, [requestDismiss])
 
-  const isAlive = useCallback((id: string) => popoversRef.current.some(
+  const isAlive = useCallback((id: string) => !disposedRef.current && popoversRef.current.some(
     (p) => p.id === id && p.phase !== 'closing',
   ), [])
 
@@ -668,8 +671,10 @@ export function HoverPopoverProvider<TSubject>({
   }, [requestDismiss])
 
   useEffect(() => {
+    disposedRef.current = false
     const timers = timersRef.current
     return () => {
+      disposedRef.current = true
       const current = popoversRef.current
       const byId = new Map(current.map((popover) => [popover.id, popover]))
       const depth = (popover: HoverPopover<TSubject>): number => {

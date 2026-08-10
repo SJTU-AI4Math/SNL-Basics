@@ -260,6 +260,7 @@ describe('HoverPopoverProvider', () => {
     const deactivated = vi.fn(() => true)
     let api: ReturnType<typeof useHoverPopovers<string>> | null = null
     let reentered = false
+    let ghostId = ''
     const controller = new HoverPopoverDismissController<null, string>({
       params: null,
       on_request: ({ request, runDefault }) => { requests.push(request); runDefault() },
@@ -268,6 +269,7 @@ describe('HoverPopoverProvider', () => {
         if (!reentered) {
           reentered = true
           api!.dismissAll()
+          ghostId = api!.spawn('ghost', document.body, 0, 0, null)
         }
       },
     })
@@ -285,6 +287,7 @@ describe('HoverPopoverProvider', () => {
     expect(requests).toHaveLength(1)
     expect(deactivated).toHaveBeenCalledOnce()
     expect(removed.sort()).toEqual(['live', 'pending'])
+    expect(api!.isAlive(ghostId)).toBe(false)
     origin.remove()
   })
 
