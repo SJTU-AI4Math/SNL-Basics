@@ -162,6 +162,7 @@ interface SnlSyntaxTreeViewProps {
   onResolved?: (latex: string) => void
   hooks?: SnlRenderHooks
   activation_controller?: SnlActivationDispatcher<SnlHoverPhaseEvent>
+  deactivation_controller?: SnlDeactivationController<any, unknown>
   onDiagnostics?: (diagnostics: readonly SnlDiagnostic[]) => void
 }
 
@@ -194,6 +195,15 @@ between the independently replaceable hooks.
 `SnlActivationController` additionally configures the default phase behavior at
 initialization time: disable it, replace handlers for phases 0/1/2, or attach
 consumer parameters without rebuilding the view's timers.
+
+`SnlDeactivationController` controls local activation clearing. Real interaction
+events expose a generation-safe `activation` lease; stale leases return `false`
+instead of clearing a newer target. `HoverPopoverDismissController` separately
+receives one immutable request for `descendants`, `subtree`,
+`unfrozen-subtree`, or `all`. Requests list targets leaf-first. Both controllers
+offer a synchronous, once-only `runDefault()` capability; asynchronous results
+are error-isolated but cannot retain that capability. Owner unmount cleanup is
+non-cancelable and provider teardown bypasses consumer policy.
 
 ## Customization
 
@@ -230,3 +240,7 @@ cache-clear race guarantees as `MacroDataDriver`. `EntryView` queries both the
 Entry and its kind, while `EntrySurface` dispatches SNL, Markdown, LaTeX, and
 text bodies. See [`entry-rendering.md`](entry-rendering.md) for the complete
 rendering and host-port contract.
+
+`EntryPreviewProvider` accepts both `deactivation_controller` and
+`dismiss_controller`, and propagates the matching activation lease into every
+recursive Entry popover layer.

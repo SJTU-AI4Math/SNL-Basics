@@ -5,8 +5,15 @@ import {
   type ApplySnlHoverHighlightOptions,
 } from '../dist-lib/hover.js';
 import { ReaderRuntime } from '../dist-lib/runtime.js';
-import { paletteToCss, type KindPalette, type SnlMacro } from '../dist-lib/index.js';
-import type { EntryKind } from '../dist-lib/entry.js';
+import {
+  HoverPopoverDismissController,
+  SnlDeactivationController,
+  paletteToCss,
+  type KindPalette,
+  type SnlMacro,
+  type SnlSyntaxTreeViewProps,
+} from '../dist-lib/index.js';
+import type { EntryKind, EntryPreviewProviderProps } from '../dist-lib/entry.js';
 
 const options: ApplySnlHoverHighlightOptions = {};
 const legacyMacro: SnlMacro = {
@@ -44,6 +51,21 @@ const incompleteThemeEntryKind: EntryKind = {
   // @ts-expect-error a theme-aware coloring requires both light and dark
   coloring: { light: { stroke: '#111111', background: '#eeeeee' } },
 };
+const deactivationController = new SnlDeactivationController({
+  params: { consumer: 'packed-root' },
+  handlers: { explicit: ({ runDefault }) => runDefault() },
+});
+const dismissController = new HoverPopoverDismissController<{ consumer: string }, string>({
+  params: { consumer: 'packed-entry' },
+  on_request: ({ runDefault }) => runDefault(),
+});
+const viewControllers: Pick<SnlSyntaxTreeViewProps, 'deactivation_controller'> = {
+  deactivation_controller: deactivationController,
+};
+const entryControllers: Pick<EntryPreviewProviderProps, 'deactivation_controller' | 'dismiss_controller'> = {
+  deactivation_controller: deactivationController,
+  dismiss_controller: dismissController,
+};
 void [
   applySnlHoverHighlight,
   findBinderScopeAncestor,
@@ -53,6 +75,8 @@ void [
   legacyEntryKind,
   malformedHybridEntryKind,
   incompleteThemeEntryKind,
+  viewControllers,
+  entryControllers,
   paletteToCss(legacyPalette),
   new ReaderRuntime({ queries: { query_environment: () => ({ language: 'en' }) } }),
 ];

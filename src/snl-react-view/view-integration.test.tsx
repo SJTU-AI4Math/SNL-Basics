@@ -14,6 +14,7 @@ import type { SnlMacroRecord } from '../snl-macro/types'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
 import { SnlActivationController } from './activation-controller'
+import { SnlDeactivationController } from './deactivation-controller'
 
 const db: SnlMacroRecord = {
   sum: {
@@ -160,6 +161,57 @@ describe('data-tree-path DOM attribute', () => {
 })
 
 describe('SnlInteractionDriver integration', () => {
+  it('exposes generation-safe leases that cannot clear a newer activation', async () => {
+    const contexts: SnlInteractionContext[] = []
+    const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')] })
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} interaction_driver={new SnlInteractionDriver({ on_click: (context) => { contexts.push(context) } })} />)
+    const first = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const second = view.container.querySelector<HTMLElement>('[data-tree-path="1"]')!
+    fireEvent.click(first)
+    await waitFor(() => expect(contexts).toHaveLength(1))
+    fireEvent.click(second)
+    await waitFor(() => expect(contexts).toHaveLength(2))
+    expect(contexts[0].activation!.activation_id).not.toBe(contexts[1].activation!.activation_id)
+    expect(contexts[0].activation!.request_deactivate('explicit')).toBe(false)
+    expect(second.classList.contains('snl-single-hover')).toBe(true)
+    expect(contexts[1].activation!.request_deactivate('explicit')).toBe(true)
+    expect(second.classList.contains('snl-single-hover')).toBe(false)
+    expect(contexts[1].activation!.request_deactivate('explicit')).toBe(false)
+  })
+
+  it('lets a controller veto pointer-leave while default blank activation still clears', async () => {
+    const reasons: string[] = []
+    const controller = new SnlDeactivationController({
+      params: null,
+      handlers: { 'pointer-leave': ({ reason }) => { reasons.push(reason) } },
+    })
+    const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x')] })
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} deactivation_controller={controller} />)
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const surface = view.container.querySelector<HTMLElement>('.katex-html')!
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [target] })
+    try {
+      fireEvent.mouseMove(target, { clientX: 1, clientY: 2 })
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+      fireEvent.mouseLeave(surface)
+      expect(reasons).toEqual(['pointer-leave'])
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+      fireEvent.click(surface)
+      expect(target.classList.contains('snl-single-hover')).toBe(false)
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
   it('allows an initialized activation controller to replace phase 0 with custom params', async () => {
     const replacement = vi.fn()
     const onHover = vi.fn()

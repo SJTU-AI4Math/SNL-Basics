@@ -1,3 +1,5 @@
+import { absorbControllerResult } from './controller-safety'
+
 export type SnlActivationPhase = 0 | 1 | 2
 
 export interface SnlActivationDispatch<P, E> {
@@ -48,7 +50,9 @@ export class SnlActivationController<P = unknown, E = unknown> {
     const handler = this.handlers[phase]
     if (handler) {
       try {
-        handler({ phase, event, params: this.params, runDefault: once })
+        const result = handler({ phase, event, params: this.params, runDefault: once })
+        handlerActive = false
+        absorbControllerResult(result)
       } catch { /* consumer activation handlers cannot break the view */ }
       finally { handlerActive = false }
       return defaultRan

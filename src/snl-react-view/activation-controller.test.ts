@@ -52,5 +52,19 @@ describe('SnlActivationController', () => {
     expect(fallback).not.toHaveBeenCalled()
   })
 
-
+  it('absorbs rejected thenables without reviving runDefault', () => {
+    const fallback = vi.fn()
+    const rejected = vi.fn()
+    const handler = (({ runDefault }: { runDefault(): void }) => ({
+      then: (_resolve: () => void, reject: (reason: unknown) => void) => {
+        runDefault()
+        rejected()
+        reject(new Error('async consumer failed'))
+      },
+    })) as unknown as (event: { runDefault(): void }) => void
+    expect(() => new SnlActivationController({ params: undefined, handlers: { 0: handler } })
+      .dispatch(0, 'event', fallback)).not.toThrow()
+    expect(rejected).toHaveBeenCalledOnce()
+    expect(fallback).not.toHaveBeenCalled()
+  })
 })

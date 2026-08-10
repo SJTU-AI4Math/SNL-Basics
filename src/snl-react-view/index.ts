@@ -138,6 +138,26 @@ export {
   type SnlActivationHandler,
   type SnlActivationPhase,
 } from './activation-controller'
+export {
+  DEFAULT_SNL_DEACTIVATION_CONTROLLER,
+  SnlDeactivationController,
+  type SnlActivationLease,
+  type SnlActivationSnapshot,
+  type SnlDeactivationControllerOptions,
+  type SnlDeactivationDispatch,
+  type SnlDeactivationHandler,
+  type SnlDeactivationReason,
+} from './deactivation-controller'
+export {
+  DEFAULT_HOVER_POPOVER_DISMISS_CONTROLLER,
+  HoverPopoverDismissController,
+  type HoverPopoverDismissControllerOptions,
+  type HoverPopoverDismissDispatch,
+  type HoverPopoverDismissReason,
+  type HoverPopoverDismissRequest,
+  type HoverPopoverDismissScope,
+  type HoverPopoverDismissTarget,
+} from './popover-dismiss-controller'
 export { HTMLDATA_KATEX_DEFAULTS } from './katex-defaults'
 
 // === Hover highlighting against already-rendered DOM ===
@@ -202,6 +222,7 @@ export {
   type HoverPopover,
   type HoverPopoverApi,
   type HoverPopoverOptions,
+  type HoverPopoverOwner,
   type HoverPopoverProviderProps,
   type PopoverPhase,
   type ViewportBounds,

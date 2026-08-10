@@ -367,6 +367,41 @@ const hooks: SnlRenderHooks = {
 
 切换节点或整棵 tree 会建立新 session 并取消旧阶段。consumer hook 即使抛错，也不会打断默认的显示/锁定状态机。
 
+### 可控的激活清除与分层浮窗销毁
+
+激活清除与浮窗图变更是两个独立能力。真实交互上下文携带可选的、generation-safe 的
+`activation` lease；旧 lease 不能误清更新的节点。consumer 可用
+`SnlDeactivationController` 定制单个 View 的清除策略，再用
+`HoverPopoverDismissController` 独立控制递归浮窗：
+
+```tsx
+const deactivation = new SnlDeactivationController({
+  params: { surface: 'proof' },
+  handlers: { 'pointer-leave': ({ runDefault }) => runDefault() },
+})
+
+const dismissal = new HoverPopoverDismissController<{ surface: string }, string>({
+  params: { surface: 'proof' },
+  on_request: ({ request, runDefault }) => {
+    if (request.reason !== 'escape') runDefault()
+  },
+})
+
+<EntryPreviewProvider
+  entry_data_driver={entries}
+  macro_data_driver={macros}
+  deactivation_controller={deactivation}
+  dismiss_controller={dismissal}
+>
+  {content}
+</EntryPreviewProvider>
+```
+
+销毁范围为 `descendants`、`subtree`、`unfrozen-subtree` 和 `all`。每个请求提供
+不可变、从叶到根排列的目标快照。`runDefault()` 只能在同步 handler 调用栈内执行一次；
+Promise/thenable 的失败会被隔离，但不能延期持有默认能力。`owner-unmount` 可观察但不可阻止，
+Provider teardown 则强制清理且不会派发 consumer policy。
+
 ```tsx
 <SnlSyntaxTreeView
   tree={tree}

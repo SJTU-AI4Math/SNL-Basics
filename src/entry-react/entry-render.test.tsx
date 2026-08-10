@@ -5,6 +5,7 @@ import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { ReaderRuntime, type I18n } from '../runtime'
 import { EntryDataDriver, type EntryData } from './entry-data-driver'
 import { EntrySurface, EntryView, EntryPreviewProvider, titleToKatexSource } from './entry-render'
+import { HoverPopoverDismissController, type HoverPopoverDismissRequest } from '../snl-react-view/popover-dismiss-controller'
 
 const macroDriver = new MacroDataDriver({ queries: { query_macro: async () => null } })
 const base = (content: EntryData['content'], extra: Partial<EntryData> = {}): EntryData => ({ id: 'e', kind: 'definition', title: 'Ring $R$', content, ...extra })
@@ -275,6 +276,38 @@ describe('recursive Entry preview', () => {
     try {
       fireEvent.mouseMove(target, { clientX: 12, clientY: 14 })
       await waitFor(() => expect(document.body.textContent).toContain('recursive child body'))
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
+  it('propagates the activation lease so outside dismissal clears the exact origin activation', async () => {
+    const requests: HoverPopoverDismissRequest<string>[] = []
+    const dismissal = new HoverPopoverDismissController<null, string>({
+      params: null,
+      on_request: ({ request, runDefault }) => { requests.push(request); runDefault() },
+    })
+    const refMacroDriver = new MacroDataDriver({ queries: { query_macro: async () => ({
+      name: 'ref', description: '', source: { entries: ['child'], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
+      styles: [{ style_name: 'default', tag: 'default', mode: 'formula_inline', template: '\\text{reference}', tags: [] }],
+    }) } })
+    const entries = dataDriver({ root: base({ snl: 'ref' }, { id: 'root' }), child: base({ text: 'leased child' }, { id: 'child' }) })
+    const view = render(<EntryPreviewProvider entry_data_driver={entries} macro_data_driver={refMacroDriver} dismiss_controller={dismissal} options={{ openDelayMs: 0, fadeMs: 0 }}><EntryView entry_id="root" entry_data_driver={entries} macro_data_driver={refMacroDriver} /></EntryPreviewProvider>)
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-name="ref"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [target] })
+    try {
+      fireEvent.mouseMove(target, { clientX: 12, clientY: 14 })
+      await waitFor(() => expect(document.body.textContent).toContain('leased child'))
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+      fireEvent.pointerDown(view.container)
+      expect(requests).toHaveLength(1)
+      expect(requests[0].targets[0].activation).toBeDefined()
+      expect(target.classList.contains('snl-single-hover')).toBe(false)
     } finally {
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
     }

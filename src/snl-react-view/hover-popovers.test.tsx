@@ -11,6 +11,8 @@ import {
   useHoverPopovers,
   type HoverPopover,
 } from './hover-popovers'
+import { HoverPopoverDismissController, type HoverPopoverDismissRequest } from './popover-dismiss-controller'
+import type { SnlActivationLease } from './deactivation-controller'
 
 afterEach(() => {
   cleanup()
@@ -86,6 +88,125 @@ function ApiObserver({ onValue }: { onValue(api: ReturnType<typeof useHoverPopov
 }
 
 describe('HoverPopoverProvider', () => {
+  it('dispatches one immutable all-scope request and deactivates targets leaf-first', () => {
+    const order: string[] = []
+    const requests: unknown[] = []
+    const controller = new HoverPopoverDismissController({
+      params: { owner: 'test' },
+      on_request: ({ request, runDefault }) => {
+        requests.push(request)
+        expect(Object.isFrozen(request)).toBe(true)
+        expect(Object.isFrozen(request.targets)).toBe(true)
+        runDefault()
+      },
+    })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(
+      <HoverPopoverProvider<string>
+        dismiss_controller={controller}
+        renderPopover={(popover) => <span>{popover.subject}</span>}
+        options={{ openDelayMs: 0, fadeMs: 0 }}
+      >
+        <ApiObserver onValue={(value) => { api = value }} />
+      </HoverPopoverProvider>,
+    )
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    const lease = (id: string): SnlActivationLease => ({
+      activation_id: Number(id),
+      request_deactivate: () => { order.push(id); return true },
+    })
+    act(() => {
+      const root = api!.spawn('root', origin, 1, 1, null, { activation: lease('1') })
+      const child = api!.spawn('child', origin, 2, 2, root, { activation: lease('2') })
+      api!.spawn('grandchild', origin, 3, 3, child, { activation: lease('3') })
+    })
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(requests).toHaveLength(1)
+    expect(requests[0]).toMatchObject({ reason: 'escape', scope: { kind: 'all' }, cancelable: true })
+    expect(order).toEqual(['3', '2', '1'])
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(0)
+    origin.remove()
+  })
+
+  it('supports controlled veto and descendant/subtree explicit scopes', () => {
+    const requests: Array<{ reason: string; scope: { kind: string }; targets: readonly { id: string }[] }> = []
+    let accept = false
+    const controller = new HoverPopoverDismissController({
+      params: null,
+      on_request: ({ request, runDefault }) => {
+        requests.push(request)
+        if (accept) runDefault()
+      },
+    })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(<HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={(p) => <span>{p.subject}</span>} options={{ openDelayMs: 0, fadeMs: 0 }}><ApiObserver onValue={(value) => { api = value }} /></HoverPopoverProvider>)
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let root = ''; let child = ''
+    act(() => {
+      root = api!.spawn('root', origin, 1, 1, null)
+      child = api!.spawn('child', origin, 2, 2, root)
+      api!.spawn('grandchild', origin, 3, 3, child)
+    })
+    act(() => api!.dismissDescendants(child))
+    expect(requests.at(-1)).toMatchObject({ reason: 'explicit-api', scope: { kind: 'descendants' } })
+    expect(screen.getByText('grandchild')).toBeTruthy()
+    accept = true
+    act(() => api!.dismissSubtree(child))
+    expect(requests.at(-1)).toMatchObject({ reason: 'explicit-api', scope: { kind: 'subtree' } })
+    expect(screen.getByText('root')).toBeTruthy()
+    expect(screen.queryByText('child')).toBeNull()
+    expect(screen.queryByText('grandchild')).toBeNull()
+    const requestCount = requests.length
+    act(() => api!.dismissSubtree(child))
+    expect(requests).toHaveLength(requestCount)
+    origin.remove()
+  })
+
+  it('dispatches one non-overlapping pointer-exit request for a nested unfrozen tree', () => {
+    const requests: HoverPopoverDismissRequest<string>[] = []
+    const controller = new HoverPopoverDismissController<null, string>({
+      params: null,
+      on_request: ({ request, runDefault }) => { requests.push(request); runDefault() },
+    })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(<HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={(p) => <span>{p.subject}</span>} options={{ openDelayMs: 0, fadeMs: 0 }}><ApiObserver onValue={(value) => { api = value }} /></HoverPopoverProvider>)
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    act(() => {
+      const root = api!.spawn('root', origin, 1, 1, null)
+      api!.spawn('child', origin, 2, 2, root)
+    })
+    fireEvent.pointerMove(document, { clientX: 900, clientY: 700 })
+    expect(requests).toHaveLength(1)
+    expect(requests[0].reason).toBe('pointer-exit')
+    expect(requests[0].targets.map((target) => target.subject)).toEqual(['child', 'root'])
+    origin.remove()
+  })
+
+  it('forces non-cancelable owner-unmount but does not dispatch on provider teardown', () => {
+    const requests: Array<{ reason: string; cancelable: boolean }> = []
+    const controller = new HoverPopoverDismissController({
+      params: null,
+      on_request: ({ request }) => { requests.push(request) },
+    })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    const view = render(<HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={() => <span>preview</span>} options={{ openDelayMs: 0, fadeMs: 0 }}><ApiObserver onValue={(value) => { api = value }} /></HoverPopoverProvider>)
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let id = ''
+    act(() => { id = api!.spawn('root', origin, 1, 1, null) })
+    act(() => api!.cancelUnfrozen(id, 'owner-unmount'))
+    expect(requests).toHaveLength(1)
+    expect(requests[0]).toMatchObject({ reason: 'owner-unmount', cancelable: false })
+    expect(screen.queryByText('preview')).toBeNull()
+    act(() => { api!.spawn('next', origin, 1, 1, null) })
+    view.unmount()
+    expect(requests).toHaveLength(1)
+    origin.remove()
+  })
+
   it('makes click-only pins visible immediately without waiting for hover delay', () => {
     vi.useFakeTimers()
     let phase: HoverPopover<string>['phase'] | null = null

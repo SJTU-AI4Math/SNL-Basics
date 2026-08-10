@@ -6,6 +6,8 @@ import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
 import { tryParseSnlSyntaxTree } from '../snl-react-view/parse'
 import { resolveKindColoring, type KindPalette } from '../snl-react-view/kind-palette'
 import { SnlInteractionDriver, type SnlInteractionContext } from '../snl-react-view/interaction-driver'
+import type { SnlActivationLease, SnlDeactivationController } from '../snl-react-view/deactivation-controller'
+import type { HoverPopoverDismissController } from '../snl-react-view/popover-dismiss-controller'
 import type { SnlRenderHooks } from '../snl-react-view/hooks'
 import { useCtrlPressed } from '../snl-react-view/use-ctrl-pressed'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
@@ -50,6 +52,7 @@ export interface EntrySurfaceProps {
   macro_data_driver: MacroDataDriver
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   interaction_driver?: SnlInteractionDriver
+  deactivation_controller?: SnlDeactivationController<any, unknown>
   interaction_ports?: EntryInteractionPorts
   hooks?: SnlRenderHooks
   kind_palette?: KindPalette
@@ -68,8 +71,8 @@ export interface EntryViewProps extends Omit<EntrySurfaceProps, 'entry' | 'kind'
 }
 
 interface PreviewController {
-  show(entry_id: string, target: HTMLElement, x: number, y: number): string | null
-  pin(entry_id: string, target: HTMLElement, x: number, y: number): string
+  show(entry_id: string, target: HTMLElement, x: number, y: number, activation?: SnlActivationLease): string | null
+  pin(entry_id: string, target: HTMLElement, x: number, y: number, activation?: SnlActivationLease): string
   cancelUnfrozen(id: string): void
 }
 const EntryPreviewContext = React.createContext<PreviewController | null>(null)
@@ -83,6 +86,8 @@ export interface EntryPreviewProviderProps {
   hooks?: SnlRenderHooks
   kind_palette?: KindPalette
   options?: HoverPopoverOptions
+  dismiss_controller?: HoverPopoverDismissController<any, string>
+  deactivation_controller?: SnlDeactivationController<any, unknown>
   className?: string
   style?: React.CSSProperties
 }
@@ -133,6 +138,7 @@ interface SnlEntryBodyProps {
   macro_data_driver: MacroDataDriver
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   interaction_driver?: SnlInteractionDriver
+  deactivation_controller?: SnlDeactivationController<any, unknown>
   hooks?: SnlRenderHooks
   kind_palette?: KindPalette
 }
@@ -144,7 +150,7 @@ function cloneSnlSyntaxTree(node: SnlSyntaxTree): SnlSyntaxTree {
   }
 }
 
-function SnlEntryBody({ source, entry_data_driver, macro_data_driver, reader_runtime, interaction_driver, hooks, kind_palette }: SnlEntryBodyProps): ReactElement {
+function SnlEntryBody({ source, entry_data_driver, macro_data_driver, reader_runtime, interaction_driver, deactivation_controller, hooks, kind_palette }: SnlEntryBodyProps): ReactElement {
   const parsed = useMemo(() => tryParseSnlSyntaxTree(source), [source])
   const [state, setState] = useState<{ source_tree: SnlSyntaxTree; tree: SnlSyntaxTree; driver: EntryDataDriver; status: 'loading' | 'ready' | 'error'; error?: Error } | null>(null)
   const current = parsed.ok && state?.source_tree === parsed.tree && state.driver === entry_data_driver ? state : null
@@ -166,7 +172,7 @@ function SnlEntryBody({ source, entry_data_driver, macro_data_driver, reader_run
   if (!parsed.ok) return <><div role="alert" className="snl-entry-error">SNL parse error: {parsed.error}{parsed.position === undefined ? '' : ` (at ${parsed.position})`}</div><pre>{source}</pre></>
   if (!current || current.status === 'loading') return <div className="snl-entry-loading">Resolving Entry context…</div>
   if (current.status === 'error') return <><div role="alert" className="snl-entry-error">Entry context query failed: {current.error!.message}</div><pre>{source}</pre></>
-  return <SnlSyntaxTreeView tree={current.tree} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={interaction_driver} hooks={hooks} kindPalette={kind_palette} />
+  return <SnlSyntaxTreeView tree={current.tree} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={interaction_driver} deactivation_controller={deactivation_controller} hooks={hooks} kindPalette={kind_palette} />
 }
 
 function resolveEntryStroke(raw: string | undefined): string {
@@ -182,7 +188,7 @@ function resolveEntryBackground(raw: string | undefined): string {
 }
 
 export function EntrySurface(props: EntrySurfaceProps): ReactElement {
-  const { entry, kind, macro_data_driver, reader_runtime, interaction_driver, interaction_ports, hooks, kind_palette, counter_label } = props
+  const { entry, kind, macro_data_driver, reader_runtime, interaction_driver, deactivation_controller, interaction_ports, hooks, kind_palette, counter_label } = props
   let content: ResolvedEntryContent = {}
   let contentError: string | null = null
   try {
@@ -217,7 +223,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
       on_hover: async (context: SnlInteractionContext) => {
         const id = context.macro?.source.entries[0]
         if (id) {
-          const popoverId = preview.show(id, context.target, context.client_x, context.client_y)
+          const popoverId = preview.show(id, context.target, context.client_x, context.client_y, context.activation)
           if (popoverId) ownedPreviewIds.current.add(popoverId)
         }
         await interaction_driver?.dispatch_hover(context)
@@ -226,7 +232,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
       on_click: async (context) => {
         const id = context.macro?.source.entries[0]
         if (id) ownedPreviewIds.current.delete(
-          preview.pin(id, context.target, context.client_x, context.client_y),
+          preview.pin(id, context.target, context.client_x, context.client_y, context.activation),
         )
         await interaction_driver?.dispatch_click(context)
       },
@@ -294,7 +300,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
       <div style={{ borderTop: `0.5px solid ${stroke}`, margin: '4px 10px' }} />
       <div data-entry-body={bodySurface} style={{ padding: '0.9rem', fontSize: '1.05rem', color: background === 'transparent' ? undefined : '#111' }}>
         {bodySurface === 'error' ? <div role="alert" className="snl-entry-error">Entry content localization error: {contentError}</div> : null}
-        {bodySurface === 'snl' ? <SnlEntryBody source={content.snl!} entry_data_driver={props.entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={effectiveInteractionDriver} hooks={hooks} kind_palette={kind_palette} /> : null}
+        {bodySurface === 'snl' ? <SnlEntryBody source={content.snl!} entry_data_driver={props.entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={effectiveInteractionDriver} deactivation_controller={deactivation_controller} hooks={hooks} kind_palette={kind_palette} /> : null}
         {bodySurface === 'markdown' ? <MarkdownBody source={content.markdown!} image_url_transform={props.markdown_image_url_transform} /> : null}
         {bodySurface === 'typst' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content.typst}</pre> : null}
         {bodySurface === 'latex' ? <LatexBody source={content.latex!} /> : null}
@@ -330,18 +336,18 @@ function EntryPreviewBridge({ children, hoverEnabled }: { children: React.ReactN
   const api = useHoverPopovers<string>()
   const parentId = useCurrentPopoverId()
   const controller = useMemo<PreviewController>(() => ({
-    show: (entry_id, target, x, y) => {
-      return hoverEnabled ? api.preview(entry_id, target, x, y, parentId) : null
+    show: (entry_id, target, x, y, activation) => {
+      return hoverEnabled ? api.preview(entry_id, target, x, y, parentId, { activation }) : null
     },
-    pin: (entry_id, target, x, y) => api.pin(entry_id, target, x, y, parentId),
-    cancelUnfrozen: (id) => api.cancelUnfrozen(id),
+    pin: (entry_id, target, x, y, activation) => api.pin(entry_id, target, x, y, parentId, { activation }),
+    cancelUnfrozen: (id) => api.cancelUnfrozen(id, 'owner-unmount'),
   }), [api, hoverEnabled, parentId])
   return <EntryPreviewContext.Provider value={controller}>{children}</EntryPreviewContext.Provider>
 }
 
 /** Generic recursive Entry popovers; host loading is entirely supplied by EntryDataDriver. */
-export function EntryPreviewProvider({ children, entry_data_driver, macro_data_driver, reader_runtime, interaction_ports, hooks, kind_palette, options, className, style }: EntryPreviewProviderProps): ReactElement {
+export function EntryPreviewProvider({ children, entry_data_driver, macro_data_driver, reader_runtime, interaction_ports, hooks, kind_palette, options, className, style, dismiss_controller, deactivation_controller }: EntryPreviewProviderProps): ReactElement {
   const hoverEnabled = options?.hoverEnabled !== false
-  const renderPopover = (popover: HoverPopover<string>): React.ReactNode => <EntryPreviewBridge hoverEnabled={hoverEnabled}><EntryView entry_id={popover.subject} entry_data_driver={entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_ports={interaction_ports} hooks={hooks} kind_palette={kind_palette} /></EntryPreviewBridge>
-  return <HoverPopoverProvider<string> renderPopover={renderPopover} options={options} className={className} style={style}><EntryPreviewBridge hoverEnabled={hoverEnabled}>{children}</EntryPreviewBridge></HoverPopoverProvider>
+  const renderPopover = (popover: HoverPopover<string>): React.ReactNode => <EntryPreviewBridge hoverEnabled={hoverEnabled}><EntryView entry_id={popover.subject} entry_data_driver={entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_ports={interaction_ports} deactivation_controller={deactivation_controller} hooks={hooks} kind_palette={kind_palette} /></EntryPreviewBridge>
+  return <HoverPopoverProvider<string> renderPopover={renderPopover} options={options} className={className} style={style} dismiss_controller={dismiss_controller}><EntryPreviewBridge hoverEnabled={hoverEnabled}>{children}</EntryPreviewBridge></HoverPopoverProvider>
 }
