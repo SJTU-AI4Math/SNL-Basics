@@ -258,6 +258,7 @@ describe('SnlInteractionDriver integration', () => {
         <div role="radio" tabIndex={0} data-testid="radio-control" onClick={localClicks}>choice</div>
         <div role="separator" tabIndex={0} data-testid="separator-control" onClick={localClicks}>resize</div>
         <div role="progressbar" tabIndex={0} data-testid="progress-control" onClick={localClicks}>progress</div>
+        <span role="doc-noteref" tabIndex={0} data-testid="noteref-control" onClick={localClicks}>note</span>
         <span role="cell" data-testid="plain-cell">plain cell</span>
         <div role="separator" data-testid="plain-separator">plain separator</div>
       </> } }}
@@ -268,6 +269,7 @@ describe('SnlInteractionDriver integration', () => {
       view.getByTestId('radio-control'),
       view.getByTestId('separator-control'),
       view.getByTestId('progress-control'),
+      view.getByTestId('noteref-control'),
     ]
     const plainStructures = [
       view.getByTestId('plain-cell'),
@@ -301,7 +303,7 @@ describe('SnlInteractionDriver integration', () => {
         fireEvent.click(control)
         expect(fireEvent.keyDown(control, { key: 'Enter' })).toBe(true)
       }
-      expect(localClicks).toHaveBeenCalledTimes(4)
+      expect(localClicks).toHaveBeenCalledTimes(5)
       expect(snlClicks).not.toHaveBeenCalled()
       expect(snlHovers).not.toHaveBeenCalled()
     } finally {
