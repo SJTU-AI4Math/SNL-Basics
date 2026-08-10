@@ -75,6 +75,35 @@ interface RenderResult {
   reqId: number
 }
 
+const OWNED_INTERACTION_SELECTOR = [
+  'button',
+  'a[href]',
+  'input',
+  'select',
+  'textarea',
+  'option',
+  'summary',
+  'label',
+  '[contenteditable]:not([contenteditable="false"])',
+  '[role="button"]',
+  '[role="link"]',
+  '[role="checkbox"]',
+  '[role="switch"]',
+  '[role="menuitem"]',
+  '[role="option"]',
+  '[data-snl-interaction-boundary]',
+].join(',')
+
+/** True when a descendant control owns the event before its SNL activation root. */
+function hasOwnedInteractionBoundary(start: HTMLElement, activationRoot: HTMLElement): boolean {
+  let current: HTMLElement | null = start
+  while (current && current !== activationRoot) {
+    if (current.matches(OWNED_INTERACTION_SELECTOR)) return true
+    current = current.parentElement
+  }
+  return false
+}
+
 /** Props for {@link SnlSyntaxTreeView}. */
 export interface SnlSyntaxTreeViewProps {
   /** The (annotated) syntax tree to render. */
@@ -100,7 +129,7 @@ export interface SnlSyntaxTreeViewProps {
   /** Initialization-time switch/replacement/params policy for phases 0/1/2. */
   activation_controller?: SnlActivationDispatcher<SnlHoverPhaseEvent>
   /** Synchronous policy for clearing the current activation. */
-  deactivation_controller?: SnlDeactivationController<any, unknown>
+  deactivation_controller?: SnlDeactivationController<any, any>
   /** Resolver warnings/errors for editor surfaces; rendering remains fail-closed. */
   onDiagnostics?: (diagnostics: readonly SnlDiagnostic[]) => void
 }
@@ -860,10 +889,11 @@ export function SnlSyntaxTreeView({
     return lease
   }
 
-  const updateActivationPhase = (lease: SnlActivationLease, phase: 0 | 1 | 2): void => {
+  const updateActivationPhase = (lease: SnlActivationLease, phase: 0 | 1 | 2): boolean => {
     const current = currentActivationRef.current
-    if (!current || current.snapshot.activation_id !== lease.activation_id) return
+    if (!current || current.snapshot.activation_id !== lease.activation_id) return false
     current.snapshot = Object.freeze({ ...current.snapshot, phase })
+    return true
   }
 
   const resolveInfo = async (
@@ -1083,7 +1113,7 @@ export function SnlSyntaxTreeView({
 
     showTimerRef.current = window.setTimeout(() => {
       activation_controller.dispatch(1, hoverEvent, () => {
-        updateActivationPhase(activation, 1)
+        if (!updateActivationPhase(activation, 1)) return
         const container = containerRef.current
         if (container) applyHoverHighlight(target, container, 1)
         invokeHook(mergedHooks.onHover1s, hoverEvent)
@@ -1096,7 +1126,7 @@ export function SnlSyntaxTreeView({
 
     lockTimerRef.current = window.setTimeout(() => {
       activation_controller.dispatch(2, hoverEvent, () => {
-        updateActivationPhase(activation, 2)
+        if (!updateActivationPhase(activation, 2)) return
         const container = containerRef.current
         if (container) applyHoverHighlight(target, container, 2)
         invokeHook(mergedHooks.onHover2s, hoverEvent)
@@ -1195,7 +1225,8 @@ export function SnlSyntaxTreeView({
     // "has data-name" AND "not sub" so hovering into empty space above a
     // sub node clears the highlight instead of latching onto it.
     const hasName =
-      hit && hit.hasAttribute('data-name') && hit.dataset.kind !== 'sub'
+      hit && hit.hasAttribute('data-name') && hit.dataset.kind !== 'sub' &&
+      (!topmost || !hasOwnedInteractionBoundary(topmost, hit))
         ? hit
         : null
 
@@ -1295,6 +1326,8 @@ export function SnlSyntaxTreeView({
       else clearActivationState()
       return
     }
+    const eventTarget = event.target instanceof HTMLElement ? event.target : null
+    if (eventTarget && hasOwnedInteractionBoundary(eventTarget, el)) return
     dispatchElementActivation(el, event.clientX, event.clientY, {
       ctrl_key: event.ctrlKey,
       meta_key: event.metaKey,
@@ -1309,6 +1342,7 @@ export function SnlSyntaxTreeView({
       ? event.target.closest<HTMLElement>('[data-snl-keyboard-activation="true"]')
       : null
     if (!target || !event.currentTarget.contains(target)) return
+    if (event.target instanceof HTMLElement && hasOwnedInteractionBoundary(event.target, target)) return
     event.preventDefault()
     const rect = target.getBoundingClientRect()
     dispatchElementActivation(target, rect.left + rect.width / 2, rect.top + rect.height / 2, {

@@ -52,7 +52,7 @@ export interface EntrySurfaceProps {
   macro_data_driver: MacroDataDriver
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   interaction_driver?: SnlInteractionDriver
-  deactivation_controller?: SnlDeactivationController<any, unknown>
+  deactivation_controller?: SnlDeactivationController<any, any>
   interaction_ports?: EntryInteractionPorts
   hooks?: SnlRenderHooks
   kind_palette?: KindPalette
@@ -87,7 +87,7 @@ export interface EntryPreviewProviderProps {
   kind_palette?: KindPalette
   options?: HoverPopoverOptions
   dismiss_controller?: HoverPopoverDismissController<any, string>
-  deactivation_controller?: SnlDeactivationController<any, unknown>
+  deactivation_controller?: SnlDeactivationController<any, any>
   className?: string
   style?: React.CSSProperties
 }
@@ -138,7 +138,7 @@ interface SnlEntryBodyProps {
   macro_data_driver: MacroDataDriver
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>
   interaction_driver?: SnlInteractionDriver
-  deactivation_controller?: SnlDeactivationController<any, unknown>
+  deactivation_controller?: SnlDeactivationController<any, any>
   hooks?: SnlRenderHooks
   kind_palette?: KindPalette
 }

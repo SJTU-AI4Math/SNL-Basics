@@ -203,7 +203,11 @@ receives one immutable request for `descendants`, `subtree`,
 `unfrozen-subtree`, or `all`. Requests list targets leaf-first. Both controllers
 offer a synchronous, once-only `runDefault()` capability; asynchronous results
 are error-isolated but cannot retain that capability. Owner unmount cleanup is
-non-cancelable and provider teardown bypasses consumer policy.
+non-cancelable. Provider teardown bypasses request/deactivation policy but flushes
+`on_removed` once per physically removed target. Vetoing `sibling-replaced`
+retains the old sibling while the new pin is still created. Native controls and
+`[data-snl-interaction-boundary]` descendants take pointer/keyboard ownership
+before delegated SNL activation.
 
 ## Customization
 

@@ -35,7 +35,13 @@
   immutable `descendants` / `subtree` / `unfrozen-subtree` / `all` requests.
   Existing behavior is unchanged when the optional controllers are omitted.
   `runDefault()` is valid only during the handler call, owner unmount cleanup is
-  non-cancelable, and provider teardown is never delegated to consumer policy.
+  non-cancelable, and provider teardown bypasses request/deactivation policy
+  while still completing `on_removed` once per removed layer. A vetoed
+  `sibling-replaced` request keeps the old sibling and intentionally allows the
+  new pin to coexist.
+- Delegated SNL activation now yields structurally to native/ARIA controls and
+  `[data-snl-interaction-boundary]` descendants inside custom Blocks; renderers
+  no longer need to rely on bubble-handler ordering for control priority.
 
 ## Package 0.1.4
 

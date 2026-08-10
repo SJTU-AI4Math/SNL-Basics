@@ -43,12 +43,16 @@ export {
   type SnlActivationLease,
   type SnlActivationSnapshot,
   type SnlDeactivationControllerOptions,
+  type SnlDeactivationDispatch,
+  type SnlDeactivationHandler,
   type SnlDeactivationReason,
 } from '../snl-react-view/deactivation-controller'
 export {
   DEFAULT_HOVER_POPOVER_DISMISS_CONTROLLER,
   HoverPopoverDismissController,
   type HoverPopoverDismissControllerOptions,
+  type HoverPopoverDismissDispatch,
+  type HoverPopoverDismissReason,
   type HoverPopoverDismissRequest,
   type HoverPopoverDismissScope,
   type HoverPopoverDismissTarget,

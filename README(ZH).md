@@ -397,10 +397,14 @@ const dismissal = new HoverPopoverDismissController<{ surface: string }, string>
 </EntryPreviewProvider>
 ```
 
-销毁范围为 `descendants`、`subtree`、`unfrozen-subtree` 和 `all`。每个请求提供
-不可变、从叶到根排列的目标快照。`runDefault()` 只能在同步 handler 调用栈内执行一次；
-Promise/thenable 的失败会被隔离，但不能延期持有默认能力。`owner-unmount` 可观察但不可阻止，
-Provider teardown 则强制清理且不会派发 consumer policy。
+销毁范围为 `descendants`、`subtree`、`unfrozen-subtree` 和 `all`。一次请求只携带一个完整、不可变、从叶到根排列的目标快照。`runDefault()` 只能在同步 handler 调用栈内执行一次；
+Promise/thenable 的失败会被隔离，但不能延期持有默认能力。`owner-unmount` 可观察但不可阻止。
+Provider teardown 不派发 request/deactivation policy，强制移除全部层，但每个真实移除目标仍只完成一次
+`on_removed` 通知。若 consumer veto `sibling-replaced`，旧兄弟保留，而新 pin 仍会创建，二者按明确策略共存。
+
+Block 内的原生控件、ARIA 语义控件和 `[data-snl-interaction-boundary]` 会优先拥有 pointer、hover 及
+Enter/Space 交互，SNL delegated activation 在结构边界处直接避让，不依赖子 renderer 恰好调用
+`stopPropagation()`。
 
 ```tsx
 <SnlSyntaxTreeView

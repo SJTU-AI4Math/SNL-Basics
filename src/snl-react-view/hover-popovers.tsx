@@ -289,10 +289,19 @@ export function HoverPopoverProvider<TSubject>({
   const [popovers, setPopovers] = useState<HoverPopover<TSubject>[]>([])
   const popoversRef = useRef(popovers)
   popoversRef.current = popovers
+  const updatePopovers = useCallback((
+    update: (current: HoverPopover<TSubject>[]) => HoverPopover<TSubject>[],
+  ): void => {
+    const next = update(popoversRef.current)
+    popoversRef.current = next
+    setPopovers(next)
+  }, [])
   const elementsRef = useRef(new Map<string, HTMLElement>())
   const timersRef = useRef(new Map<string, TimerBucket>())
   const boundsRef = useRef(new Map<string, ViewportBounds>())
   const removedSnapshotsRef = useRef(new Map<string, HoverPopoverDismissTarget<TSubject>>())
+  const dismissControllerRef = useRef(dismiss_controller)
+  dismissControllerRef.current = dismiss_controller
 
   const clearTimers = useCallback((ids: Iterable<string>) => {
     for (const id of ids) {
@@ -310,14 +319,14 @@ export function HoverPopoverProvider<TSubject>({
       elementsRef.current.delete(id)
       boundsRef.current.delete(id)
     }
-    setPopovers((current) => current.filter((popover) => !ids.has(popover.id)))
+    updatePopovers((current) => current.filter((popover) => !ids.has(popover.id)))
     const removed = [...ids].flatMap((id) => {
       const snapshot = removedSnapshotsRef.current.get(id)
       removedSnapshotsRef.current.delete(id)
       return snapshot ? [snapshot] : []
     })
     if (removed.length > 0) dismiss_controller.notifyRemoved(Object.freeze(removed))
-  }, [clearTimers, dismiss_controller])
+  }, [clearTimers, dismiss_controller, updatePopovers])
 
   const dismissSet = useCallback((doomed: ReadonlySet<string>) => {
     const current = popoversRef.current
@@ -342,8 +351,8 @@ export function HoverPopoverProvider<TSubject>({
       bucket.close = setTimeout(() => removeNow(new Set([id])), fadeMs)
       timersRef.current.set(id, bucket)
     }
-    setPopovers((list) => list.map((p) => fading.has(p.id) ? { ...p, phase: 'closing' } : p))
-  }, [fadeMs, removeNow])
+    updatePopovers((list) => list.map((p) => fading.has(p.id) ? { ...p, phase: 'closing' } : p))
+  }, [fadeMs, removeNow, updatePopovers])
 
   const requestDismiss = useCallback((
     reason: HoverPopoverDismissReason,
@@ -401,7 +410,7 @@ export function HoverPopoverProvider<TSubject>({
       }
       if (scope.kind === 'unfrozen-subtree') {
         const subtree = collectPopoverSubtree(scope.anchor_id, current)
-        setPopovers((list) => list.map((popover) => {
+        updatePopovers((list) => list.map((popover) => {
           if (!subtree.has(popover.id) || doomed.has(popover.id)) return popover
           let parentId = popover.parentId
           while (parentId && doomed.has(parentId)) parentId = byId.get(parentId)?.parentId ?? null
@@ -410,7 +419,7 @@ export function HoverPopoverProvider<TSubject>({
       }
       dismissSet(doomed)
     })
-  }, [dismissSet, dismiss_controller])
+  }, [dismissSet, dismiss_controller, updatePopovers])
 
   const dismissSubtree = useCallback((id: string) => {
     requestDismiss('explicit-api', { kind: 'subtree', anchor_id: id })
@@ -444,7 +453,7 @@ export function HoverPopoverProvider<TSubject>({
       : (isElement ? resolveBounds(origin) : findPopoverBounds(document.body))
     boundsRef.current.set(id, bounds)
     const phase: PopoverPhase = openDelayMs <= 0 ? 'visible' : 'opening'
-    setPopovers((list) => [...list, {
+    updatePopovers((list) => [...list, {
       id,
       subject,
       originRect,
@@ -459,29 +468,29 @@ export function HoverPopoverProvider<TSubject>({
     const bucket: TimerBucket = {}
     if (openDelayMs > 0) {
       bucket.open = setTimeout(() => {
-        setPopovers((list) => list.map((p) => p.id === id ? { ...p, phase: 'visible' } : p))
+        updatePopovers((list) => list.map((p) => p.id === id ? { ...p, phase: 'visible' } : p))
         const current = timersRef.current.get(id)
         if (current) current.open = undefined
       }, openDelayMs)
     }
     if (freezeDelayMs != null) {
       bucket.freeze = setTimeout(() => {
-        setPopovers((list) => list.map((p) => p.id === id ? { ...p, frozen: true } : p))
+        updatePopovers((list) => list.map((p) => p.id === id ? { ...p, frozen: true } : p))
         const current = timersRef.current.get(id)
         if (current) current.freeze = undefined
       }, freezeDelayMs)
     }
     if (bucket.open || bucket.freeze) timersRef.current.set(id, bucket)
     return id
-  }, [freezeDelayMs, offset, openDelayMs, resolveBounds])
+  }, [freezeDelayMs, offset, openDelayMs, resolveBounds, updatePopovers])
 
   const updatePointer = useCallback((id: string, pointerX: number, pointerY: number) => {
-    setPopovers((list) => list.map((p) =>
+    updatePopovers((list) => list.map((p) =>
       p.id === id && !p.frozen && p.phase !== 'closing'
         ? { ...p, x: pointerX + offset, y: pointerY + offset }
         : p,
     ))
-  }, [offset])
+  }, [offset, updatePopovers])
 
   const preview = useCallback((
     subject: TSubject,
@@ -502,13 +511,13 @@ export function HoverPopoverProvider<TSubject>({
     )
     if (!existing) return spawn(subject, origin, pointerX, pointerY, parentId, owner)
     if (owner?.activation && owner.activation !== existing.activation) {
-      setPopovers((list) => list.map((popover) => popover.id === existing.id
+      updatePopovers((list) => list.map((popover) => popover.id === existing.id
         ? { ...popover, activation: owner.activation }
         : popover))
     }
     updatePointer(existing.id, pointerX, pointerY)
     return existing.id
-  }, [spawn, updatePointer])
+  }, [spawn, updatePointer, updatePopovers])
 
   const freeze = useCallback((id: string) => {
     const bucket = timersRef.current.get(id)
@@ -516,10 +525,10 @@ export function HoverPopoverProvider<TSubject>({
       clearTimeout(bucket.freeze)
       bucket.freeze = undefined
     }
-    setPopovers((list) => list.map((p) =>
+    updatePopovers((list) => list.map((p) =>
       p.id === id && p.phase !== 'closing' ? { ...p, frozen: true } : p,
     ))
-  }, [])
+  }, [updatePopovers])
 
   const revealAndFreeze = useCallback((id: string) => {
     const bucket = timersRef.current.get(id)
@@ -532,12 +541,12 @@ export function HoverPopoverProvider<TSubject>({
       bucket.freeze = undefined
     }
     if (bucket && !bucket.open && !bucket.close && !bucket.freeze) timersRef.current.delete(id)
-    setPopovers((list) => list.map((popover) =>
+    updatePopovers((list) => list.map((popover) =>
       popover.id === id && popover.phase !== 'closing'
         ? { ...popover, frozen: true, phase: 'visible' }
         : popover,
     ))
-  }, [])
+  }, [updatePopovers])
 
   const pin = useCallback((
     subject: TSubject,
@@ -558,7 +567,7 @@ export function HoverPopoverProvider<TSubject>({
     )
     if (existing) {
       if (owner?.activation && owner.activation !== existing.activation) {
-        setPopovers((list) => list.map((popover) => popover.id === existing.id
+        updatePopovers((list) => list.map((popover) => popover.id === existing.id
           ? { ...popover, activation: owner.activation }
           : popover))
       }
@@ -574,7 +583,7 @@ export function HoverPopoverProvider<TSubject>({
     const id = spawn(subject, origin, pointerX, pointerY, parentId, owner)
     revealAndFreeze(id)
     return id
-  }, [requestDismiss, revealAndFreeze, spawn, updatePointer])
+  }, [requestDismiss, revealAndFreeze, spawn, updatePointer, updatePopovers])
 
   const cancelUnfrozen = useCallback((id: string, reason: 'explicit-api' | 'owner-unmount' = 'explicit-api') => {
     const target = popoversRef.current.find((p) => p.id === id)
@@ -669,10 +678,23 @@ export function HoverPopoverProvider<TSubject>({
         while (parentId) { value += 1; parentId = byId.get(parentId)?.parentId ?? null }
         return value
       }
-      for (const popover of [...current].sort((a, b) => depth(b) - depth(a))) {
-        try { popover.activation?.request_deactivate('popover-dismiss') }
-        catch { /* forced teardown continues */ }
+      const removed = [...current]
+        .sort((a, b) => depth(b) - depth(a))
+        .map((popover) => removedSnapshotsRef.current.get(popover.id) ?? Object.freeze({
+          id: popover.id,
+          subject: popover.subject,
+          parent_id: popover.parentId,
+          frozen: popover.frozen,
+          phase: popover.phase,
+          activation: popover.activation,
+        }))
+      if (removed.length > 0) {
+        dismissControllerRef.current.notifyRemoved(Object.freeze(removed))
       }
+      removedSnapshotsRef.current.clear()
+      popoversRef.current = []
+      elementsRef.current.clear()
+      boundsRef.current.clear()
       for (const bucket of timers.values()) {
         if (bucket.open) clearTimeout(bucket.open)
         if (bucket.close) clearTimeout(bucket.close)
