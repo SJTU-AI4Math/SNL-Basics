@@ -269,6 +269,11 @@ function PopoverFrame<TSubject>({
   )
 }
 
+function HoverPopoverLifecycleArm({ arm }: { arm: () => void }): null {
+  useLayoutEffect(() => { arm() }, [arm])
+  return null
+}
+
 export function HoverPopoverProvider<TSubject>({
   children,
   renderPopover,
@@ -289,6 +294,7 @@ export function HoverPopoverProvider<TSubject>({
   const [popovers, setPopovers] = useState<HoverPopover<TSubject>[]>([])
   const popoversRef = useRef(popovers)
   const disposedRef = useRef(false)
+  const armProvider = useCallback(() => { disposedRef.current = false }, [])
   const updatePopovers = useCallback((
     update: (current: HoverPopover<TSubject>[]) => HoverPopover<TSubject>[],
   ): void => {
@@ -671,7 +677,6 @@ export function HoverPopoverProvider<TSubject>({
   }, [requestDismiss])
 
   useEffect(() => {
-    disposedRef.current = false
     const timers = timersRef.current
     return () => {
       disposedRef.current = true
@@ -747,6 +752,7 @@ export function HoverPopoverProvider<TSubject>({
 
   return (
     <HoverPopoverContext.Provider value={api as HoverPopoverApi<unknown>}>
+      <HoverPopoverLifecycleArm arm={armProvider} />
       {children}
       {portal}
     </HoverPopoverContext.Provider>

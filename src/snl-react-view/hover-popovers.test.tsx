@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import type { ReactElement } from 'react'
+import { StrictMode, useLayoutEffect, type ReactElement } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   HoverPopoverProvider,
@@ -289,6 +289,34 @@ describe('HoverPopoverProvider', () => {
     expect(removed.sort()).toEqual(['live', 'pending'])
     expect(api!.isAlive(ghostId)).toBe(false)
     origin.remove()
+  })
+
+  it('re-arms the provider before descendant layout effects replay in StrictMode', () => {
+    const observed: Array<{ id: string; alive: boolean }> = []
+
+    function Harness() {
+      const api = useHoverPopovers<string>()
+      useLayoutEffect(() => {
+        const id = api.spawn('layout', document.body, 0, 0, null)
+        observed.push({ id, alive: api.isAlive(id) })
+      }, [api])
+      return null
+    }
+
+    render(
+      <StrictMode>
+        <HoverPopoverProvider<string>
+          renderPopover={(popover) => <span>{popover.subject}</span>}
+          options={{ openDelayMs: 0, fadeMs: 0 }}
+        >
+          <Harness />
+        </HoverPopoverProvider>
+      </StrictMode>,
+    )
+
+    expect(observed).toHaveLength(2)
+    expect(observed.every(({ alive }) => alive)).toBe(true)
+    expect(screen.getAllByText('layout')).toHaveLength(1)
   })
 
   it('forces non-cancelable owner-unmount but does not dispatch on provider teardown', () => {
