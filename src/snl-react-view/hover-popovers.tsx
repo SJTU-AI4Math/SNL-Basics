@@ -21,6 +21,8 @@ import {
   type HoverPopoverDismissTarget,
 } from './popover-dismiss-controller'
 
+const useSsrSafeLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
 export type ViewportBounds = { left: number; top: number; right: number; bottom: number }
 export type PopoverPhase = 'opening' | 'visible' | 'closing'
 
@@ -270,7 +272,7 @@ function PopoverFrame<TSubject>({
 }
 
 function HoverPopoverLifecycleArm({ arm }: { arm: () => void }): null {
-  useLayoutEffect(() => { arm() }, [arm])
+  useSsrSafeLayoutEffect(() => { arm() }, [arm])
   return null
 }
 
