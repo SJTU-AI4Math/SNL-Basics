@@ -327,13 +327,12 @@ export function HoverPopoverProvider<TSubject>({
     if (removed.length > 0) dismiss_controller.notifyRemoved(Object.freeze(removed))
   }, [clearTimers, dismiss_controller, updatePopovers])
 
-  const dismissSet = useCallback((doomed: ReadonlySet<string>) => {
-    const current = popoversRef.current
+  const dismissSet = useCallback((targets: readonly HoverPopoverDismissTarget<TSubject>[]) => {
     const immediate = new Set(
-      current.filter((p) => doomed.has(p.id) && p.phase === 'opening').map((p) => p.id),
+      targets.filter((target) => target.phase === 'opening').map((target) => target.id),
     )
     const fading = new Set(
-      current.filter((p) => doomed.has(p.id) && p.phase === 'visible').map((p) => p.id),
+      targets.filter((target) => target.phase === 'visible').map((target) => target.id),
     )
     if (immediate.size > 0) removeNow(immediate)
     if (fading.size === 0) return
@@ -350,8 +349,7 @@ export function HoverPopoverProvider<TSubject>({
       bucket.close = setTimeout(() => removeNow(new Set([id])), fadeMs)
       timersRef.current.set(id, bucket)
     }
-    updatePopovers((list) => list.map((p) => fading.has(p.id) ? { ...p, phase: 'closing' } : p))
-  }, [fadeMs, removeNow, updatePopovers])
+  }, [fadeMs, removeNow])
 
   const requestDismiss = useCallback((
     reason: HoverPopoverDismissReason,
@@ -402,21 +400,24 @@ export function HoverPopoverProvider<TSubject>({
       cancelable: reason !== 'owner-unmount',
     })
     return dismiss_controller.dispatch(request, () => {
-      for (const target of [...targets].sort((a, b) => depth(byId.get(b.id)!) - depth(byId.get(a.id)!))) {
+      for (const target of targets) removedSnapshotsRef.current.set(target.id, target)
+      const subtree = scope.kind === 'unfrozen-subtree'
+        ? collectPopoverSubtree(scope.anchor_id, current)
+        : null
+      updatePopovers((list) => list.map((popover) => {
+        if (doomed.has(popover.id)) {
+          return popover.phase === 'closing' ? popover : { ...popover, phase: 'closing' }
+        }
+        if (!subtree?.has(popover.id)) return popover
+        let parentId = popover.parentId
+        while (parentId && doomed.has(parentId)) parentId = byId.get(parentId)?.parentId ?? null
+        return parentId === popover.parentId ? popover : { ...popover, parentId }
+      }))
+      for (const target of targets) {
         try { target.activation?.request_deactivate('popover-dismiss', request) }
         catch { /* activation leases are isolated from graph cleanup */ }
-        removedSnapshotsRef.current.set(target.id, target)
       }
-      if (scope.kind === 'unfrozen-subtree') {
-        const subtree = collectPopoverSubtree(scope.anchor_id, current)
-        updatePopovers((list) => list.map((popover) => {
-          if (!subtree.has(popover.id) || doomed.has(popover.id)) return popover
-          let parentId = popover.parentId
-          while (parentId && doomed.has(parentId)) parentId = byId.get(parentId)?.parentId ?? null
-          return parentId === popover.parentId ? popover : { ...popover, parentId }
-        }))
-      }
-      dismissSet(doomed)
+      dismissSet(targets)
     })
   }, [dismissSet, dismiss_controller, updatePopovers])
 
@@ -687,9 +688,6 @@ export function HoverPopoverProvider<TSubject>({
           phase: popover.phase,
           activation: popover.activation,
         }))
-      if (removed.length > 0) {
-        dismissControllerRef.current.notifyRemoved(Object.freeze(removed))
-      }
       removedSnapshotsRef.current.clear()
       popoversRef.current = []
       elementsRef.current.clear()
@@ -700,6 +698,9 @@ export function HoverPopoverProvider<TSubject>({
         if (bucket.freeze) clearTimeout(bucket.freeze)
       }
       timers.clear()
+      if (removed.length > 0) {
+        dismissControllerRef.current.notifyRemoved(Object.freeze(removed))
+      }
     }
   }, [])
 

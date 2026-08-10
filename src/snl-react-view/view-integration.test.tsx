@@ -239,7 +239,7 @@ describe('SnlInteractionDriver integration', () => {
     }
   })
 
-  it('lets native controls inside a Block consume pointer and keyboard interaction before SNL activation', async () => {
+  it('lets native and ARIA controls inside a Block consume pointer and keyboard interaction before SNL activation', async () => {
     const localClicks = vi.fn()
     const snlClicks = vi.fn()
     const snlHovers = vi.fn()
@@ -253,20 +253,32 @@ describe('SnlInteractionDriver integration', () => {
       tree={tree}
       macro_data_driver={testDriver({ 'interactive.block': blockMacro })}
       interaction_driver={new SnlInteractionDriver({ on_click: snlClicks, on_hover: snlHovers })}
-      hooks={{ renderers: { interactive: () => <button type="button" onClick={localClicks}>toggle block</button> } }}
+      hooks={{ renderers: { interactive: () => <>
+        <button type="button" onClick={localClicks}>toggle block<svg data-testid="toggle-icon"><path /></svg></button>
+        <div role="radio" tabIndex={0} data-testid="radio-control">choice</div>
+      </> } }}
     />)
     const button = await waitFor(() => view.getByRole('button', { name: 'toggle block' }))
+    const icon = view.getByTestId('toggle-icon').querySelector('path')!
+    const radio = view.getByTestId('radio-control')
     expect(button.closest('[data-tree-path]')).not.toBeNull()
+    let pointTarget: Element = button
     const original = document.elementsFromPoint
-    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [button] })
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [pointTarget] })
     try {
-      fireEvent.mouseMove(button, { clientX: 1, clientY: 2 })
-      fireEvent.click(button)
+      pointTarget = icon
+      fireEvent.mouseMove(icon, { clientX: 1, clientY: 2 })
+      fireEvent.click(icon)
       expect(localClicks).toHaveBeenCalledOnce()
       expect(snlClicks).not.toHaveBeenCalled()
       expect(snlHovers).not.toHaveBeenCalled()
-      expect(fireEvent.keyDown(button, { key: 'Enter' })).toBe(true)
+      expect(fireEvent.keyDown(icon, { key: 'Enter' })).toBe(true)
+      pointTarget = radio
+      fireEvent.mouseMove(radio, { clientX: 1, clientY: 2 })
+      fireEvent.click(radio)
+      expect(fireEvent.keyDown(radio, { key: 'Enter' })).toBe(true)
       expect(snlClicks).not.toHaveBeenCalled()
+      expect(snlHovers).not.toHaveBeenCalled()
     } finally {
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
     }

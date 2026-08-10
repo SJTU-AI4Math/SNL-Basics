@@ -75,6 +75,13 @@ interface RenderResult {
   reqId: number
 }
 
+const ARIA_WIDGET_ROLES = [
+  'button', 'checkbox', 'combobox', 'grid', 'gridcell', 'link', 'listbox',
+  'menu', 'menubar', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'option',
+  'radio', 'radiogroup', 'scrollbar', 'searchbox', 'slider', 'spinbutton',
+  'switch', 'tab', 'tablist', 'textbox', 'toolbar', 'tree', 'treegrid', 'treeitem',
+] as const
+
 const OWNED_INTERACTION_SELECTOR = [
   'button',
   'a[href]',
@@ -84,19 +91,16 @@ const OWNED_INTERACTION_SELECTOR = [
   'option',
   'summary',
   'label',
+  'audio[controls]',
+  'video[controls]',
   '[contenteditable]:not([contenteditable="false"])',
-  '[role="button"]',
-  '[role="link"]',
-  '[role="checkbox"]',
-  '[role="switch"]',
-  '[role="menuitem"]',
-  '[role="option"]',
+  ...ARIA_WIDGET_ROLES.map((role) => `[role~="${role}"]`),
   '[data-snl-interaction-boundary]',
 ].join(',')
 
 /** True when a descendant control owns the event before its SNL activation root. */
-function hasOwnedInteractionBoundary(start: HTMLElement, activationRoot: HTMLElement): boolean {
-  let current: HTMLElement | null = start
+function hasOwnedInteractionBoundary(start: Element, activationRoot: HTMLElement): boolean {
+  let current: Element | null = start
   while (current && current !== activationRoot) {
     if (current.matches(OWNED_INTERACTION_SELECTOR)) return true
     current = current.parentElement
@@ -1213,12 +1217,13 @@ export function SnlSyntaxTreeView({
     const topmost = document
       .elementsFromPoint(event.clientX, event.clientY)
       .find(
-        (el): el is HTMLElement =>
-          el instanceof HTMLElement && container.contains(el),
+        (el): el is Element =>
+          el instanceof Element && container.contains(el),
       )
+    const hoverStart = topmost instanceof HTMLElement ? topmost : topmost?.parentElement ?? null
 
-    const hit = topmost
-      ? findMinimalHoverRoot(topmost, container)
+    const hit = hoverStart
+      ? findMinimalHoverRoot(hoverStart, container)
       : null
     // findMinimalHoverRoot already skips sub-kind ancestors, but its
     // fallback returns the raw `start` when nothing matches. Guard on both
@@ -1326,7 +1331,7 @@ export function SnlSyntaxTreeView({
       else clearActivationState()
       return
     }
-    const eventTarget = event.target instanceof HTMLElement ? event.target : null
+    const eventTarget = event.target instanceof Element ? event.target : null
     if (eventTarget && hasOwnedInteractionBoundary(eventTarget, el)) return
     dispatchElementActivation(el, event.clientX, event.clientY, {
       ctrl_key: event.ctrlKey,
@@ -1338,11 +1343,11 @@ export function SnlSyntaxTreeView({
 
   const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return
-    const target = event.target instanceof HTMLElement
+    const target = event.target instanceof Element
       ? event.target.closest<HTMLElement>('[data-snl-keyboard-activation="true"]')
       : null
     if (!target || !event.currentTarget.contains(target)) return
-    if (event.target instanceof HTMLElement && hasOwnedInteractionBoundary(event.target, target)) return
+    if (event.target instanceof Element && hasOwnedInteractionBoundary(event.target, target)) return
     event.preventDefault()
     const rect = target.getBoundingClientRect()
     dispatchElementActivation(target, rect.left + rect.width / 2, rect.top + rect.height / 2, {
