@@ -803,7 +803,7 @@ export function SnlSyntaxTreeView({
     hoverMarkedElsRef.current = []
   }
 
-  const clearActivationState = (): void => {
+  const clearActivationState = (preserveHiddenTooltip = false): void => {
     interactionGenerationRef.current += 1
     infoRequestRef.current = null
     hoverSessionRef.current = null
@@ -811,7 +811,9 @@ export function SnlSyntaxTreeView({
     clearHoverMarks()
     setHasHoverTarget(false)
     setHoverKey('')
-    setTooltip(null)
+    setTooltip((previous) => preserveHiddenTooltip && previous
+      ? { ...previous, visible: false }
+      : null)
   }
 
   const createActivation = (
@@ -835,7 +837,13 @@ export function SnlSyntaxTreeView({
           const latest = currentActivationRef.current
           if (!latest || latest.snapshot.activation_id !== activationId) return
           currentActivationRef.current = null
-          clearActivationState()
+          const causeType = cause && typeof cause === 'object' && 'type' in cause
+            ? String((cause as { type?: unknown }).type ?? '')
+            : ''
+          clearActivationState(
+            reason === 'pointer-leave' ||
+            (reason === 'blank-activation' && causeType === 'mousemove'),
+          )
         })
       },
     })
@@ -1194,7 +1202,7 @@ export function SnlSyntaxTreeView({
     if (!hasName) {
       const active = currentActivationRef.current
       if (active) active.lease.request_deactivate('blank-activation', event.nativeEvent)
-      else clearActivationState()
+      else clearActivationState(true)
       return
     }
 
@@ -1217,7 +1225,7 @@ export function SnlSyntaxTreeView({
     if (tooltip?.locked) return
     const active = currentActivationRef.current
     if (active) active.lease.request_deactivate('pointer-leave')
-    else clearActivationState()
+    else clearActivationState(true)
   }
 
   useEffect(() => {

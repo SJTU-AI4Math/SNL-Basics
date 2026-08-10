@@ -212,6 +212,33 @@ describe('SnlInteractionDriver integration', () => {
     }
   })
 
+  it('preserves the legacy hidden tooltip snapshot on pointer-leave and clears it on blank click', async () => {
+    const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x')] })
+    const view = render(<SnlSyntaxTreeView
+      tree={tree}
+      macro_data_driver={driver}
+      hooks={{ renderTooltip: (state) => <span data-testid="tooltip-state">{state.visible ? 'visible' : 'hidden'}</span> }}
+    />)
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const surface = view.container.querySelector<HTMLElement>('.katex-html')!
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [target] })
+    try {
+      fireEvent.mouseMove(target, { clientX: 1, clientY: 2 })
+      await waitFor(() => expect(view.getByTestId('tooltip-state').textContent).toBe('hidden'))
+      fireEvent.mouseLeave(surface)
+      expect(view.getByTestId('tooltip-state').textContent).toBe('hidden')
+      fireEvent.click(surface)
+      expect(view.queryByTestId('tooltip-state')).toBeNull()
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
   it('allows an initialized activation controller to replace phase 0 with custom params', async () => {
     const replacement = vi.fn()
     const onHover = vi.fn()
