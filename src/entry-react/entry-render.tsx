@@ -198,8 +198,9 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
   }
   const bodySurface = contentError ? 'error' : surface(content)
   const html = useMemo(() => titleHtml(entry.title ?? ''), [entry.title])
+  const colorScheme = props.entry_data_driver.read_context().color_scheme
   const entryColors = kind?.coloring
-    ? resolveKindColoring(kind.coloring, props.entry_data_driver.read_context().color_scheme)
+    ? resolveKindColoring(kind.coloring, colorScheme)
     : undefined
   const stroke = resolveEntryStroke(entryColors?.stroke)
   const background = resolveEntryBackground(entryColors?.background)
@@ -261,7 +262,11 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
       ? interaction_ports?.on_block_ctrl_hover?.(context)
       : interaction_ports?.on_block_hover?.(context))
   }, [blockHovered, ctrlPressed, entry, interaction_ports, kind])
-  const interactiveBackground = blockHovered ? (ctrlPressed ? '#f3f4f6' : '#ffffff') : background
+  const interactiveBackground = blockHovered
+    ? colorScheme === 'dark'
+      ? (ctrlPressed ? '#374151' : '#1f2937')
+      : (ctrlPressed ? '#f3f4f6' : '#ffffff')
+    : background
   return <section
     data-entry-id={entry.id}
     className={props.className}
@@ -298,7 +303,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     </header>
     {bodySurface !== 'none' ? <>
       <div style={{ borderTop: `0.5px solid ${stroke}`, margin: '4px 10px' }} />
-      <div data-entry-body={bodySurface} style={{ padding: '0.9rem', fontSize: '1.05rem', color: background === 'transparent' ? undefined : '#111' }}>
+      <div data-entry-body={bodySurface} style={{ padding: '0.9rem', fontSize: '1.05rem', color: colorScheme === 'dark' ? '#f5f5f5' : background === 'transparent' ? undefined : '#111' }}>
         {bodySurface === 'error' ? <div role="alert" className="snl-entry-error">Entry content localization error: {contentError}</div> : null}
         {bodySurface === 'snl' ? <SnlEntryBody source={content.snl!} entry_data_driver={props.entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={effectiveInteractionDriver} deactivation_controller={deactivation_controller} hooks={hooks} kind_palette={kind_palette} /> : null}
         {bodySurface === 'markdown' ? <MarkdownBody source={content.markdown!} image_url_transform={props.markdown_image_url_transform} /> : null}

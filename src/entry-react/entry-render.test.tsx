@@ -156,6 +156,43 @@ describe('Entry surface dispatch', () => {
     expect(style).toContain('rgb(18, 52, 86)')
   })
 
+  it('uses light body text in a dark Entry render context', () => {
+    const driver = new EntryDataDriver({
+      queries: { query_entry: async () => null, query_entry_kind: async () => null },
+      context_reader: () => ({ color_scheme: 'dark' }),
+    })
+    const kind = { id: 'definition', name: 'Definition', coloring: {
+      light: { stroke: '#111111', background: '#eeeeee' },
+      dark: { stroke: '#abcdef', background: '#123456' },
+    } }
+    const view = render(<EntrySurface entry={base({ text: 'dark body' })} kind={kind} entry_data_driver={driver} macro_data_driver={macroDriver} />)
+    const body = view.container.querySelector<HTMLElement>('[data-entry-body="text"]')!
+    expect(body.style.color).toBe('rgb(245, 245, 245)')
+  })
+
+  it('keeps dark Entry hover and Ctrl-hover backgrounds dark', () => {
+    const driver = new EntryDataDriver({
+      queries: { query_entry: async () => null, query_entry_kind: async () => null },
+      context_reader: () => ({ color_scheme: 'dark' }),
+    })
+    const kind = { id: 'definition', name: 'Definition', coloring: {
+      light: { stroke: '#111111', background: '#eeeeee' },
+      dark: { stroke: '#abcdef', background: '#123456' },
+    } }
+    const view = render(<EntrySurface entry={base({ text: 'dark body' })} kind={kind} entry_data_driver={driver} macro_data_driver={macroDriver} />)
+    const section = view.container.querySelector<HTMLElement>('section')!
+
+    expect(section.style.background).toBe('rgb(18, 52, 86)')
+    fireEvent.pointerEnter(section)
+    expect(section.style.background).toBe('rgb(31, 41, 55)')
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true })
+    expect(section.style.background).toBe('rgb(55, 65, 81)')
+    fireEvent.keyUp(window, { key: 'Control' })
+    expect(section.style.background).toBe('rgb(31, 41, 55)')
+    fireEvent.pointerLeave(section)
+    expect(section.style.background).toBe('rgb(18, 52, 86)')
+  })
+
   it('accepts legacy flat Entry Kind colors in every render context', () => {
     const driver = new EntryDataDriver({
       queries: { query_entry: async () => null, query_entry_kind: async () => null },
