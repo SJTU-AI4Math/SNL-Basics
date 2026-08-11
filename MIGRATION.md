@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-01
 
-## Package 0.3.0
+## Package 0.2.1
 
 - Macro schema 11 moves every render field into one complete TemplateSpec at
   `style.template`. The template may be invariant or localized as a whole;
@@ -137,7 +137,7 @@ automatic wrapping.
   `\htmlData{name=<macro>,kind=<node.kind>[,bindRef=<ref>][,tree-path=<path>]}{…}`.
 
 This is a schema break — the migrated DB is not compatible with library
-versions `< 0.3.0`.
+versions `< 0.2.1`.
 
 ## Schema v7 + Tree v2 (0.10.0, 2026-07-18)
 

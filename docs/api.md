@@ -1,6 +1,6 @@
 # `@sjtu-ai4math/snl-basics` — Public API Reference
 
-Current beta surface for v0.3.0. Import from the package root:
+Current beta surface for v0.2.1. Import from the package root:
 
 ```ts
 import { MacroDataDriver, SnlSyntaxTreeView } from '@sjtu-ai4math/snl-basics'

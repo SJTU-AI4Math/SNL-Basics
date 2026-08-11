@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.3.0 · MIT License · Beta** — [中文版 README](README(ZH).md)
+**v0.2.1 · MIT License · Beta** — [中文版 README](README(ZH).md)
 
 Structured Natural Language (SNL) base library — parse a macro DSL into syntax
 trees and render them to KaTeX-in-React with hover interactions.
@@ -606,5 +606,5 @@ npm pack            # produce the publishable tarball
 
 ## Version & License
 
-- **Version:** `0.3.0` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
+- **Version:** `0.2.1` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
 - **License:** [MIT](LICENSE)
