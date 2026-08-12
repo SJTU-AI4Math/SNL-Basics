@@ -51,6 +51,19 @@ const legacyEntryKind: EntryKind = {
   name: 'Definition',
   coloring: { stroke: '#123456' },
 };
+const localizedEntryKind: EntryKind = {
+  id: 'theorem',
+  name: {
+    type: 'i18n',
+    default_language: 'en',
+    values: { en: 'Theorem', 'zh-CN': '定理' },
+  },
+  description: {
+    type: 'i18n',
+    default_language: 'en',
+    values: { en: 'A proved result.', 'zh-CN': '已经证明的结果。' },
+  },
+};
 const malformedHybridEntryKind: EntryKind = {
   id: 'hybrid',
   name: 'Hybrid',
@@ -97,6 +110,7 @@ void [
   isMacroDocumentV11,
   legacyMacro,
   legacyEntryKind,
+  localizedEntryKind,
   malformedHybridEntryKind,
   incompleteThemeEntryKind,
   viewControllers,

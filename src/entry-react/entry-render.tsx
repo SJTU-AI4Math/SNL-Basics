@@ -23,6 +23,7 @@ import { LatexBody } from './latex-body'
 import {
   EntryDataDriver,
   resolve_entry_content,
+  resolve_entry_kind_name,
   type EntryData,
   type EntryKind,
   type ResolvedEntryContent,
@@ -204,7 +205,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     : undefined
   const stroke = resolveEntryStroke(entryColors?.stroke)
   const background = resolveEntryBackground(entryColors?.background)
-  const kindName = kind?.name || entry.kind
+  const kindName = kind ? resolve_entry_kind_name(kind, reader_runtime) || entry.kind : entry.kind
   const preview = React.useContext(EntryPreviewContext)
   const ownedPreviewIds = useRef(new Set<string>())
   useEffect(() => () => {

@@ -73,10 +73,80 @@ export interface EntryData {
 
 export interface EntryKind {
   id: string
-  name: string
+  name: Localized<string, string>
+  description?: Localized<string, string>
   coloring?: CompatibleKindColoring
   numbering?: string
   style?: string
+}
+
+export interface ResolvedEntryKind extends Omit<EntryKind, 'name' | 'description'> {
+  name: string
+  description?: string
+}
+
+function read_entry_kind_label(
+  value: Localized<string, string>,
+): ReaderM<LanguageEnvironment<string>, string> {
+  if (is_i18n(value) && !has_entry_kind_label_value(value)) return () => ''
+  return read_localized(value)
+}
+
+function has_entry_kind_label_value(
+  value: Extract<Localized<string, string>, { type: 'i18n' }>,
+): boolean {
+  return Object.values(value.values).some((projection) => projection !== undefined)
+}
+
+/** Resolve authored Entry Kind labels only at a display boundary. */
+export function read_entry_kind(
+  kind: EntryKind,
+): ReaderM<LanguageEnvironment<string>, ResolvedEntryKind> {
+  return (environment) => {
+    const { name, description, ...rest } = kind
+    return {
+      ...rest,
+      name: read_entry_kind_label(name)(environment),
+      ...(description === undefined
+        ? {}
+        : { description: read_entry_kind_label(description)(environment) }),
+    }
+  }
+}
+
+export function resolve_entry_kind(
+  kind: EntryKind,
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
+): ResolvedEntryKind {
+  const localized = is_i18n(kind.name) ||
+    (kind.description !== undefined && is_i18n(kind.description))
+  if (!localized) {
+    const { name, description, ...rest } = kind
+    return {
+      ...rest,
+      name: name as string,
+      ...(description === undefined ? {} : { description: description as string }),
+    }
+  }
+  const needs_environment = (is_i18n(kind.name) && has_entry_kind_label_value(kind.name)) ||
+    (kind.description !== undefined && is_i18n(kind.description) &&
+      has_entry_kind_label_value(kind.description))
+  if (needs_environment && !reader_runtime) {
+    throw new Error('localized Entry Kind labels require reader_runtime')
+  }
+  if (reader_runtime) return reader_runtime.run_reader(read_entry_kind(kind))
+  return read_entry_kind(kind)({ language: '' })
+}
+
+/** Resolve only the displayed name, so an unused localized description cannot block rendering. */
+export function resolve_entry_kind_name(
+  kind: EntryKind,
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
+): string {
+  if (!is_i18n(kind.name)) return kind.name
+  if (!has_entry_kind_label_value(kind.name)) return ''
+  if (!reader_runtime) throw new Error('localized Entry Kind names require reader_runtime')
+  return reader_runtime.run_reader(read_localized(kind.name))
 }
 
 export interface EntrySummary {

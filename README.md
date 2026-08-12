@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.2.1 · MIT License · Beta** — [中文版 README](README(ZH).md)
+**v0.2.2 · MIT License · Beta** — [中文版 README](README(ZH).md)
 
 Structured Natural Language (SNL) base library — parse a macro DSL into syntax
 trees and render them to KaTeX-in-React with hover interactions.
@@ -211,6 +211,11 @@ The renderer selects nonblank SNL, Markdown, LaTeX, or text in that order,
 handles empty/error cards and title math, queries context-bound sources, and
 supports recursive macro-source previews. Storage, pointers, and host actions
 remain injected adapters. See [Generic Entry rendering](docs/entry-rendering.md).
+
+`EntryKind.name` and optional `EntryKind.description` accept either a legacy
+string or the shared `Localized<string, string>` I18n envelope. The driver keeps
+the raw map; `EntrySurface` resolves the displayed Kind name through its supplied
+`ReaderRuntime`, so a parent rerender observes the current content language.
 
 ### KaTeX options — command-scoped trust policy
 
@@ -606,5 +611,5 @@ npm pack            # produce the publishable tarball
 
 ## Version & License
 
-- **Version:** `0.2.1` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
+- **Version:** `0.2.2` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
 - **License:** [MIT](LICENSE)

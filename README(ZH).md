@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.2.1 · MIT License · Beta** — [English README](README.md)
+**v0.2.2 · MIT License · Beta** — [English README](README.md)
 
 结构化自然语言（Structured Natural Language, SNL）基础库 —— 将宏 DSL 解析为语法树，
 并渲染为带悬停交互的 KaTeX-in-React。
@@ -173,6 +173,11 @@ const driver = new MacroDataDriver({
 
 完整的 Entry 卡片仅通过可 tree-shake 的 `@sjtu-ai4math/snl-basics/entry` 子路径提供。
 包根不会引入它的 Markdown 依赖。
+
+`EntryKind.name` 与可选的 `EntryKind.description` 同时接受旧式字符串和共享的
+`Localized<string, string>` I18n 结构。Driver 保留完整语言映射；`EntrySurface`
+通过传入的 `ReaderRuntime` 解析实际显示的 Kind 名称，因此父组件重渲染时会读取
+当前内容语言。
 
 ```tsx
 import { EntryDataDriver, EntryPreviewProvider, EntryView } from '@sjtu-ai4math/snl-basics/entry'
@@ -536,5 +541,5 @@ npm pack            # 产出可发布的 tarball
 
 ## 版本与许可证
 
-- **版本：** `0.2.1`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
+- **版本：** `0.2.2`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
 - **许可证：** [MIT](LICENSE)

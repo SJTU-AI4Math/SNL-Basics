@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { ReaderRuntime, type I18n } from '../runtime'
-import { EntryDataDriver, type EntryData } from './entry-data-driver'
+import { EntryDataDriver, type EntryData, type EntryKind } from './entry-data-driver'
 import { EntrySurface, EntryView, EntryPreviewProvider, titleToKatexSource } from './entry-render'
 import { HoverPopoverDismissController, type HoverPopoverDismissRequest } from '../snl-react-view/popover-dismiss-controller'
 
@@ -28,6 +28,104 @@ describe('Entry surface dispatch', () => {
     })
     const view = render(<EntrySurface entry={base({ markdown })} kind={null} entry_data_driver={dataDriver()} macro_data_driver={macroDriver} reader_runtime={runtime} />)
     expect(view.container.querySelector('.snl-markdown-body strong')?.textContent).toBe('群')
+  })
+
+  it('resolves an Entry Kind localized name through the live Reader runtime', () => {
+    let language = 'zh-CN'
+    const runtime = new ReaderRuntime({
+      queries: { query_environment: () => ({ language }) },
+    })
+    const kind: EntryKind = {
+      id: 'definition',
+      name: {
+        type: 'i18n',
+        default_language: 'en',
+        values: { en: 'Definition', 'zh-CN': '定义' },
+      },
+      description: {
+        type: 'i18n',
+        default_language: 'en',
+        values: { en: 'Introduces a term.', 'zh-CN': '引入一个术语。' },
+      },
+    }
+    const props = {
+      entry: base({ text: 'body' }), kind,
+      entry_data_driver: dataDriver(), macro_data_driver: macroDriver,
+      reader_runtime: runtime,
+    }
+    const view = render(<EntrySurface {...props} />)
+    expect(view.container.textContent).toContain('定义')
+    expect(view.container.textContent).not.toContain('Definition')
+
+    language = 'en'
+    view.rerender(<EntrySurface {...props} />)
+    expect(view.container.textContent).toContain('Definition')
+    expect(view.container.textContent).not.toContain('定义')
+  })
+
+  it('does not consult ReaderRuntime for legacy scalar Kind labels', () => {
+    const runtime = new ReaderRuntime({
+      queries: { query_environment: () => { throw new Error('environment unavailable') } },
+    })
+    const view = render(<EntrySurface
+      entry={base({ text: 'body' })}
+      kind={{ id: 'definition', name: 'Definition', description: 'A term.' }}
+      entry_data_driver={dataDriver()}
+      macro_data_driver={macroDriver}
+      reader_runtime={runtime}
+    />)
+    expect(view.container.textContent).toContain('Definition')
+  })
+
+  it('does not resolve an unused localized description while rendering a scalar Kind name', () => {
+    const view = render(<EntrySurface
+      entry={base({ text: 'body' })}
+      kind={{
+        id: 'definition',
+        name: 'Definition',
+        description: {
+          type: 'i18n', default_language: 'en',
+          values: { en: 'A term.', 'zh-CN': '一个术语。' },
+        },
+      }}
+      entry_data_driver={dataDriver()}
+      macro_data_driver={macroDriver}
+    />)
+    expect(view.container.textContent).toContain('Definition')
+  })
+
+  it('falls back to the semantic Kind id for an empty localized name map', () => {
+    const runtime = new ReaderRuntime({
+      queries: { query_environment: () => ({ language: 'en' }) },
+    })
+    const view = render(<EntrySurface
+      entry={base({ text: 'body' })}
+      kind={{
+        id: 'definition',
+        name: { type: 'i18n', default_language: 'en', values: {} },
+      }}
+      entry_data_driver={dataDriver()}
+      macro_data_driver={macroDriver}
+      reader_runtime={runtime}
+    />)
+    expect(view.container.textContent).toContain('definition')
+  })
+
+  it('falls back to the semantic Kind id when a localized name map has only undefined values', () => {
+    const runtime = new ReaderRuntime({
+      queries: { query_environment: () => ({ language: 'en' }) },
+    })
+    const view = render(<EntrySurface
+      entry={base({ text: 'body' })}
+      kind={{
+        id: 'definition',
+        name: { type: 'i18n', default_language: 'en', values: { en: undefined } },
+      }}
+      entry_data_driver={dataDriver()}
+      macro_data_driver={macroDriver}
+      reader_runtime={runtime}
+    />)
+    expect(view.container.textContent).toContain('definition')
   })
 
   it('rewrites Markdown image sources through the consumer image resolver', () => {

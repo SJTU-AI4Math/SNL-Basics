@@ -2,6 +2,14 @@
 
 **Date:** 2026-07-01
 
+## Package 0.2.2
+
+- `EntryKind.name` and optional `EntryKind.description` now accept the shared
+  scalar-or-I18n `Localized<string, string>` contract. Entry rendering resolves
+  the authored label through the supplied live `ReaderRuntime`; query drivers
+  and caches retain the complete raw locale map.
+- Legacy scalar Entry Kind labels remain source- and runtime-compatible.
+
 ## Package 0.2.1
 
 - Macro schema 11 moves every render field into one complete TemplateSpec at
