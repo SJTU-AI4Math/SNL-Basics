@@ -70,6 +70,21 @@ describe('applySnlHoverHighlight', () => {
     expect(byId('t').classList.contains(SNL_HOVER_CLASS.singleHover)).toBe(true)
   })
 
+  it('marks every DOM fragment of one alignment-split semantic node', () => {
+    const container = mount(`
+      <span id="row-left" data-kind="const" data-name="matrix.row" data-tree-path="0">a</span>
+      <span aria-hidden="true">&amp;</span>
+      <span id="row-right" data-kind="const" data-name="matrix.row" data-tree-path="0">b</span>
+      <span id="other-row" data-kind="const" data-name="matrix.row" data-tree-path="1">c</span>
+    `)
+
+    applySnlHoverHighlight(byId('row-left'), container)
+
+    expect(byId('row-left').classList.contains(SNL_HOVER_CLASS.singleHover)).toBe(true)
+    expect(byId('row-right').classList.contains(SNL_HOVER_CLASS.singleHover)).toBe(true)
+    expect(byId('other-row').classList.contains(SNL_HOVER_CLASS.singleHover)).toBe(false)
+  })
+
   it('lights up only the hovered bvar\'s own binding scope', () => {
     const container = mount(TWO_SCOPES)
     applySnlHoverHighlight(byId('bvar1'), container)

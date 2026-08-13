@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, render, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
 import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
 import type { SnlMacro, SnlMacroRecord } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { testDriver } from '../snl-react-view/test-helpers'
+import { SNL_HOVER_CLASS } from './hover-apply'
 
 function mathMacro(
   name: string,
@@ -186,6 +187,40 @@ describe('variadic pmatrix / matrix.row', () => {
     })
     // a & b for the first row, rows separated by \\
     expect(latex).toMatch(/a[\s\S]*&[\s\S]*b[\s\S]*\\\\[\s\S]*c[\s\S]*&[\s\S]*d/)
+  })
+
+  it('activates every rendered fragment of one cross-column macro', async () => {
+    const tree = createSnlSyntaxTreeNode('pmatrix', {
+      children: [row('a', 'b'), row('c', 'd')],
+    })
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
+    await waitFor(() => expect(view.container.querySelector('.mtable')).not.toBeNull())
+    const fragments = Array.from(view.container.querySelectorAll<HTMLElement>(
+      '[data-name="matrix.row"][data-tree-path="0"]',
+    ))
+    expect(fragments).toHaveLength(2)
+    const container = view.container.querySelector<HTMLElement>('.katex-html')!
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', {
+      configurable: true,
+      value: () => [fragments[0]],
+    })
+    try {
+      fireEvent.mouseMove(fragments[0], { clientX: 1, clientY: 1 })
+      expect(fragments.every((fragment) => (
+        fragment.classList.contains(SNL_HOVER_CLASS.singleHover)
+      ))).toBe(true)
+      expect(view.container.querySelector<HTMLElement>(
+        '[data-name="matrix.row"][data-tree-path="1"]',
+      )?.classList.contains(SNL_HOVER_CLASS.singleHover)).toBe(false)
+
+      fireEvent.mouseLeave(container)
+      expect(fragments.some((fragment) => (
+        fragment.classList.contains(SNL_HOVER_CLASS.singleHover)
+      ))).toBe(false)
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
   })
 
   it('preserves root and alignment-node metadata with registered-Macro const fallback', async () => {

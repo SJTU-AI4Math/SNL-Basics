@@ -1185,6 +1185,7 @@ export function SnlSyntaxTreeView({
     })
     const touched = new Set<HTMLElement>()
     if (set.singleHover) touched.add(set.singleHover)
+    for (const el of set.singleHoverFragments ?? []) touched.add(el)
     for (const el of set.bvarScope) touched.add(el)
     for (const el of set.binderDecl) touched.add(el)
     hoverMarkedElsRef.current = [...touched]

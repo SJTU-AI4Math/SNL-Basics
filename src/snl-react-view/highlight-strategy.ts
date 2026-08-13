@@ -20,13 +20,19 @@ import {
  *   singleHover → `.snl-single-hover`, bvarScope → `.snl-bvar-scope`,
  *   binderDecl → `.snl-binder-decl`.
  *
- * `singleHover` is the element directly under the pointer (the minimal hover
- * root); CSS colors all TEXT inside it via inheritance, so nested subtrees no
- * longer need their own bulk-highlight classes.
+ * `singleHover` is the primary element directly under the pointer (the minimal
+ * hover root). `singleHoverFragments` carries sibling wrappers with the same
+ * global tree path when TeX alignment boundaries split one semantic node.
  */
 export interface SnlHighlightSet {
-  /** Gets `.snl-single-hover` — the one element directly under the pointer. */
+  /** Gets `.snl-single-hover` — the primary element directly under the pointer. */
   singleHover: HTMLElement | null
+  /**
+   * All DOM fragments that render the same semantic node. Alignment macros
+   * cannot cross TeX `&` / `\\` boundaries, so one tree path may be emitted as
+   * several sibling wrappers even though it is one activation target.
+   */
+  singleHoverFragments?: HTMLElement[]
   /** Gets `.snl-bvar-scope` — bound-variable occurrences in scope. */
   bvarScope: HTMLElement[]
   /** Gets `.snl-binder-decl` — binder declaration sites. */
@@ -56,9 +62,9 @@ export interface SnlHighlightStrategy {
 
 /**
  * Default highlight policy. Colour is scoped by subtree:
- * `singleHover` (the element under the pointer) gets `.snl-single-hover`, and
- * CSS turns all TEXT inside it a highlight colour via inheritance — a deeper
- * subtree wins when it becomes the pointer target. Binder/bvar hovers also
+ * `singleHover` (the element under the pointer) and every same-tree-path DOM
+ * fragment get `.snl-single-hover`; CSS turns all text inside them a highlight
+ * colour via inheritance. Binder/bvar hovers also
  * light up the whole binding scope (`.snl-bvar-scope` / `.snl-binder-decl`),
  * the one interaction that spans siblings rather than nested ancestors.
  */
@@ -69,9 +75,16 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
 
     const bvarScope: HTMLElement[] = []
     const binderDecl: HTMLElement[] = []
-    // The pointer target IS the minimal hover root (resolved by the view); its
-    // text colours via inheritance, so no bulk `hovered` set is needed.
+    // The pointer target IS the minimal hover root. Alignment-safe metadata
+    // emission may split that semantic node into sibling DOM wrappers, all of
+    // which share one global tree path and therefore one activation highlight.
     const singleHover: HTMLElement | null = target
+    const treePath = target.dataset.treePath
+    const singleHoverFragments = treePath === undefined
+      ? [target]
+      : Array.from(container.querySelectorAll<HTMLElement>('[data-tree-path]')).filter(
+        (candidate) => candidate.dataset.treePath === treePath,
+      )
 
     if (phase >= 1 && (kind === 'bvar' || kind === 'binder') && sourceKey) {
       const cachedEntry = bvarScopeIndex.get(sourceKey)
@@ -101,6 +114,6 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
       if (kind === 'binder' || phase >= 2) bvarScope.push(...bvars)
     }
 
-    return { singleHover, bvarScope, binderDecl }
+    return { singleHover, singleHoverFragments, bvarScope, binderDecl }
   },
 }

@@ -60,7 +60,8 @@ export interface ApplySnlHoverHighlightOptions {
 }
 
 /**
- * Clear existing marks, compute the highlight set for `target`, apply it.
+ * Clear existing marks, compute the highlight set for `target`, and apply it to
+ * every rendered fragment of that semantic node.
  *
  * Also captures the container's computed text colour into
  * {@link SNL_BASE_TEXT_COLOR_VAR} BEFORE marking. The stylesheet uses it to
@@ -88,8 +89,10 @@ export function applySnlHoverHighlight(
   const index = options.bvarScopeIndex ?? buildBvarScopeIndex(container)
   const set = strategy.computeHighlightSet(target, container, index, options.phase)
 
-  if (set.singleHover) {
-    set.singleHover.classList.add(SNL_HOVER_CLASS.singleHover)
+  const singleHoverFragments = set.singleHoverFragments
+    ?? (set.singleHover ? [set.singleHover] : [])
+  for (const fragment of singleHoverFragments) {
+    fragment.classList.add(SNL_HOVER_CLASS.singleHover)
   }
   for (const el of set.bvarScope) {
     el.classList.add(SNL_HOVER_CLASS.bvarScope)

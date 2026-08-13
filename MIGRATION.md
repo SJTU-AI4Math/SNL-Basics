@@ -2,6 +2,13 @@
 
 **Date:** 2026-07-01
 
+## Package 0.2.3
+
+- Activation highlighting now follows one semantic tree path across every DOM
+  fragment emitted around top-level TeX alignment boundaries (`&` and `\\`).
+  Cross-column and cross-row macros therefore highlight as one block without
+  placing invalid `\htmlData` wrappers across KaTeX alignment separators.
+
 ## Package 0.2.2
 
 - `EntryKind.name` and optional `EntryKind.description` now accept the shared
