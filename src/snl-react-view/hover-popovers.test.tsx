@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { StrictMode, useLayoutEffect, type ReactElement } from 'react'
+import { StrictMode, useEffect, useLayoutEffect, useState, type ReactElement } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   HoverPopoverProvider,
@@ -98,6 +98,15 @@ function ChildPinHarness(): ReactElement {
 function ApiObserver({ onValue }: { onValue(api: ReturnType<typeof useHoverPopovers<string>>): void }): null {
   onValue(useHoverPopovers<string>())
   return null
+}
+
+function SettlingPopover(): ReactElement {
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(true), 0)
+    return () => clearTimeout(timer)
+  }, [])
+  return <span data-settled={settled ? 'true' : 'false'}>{settled ? 'settled' : 'loading'}</span>
 }
 
 describe('HoverPopoverProvider', () => {
@@ -399,6 +408,48 @@ describe('HoverPopoverProvider', () => {
     expect(pinned.originElement).toBe(origin)
     expect(pinned.originRect).toBe(preview.originRect)
     expect(pinned.frozen).toBe(true)
+  })
+
+  it('preserves settled placement when pinning a fresh equivalent descriptor', () => {
+    vi.useFakeTimers()
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 700 })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    const rectSpy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      if (this.hasAttribute('data-popover-id')) {
+        const settled = this.querySelector('[data-settled="true"]') !== null
+        return new DOMRect(0, 0, settled ? 224 : 304, 120)
+      }
+      return new DOMRect(64, 180, 24, 20)
+    })
+    render(
+      <HoverPopoverProvider<string>
+        renderPopover={() => <SettlingPopover />}
+        options={{ openDelayMs: 0, fadeMs: 0, offset: 12, viewportMargin: 8 }}
+      >
+        <ApiObserver onValue={(value) => { api = value }} />
+      </HoverPopoverProvider>,
+    )
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let id = ''
+    act(() => { id = api!.preview('entry-a', { element: origin, bounds: 'viewport' }, 76, 200, null) })
+    const frame = document.querySelector(`[data-popover-id="${id}"]`) as HTMLElement
+    expect(frame.style.left).toBe('8px')
+
+    act(() => vi.runOnlyPendingTimers())
+    expect(screen.getByText('settled')).toBeTruthy()
+    expect(frame.style.left).toBe('8px')
+
+    act(() => {
+      expect(api!.pin('entry-a', { element: origin, bounds: 'viewport' }, 76, 200, null)).toBe(id)
+    })
+    const frozen = frame.dataset.frozen
+    const pinnedLeft = frame.style.left
+    rectSpy.mockRestore()
+    origin.remove()
+    expect(frozen).toBe('true')
+    expect(pinnedLeft).toBe('8px')
   })
 
   it('promotes a nested descriptor preview in place and preserves its parent', () => {

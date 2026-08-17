@@ -54,7 +54,7 @@ async function waitFor(check, label) {
 }
 
 async function runViewport(cdp, width) {
-  await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: 600, deviceScaleFactor: 1, mobile: false })
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: 700, deviceScaleFactor: 1, mobile: false })
   await cdp.send('Page.navigate', { url: 'http://127.0.0.1:4188/' })
   await waitFor(async () => (await evaluate(cdp, 'Boolean(window.__popoverProbe && document.getElementById("origin-root"))')), 'fixture mount')
 
@@ -63,6 +63,30 @@ async function runViewport(cdp, width) {
   const down = (point) => cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', buttons: 1, clickCount: 1 })
   const up = (point) => cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', buttons: 0, clickCount: 1 })
   const live = () => evaluate(cdp, 'window.__popoverProbe.live()')
+  const settlingPoint = await center('#origin-settling')
+  assert(settlingPoint.x === 76, 'settling fixture uses pointer x=76')
+  await move(settlingPoint)
+  const [loading] = await waitFor(async () => {
+    const value = await live()
+    return value.length === 1 && value[0].subject === 'settling' && value[0].width === 304 ? value : null
+  }, '304px loading preview')
+  const settlingLeft = width === 320 ? 8 : 88
+  assert(loading.left === settlingLeft, 'loading preview uses expected initial placement')
+  const [settled] = await waitFor(async () => {
+    const value = await live()
+    return value.length === 1 && value[0].subject === 'settling' && value[0].width === 224 ? value : null
+  }, '224px settled preview')
+  assert(settled.id === loading.id && settled.left === settlingLeft, 'async settling preserves preview identity and placement')
+  await down(settlingPoint); await up(settlingPoint)
+  const [settledPin] = await waitFor(async () => {
+    const value = await live()
+    return value.length === 1 && value[0].subject === 'settling' && value[0].frozen ? value : null
+  }, 'settled preview pin')
+  assert(settledPin.id === loading.id, 'settled click promotes the preview in place')
+  assert(settledPin.left === settlingLeft, 'fresh equivalent descriptor pin preserves settled placement')
+  await evaluate(cdp, 'window.__popoverProbe.dismissAll()')
+  await waitFor(async () => (await live()).length === 0, 'settling dismissal')
+
   const rootPoint = await center('#origin-root')
 
   await move(rootPoint)
@@ -128,8 +152,8 @@ async function runViewport(cdp, width) {
   assert(afterScroll.left < beforeScroll.left, 'scroll moves rendered popover with origin geometry')
 
   await evaluate(cdp, 'window.__popoverProbe.moveOrigin(-130, 50)')
-  await cdp.send('Emulation.setDeviceMetricsOverride', { width: width - 1, height: 600, deviceScaleFactor: 1, mobile: false })
-  await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: 600, deviceScaleFactor: 1, mobile: false })
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width: width - 1, height: 700, deviceScaleFactor: 1, mobile: false })
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: 700, deviceScaleFactor: 1, mobile: false })
   const afterResize = await waitFor(async () => {
     const item = (await live()).find((value) => value.subject === 'root')
     return item && item.originRect.top === beforeScroll.originRect.top + 50 ? item : null

@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, type ReactElement } from 'react'
+import { StrictMode, useEffect, useState, type ReactElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
   HoverPopoverProvider,
@@ -7,7 +7,7 @@ import {
   type HoverPopover,
 } from '../../src/snl-react-view/hover-popovers'
 
-type Subject = 'root' | 'child' | 'direct'
+type Subject = 'root' | 'child' | 'direct' | 'settling'
 type Snapshot = {
   id: string
   subject: Subject
@@ -22,7 +22,7 @@ declare global {
   interface Window {
     __popoverProbe: {
       snapshots: Snapshot[]
-      live(): Array<Snapshot & { left: number; top: number; bounds: string | null }>
+      live(): Array<Snapshot & { left: number; top: number; width: number; bounds: string | null }>
       moveOrigin(dx: number, dy: number): void
       dismissAll(): void
     }
@@ -49,8 +49,18 @@ function Origin({ subject, parentId = null }: { subject: Subject; parentId?: str
   )
 }
 
+function SettlingBody(): ReactElement {
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(true), 50)
+    return () => clearTimeout(timer)
+  }, [])
+  return <div className={`popover-body settling ${settled ? 'settled' : 'loading'}`}>{settled ? 'settled' : 'loading'}</div>
+}
+
 function PopoverBody({ popover }: { popover: HoverPopover<Subject> }): ReactElement {
   const currentId = useCurrentPopoverId()
+  if (popover.subject === 'settling') return <SettlingBody />
   return (
     <div className="popover-body" data-subject={popover.subject}>
       {popover.subject}
@@ -63,7 +73,9 @@ function App(): ReactElement {
   return (
     <HoverPopoverProvider<Subject>
       options={{ openDelayMs: 0, fadeMs: 0, offset: 12, viewportMargin: 8 }}
-      style={{ width: 100, height: 44, boxSizing: 'border-box' }}
+      style={(popover) => popover.subject === 'settling'
+        ? { height: 44, boxSizing: 'border-box' }
+        : { width: 100, height: 44, boxSizing: 'border-box' }}
       renderPopover={(popover) => {
         snapshots.push({
           id: popover.id,
@@ -84,6 +96,7 @@ function App(): ReactElement {
     >
       <Origin subject="root" />
       <Origin subject="direct" />
+      <Origin subject="settling" />
     </HoverPopoverProvider>
   )
 }
@@ -97,7 +110,7 @@ window.__popoverProbe = {
     const id = element.dataset.popoverId!
     const snapshot = [...snapshots].reverse().find((item) => item.id === id)!
     const rect = element.getBoundingClientRect()
-    return { ...snapshot, left: rect.left, top: rect.top, bounds: 'viewport' }
+    return { ...snapshot, left: rect.left, top: rect.top, width: rect.width, bounds: 'viewport' }
   }),
   moveOrigin(dx, dy) {
     const element = document.getElementById('origin-root')!
@@ -111,7 +124,12 @@ style.textContent = `
   #root { position: relative; height: 700px; }
   [data-origin-subject="root"] { position: absolute; left: calc(100vw - 80px); top: 80px; width: 52px; height: 28px; }
   [data-origin-subject="direct"] { position: absolute; left: 24px; top: 180px; width: 52px; height: 28px; }
+  [data-origin-subject="settling"] { position: absolute; left: 64px; top: 260px; width: 24px; height: 28px; }
   [data-popover-id] { background: white; border: 1px solid black; }
+  [data-popover-id]:has(.settling) { border: 0; }
+  .settling { height: 44px; box-sizing: border-box; }
+  .settling.loading { width: 304px; }
+  .settling.settled { width: 224px; }
   [data-popover-id] [data-origin-subject="child"] { width: 52px; height: 24px; }
 `
 document.head.append(style)

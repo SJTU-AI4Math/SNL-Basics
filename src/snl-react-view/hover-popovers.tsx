@@ -588,10 +588,10 @@ export function HoverPopoverProvider<TSubject>({
     const boundsChanged = !sameBounds(previousBounds, bounds)
     const geometryChanged = rectChanged || sourceChanged || policyChanged || boundsChanged
 
+    if (!geometryChanged && existing.originElement === resolvedOrigin.element) return
     boundsRef.current.set(id, bounds)
     boundsPolicyRef.current.set(id, resolvedOrigin.boundsPolicy)
     rectSourceRef.current.set(id, resolvedOrigin.rectSource)
-    if (!geometryChanged && existing.originElement === resolvedOrigin.element) return
 
     updatePopovers((list) => list.map((popover) => popover.id === id ? {
       ...popover,
