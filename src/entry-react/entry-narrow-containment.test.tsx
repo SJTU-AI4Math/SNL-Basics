@@ -53,13 +53,13 @@ describe('Entry narrow-width containment contract', () => {
 
   it('keeps emergency prose wrapping separate from intrinsic math/code scrolling', () => {
     const css = readFileSync(resolve(process.cwd(), 'src/entry-react/style.css'), 'utf8')
-    const snlCss = readFileSync(resolve(process.cwd(), 'src/snl-react-view/style.css'), 'utf8')
     expect(css).toMatch(/\.snl-markdown-body[^{}]*\{[^}]*overflow-wrap:\s*anywhere/s)
     expect(css).toMatch(/\.snl-markdown-body pre[^{}]*\{[^}]*white-space:\s*pre[^}]*overflow-x:\s*auto/s)
     expect(css).toMatch(/\.snl-markdown-body code[^{}]*\{[^}]*overflow-wrap:\s*normal/s)
     expect(css).toMatch(/\.snl-latex-body[^{}]*\{[^}]*overflow-x:\s*auto/s)
     expect(css).toMatch(/\.snl-markdown-body img[^{}]*\{[^}]*max-width:\s*100%/s)
-    expect(snlCss).toMatch(/\.snl-text[^{}]*\{[^}]*overflow-wrap:\s*anywhere/s)
-    expect(snlCss).toMatch(/\.snl-text \.snl-math-span[^{}]*\{[^}]*overflow-wrap:\s*normal/s)
+    expect(css).toMatch(/\[data-entry-body\] \.snl-text[^{}]*\{[^}]*overflow-wrap:\s*anywhere/s)
+    expect(css).toMatch(/\[data-entry-body\] \.snl-text \.snl-math-span[^{}]*\{[^}]*overflow-wrap:\s*normal/s)
+    expect(css).toMatch(/\[data-entry-body\] \.katex-panel[^{}]*\{[^}]*overflow-x:\s*auto/s)
   })
 })

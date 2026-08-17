@@ -49,6 +49,42 @@
   max-width: 100%;
   overflow-x: auto;
 }
+
+/* EntrySurface can render SNL without requiring consumers to compose the
+   standalone snl-react-view stylesheet. Keep these containment rules scoped
+   to the public Entry body so they do not restyle standalone syntax trees. */
+[data-entry-body] .snl-text {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+[data-entry-body] .snl-text .snl-math-span {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+[data-entry-body] .snl-text .katex {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+[data-entry-body] .snl-text pre {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+[data-entry-body] .snl-text code {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+[data-entry-body] .katex-panel {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+[data-entry-body] .katex-panel .katex {
+  overflow-wrap: normal;
+  word-break: normal;
+}
 .snl-markdown-body table { border-collapse: collapse; }
 .snl-markdown-body img { display: block; max-width: 100%; height: auto; }
 .snl-markdown-body th, .snl-markdown-body td { border: 1px solid rgba(127,127,127,.3); padding: .25em .5em; }

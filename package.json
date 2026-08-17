@@ -87,7 +87,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:lib": "vite build --config vite.lib.config.ts && vite build --config vite.runtime.config.ts && tsc -p tsconfig.entry.json && node scripts/copy-lib-assets.mjs && tsc --noEmit --strict --skipLibCheck false --module NodeNext --moduleResolution NodeNext --target ES2022 scripts/verify-subpath-types.ts && node scripts/verify-subpath-identity.mjs",
+    "build:lib": "vite build --config vite.lib.config.ts && vite build --config vite.runtime.config.ts && tsc -p tsconfig.entry.json && node scripts/copy-lib-assets.mjs && tsc --noEmit --strict --skipLibCheck false --module NodeNext --moduleResolution NodeNext --target ES2022 scripts/verify-subpath-types.ts && node scripts/verify-subpath-identity.mjs && node scripts/verify-entry-style-closure.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "verify:packed-entry-i18n": "node scripts/verify-packed-entry-i18n.mjs",
