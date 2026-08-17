@@ -7,6 +7,9 @@ import {
 import { ReaderRuntime } from '../dist-lib/runtime.js';
 import {
   paletteToCss,
+  type HoverPopoverBoundsPolicy,
+  type HoverPopoverOrigin,
+  type HoverPopoverOriginInput,
   type KindPalette,
   type SnlMacro,
   type SnlSyntaxTreeViewProps,
@@ -27,6 +30,9 @@ import {
   type SnlMacroTemplate,
 } from '../dist-lib/core.js';
 
+const descriptorBounds: HoverPopoverBoundsPolicy = 'viewport';
+const descriptorOrigin: HoverPopoverOrigin = { element: document.body, bounds: descriptorBounds };
+const compatibleOrigin: HoverPopoverOriginInput = new DOMRect(0, 0, 1, 1);
 const options: ApplySnlHoverHighlightOptions = {};
 const coreTemplate: SnlMacroTemplate = { mode: 'text', body: '#0' };
 const legacyMacro: SnlMacro = {
@@ -105,6 +111,8 @@ void [
   findBinderScopeAncestor,
   findMinimalHoverRoot,
   options,
+  descriptorOrigin,
+  compatibleOrigin,
   coreTemplate,
   analyzeLatexTemplatePlaceholders('#0'),
   isMacroDocumentV11,

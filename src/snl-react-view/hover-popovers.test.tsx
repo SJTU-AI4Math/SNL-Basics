@@ -76,6 +76,19 @@ function RootPreviewHarness(): ReactElement {
   return <button onMouseMove={(event) => popovers.preview('parent', event.currentTarget, 20, 30, null)}>preview parent</button>
 }
 
+function DescriptorPreviewPinHarness({ subject = 'entry-a', parentId = null }: {
+  subject?: string
+  parentId?: string | null
+}): ReactElement {
+  const popovers = useHoverPopovers<string>()
+  const origin = (element: HTMLElement) => ({ element, bounds: 'viewport' as const })
+  return <button
+    data-testid={`descriptor-origin-${subject}`}
+    onPointerMove={(event) => popovers.preview(subject, origin(event.currentTarget), event.clientX, event.clientY, parentId)}
+    onClick={(event) => popovers.pin(subject, origin(event.currentTarget), event.clientX, event.clientY, parentId)}
+  >descriptor {subject}</button>
+}
+
 function ChildPinHarness(): ReactElement {
   const popovers = useHoverPopovers<string>()
   const parentId = useCurrentPopoverId()
@@ -357,6 +370,168 @@ describe('HoverPopoverProvider', () => {
     expect(document.querySelector('[data-frozen="true"]')).not.toBeNull()
     act(() => vi.advanceTimersByTime(1000))
     expect(phase).toBe('visible')
+  })
+
+  it('promotes a descriptor preview in place across native pointerdown and click', () => {
+    const snapshots: HoverPopover<string>[] = []
+    render(
+      <HoverPopoverProvider<string>
+        renderPopover={(popover) => { snapshots.push(popover); return <span>descriptor preview</span> }}
+        options={{ openDelayMs: 0, fadeMs: 0 }}
+      >
+        <DescriptorPreviewPinHarness />
+      </HoverPopoverProvider>,
+    )
+    const origin = screen.getByTestId('descriptor-origin-entry-a')
+    vi.spyOn(origin, 'getBoundingClientRect').mockReturnValue(new DOMRect(10, 20, 100, 40))
+    fireEvent.pointerMove(origin, { clientX: 24, clientY: 36 })
+    const preview = snapshots.at(-1)!
+    expect(preview.frozen).toBe(false)
+
+    fireEvent.pointerDown(origin, { clientX: 24, clientY: 36 })
+    expect(document.querySelector(`[data-popover-id="${preview.id}"]`)).not.toBeNull()
+    fireEvent.pointerUp(origin, { clientX: 24, clientY: 36 })
+    fireEvent.click(origin, { clientX: 24, clientY: 36 })
+
+    const pinned = snapshots.at(-1)!
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(1)
+    expect(pinned.id).toBe(preview.id)
+    expect(pinned.originElement).toBe(origin)
+    expect(pinned.originRect).toBe(preview.originRect)
+    expect(pinned.frozen).toBe(true)
+  })
+
+  it('promotes a nested descriptor preview in place and preserves its parent', () => {
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    const snapshots = new Map<string, HoverPopover<string>>()
+    render(
+      <HoverPopoverProvider<string>
+        renderPopover={(popover) => { snapshots.set(popover.subject, popover); return <span>{popover.subject}</span> }}
+        options={{ openDelayMs: 0, fadeMs: 0 }}
+      >
+        <ApiObserver onValue={(value) => { api = value }} />
+      </HoverPopoverProvider>,
+    )
+    const rootOrigin = document.createElement('button')
+    const childOrigin = document.createElement('button')
+    vi.spyOn(rootOrigin, 'getBoundingClientRect').mockReturnValue(new DOMRect(10, 10, 80, 20))
+    vi.spyOn(childOrigin, 'getBoundingClientRect').mockReturnValue(new DOMRect(120, 50, 60, 20))
+    document.body.append(rootOrigin, childOrigin)
+    let rootId = ''; let childId = ''
+    act(() => {
+      rootId = api!.preview('root descriptor', { element: rootOrigin, bounds: 'viewport' }, 20, 20, null)
+      childId = api!.preview('child descriptor', { element: childOrigin, bounds: 'viewport' }, 130, 60, rootId)
+    })
+
+    fireEvent.pointerDown(childOrigin, { clientX: 130, clientY: 60 })
+    expect(api!.isAlive(rootId)).toBe(true)
+    expect(api!.isAlive(childId)).toBe(true)
+    act(() => {
+      expect(api!.pin('child descriptor', { element: childOrigin, bounds: 'viewport' }, 130, 60, rootId)).toBe(childId)
+    })
+    expect(snapshots.get('child descriptor')).toMatchObject({ id: childId, parentId: rootId, frozen: true })
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(2)
+    rootOrigin.remove(); childOrigin.remove()
+  })
+
+  it('keeps a nested descriptor preview when its origin is clicked inside the parent frame', () => {
+    const snapshots = new Map<string, HoverPopover<string>>()
+    render(
+      <HoverPopoverProvider<string>
+        renderPopover={(popover) => {
+          snapshots.set(popover.subject, popover)
+          return popover.subject === 'root'
+            ? <DescriptorPreviewPinHarness subject="child" parentId={popover.id} />
+            : <span>{popover.subject}</span>
+        }}
+        options={{ openDelayMs: 0, fadeMs: 0 }}
+      >
+        <DescriptorPreviewPinHarness subject="root" />
+      </HoverPopoverProvider>,
+    )
+    const rootOrigin = screen.getByTestId('descriptor-origin-root')
+    vi.spyOn(rootOrigin, 'getBoundingClientRect').mockReturnValue(new DOMRect(10, 10, 80, 30))
+    fireEvent.pointerMove(rootOrigin, { clientX: 20, clientY: 20 })
+    fireEvent.click(rootOrigin, { clientX: 20, clientY: 20 })
+    const rootId = snapshots.get('root')!.id
+    const childOrigin = screen.getByTestId('descriptor-origin-child')
+    vi.spyOn(childOrigin, 'getBoundingClientRect').mockReturnValue(new DOMRect(30, 40, 80, 30))
+    fireEvent.pointerMove(childOrigin, { clientX: 40, clientY: 50 })
+    const childId = snapshots.get('child')!.id
+
+    fireEvent.pointerDown(childOrigin, { clientX: 40, clientY: 50 })
+    fireEvent.pointerUp(childOrigin, { clientX: 40, clientY: 50 })
+    fireEvent.click(childOrigin, { clientX: 40, clientY: 50 })
+
+    expect(snapshots.get('root')).toMatchObject({ id: rootId, frozen: true })
+    expect(snapshots.get('child')).toMatchObject({ id: childId, parentId: rootId, frozen: true })
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(2)
+  })
+
+  it('keeps legacy bounds policies while a viewport descriptor controls click-only placement', () => {
+    const resolveBounds = vi.fn(() => ({ left: 0, top: 0, right: 320, bottom: 240 }))
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 })
+    render(
+      <HoverPopoverProvider<string>
+        resolveBounds={resolveBounds}
+        renderPopover={(popover) => <span>{popover.subject}</span>}
+        options={{ openDelayMs: 0, fadeMs: 0, offset: 12, viewportMargin: 8 }}
+      >
+        <ApiObserver onValue={(value) => { api = value }} />
+      </HoverPopoverProvider>,
+    )
+    const element = document.createElement('button')
+    vi.spyOn(element, 'getBoundingClientRect').mockReturnValue(new DOMRect(480, 100, 40, 20))
+    document.body.appendChild(element)
+
+    act(() => { api!.pin('descriptor', { element, bounds: 'viewport' }, 500, 120, null) })
+    expect(resolveBounds).not.toHaveBeenCalled()
+    expect((screen.getByText('descriptor').parentElement as HTMLElement).style.left).toBe('512px')
+    act(() => api!.dismissAll())
+
+    act(() => { api!.pin('element', element, 500, 120, null) })
+    expect(resolveBounds).toHaveBeenCalledWith(element)
+    expect((screen.getByText('element').parentElement as HTMLElement).style.left).toBe('312px')
+    act(() => api!.dismissAll())
+
+    const detachedRect = new DOMRect(480, 100, 40, 20)
+    resolveBounds.mockClear()
+    act(() => { api!.pin('rect', detachedRect, 500, 120, null) })
+    expect(resolveBounds).not.toHaveBeenCalled()
+    expect((screen.getByText('rect').parentElement as HTMLElement).style.left).toBe('512px')
+    element.remove()
+  })
+
+  it('remeasures a descriptor element on scroll without changing its bounds policy', () => {
+    const snapshots: HoverPopover<string>[] = []
+    const resolveBounds = vi.fn(() => ({ left: 0, top: 0, right: 300, bottom: 200 }))
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 })
+    render(
+      <HoverPopoverProvider<string>
+        resolveBounds={resolveBounds}
+        renderPopover={(popover) => { snapshots.push(popover); return <span>moving</span> }}
+        options={{ openDelayMs: 0, fadeMs: 0, offset: 0 }}
+      >
+        <ApiObserver onValue={(value) => { api = value }} />
+      </HoverPopoverProvider>,
+    )
+    const element = document.createElement('button')
+    let rect = new DOMRect(10, 20, 40, 20)
+    vi.spyOn(element, 'getBoundingClientRect').mockImplementation(() => rect)
+    document.body.appendChild(element)
+    act(() => { api!.pin('moving', { element, rect, bounds: 'viewport' }, 20, 30, null) })
+    expect((screen.getByText('moving').parentElement as HTMLElement).style.left).toBe('20px')
+
+    rect = new DOMRect(110, 120, 40, 20)
+    act(() => { document.dispatchEvent(new Event('scroll')) })
+    expect(snapshots.at(-1)!.originRect.left).toBe(110)
+    expect((screen.getByText('moving').parentElement as HTMLElement).style.left).toBe('120px')
+    expect(resolveBounds).not.toHaveBeenCalled()
+    element.remove()
   })
 
   it('deduplicates repeated previews and preserves a pinned recursive child', () => {
