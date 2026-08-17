@@ -125,6 +125,10 @@
 .snl-text {
   font: normal 1.21em KaTeX_Main, 'Times New Roman', serif;
   line-height: 1.2;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .snl-text .snl-text {
   font-size: 1em;
@@ -134,6 +138,18 @@
    so we need to reset the ENCLOSING context back to 1em first. */
 .snl-text .snl-math-span {
   font-size: calc(1em / 1.21);
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.katex-panel {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.katex-panel .katex {
+  overflow-wrap: normal;
+  word-break: normal;
 }
 .snl-missing-arg {
   opacity: 0.5;

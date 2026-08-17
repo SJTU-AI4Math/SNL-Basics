@@ -1,6 +1,54 @@
+.snl-markdown-body {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 .snl-markdown-body > *:first-child { margin-top: 0; }
 .snl-markdown-body > *:last-child { margin-bottom: 0; }
-.snl-markdown-body pre { overflow-x: auto; padding: .5em .7em; background: rgba(127,127,127,.1); }
+.snl-markdown-body p,
+.snl-markdown-body li,
+.snl-markdown-body blockquote,
+.snl-markdown-body h1,
+.snl-markdown-body h2,
+.snl-markdown-body h3,
+.snl-markdown-body h4,
+.snl-markdown-body h5,
+.snl-markdown-body h6,
+.snl-markdown-body th,
+.snl-markdown-body td {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.snl-markdown-body pre {
+  box-sizing: border-box;
+  max-width: 100%;
+  white-space: pre;
+  overflow-x: auto;
+  overflow-wrap: normal;
+  word-break: normal;
+  padding: .5em .7em;
+  background: rgba(127,127,127,.1);
+}
+.snl-markdown-body code {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.snl-markdown-body pre code { white-space: inherit; }
+.snl-markdown-body .katex,
+.snl-latex-body .katex {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.snl-latex-body {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
 .snl-markdown-body table { border-collapse: collapse; }
 .snl-markdown-body img { display: block; max-width: 100%; height: auto; }
 .snl-markdown-body th, .snl-markdown-body td { border: 1px solid rgba(127,127,127,.3); padding: .25em .5em; }

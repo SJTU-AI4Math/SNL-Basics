@@ -119,9 +119,36 @@ export function titleToKatexSource(source: string): string {
   return parts.join('')
 }
 
-function titleHtml(title: string): string {
-  try { return katex.renderToString(titleToKatexSource(title), { displayMode: false, throwOnError: true, strict: false, trust: false }) }
-  catch { return katex.renderToString(`\\text{${escapeForKatexText(title)}}`, { displayMode: false, throwOnError: false, strict: false, trust: false }) }
+function titleNodes(source: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = []
+  let text = ''
+  let key = 0
+  const flush = (): void => {
+    if (!text) return
+    nodes.push(<React.Fragment key={key++}>{text}</React.Fragment>)
+    text = ''
+  }
+  let i = 0
+  while (i < source.length) {
+    if (source[i] === '\\' && source[i + 1] === '$') { text += '$'; i += 2; continue }
+    if (source[i] !== '$' || source[i + 1] === '$') {
+      if (source[i] === '$' && source[i + 1] === '$') { text += '$$'; i += 2 } else { text += source[i]; i += 1 }
+      continue
+    }
+    let end = i + 1
+    while (end < source.length && source[end] !== '$') end += 1
+    if (end >= source.length) { text += source.slice(i); break }
+    flush()
+    const math = source.slice(i + 1, end)
+    try {
+      nodes.push(<span className="snl-entry-title-math" key={key++} dangerouslySetInnerHTML={{ __html: katex.renderToString(math, { displayMode: false, throwOnError: true, strict: false, trust: false }) }} />)
+    } catch {
+      nodes.push(<React.Fragment key={key++}>{`$${math}$`}</React.Fragment>)
+    }
+    i = end + 1
+  }
+  flush()
+  return nodes
 }
 
 function surface(content: ResolvedEntryContent): 'snl' | 'markdown' | 'typst' | 'latex' | 'text' | 'none' {
@@ -198,7 +225,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     contentError = value instanceof Error ? value.message : String(value)
   }
   const bodySurface = contentError ? 'error' : surface(content)
-  const html = useMemo(() => titleHtml(entry.title ?? ''), [entry.title])
+  const title = useMemo(() => titleNodes(entry.title ?? ''), [entry.title])
   const colorScheme = props.entry_data_driver.read_context().color_scheme
   const entryColors = kind?.coloring
     ? resolveKindColoring(kind.coloring, colorScheme)
@@ -270,7 +297,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
     : background
   return <section
     data-entry-id={entry.id}
-    className={props.className}
+    className={['snl-entry-surface', props.className].filter(Boolean).join(' ')}
     onPointerEnter={(event) => {
       blockTargetRef.current = event.currentTarget
       blockHoverModeRef.current = null
@@ -292,25 +319,28 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
       background: interactiveBackground,
       boxShadow: blockHovered ? `inset 0 0 0 5px ${stroke}` : 'none',
       width: '100%',
+      maxWidth: '100%',
+      minWidth: 0,
+      boxSizing: 'border-box',
       transition: 'background-color 150ms ease, box-shadow 150ms ease',
       ...props.style,
     }}
   >
-    <header style={{ padding: '0.275rem 0.8rem', display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-      <strong onMouseEnter={() => setTitleHovered(true)} onMouseLeave={() => setTitleHovered(false)} onClick={(event) => invoke(() => interaction_ports?.on_title_activate?.(entry.id, event))} style={{ color: stroke, fontSize: '1.25rem', flex: '1 1 auto', cursor: titleActivationActive ? 'pointer' : undefined }}>
-        {kindName}{counter_label ? ` ${counter_label}` : ''} -- <span dangerouslySetInnerHTML={{ __html: html }} />
+    <header className="snl-entry-header" style={{ padding: '0.275rem 0.8rem', display: 'flex', alignItems: 'baseline', gap: '0.5rem', minWidth: 0, maxWidth: '100%' }}>
+      <strong className="snl-entry-title" onMouseEnter={() => setTitleHovered(true)} onMouseLeave={() => setTitleHovered(false)} onClick={(event) => invoke(() => interaction_ports?.on_title_activate?.(entry.id, event))} style={{ color: stroke, fontSize: '1.25rem', flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere', wordBreak: 'break-word', cursor: titleActivationActive ? 'pointer' : undefined }}>
+        {kindName}{counter_label ? ` ${counter_label}` : ''} -- <span>{title}</span>
       </strong>
-      {entry.pointer !== undefined && (props.show_source_action ?? true) ? <button type="button" aria-label="Open source" onClick={(event) => invoke(() => interaction_ports?.on_source_activate?.(entry.pointer, entry.id, event))}>↗ source</button> : null}
+      {entry.pointer !== undefined && (props.show_source_action ?? true) ? <button className="snl-entry-source-action" style={{ flexShrink: 0 }} type="button" aria-label="Open source" onClick={(event) => invoke(() => interaction_ports?.on_source_activate?.(entry.pointer, entry.id, event))}>↗ source</button> : null}
     </header>
     {bodySurface !== 'none' ? <>
       <div style={{ borderTop: `0.5px solid ${stroke}`, margin: '4px 10px' }} />
-      <div data-entry-body={bodySurface} style={{ padding: '0.9rem', fontSize: '1.05rem', color: colorScheme === 'dark' ? '#f5f5f5' : background === 'transparent' ? undefined : '#111' }}>
+      <div className="snl-entry-body" data-entry-body={bodySurface} style={{ padding: '0.9rem', boxSizing: 'border-box', minWidth: 0, maxWidth: '100%', overflowX: 'auto', fontSize: '1.05rem', color: colorScheme === 'dark' ? '#f5f5f5' : background === 'transparent' ? undefined : '#111' }}>
         {bodySurface === 'error' ? <div role="alert" className="snl-entry-error">Entry content localization error: {contentError}</div> : null}
         {bodySurface === 'snl' ? <SnlEntryBody source={content.snl!} entry_data_driver={props.entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={effectiveInteractionDriver} deactivation_controller={deactivation_controller} hooks={hooks} kind_palette={kind_palette} /> : null}
         {bodySurface === 'markdown' ? <MarkdownBody source={content.markdown!} image_url_transform={props.markdown_image_url_transform} /> : null}
-        {bodySurface === 'typst' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content.typst}</pre> : null}
+        {bodySurface === 'typst' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%', minWidth: 0, fontFamily: 'inherit' }}>{content.typst}</pre> : null}
         {bodySurface === 'latex' ? <LatexBody source={content.latex!} /> : null}
-        {bodySurface === 'text' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content.text}</pre> : null}
+        {bodySurface === 'text' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%', minWidth: 0, fontFamily: 'inherit' }}>{content.text}</pre> : null}
       </div>
     </> : null}
   </section>
