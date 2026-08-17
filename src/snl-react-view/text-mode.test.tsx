@@ -108,6 +108,7 @@ describe('text-mode template splicing (regression)', () => {
       expect(container.querySelector('.snl-math-span .katex')).not.toBeNull()
       expect(container.textContent).toContain('x')
       expect(container.textContent).toContain(' is a number')
+      expect(container.querySelector('.katex-html.snl-text')).not.toBeNull()
       expect(container.querySelector('[data-name="#"]')).toBeNull()
       expect(container.querySelector('[data-kind="sub"]')).toBeNull()
     })

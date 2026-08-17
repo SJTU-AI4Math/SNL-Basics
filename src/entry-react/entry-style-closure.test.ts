@@ -23,10 +23,18 @@ describe('public Entry stylesheet closure', () => {
   it('owns scoped textual SNL wrapping and intrinsic-island resets', () => {
     const css = read('src/entry-react/style.css')
     const text = rule(css, '[data-entry-body] .snl-text')
+    expectDeclaration(text, 'font', "normal 1.21em KaTeX_Main, 'Times New Roman', serif")
+    expectDeclaration(text, 'line-height', '1.2')
     expectDeclaration(text, 'min-width', '0')
     expectDeclaration(text, 'max-width', '100%')
     expectDeclaration(text, 'overflow-wrap', 'anywhere')
     expectDeclaration(text, 'word-break', 'break-word')
+
+    const nestedText = rule(css, '[data-entry-body] .snl-text .snl-text')
+    expectDeclaration(nestedText, 'font-size', '1em')
+
+    const mathSpan = rule(css, '[data-entry-body] .snl-text .snl-math-span')
+    expectDeclaration(mathSpan, 'font-size', 'calc(1em / 1.21)')
 
     for (const selector of [
       '[data-entry-body] .snl-text .snl-math-span',

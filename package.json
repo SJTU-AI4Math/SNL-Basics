@@ -91,7 +91,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "verify:packed-entry-i18n": "node scripts/verify-packed-entry-i18n.mjs",
-    "prepublishOnly": "npm run build:lib"
+    "prepublishOnly": "npm run build:lib",
+    "test:root-text-typography": "node scripts/verify-root-text-typography.mjs"
   },
   "peerDependencies": {
     "katex": "^0.16.0",

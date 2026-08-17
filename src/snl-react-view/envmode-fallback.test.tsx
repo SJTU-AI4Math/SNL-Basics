@@ -52,8 +52,7 @@ describe('envMode synthetic-macro path', () => {
       <SnlSyntaxTreeView tree={t} macro_data_driver={testDriver(emptyDb)} />,
     )
     await waitFor(() => {
-      expect(container.querySelector('.snl-text')).toBeNull()
-      expect(container.querySelector('.katex-html')?.textContent).toBe('hello world')
+      expect(container.querySelector('.katex-html.snl-text')?.textContent).toBe('hello world')
     })
   })
 

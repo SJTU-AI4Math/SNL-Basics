@@ -1497,7 +1497,7 @@ export function SnlSyntaxTreeView({
       <div
         key={isKatexRoot ? 'katex' : 'react'}
         ref={containerRef}
-        className="katex-html"
+        className={`katex-html${rootBucket === 'text' ? ' snl-text' : ''}`}
         style={{ cursor: hasHoverTarget ? 'pointer' : undefined }}
         onMouseMove={handleKaTeXMouseMove}
         onMouseLeave={handleKaTeXMouseLeave}

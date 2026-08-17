@@ -54,12 +54,18 @@
    standalone snl-react-view stylesheet. Keep these containment rules scoped
    to the public Entry body so they do not restyle standalone syntax trees. */
 [data-entry-body] .snl-text {
+  font: normal 1.21em KaTeX_Main, 'Times New Roman', serif;
+  line-height: 1.2;
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+[data-entry-body] .snl-text .snl-text {
+  font-size: 1em;
+}
 [data-entry-body] .snl-text .snl-math-span {
+  font-size: calc(1em / 1.21);
   overflow-wrap: normal;
   word-break: normal;
 }
