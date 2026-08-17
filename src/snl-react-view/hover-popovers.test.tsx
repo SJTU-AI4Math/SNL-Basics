@@ -434,6 +434,70 @@ describe('HoverPopoverProvider', () => {
     rootOrigin.remove(); childOrigin.remove()
   })
 
+  it('replaces an unrelated pinned root when a distinct root preview is activated', () => {
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    const snapshots = new Map<string, HoverPopover<string>>()
+    render(
+      <StrictMode>
+        <HoverPopoverProvider<string>
+          renderPopover={(popover) => { snapshots.set(popover.subject, popover); return <span>{popover.subject}</span> }}
+          options={{ openDelayMs: 0, fadeMs: 0 }}
+        >
+          <ApiObserver onValue={(value) => { api = value }} />
+        </HoverPopoverProvider>
+      </StrictMode>,
+    )
+    const originA = document.createElement('button')
+    const originB = document.createElement('button')
+    document.body.append(originA, originB)
+    act(() => { api!.pin('root A', { element: originA, bounds: 'viewport' }, 20, 20, null) })
+    let previewB = ''
+    act(() => { previewB = api!.preview('root B', { element: originB, bounds: 'viewport' }, 120, 20, null) })
+
+    fireEvent.pointerDown(originB, { clientX: 120, clientY: 20 })
+    fireEvent.pointerUp(originB, { clientX: 120, clientY: 20 })
+    act(() => { expect(api!.pin('root B', { element: originB, bounds: 'viewport' }, 120, 20, null)).toBe(previewB) })
+
+    expect(snapshots.get('root B')).toMatchObject({ id: previewB, parentId: null, frozen: true })
+    expect(screen.queryByText('root A')).toBeNull()
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(1)
+    originA.remove(); originB.remove()
+  })
+
+  it('preserves a nested parent while replacing the activated child sibling subtree', () => {
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(
+      <StrictMode>
+        <HoverPopoverProvider<string>
+          renderPopover={(popover) => <span>{popover.subject}</span>}
+          options={{ openDelayMs: 0, fadeMs: 0 }}
+        >
+          <ApiObserver onValue={(value) => { api = value }} />
+        </HoverPopoverProvider>
+      </StrictMode>,
+    )
+    const rootOrigin = document.createElement('button')
+    const childAOrigin = document.createElement('button')
+    const childBOrigin = document.createElement('button')
+    document.body.append(rootOrigin, childAOrigin, childBOrigin)
+    let rootId = ''
+    act(() => { rootId = api!.pin('root', { element: rootOrigin, bounds: 'viewport' }, 20, 20, null) })
+    act(() => { api!.pin('child A', { element: childAOrigin, bounds: 'viewport' }, 40, 40, rootId) })
+    let childBId = ''
+    act(() => { childBId = api!.preview('child B', { element: childBOrigin, bounds: 'viewport' }, 80, 40, rootId) })
+
+    fireEvent.pointerDown(childBOrigin, { clientX: 80, clientY: 40 })
+    fireEvent.pointerUp(childBOrigin, { clientX: 80, clientY: 40 })
+    act(() => { expect(api!.pin('child B', { element: childBOrigin, bounds: 'viewport' }, 80, 40, rootId)).toBe(childBId) })
+
+    expect(api!.isAlive(rootId)).toBe(true)
+    expect(screen.getByText('root')).toBeTruthy()
+    expect(screen.queryByText('child A')).toBeNull()
+    expect(screen.getByText('child B').parentElement?.getAttribute('data-frozen')).toBe('true')
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(2)
+    rootOrigin.remove(); childAOrigin.remove(); childBOrigin.remove()
+  })
+
   it('keeps a nested descriptor preview when its origin is clicked inside the parent frame', () => {
     const snapshots = new Map<string, HoverPopover<string>>()
     render(
@@ -501,6 +565,75 @@ describe('HoverPopoverProvider', () => {
     act(() => { api!.pin('rect', detachedRect, 500, 120, null) })
     expect(resolveBounds).not.toHaveBeenCalled()
     expect((screen.getByText('rect').parentElement as HTMLElement).style.left).toBe('512px')
+    element.remove()
+  })
+
+  it('refreshes reused descriptor geometry and viewport-to-nearest bounds policy in place', () => {
+    const snapshots: HoverPopover<string>[] = []
+    const resolveBounds = vi.fn(() => ({ left: 0, top: 0, right: 260, bottom: 180 }))
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 })
+    render(
+      <StrictMode>
+        <HoverPopoverProvider<string>
+          resolveBounds={resolveBounds}
+          renderPopover={(popover) => { snapshots.push(popover); return <span>reused descriptor</span> }}
+          options={{ openDelayMs: 0, fadeMs: 0, offset: 0, viewportMargin: 0 }}
+        >
+          <ApiObserver onValue={(value) => { api = value }} />
+        </HoverPopoverProvider>
+      </StrictMode>,
+    )
+    const element = document.createElement('button')
+    document.body.appendChild(element)
+    const firstRect = new DOMRect(480, 100, 40, 20)
+    const nextRect = new DOMRect(500, 120, 40, 20)
+    let id = ''
+    act(() => { id = api!.preview('reused', { element, rect: firstRect, bounds: 'viewport' }, 500, 120, null) })
+    const firstLeft = (screen.getByText('reused descriptor').parentElement as HTMLElement).style.left
+    expect(resolveBounds).not.toHaveBeenCalled()
+
+    act(() => {
+      expect(api!.pin('reused', { element, rect: nextRect, bounds: 'nearest-scroll-container' }, 520, 140, null)).toBe(id)
+    })
+
+    expect(snapshots.at(-1)).toMatchObject({ id, frozen: true })
+    expect(snapshots.at(-1)!.originRect).toBe(nextRect)
+    expect(resolveBounds).toHaveBeenCalledWith(element)
+    expect((screen.getByText('reused descriptor').parentElement as HTMLElement).style.left).not.toBe(firstLeft)
+    element.remove()
+  })
+
+  it('remeasures a live reused descriptor without an explicit rect while keeping its identity', () => {
+    const snapshots: HoverPopover<string>[] = []
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(
+      <StrictMode>
+        <HoverPopoverProvider<string>
+          renderPopover={(popover) => { snapshots.push(popover); return <span>live reused descriptor</span> }}
+          options={{ openDelayMs: 0, fadeMs: 0, offset: 0 }}
+        >
+          <ApiObserver onValue={(value) => { api = value }} />
+        </HoverPopoverProvider>
+      </StrictMode>,
+    )
+    const element = document.createElement('button')
+    let rect = new DOMRect(10, 20, 40, 20)
+    vi.spyOn(element, 'getBoundingClientRect').mockImplementation(() => rect)
+    document.body.appendChild(element)
+    let id = ''
+    act(() => { id = api!.preview('live reused', { element, bounds: 'viewport' }, 20, 30, null) })
+    rect = new DOMRect(110, 120, 40, 20)
+
+    act(() => {
+      expect(api!.preview('live reused', { element, bounds: 'viewport' }, 120, 130, null)).toBe(id)
+    })
+
+    expect(snapshots.at(-1)).toMatchObject({ id })
+    expect(snapshots.at(-1)!.originRect.left).toBe(110)
+    expect(snapshots.at(-1)!.originRect.top).toBe(120)
+    expect((screen.getByText('live reused descriptor').parentElement as HTMLElement).style.left).toBe('120px')
     element.remove()
   })
 

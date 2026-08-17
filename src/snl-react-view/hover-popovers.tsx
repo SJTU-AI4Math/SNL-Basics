@@ -38,6 +38,51 @@ export interface HoverPopoverOrigin {
 
 export type HoverPopoverOriginInput = HTMLElement | DOMRect | HoverPopoverOrigin
 
+type HoverPopoverRectSource = 'live-element' | 'explicit-rect' | 'detached-rect'
+
+interface ResolvedHoverPopoverOrigin {
+  element: HTMLElement | null
+  rect: DOMRect
+  rectSource: HoverPopoverRectSource
+  boundsPolicy: HoverPopoverBoundsPolicy
+}
+
+function resolvePopoverOrigin(origin: HoverPopoverOriginInput): ResolvedHoverPopoverOrigin {
+  const isElement = typeof HTMLElement !== 'undefined' && origin instanceof HTMLElement
+  const isDescriptor = !isElement && typeof origin === 'object' && origin !== null &&
+    'element' in origin && origin.element instanceof HTMLElement
+  if (isElement) {
+    return {
+      element: origin,
+      rect: origin.getBoundingClientRect(),
+      rectSource: 'live-element',
+      boundsPolicy: 'nearest-scroll-container',
+    }
+  }
+  if (isDescriptor) {
+    return {
+      element: origin.element,
+      rect: origin.rect ?? origin.element.getBoundingClientRect(),
+      rectSource: origin.rect ? 'explicit-rect' : 'live-element',
+      boundsPolicy: origin.bounds ?? 'nearest-scroll-container',
+    }
+  }
+  return {
+    element: null,
+    rect: origin as DOMRect,
+    rectSource: 'detached-rect',
+    boundsPolicy: 'viewport',
+  }
+}
+
+function sameRect(a: DOMRect, b: DOMRect): boolean {
+  return a.left === b.left && a.top === b.top && a.right === b.right && a.bottom === b.bottom
+}
+
+function sameBounds(a: ViewportBounds | undefined, b: ViewportBounds): boolean {
+  return a?.left === b.left && a.top === b.top && a.right === b.right && a.bottom === b.bottom
+}
+
 export interface HoverPopover<TSubject> {
   id: string
   subject: TSubject
@@ -321,6 +366,7 @@ export function HoverPopoverProvider<TSubject>({
   const timersRef = useRef(new Map<string, TimerBucket>())
   const boundsRef = useRef(new Map<string, ViewportBounds>())
   const boundsPolicyRef = useRef(new Map<string, HoverPopoverBoundsPolicy>())
+  const rectSourceRef = useRef(new Map<string, HoverPopoverRectSource>())
   const removedSnapshotsRef = useRef(new Map<string, HoverPopoverDismissTarget<TSubject>>())
   const dismissControllerRef = useRef(dismiss_controller)
   dismissControllerRef.current = dismiss_controller
@@ -341,6 +387,7 @@ export function HoverPopoverProvider<TSubject>({
       elementsRef.current.delete(id)
       boundsRef.current.delete(id)
       boundsPolicyRef.current.delete(id)
+      rectSourceRef.current.delete(id)
     }
     updatePopovers((current) => current.filter((popover) => !ids.has(popover.id)))
     const removed = [...ids].flatMap((id) => {
@@ -480,24 +527,15 @@ export function HoverPopoverProvider<TSubject>({
   ): string => {
     const id = `snl-popover-${++popoverCounter}`
     if (disposedRef.current) return id
-    const isElement = typeof HTMLElement !== 'undefined' && origin instanceof HTMLElement
-    const isDescriptor = !isElement && typeof origin === 'object' && origin !== null &&
-      'element' in origin && origin.element instanceof HTMLElement
-    const originElement = isElement ? origin : isDescriptor ? origin.element : null
-    const originRect = isElement
-      ? origin.getBoundingClientRect()
-      : isDescriptor
-        ? origin.rect ?? origin.element.getBoundingClientRect()
-        : origin as DOMRect
-    const boundsPolicy: HoverPopoverBoundsPolicy = isDescriptor
-      ? origin.bounds ?? 'nearest-scroll-container'
-      : isElement ? 'nearest-scroll-container' : 'viewport'
+    const resolvedOrigin = resolvePopoverOrigin(origin)
+    const { element: originElement, rect: originRect, boundsPolicy } = resolvedOrigin
     const ownBounds = originElement && boundsPolicy === 'nearest-scroll-container'
       ? resolveBounds(originElement)
       : findPopoverBounds(document.body)
     const bounds = parentId ? boundsRef.current.get(parentId) ?? ownBounds : ownBounds
     boundsRef.current.set(id, bounds)
     boundsPolicyRef.current.set(id, boundsPolicy)
+    rectSourceRef.current.set(id, resolvedOrigin.rectSource)
     const phase: PopoverPhase = openDelayMs <= 0 ? 'visible' : 'opening'
     updatePopovers((list) => [...list, {
       id,
@@ -530,6 +568,40 @@ export function HoverPopoverProvider<TSubject>({
     return id
   }, [freezeDelayMs, offset, openDelayMs, resolveBounds, updatePopovers])
 
+  const refreshReusedOrigin = useCallback((
+    id: string,
+    origin: HoverPopoverOriginInput,
+    pointerX: number,
+    pointerY: number,
+  ) => {
+    const resolvedOrigin = resolvePopoverOrigin(origin)
+    const existing = popoversRef.current.find((popover) => popover.id === id)
+    if (!existing) return
+    const previousBounds = boundsRef.current.get(id)
+    const ownBounds = resolvedOrigin.element && resolvedOrigin.boundsPolicy === 'nearest-scroll-container'
+      ? resolveBounds(resolvedOrigin.element)
+      : findPopoverBounds(document.body)
+    const bounds = existing.parentId ? boundsRef.current.get(existing.parentId) ?? ownBounds : ownBounds
+    const rectChanged = !sameRect(existing.originRect, resolvedOrigin.rect)
+    const sourceChanged = rectSourceRef.current.get(id) !== resolvedOrigin.rectSource
+    const policyChanged = boundsPolicyRef.current.get(id) !== resolvedOrigin.boundsPolicy
+    const boundsChanged = !sameBounds(previousBounds, bounds)
+    const geometryChanged = rectChanged || sourceChanged || policyChanged || boundsChanged
+
+    boundsRef.current.set(id, bounds)
+    boundsPolicyRef.current.set(id, resolvedOrigin.boundsPolicy)
+    rectSourceRef.current.set(id, resolvedOrigin.rectSource)
+    if (!geometryChanged && existing.originElement === resolvedOrigin.element) return
+
+    updatePopovers((list) => list.map((popover) => popover.id === id ? {
+      ...popover,
+      originElement: resolvedOrigin.element,
+      originRect: rectChanged || sourceChanged ? resolvedOrigin.rect : popover.originRect,
+      x: pointerX + offset,
+      y: pointerY + offset,
+    } : popover))
+  }, [offset, resolveBounds, updatePopovers])
+
   const updatePointer = useCallback((id: string, pointerX: number, pointerY: number) => {
     updatePopovers((list) => list.map((p) =>
       p.id === id && !p.frozen && p.phase !== 'closing'
@@ -558,6 +630,7 @@ export function HoverPopoverProvider<TSubject>({
       (originElement ? popover.originElement === originElement : popover.originRect === origin),
     )
     if (!existing) return spawn(subject, origin, pointerX, pointerY, parentId, owner)
+    refreshReusedOrigin(existing.id, origin, pointerX, pointerY)
     if (owner?.activation && owner.activation !== existing.activation) {
       updatePopovers((list) => list.map((popover) => popover.id === existing.id
         ? { ...popover, activation: owner.activation }
@@ -565,7 +638,7 @@ export function HoverPopoverProvider<TSubject>({
     }
     updatePointer(existing.id, pointerX, pointerY)
     return existing.id
-  }, [spawn, updatePointer, updatePopovers])
+  }, [refreshReusedOrigin, spawn, updatePointer, updatePopovers])
 
   const freeze = useCallback((id: string) => {
     const bucket = timersRef.current.get(id)
@@ -616,6 +689,7 @@ export function HoverPopoverProvider<TSubject>({
       (originElement ? popover.originElement === originElement : popover.originRect === origin),
     )
     if (existing) {
+      refreshReusedOrigin(existing.id, origin, pointerX, pointerY)
       if (owner?.activation && owner.activation !== existing.activation) {
         updatePopovers((list) => list.map((popover) => popover.id === existing.id
           ? { ...popover, activation: owner.activation }
@@ -632,7 +706,7 @@ export function HoverPopoverProvider<TSubject>({
     const id = spawn(subject, origin, pointerX, pointerY, parentId, owner)
     revealAndFreeze(id)
     return id
-  }, [requestDismiss, revealAndFreeze, spawn, updatePointer, updatePopovers])
+  }, [refreshReusedOrigin, requestDismiss, revealAndFreeze, spawn, updatePopovers])
 
   const cancelUnfrozen = useCallback((id: string, reason: 'explicit-api' | 'owner-unmount' = 'explicit-api') => {
     const target = popoversRef.current.find((p) => p.id === id)
@@ -696,8 +770,18 @@ export function HoverPopoverProvider<TSubject>({
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target
       if (target instanceof Node) {
-        for (const popover of popoversRef.current) {
-          if (popover.originElement?.contains(target)) return
+        const live = popoversRef.current.filter((popover) => popover.phase !== 'closing')
+        const activated = new Set(live
+          .filter((popover) => popover.originElement?.contains(target))
+          .map((popover) => popover.id))
+        if (activated.size > 0) {
+          const protectedIds = expandPopoverAncestors(activated, live)
+          for (const popover of live) {
+            if (protectedIds.has(popover.id)) continue
+            if (popover.parentId && !protectedIds.has(popover.parentId)) continue
+            requestDismiss('sibling-replaced', { kind: 'subtree', anchor_id: popover.id }, event)
+          }
+          return
         }
         for (const element of elementsRef.current.values()) {
           if (element.contains(target)) return
@@ -776,6 +860,7 @@ export function HoverPopoverProvider<TSubject>({
       elementsRef.current.clear()
       boundsRef.current.clear()
       boundsPolicyRef.current.clear()
+      rectSourceRef.current.clear()
       for (const bucket of timers.values()) {
         if (bucket.open) clearTimeout(bucket.open)
         if (bucket.close) clearTimeout(bucket.close)
