@@ -69,6 +69,41 @@ describe('SvgTemplateAssetRegistry', () => {
     expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0 })
   })
 
+  it('registers pending work before synchronous reentry and aborts after the final release', async () => {
+    const loading = deferred<string>()
+    const signals: AbortSignal[] = []
+    let reentrantHandle: ReturnType<SvgTemplateAssetRegistry<string>['acquire']> | undefined
+    let reentered = false
+    const loader = vi.fn((_asset: SvgTemplateAssetIdentity, signal: AbortSignal) => {
+      signals.push(signal)
+      signal.addEventListener('abort', () => loading.reject(signal.reason), { once: true })
+      if (!reentered) {
+        reentered = true
+        reentrantHandle = registry.acquire(identity('r1'), 1)
+      }
+      return loading.promise
+    })
+    const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 2 })
+
+    const outerHandle = registry.acquire(identity('r1'), 1)
+
+    expect(loader).toHaveBeenCalledTimes(1)
+    expect(reentrantHandle).toBeDefined()
+    expect(registry.snapshot()).toEqual({ pending: 1, settled: 0, consumers: 2, authorities: 1 })
+    reentrantHandle!.release()
+    expect(signals).toHaveLength(1)
+    expect(signals[0].aborted).toBe(false)
+    expect(registry.snapshot()).toEqual({ pending: 1, settled: 0, consumers: 1, authorities: 1 })
+
+    outerHandle.release()
+    await Promise.all([
+      expect(reentrantHandle!.promise).rejects.toBeInstanceOf(ReleasedSvgTemplateAssetError),
+      expect(outerHandle.promise).rejects.toBeInstanceOf(ReleasedSvgTemplateAssetError),
+    ])
+    expect(signals[0].aborted).toBe(true)
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0 })
+  })
+
   it('prevents a released shared handle from receiving success or rejection', async () => {
     const success = deferred<string>()
     const successRegistry = new SvgTemplateAssetRegistry({ loader: () => success.promise, maxSettled: 2 })
@@ -96,6 +131,21 @@ describe('SvgTemplateAssetRegistry', () => {
     ])
     liveFailure.release()
     expect(failureRegistry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0 })
+  })
+
+  it('cleans up pending state when the loader throws synchronously', async () => {
+    const loaderError = new Error('synchronous loader failure')
+    const registry = new SvgTemplateAssetRegistry<string>({
+      loader: () => { throw loaderError },
+      maxSettled: 2,
+    })
+
+    const handle = registry.acquire(identity('sync-throw'), 1)
+    expect(registry.snapshot()).toEqual({ pending: 1, settled: 0, consumers: 1, authorities: 1 })
+    await expect(handle.promise).rejects.toBe(loaderError)
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 1 })
+    handle.release()
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0 })
   })
 
   it('bounds authority metadata across eviction, final release, and invalidation', async () => {

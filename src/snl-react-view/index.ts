@@ -268,6 +268,7 @@ export {
   type SvgTemplateSlot,
 } from './svg-template'
 export {
+  ReleasedSvgTemplateAssetError,
   StaleSvgTemplateAssetError,
   SvgTemplateAssetRegistry,
   type SvgTemplateAssetHandle,

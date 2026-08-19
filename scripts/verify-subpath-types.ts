@@ -7,6 +7,7 @@ import {
 import { ReaderRuntime } from '../dist-lib/runtime.js';
 import {
   paletteToCss,
+  ReleasedSvgTemplateAssetError,
   type HoverPopoverBoundsPolicy,
   type HoverPopoverOrigin,
   type HoverPopoverOriginInput,
@@ -34,6 +35,11 @@ const descriptorBounds: HoverPopoverBoundsPolicy = 'viewport';
 const descriptorOrigin: HoverPopoverOrigin = { element: document.body, bounds: descriptorBounds };
 const compatibleOrigin: HoverPopoverOriginInput = new DOMRect(0, 0, 1, 1);
 const options: ApplySnlHoverHighlightOptions = {};
+const releasedAssetError: Error = new ReleasedSvgTemplateAssetError();
+if (releasedAssetError instanceof ReleasedSvgTemplateAssetError) {
+  const discriminatedReleasedAssetError: ReleasedSvgTemplateAssetError = releasedAssetError;
+  void discriminatedReleasedAssetError;
+}
 const coreTemplate: SnlMacroTemplate = { mode: 'text', body: '#0' };
 const legacyMacro: SnlMacro = {
   name: 'Compat.rule',

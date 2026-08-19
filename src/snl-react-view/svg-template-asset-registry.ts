@@ -135,15 +135,15 @@ export class SvgTemplateAssetRegistry<T = string> {
     let entry = this.pending.get(key)
     if (!entry) {
       const controller = new AbortController()
-      let loaderPromise: Promise<T>
-      try {
-        loaderPromise = Promise.resolve(this.loader({ ...identity }, controller.signal))
-      } catch (error) {
-        loaderPromise = Promise.reject(error)
-      }
+      let resolveLoader!: (value: T | PromiseLike<T>) => void
+      let rejectLoader!: (reason?: unknown) => void
+      const loaderPromise = new Promise<T>((resolve, reject) => {
+        resolveLoader = resolve
+        rejectLoader = reject
+      })
       entry = {
         controller,
-        consumers: 0,
+        consumers: 1,
         promise: loaderPromise,
         authority,
         authorityState: state,
@@ -152,8 +152,7 @@ export class SvgTemplateAssetRegistry<T = string> {
       this.pending.set(key, entry)
       const ownedEntry = entry
       entry.promise.then((value) => {
-        if (this.pending.get(key) !== ownedEntry) return
-        this.pending.delete(key)
+        if (!this.takePending(key, ownedEntry)) return
         if (ownedEntry.consumers > 0 && !ownedEntry.controller.signal.aborted && this.maxSettled > 0) {
           this.settled.set(key, {
             value,
@@ -165,13 +164,16 @@ export class SvgTemplateAssetRegistry<T = string> {
           this.releaseAuthority(ownedEntry.authority, ownedEntry.authorityState)
         }
       }, () => {
-        if (this.pending.get(key) === ownedEntry) {
-          this.pending.delete(key)
-          this.releaseAuthority(ownedEntry.authority, ownedEntry.authorityState)
-        }
+        this.discardPending(key, ownedEntry)
       })
+      try {
+        Promise.resolve(this.loader({ ...identity }, controller.signal)).then(resolveLoader, rejectLoader)
+      } catch (error) {
+        rejectLoader(error)
+      }
+    } else {
+      entry.consumers += 1
     }
-    entry.consumers += 1
     const ownedEntry = entry
     return this.createHandle(
       identity,
@@ -182,10 +184,12 @@ export class SvgTemplateAssetRegistry<T = string> {
       entry.promise,
       () => {
         ownedEntry.consumers -= 1
-        if (ownedEntry.consumers === 0 && this.pending.get(key) === ownedEntry) {
-          this.pending.delete(key)
-          this.releaseAuthority(ownedEntry.authority, ownedEntry.authorityState)
-          ownedEntry.controller.abort(new DOMException('Last SVG template asset consumer detached', 'AbortError'))
+        if (ownedEntry.consumers === 0) {
+          this.discardPending(
+            key,
+            ownedEntry,
+            new DOMException('Last SVG template asset consumer detached', 'AbortError'),
+          )
         }
       },
     )
@@ -204,9 +208,7 @@ export class SvgTemplateAssetRegistry<T = string> {
     }
     const entry = this.pending.get(key)
     if (entry) {
-      this.pending.delete(key)
-      this.releaseAuthority(entry.authority, entry.authorityState)
-      entry.controller.abort(new DOMException('SVG template asset invalidated', 'AbortError'))
+      this.discardPending(key, entry, new DOMException('SVG template asset invalidated', 'AbortError'))
     }
   }
 
@@ -251,6 +253,19 @@ export class SvgTemplateAssetRegistry<T = string> {
         this.releaseAuthority(authority, state)
       },
     }
+  }
+
+  private takePending(key: string, entry: PendingEntry<T>): boolean {
+    if (this.pending.get(key) !== entry) return false
+    this.pending.delete(key)
+    return true
+  }
+
+  private discardPending(key: string, entry: PendingEntry<T>, abortReason?: DOMException): boolean {
+    if (!this.takePending(key, entry)) return false
+    this.releaseAuthority(entry.authority, entry.authorityState)
+    if (abortReason && !entry.controller.signal.aborted) entry.controller.abort(abortReason)
+    return true
   }
 
   private newGeneration(): number {
