@@ -129,6 +129,12 @@ export {
   type SnlMacroSourceLookup,
   type SnlSourceMetrics,
 } from '../snl-syntax-tree/source-metrics'
+export {
+  analyzeOrderedSlotIndices,
+  createSlotContract,
+  slotContractKey,
+  type SnlSlotContract,
+} from '../snl-syntax-tree/slot-contract'
 
 // === Rendering ===
 export { SnlSyntaxTreeView, type SnlSyntaxTreeViewProps } from '../components/SnlSyntaxTreeView'
@@ -253,3 +259,10 @@ export {
   wrapForParent,
   wrapHtmlData,
 } from './render-source'
+export {
+  bindSvgTemplateChildren,
+  parseSanitizedSvgTemplate,
+  type ParsedSvgTemplate,
+  type ParseSanitizedSvgTemplateOptions,
+  type SvgTemplateSlot,
+} from './svg-template'
