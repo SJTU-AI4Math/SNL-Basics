@@ -108,7 +108,7 @@ export class SvgTemplateAssetRegistry<T = string> {
   }
 
   acquire(identity: SvgTemplateAssetIdentity, requestEpoch: number): SvgTemplateAssetHandle<T> {
-    const identitySnapshot: SvgTemplateAssetIdentity = { ...identity }
+    const identitySnapshot: SvgTemplateAssetIdentity = Object.freeze({ ...identity })
     assertIdentity(identitySnapshot, requestEpoch)
     const key = identityKey(identitySnapshot)
     const authority = authorityKey(identitySnapshot)
@@ -192,7 +192,7 @@ export class SvgTemplateAssetRegistry<T = string> {
         this.discardPending(key, ownedEntry)
       })
       try {
-        Promise.resolve(this.loader(identitySnapshot, controller.signal)).then(resolveLoader, rejectLoader)
+        Promise.resolve(this.loader({ ...identitySnapshot }, controller.signal)).then(resolveLoader, rejectLoader)
       } catch (error) {
         rejectLoader(error)
       }
@@ -265,7 +265,7 @@ export class SvgTemplateAssetRegistry<T = string> {
       if (this.authorities.get(authority) !== state || state.generation !== generation) {
         throw new StaleSvgTemplateAssetError()
       }
-      return { identity: { ...identity }, requestEpoch, value }
+      return { identity, requestEpoch, value }
     }, (error: unknown) => {
       if (released) throw new ReleasedSvgTemplateAssetError()
       throw error

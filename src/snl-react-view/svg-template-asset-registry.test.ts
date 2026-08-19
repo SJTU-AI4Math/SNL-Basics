@@ -35,12 +35,15 @@ describe('SvgTemplateAssetRegistry', () => {
     freshHandle.release()
   })
 
-  it('snapshots mutable caller identity before loading and result delivery', async () => {
+  it('isolates identity from caller and loader mutation through result delivery', async () => {
     const loaded = deferred<string>()
-    const seen: SvgTemplateAssetIdentity[] = []
+    let loaderIdentity: { source: string; baseIdentity: string; revision: string } | undefined
+    let seenAtCall: SvgTemplateAssetIdentity | undefined
     const registry = new SvgTemplateAssetRegistry({
       loader: async (asset) => {
-        seen.push(asset)
+        seenAtCall = { ...asset }
+        loaderIdentity = asset as { source: string; baseIdentity: string; revision: string }
+        loaderIdentity.source = 'loader-sync.svg'
         return loaded.promise
       },
       maxSettled: 1,
@@ -51,6 +54,7 @@ describe('SvgTemplateAssetRegistry', () => {
     mutable.source = 'new.svg'
     mutable.baseIdentity = 'workspace-b'
     mutable.revision = 'r2'
+    loaderIdentity!.revision = 'loader-late'
     loaded.resolve('<svg id="old"/>')
 
     await expect(handle.promise).resolves.toMatchObject({
@@ -58,9 +62,11 @@ describe('SvgTemplateAssetRegistry', () => {
       requestEpoch: 1,
       value: '<svg id="old"/>',
     })
-    expect(seen).toEqual([{ source: 'old.svg', baseIdentity: 'workspace-a', revision: 'r1' }])
-    expect(seen[0]).not.toBe(mutable)
+    expect(seenAtCall).toEqual({ source: 'old.svg', baseIdentity: 'workspace-a', revision: 'r1' })
+    expect(loaderIdentity).not.toBe(mutable)
     handle.release()
+    registry.invalidate({ source: 'old.svg', baseIdentity: 'workspace-a', revision: 'r1' })
+    expect(registry.snapshot()).toMatchObject({ pending: 0, settled: 0 })
   })
 
   it('bounds settled cache entries and invalidates source/base/revision identities', async () => {
