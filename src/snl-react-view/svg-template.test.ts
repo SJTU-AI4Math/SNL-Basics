@@ -162,6 +162,41 @@ describe('svg-template', () => {
     )).toThrow(/duplicate id/i)
   })
 
+  it('rejects empty or unsafe root and descendant IDs before reference checks', () => {
+    for (const [location, id] of [
+      ['root', ''],
+      ['root', ' leading-space'],
+      ['root', '1leading-digit'],
+      ['root', 'https://example.com/id'],
+      ['root', 'id#fragment'],
+      ['descendant', ''],
+      ['descendant', 'two words'],
+      ['descendant', '2leading-digit'],
+      ['descendant', 'url(x)'],
+      ['descendant', 'id?query'],
+    ] as const) {
+      const rootId = location === 'root' ? ` id="${id}"` : ''
+      const child = location === 'descendant' ? `<g id="${id}" />` : '<g />'
+      expect(() => parseSanitizedSvgTemplate(
+        `<svg xmlns="http://www.w3.org/2000/svg"${rootId} viewBox="0 0 10 10">${child}</svg>`,
+      ), `${location} id=${JSON.stringify(id)}`).toThrow(/id/i)
+    }
+  })
+
+  it('accepts safe TeX-style local IDs and scopes them deterministically', () => {
+    const parsed = parseSanitizedSvgTemplate(
+      '<svg xmlns="http://www.w3.org/2000/svg" id="tex-root_1" viewBox="0 0 10 10">' +
+        '<defs><clipPath id="MJX-1-TEX:I.2"><rect width="1" height="1" /></clipPath></defs>' +
+        '<path id="glyph.a-b" clip-path="url(#MJX-1-TEX:I.2)" />' +
+      '</svg>',
+    )
+    const scoped = instantiateSvgTemplate(parsed, 'instance-a')
+    expect(scoped.id).toBe('instance-a--tex-root_1')
+    expect(scoped.querySelector('clipPath')?.id).toBe('instance-a--MJX-1-TEX:I.2')
+    expect(scoped.querySelector('path')?.id).toBe('instance-a--glyph.a-b')
+    expect(scoped.querySelector('path')?.getAttribute('clip-path')).toBe('url(#instance-a--MJX-1-TEX:I.2)')
+  })
+
   it('requires every local fragment target and scopes IDs per explicit instance', () => {
     for (const reference of ['href="#missing"', 'fill="url(#missing)"', 'style="clip-path:url(#missing)"']) {
       expect(() => parseSanitizedSvgTemplate(

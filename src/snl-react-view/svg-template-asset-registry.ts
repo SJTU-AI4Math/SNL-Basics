@@ -4,25 +4,25 @@ export interface SvgTemplateAssetIdentity {
   readonly revision: string
 }
 
-export interface SvgTemplateAssetResult<T> {
+export interface SvgTemplateAssetResult {
   identity: SvgTemplateAssetIdentity
   requestEpoch: number
-  value: T
+  value: string
 }
 
-export type SvgTemplateAssetLoader<T> = (
+export type SvgTemplateAssetLoader = (
   identity: SvgTemplateAssetIdentity,
   signal: AbortSignal,
-) => Promise<T>
+) => Promise<string>
 
-export interface SvgTemplateAssetRegistryOptions<T> {
-  loader: SvgTemplateAssetLoader<T>
+export interface SvgTemplateAssetRegistryOptions {
+  loader: SvgTemplateAssetLoader
   maxSettled: number
   maxAuthorityHistory?: number
 }
 
-export interface SvgTemplateAssetHandle<T> {
-  promise: Promise<SvgTemplateAssetResult<T>>
+export interface SvgTemplateAssetHandle {
+  promise: Promise<SvgTemplateAssetResult>
   release(): void
 }
 
@@ -38,16 +38,16 @@ interface AuthorityHistoryEntry {
   identityKey: string
 }
 
-interface PendingEntry<T> {
+interface PendingEntry {
   controller: AbortController
   consumers: number
-  promise: Promise<T>
+  promise: Promise<string>
   authority: string
   authorityState: AuthorityState
 }
 
-interface SettledEntry<T> {
-  value: T
+interface SettledEntry {
+  value: string
   authority: string
   authorityState: AuthorityState
 }
@@ -75,26 +75,48 @@ function authorityKey(identity: SvgTemplateAssetIdentity): string {
   return JSON.stringify([identity.baseIdentity, identity.source])
 }
 
-function assertIdentity(identity: SvgTemplateAssetIdentity, requestEpoch: number): void {
-  if (!identity.source || !identity.baseIdentity || !identity.revision) {
-    throw new Error('SVG template asset identity requires source, baseIdentity, and revision')
+function snapshotIdentity(identity: SvgTemplateAssetIdentity): SvgTemplateAssetIdentity {
+  const source = identity.source
+  const baseIdentity = identity.baseIdentity
+  const revision = identity.revision
+  if (
+    typeof source !== 'string' || !source
+    || typeof baseIdentity !== 'string' || !baseIdentity
+    || typeof revision !== 'string' || !revision
+  ) {
+    throw new Error('SVG template asset identity requires non-empty string source, baseIdentity, and revision')
   }
+  return Object.freeze({ source, baseIdentity, revision })
+}
+
+function assertRequestEpoch(requestEpoch: number): void {
   if (!Number.isSafeInteger(requestEpoch) || requestEpoch < 0) {
     throw new Error('SVG template asset request epoch must be a non-negative safe integer')
   }
 }
 
-export class SvgTemplateAssetRegistry<T = string> {
-  private readonly loader: SvgTemplateAssetLoader<T>
+function assertSvgSourceString(value: unknown): string {
+  if (typeof value !== 'string') {
+    throw new Error('SVG template asset loader must resolve to a raw source string')
+  }
+  return value
+}
+
+/**
+ * Caches immutable raw SVG source strings only. Parse and sanitize a fresh DOM
+ * per consumer after retrieval; mutable parsed DOM must never enter this cache.
+ */
+export class SvgTemplateAssetRegistry {
+  private readonly loader: SvgTemplateAssetLoader
   private readonly maxSettled: number
   private readonly maxAuthorityHistory: number
-  private readonly pending = new Map<string, PendingEntry<T>>()
-  private readonly settled = new Map<string, SettledEntry<T>>()
+  private readonly pending = new Map<string, PendingEntry>()
+  private readonly settled = new Map<string, SettledEntry>()
   private readonly authorities = new Map<string, AuthorityState>()
   private readonly authorityHistory = new Map<string, AuthorityHistoryEntry>()
   private nextGeneration = 0
 
-  constructor(options: SvgTemplateAssetRegistryOptions<T>) {
+  constructor(options: SvgTemplateAssetRegistryOptions) {
     if (!Number.isSafeInteger(options.maxSettled) || options.maxSettled < 0) {
       throw new Error('SVG template asset settled cache bound must be a non-negative safe integer')
     }
@@ -107,9 +129,9 @@ export class SvgTemplateAssetRegistry<T = string> {
     this.maxAuthorityHistory = maxAuthorityHistory
   }
 
-  acquire(identity: SvgTemplateAssetIdentity, requestEpoch: number): SvgTemplateAssetHandle<T> {
-    const identitySnapshot: SvgTemplateAssetIdentity = Object.freeze({ ...identity })
-    assertIdentity(identitySnapshot, requestEpoch)
+  acquire(identity: SvgTemplateAssetIdentity, requestEpoch: number): SvgTemplateAssetHandle {
+    const identitySnapshot = snapshotIdentity(identity)
+    assertRequestEpoch(requestEpoch)
     const key = identityKey(identitySnapshot)
     const authority = authorityKey(identitySnapshot)
     let state = this.authorities.get(authority)
@@ -160,9 +182,9 @@ export class SvgTemplateAssetRegistry<T = string> {
     let entry = this.pending.get(key)
     if (!entry) {
       const controller = new AbortController()
-      let resolveLoader!: (value: T | PromiseLike<T>) => void
+      let resolveLoader!: (value: string | PromiseLike<string>) => void
       let rejectLoader!: (reason?: unknown) => void
-      const loaderPromise = new Promise<T>((resolve, reject) => {
+      const loaderPromise = new Promise<string>((resolve, reject) => {
         resolveLoader = resolve
         rejectLoader = reject
       })
@@ -192,7 +214,9 @@ export class SvgTemplateAssetRegistry<T = string> {
         this.discardPending(key, ownedEntry)
       })
       try {
-        Promise.resolve(this.loader({ ...identitySnapshot }, controller.signal)).then(resolveLoader, rejectLoader)
+        Promise.resolve(this.loader({ ...identitySnapshot }, controller.signal))
+          .then(assertSvgSourceString)
+          .then(resolveLoader, rejectLoader)
       } catch (error) {
         rejectLoader(error)
       }
@@ -221,8 +245,9 @@ export class SvgTemplateAssetRegistry<T = string> {
   }
 
   invalidate(identity: SvgTemplateAssetIdentity): void {
-    const key = identityKey(identity)
-    const authority = authorityKey(identity)
+    const identitySnapshot = snapshotIdentity(identity)
+    const key = identityKey(identitySnapshot)
+    const authority = authorityKey(identitySnapshot)
     const state = this.authorities.get(authority)
     if (state?.identityKey === key) state.generation = this.newGeneration()
 
@@ -255,12 +280,12 @@ export class SvgTemplateAssetRegistry<T = string> {
     authority: string,
     state: AuthorityState,
     generation: number,
-    promise: Promise<T>,
+    promise: Promise<string>,
     onRelease: () => void,
-  ): SvgTemplateAssetHandle<T> {
+  ): SvgTemplateAssetHandle {
     let released = false
     this.retainAuthority(state)
-    const result = promise.then((value): SvgTemplateAssetResult<T> => {
+    const result = promise.then((value): SvgTemplateAssetResult => {
       if (released) throw new ReleasedSvgTemplateAssetError()
       if (this.authorities.get(authority) !== state || state.generation !== generation) {
         throw new StaleSvgTemplateAssetError()
@@ -281,13 +306,13 @@ export class SvgTemplateAssetRegistry<T = string> {
     }
   }
 
-  private takePending(key: string, entry: PendingEntry<T>): boolean {
+  private takePending(key: string, entry: PendingEntry): boolean {
     if (this.pending.get(key) !== entry) return false
     this.pending.delete(key)
     return true
   }
 
-  private discardPending(key: string, entry: PendingEntry<T>, abortReason?: DOMException): boolean {
+  private discardPending(key: string, entry: PendingEntry, abortReason?: DOMException): boolean {
     if (!this.takePending(key, entry)) return false
     this.releaseAuthority(entry.authority, entry.authorityState)
     if (abortReason && !entry.controller.signal.aborted) entry.controller.abort(abortReason)

@@ -125,6 +125,7 @@ const PAINT_OR_URL_ATTRIBUTES = new Set([
 ])
 
 const TEXT_CONTAINERS = new Set(['text', 'tspan', 'title', 'desc'])
+const SAFE_LOCAL_ID = /^[A-Za-z_][\w:.-]*$/
 
 export interface SvgTemplateSlot {
   index: number
@@ -375,6 +376,7 @@ function elementsWithId(root: SVGSVGElement): Element[] {
 function validateLocalReferences(root: SVGSVGElement): void {
   const ids = new Set<string>()
   for (const element of elementsWithId(root)) {
+    if (!SAFE_LOCAL_ID.test(element.id)) reject(`SVG template id "${element.id}" is not a safe local identifier`)
     if (ids.has(element.id)) reject(`SVG template contains duplicate id "${element.id}"`)
     ids.add(element.id)
   }

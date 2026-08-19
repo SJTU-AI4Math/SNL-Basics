@@ -69,6 +69,71 @@ describe('SvgTemplateAssetRegistry', () => {
     expect(registry.snapshot()).toMatchObject({ pending: 0, settled: 0 })
   })
 
+  it('rejects non-string identity fields before loader or registry mutation', () => {
+    const loader = vi.fn(async () => '<svg />')
+    const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 2 })
+    const malicious = {
+      toJSON: vi.fn(() => 'diagram.svg'),
+      toString: vi.fn(() => 'diagram.svg'),
+    }
+    const invalidIdentities = [
+      { source: malicious, baseIdentity: 'workspace-a', revision: 'r1' },
+      { source: 'diagram.svg', baseIdentity: malicious, revision: 'r1' },
+      { source: 'diagram.svg', baseIdentity: 'workspace-a', revision: malicious },
+      { source: 1, baseIdentity: 'workspace-a', revision: 'r1' },
+      { source: 'diagram.svg', baseIdentity: null, revision: 'r1' },
+    ]
+
+    for (const invalid of invalidIdentities) {
+      expect(() => registry.acquire(invalid as unknown as SvgTemplateAssetIdentity, 1)).toThrow(/identity|string/i)
+    }
+    expect(malicious.toJSON).not.toHaveBeenCalled()
+    expect(malicious.toString).not.toHaveBeenCalled()
+    expect(loader).not.toHaveBeenCalled()
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0, authorityHistory: 0 })
+  })
+
+  it('rejects non-string invalidation identities without targeting a matching coerced key', async () => {
+    const loader = vi.fn(async () => '<svg id="cached" />')
+    const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 2 })
+    const handle = registry.acquire(identity('r1'), 1)
+    await handle.promise
+    handle.release()
+    const maliciousRevision = { toJSON: vi.fn(() => 'r1') }
+
+    expect(() => registry.invalidate({
+      source: 'diagram.svg',
+      baseIdentity: 'workspace-a',
+      revision: maliciousRevision,
+    } as unknown as SvgTemplateAssetIdentity)).toThrow(/identity|string/i)
+    expect(maliciousRevision.toJSON).not.toHaveBeenCalled()
+    expect(registry.snapshot()).toMatchObject({ settled: 1, authorities: 1 })
+
+    const cached = registry.acquire(identity('r1'), 1)
+    await expect(cached.promise).resolves.toMatchObject({ value: '<svg id="cached" />' })
+    expect(loader).toHaveBeenCalledTimes(1)
+    cached.release()
+  })
+
+  it('rejects mutable non-string loader values without poisoning the settled cache', async () => {
+    const mutableDomLike = { outerHTML: '<svg id="poison" />' }
+    const loader = vi.fn()
+      .mockResolvedValueOnce(mutableDomLike as unknown as string)
+      .mockResolvedValueOnce('<svg id="safe" />')
+    const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 2 })
+
+    const poisoned = registry.acquire(identity('r1'), 1)
+    await expect(poisoned.promise).rejects.toThrow(/string/i)
+    mutableDomLike.outerHTML = '<svg id="mutated" />'
+    poisoned.release()
+    expect(registry.snapshot()).toMatchObject({ pending: 0, settled: 0 })
+
+    const retry = registry.acquire(identity('r1'), 1)
+    await expect(retry.promise).resolves.toMatchObject({ value: '<svg id="safe" />' })
+    expect(loader).toHaveBeenCalledTimes(2)
+    retry.release()
+  })
+
   it('bounds settled cache entries and invalidates source/base/revision identities', async () => {
     const loader = vi.fn(async (asset: SvgTemplateAssetIdentity) => asset.revision)
     const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 1 })
@@ -106,7 +171,7 @@ describe('SvgTemplateAssetRegistry', () => {
   it('registers pending work before synchronous reentry and aborts after the final release', async () => {
     const loading = deferred<string>()
     const signals: AbortSignal[] = []
-    let reentrantHandle: ReturnType<SvgTemplateAssetRegistry<string>['acquire']> | undefined
+    let reentrantHandle: ReturnType<SvgTemplateAssetRegistry['acquire']> | undefined
     let reentered = false
     const loader = vi.fn((_asset: SvgTemplateAssetIdentity, signal: AbortSignal) => {
       signals.push(signal)
@@ -169,7 +234,7 @@ describe('SvgTemplateAssetRegistry', () => {
 
   it('cleans up pending state when the loader throws synchronously', async () => {
     const loaderError = new Error('synchronous loader failure')
-    const registry = new SvgTemplateAssetRegistry<string>({
+    const registry = new SvgTemplateAssetRegistry({
       loader: () => { throw loaderError },
       maxSettled: 2,
     })
@@ -183,7 +248,7 @@ describe('SvgTemplateAssetRegistry', () => {
   })
 
   it('bounds authority metadata across eviction, final release, and invalidation', async () => {
-    const registry = new SvgTemplateAssetRegistry<string>({
+    const registry = new SvgTemplateAssetRegistry({
       loader: async (asset) => asset.revision,
       maxSettled: 2,
     })
@@ -196,7 +261,7 @@ describe('SvgTemplateAssetRegistry', () => {
     registry.invalidate(identity('r19', 'source-19.svg'))
     expect(registry.snapshot()).toEqual({ pending: 0, settled: 1, consumers: 0, authorities: 1, authorityHistory: 19 })
 
-    const never = new SvgTemplateAssetRegistry<string>({
+    const never = new SvgTemplateAssetRegistry({
       loader: () => new Promise(() => {}),
       maxSettled: 2,
     })
@@ -207,7 +272,7 @@ describe('SvgTemplateAssetRegistry', () => {
   })
 
   it('keeps authority through settlement until the handle releases', async () => {
-    const registry = new SvgTemplateAssetRegistry<string>({ loader: async () => 'value', maxSettled: 0 })
+    const registry = new SvgTemplateAssetRegistry({ loader: async () => 'value', maxSettled: 0 })
     const handle = registry.acquire(identity('r1'), 1)
     await expect(handle.promise).resolves.toMatchObject({ value: 'value' })
     expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 1, authorityHistory: 0 })
@@ -218,7 +283,7 @@ describe('SvgTemplateAssetRegistry', () => {
 
   it('supports StrictMode-style release and replay without reviving stale work', async () => {
     const calls: Array<{ deferred: ReturnType<typeof deferred<string>>; signal: AbortSignal }> = []
-    const registry = new SvgTemplateAssetRegistry<string>({
+    const registry = new SvgTemplateAssetRegistry({
       loader: (_asset, signal) => {
         const result = deferred<string>()
         calls.push({ deferred: result, signal })
@@ -262,7 +327,7 @@ describe('SvgTemplateAssetRegistry', () => {
   })
 
   it('bounds inactive authority history under high-cardinality load', async () => {
-    const registry = new SvgTemplateAssetRegistry<string>({
+    const registry = new SvgTemplateAssetRegistry({
       loader: async (asset) => asset.revision,
       maxSettled: 0,
       maxAuthorityHistory: 2,
