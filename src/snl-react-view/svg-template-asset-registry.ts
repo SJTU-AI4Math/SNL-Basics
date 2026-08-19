@@ -25,20 +25,39 @@ export interface SvgTemplateAssetHandle<T> {
   release(): void
 }
 
+interface AuthorityState {
+  requestEpoch: number
+  identityKey: string
+  generation: number
+  references: number
+}
+
 interface PendingEntry<T> {
   controller: AbortController
   consumers: number
   promise: Promise<T>
+  authority: string
+  authorityState: AuthorityState
 }
 
 interface SettledEntry<T> {
   value: T
+  authority: string
+  authorityState: AuthorityState
 }
 
 export class StaleSvgTemplateAssetError extends Error {
   constructor() {
     super('SVG template asset result is stale for the current identity or request epoch')
     this.name = 'StaleSvgTemplateAssetError'
+  }
+}
+
+export class ReleasedSvgTemplateAssetError extends StaleSvgTemplateAssetError {
+  constructor() {
+    super()
+    this.message = 'SVG template asset handle was released before its result settled'
+    this.name = 'ReleasedSvgTemplateAssetError'
   }
 }
 
@@ -64,7 +83,8 @@ export class SvgTemplateAssetRegistry<T = string> {
   private readonly maxSettled: number
   private readonly pending = new Map<string, PendingEntry<T>>()
   private readonly settled = new Map<string, SettledEntry<T>>()
-  private readonly latest = new Map<string, { requestEpoch: number; identityKey: string }>()
+  private readonly authorities = new Map<string, AuthorityState>()
+  private nextGeneration = 0
 
   constructor(options: SvgTemplateAssetRegistryOptions<T>) {
     if (!Number.isSafeInteger(options.maxSettled) || options.maxSettled < 0) {
@@ -78,22 +98,38 @@ export class SvgTemplateAssetRegistry<T = string> {
     assertIdentity(identity, requestEpoch)
     const key = identityKey(identity)
     const authority = authorityKey(identity)
-    const previous = this.latest.get(authority)
-    if (previous && requestEpoch < previous.requestEpoch) {
+    let state = this.authorities.get(authority)
+    if (state && requestEpoch < state.requestEpoch) {
       return { promise: Promise.reject(new StaleSvgTemplateAssetError()), release() {} }
     }
-    if (!previous || requestEpoch > previous.requestEpoch || previous.identityKey !== key) {
-      this.latest.set(authority, { requestEpoch, identityKey: key })
+    if (!state) {
+      state = {
+        requestEpoch,
+        identityKey: key,
+        generation: this.newGeneration(),
+        references: 0,
+      }
+      this.authorities.set(authority, state)
+    } else if (requestEpoch > state.requestEpoch || state.identityKey !== key) {
+      state.requestEpoch = requestEpoch
+      state.identityKey = key
+      state.generation = this.newGeneration()
     }
+    const handleGeneration = state.generation
 
     const cached = this.settled.get(key)
     if (cached) {
       this.settled.delete(key)
       this.settled.set(key, cached)
-      return {
-        promise: this.resultFor(identity, requestEpoch, Promise.resolve(cached.value)),
-        release() {},
-      }
+      return this.createHandle(
+        identity,
+        requestEpoch,
+        authority,
+        state,
+        handleGeneration,
+        Promise.resolve(cached.value),
+        () => {},
+      )
     }
 
     let entry = this.pending.get(key)
@@ -109,73 +145,137 @@ export class SvgTemplateAssetRegistry<T = string> {
         controller,
         consumers: 0,
         promise: loaderPromise,
+        authority,
+        authorityState: state,
       }
+      this.retainAuthority(state)
       this.pending.set(key, entry)
       const ownedEntry = entry
       entry.promise.then((value) => {
         if (this.pending.get(key) !== ownedEntry) return
         this.pending.delete(key)
         if (ownedEntry.consumers > 0 && !ownedEntry.controller.signal.aborted && this.maxSettled > 0) {
-          this.settled.set(key, { value })
+          this.settled.set(key, {
+            value,
+            authority: ownedEntry.authority,
+            authorityState: ownedEntry.authorityState,
+          })
           this.trimSettled()
+        } else {
+          this.releaseAuthority(ownedEntry.authority, ownedEntry.authorityState)
         }
       }, () => {
-        if (this.pending.get(key) === ownedEntry) this.pending.delete(key)
+        if (this.pending.get(key) === ownedEntry) {
+          this.pending.delete(key)
+          this.releaseAuthority(ownedEntry.authority, ownedEntry.authorityState)
+        }
       })
     }
     entry.consumers += 1
-    let released = false
     const ownedEntry = entry
-    return {
-      promise: this.resultFor(identity, requestEpoch, entry.promise),
-      release: () => {
-        if (released) return
-        released = true
+    return this.createHandle(
+      identity,
+      requestEpoch,
+      authority,
+      state,
+      handleGeneration,
+      entry.promise,
+      () => {
         ownedEntry.consumers -= 1
         if (ownedEntry.consumers === 0 && this.pending.get(key) === ownedEntry) {
           this.pending.delete(key)
+          this.releaseAuthority(ownedEntry.authority, ownedEntry.authorityState)
           ownedEntry.controller.abort(new DOMException('Last SVG template asset consumer detached', 'AbortError'))
         }
       },
-    }
+    )
   }
 
   invalidate(identity: SvgTemplateAssetIdentity): void {
     const key = identityKey(identity)
-    this.settled.delete(key)
+    const authority = authorityKey(identity)
+    const state = this.authorities.get(authority)
+    if (state?.identityKey === key) state.generation = this.newGeneration()
+
+    const cached = this.settled.get(key)
+    if (cached) {
+      this.settled.delete(key)
+      this.releaseAuthority(cached.authority, cached.authorityState)
+    }
     const entry = this.pending.get(key)
     if (entry) {
       this.pending.delete(key)
+      this.releaseAuthority(entry.authority, entry.authorityState)
       entry.controller.abort(new DOMException('SVG template asset invalidated', 'AbortError'))
     }
-    const authority = authorityKey(identity)
-    if (this.latest.get(authority)?.identityKey === key) this.latest.delete(authority)
   }
 
-  snapshot(): { pending: number; settled: number; consumers: number } {
+  snapshot(): { pending: number; settled: number; consumers: number; authorities: number } {
     let consumers = 0
     for (const entry of this.pending.values()) consumers += entry.consumers
-    return { pending: this.pending.size, settled: this.settled.size, consumers }
+    return {
+      pending: this.pending.size,
+      settled: this.settled.size,
+      consumers,
+      authorities: this.authorities.size,
+    }
   }
 
-  private async resultFor(
+  private createHandle(
     identity: SvgTemplateAssetIdentity,
     requestEpoch: number,
+    authority: string,
+    state: AuthorityState,
+    generation: number,
     promise: Promise<T>,
-  ): Promise<SvgTemplateAssetResult<T>> {
-    const value = await promise
-    const latest = this.latest.get(authorityKey(identity))
-    if (!latest || latest.requestEpoch !== requestEpoch || latest.identityKey !== identityKey(identity)) {
-      throw new StaleSvgTemplateAssetError()
+    onRelease: () => void,
+  ): SvgTemplateAssetHandle<T> {
+    let released = false
+    this.retainAuthority(state)
+    const result = promise.then((value): SvgTemplateAssetResult<T> => {
+      if (released) throw new ReleasedSvgTemplateAssetError()
+      if (this.authorities.get(authority) !== state || state.generation !== generation) {
+        throw new StaleSvgTemplateAssetError()
+      }
+      return { identity: { ...identity }, requestEpoch, value }
+    }, (error: unknown) => {
+      if (released) throw new ReleasedSvgTemplateAssetError()
+      throw error
+    })
+    return {
+      promise: result,
+      release: () => {
+        if (released) return
+        released = true
+        onRelease()
+        this.releaseAuthority(authority, state)
+      },
     }
-    return { identity: { ...identity }, requestEpoch, value }
+  }
+
+  private newGeneration(): number {
+    this.nextGeneration += 1
+    return this.nextGeneration
+  }
+
+  private retainAuthority(state: AuthorityState): void {
+    state.references += 1
+  }
+
+  private releaseAuthority(authority: string, state: AuthorityState): void {
+    state.references -= 1
+    if (state.references === 0 && this.authorities.get(authority) === state) {
+      this.authorities.delete(authority)
+    }
   }
 
   private trimSettled(): void {
     while (this.settled.size > this.maxSettled) {
       const oldest = this.settled.keys().next().value as string | undefined
       if (oldest === undefined) break
+      const entry = this.settled.get(oldest)
       this.settled.delete(oldest)
+      if (entry) this.releaseAuthority(entry.authority, entry.authorityState)
     }
   }
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
+  ReleasedSvgTemplateAssetError,
   StaleSvgTemplateAssetError,
   SvgTemplateAssetRegistry,
   type SvgTemplateAssetIdentity,
@@ -45,7 +46,7 @@ describe('SvgTemplateAssetRegistry', () => {
     second.release()
     expect(registry.snapshot()).toMatchObject({ pending: 0, settled: 1 })
     registry.invalidate(identity('r2', 'two.svg'))
-    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0 })
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0 })
   })
 
   it('aborts and removes pending work after the last consumer releases', async () => {
@@ -65,7 +66,70 @@ describe('SvgTemplateAssetRegistry', () => {
       expect(replay.promise).rejects.toBeDefined(),
     ])
     expect(observedSignal?.aborted).toBe(true)
-    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0 })
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0 })
+  })
+
+  it('prevents a released shared handle from receiving success or rejection', async () => {
+    const success = deferred<string>()
+    const successRegistry = new SvgTemplateAssetRegistry({ loader: () => success.promise, maxSettled: 2 })
+    const releasedSuccess = successRegistry.acquire(identity('success'), 1)
+    const liveSuccess = successRegistry.acquire(identity('success'), 1)
+    releasedSuccess.release()
+    releasedSuccess.release()
+    success.resolve('loaded')
+    await Promise.all([
+      expect(releasedSuccess.promise).rejects.toBeInstanceOf(ReleasedSvgTemplateAssetError),
+      expect(liveSuccess.promise).resolves.toMatchObject({ value: 'loaded' }),
+    ])
+    liveSuccess.release()
+
+    const failure = deferred<string>()
+    const failureRegistry = new SvgTemplateAssetRegistry({ loader: () => failure.promise, maxSettled: 2 })
+    const releasedFailure = failureRegistry.acquire(identity('failure'), 1)
+    const liveFailure = failureRegistry.acquire(identity('failure'), 1)
+    releasedFailure.release()
+    const loaderError = new Error('loader failed')
+    failure.reject(loaderError)
+    await Promise.all([
+      expect(releasedFailure.promise).rejects.toBeInstanceOf(ReleasedSvgTemplateAssetError),
+      expect(liveFailure.promise).rejects.toBe(loaderError),
+    ])
+    liveFailure.release()
+    expect(failureRegistry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0 })
+  })
+
+  it('bounds authority metadata across eviction, final release, and invalidation', async () => {
+    const registry = new SvgTemplateAssetRegistry<string>({
+      loader: async (asset) => asset.revision,
+      maxSettled: 2,
+    })
+    for (let index = 0; index < 20; index += 1) {
+      const handle = registry.acquire(identity(`r${index}`, `source-${index}.svg`), index)
+      await handle.promise
+      handle.release()
+    }
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 2, consumers: 0, authorities: 2 })
+    registry.invalidate(identity('r19', 'source-19.svg'))
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 1, consumers: 0, authorities: 1 })
+
+    const never = new SvgTemplateAssetRegistry<string>({
+      loader: () => new Promise(() => {}),
+      maxSettled: 2,
+    })
+    const pending = never.acquire(identity('never'), 1)
+    expect(never.snapshot().authorities).toBe(1)
+    pending.release()
+    expect(never.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0 })
+  })
+
+  it('keeps authority through settlement until the handle releases', async () => {
+    const registry = new SvgTemplateAssetRegistry<string>({ loader: async () => 'value', maxSettled: 0 })
+    const handle = registry.acquire(identity('r1'), 1)
+    await expect(handle.promise).resolves.toMatchObject({ value: 'value' })
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 1 })
+    handle.release()
+    handle.release()
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0 })
   })
 
   it('supports StrictMode-style release and replay without reviving stale work', async () => {

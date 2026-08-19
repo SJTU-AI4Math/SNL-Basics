@@ -106,6 +106,30 @@ describe('svg-template', () => {
     expect(safe.root.querySelector('path')?.getAttribute('style')).toBe('fill:url(#g); opacity:0.5')
   })
 
+  it('scopes root IDs and rejects root/descendant duplicates', () => {
+    const parsed = parseSanitizedSvgTemplate(
+      '<svg xmlns="http://www.w3.org/2000/svg" id="root" viewBox="0 0 10 10">' +
+        '<defs><clipPath id="clip"><rect width="1" height="1" /></clipPath></defs>' +
+        '<g clip-path="url(#root)" /><use href="#clip" />' +
+      '</svg>',
+    )
+    const first = instantiateSvgTemplate(parsed, 'instance-a')
+    const second = instantiateSvgTemplate(parsed, 'instance-b')
+
+    expect(first.id).toBe('instance-a--root')
+    expect(first.querySelector('g')?.getAttribute('clip-path')).toBe('url(#instance-a--root)')
+    expect(second.id).toBe('instance-b--root')
+    const allIds = [first, ...first.querySelectorAll('[id]'), second, ...second.querySelectorAll('[id]')]
+      .map((node) => node.id)
+    expect(new Set(allIds).size).toBe(allIds.length)
+
+    expect(() => parseSanitizedSvgTemplate(
+      '<svg xmlns="http://www.w3.org/2000/svg" id="duplicate" viewBox="0 0 10 10">' +
+        '<g id="duplicate" />' +
+      '</svg>',
+    )).toThrow(/duplicate id/i)
+  })
+
   it('requires every local fragment target and scopes IDs per explicit instance', () => {
     for (const reference of ['href="#missing"', 'fill="url(#missing)"', 'style="clip-path:url(#missing)"']) {
       expect(() => parseSanitizedSvgTemplate(

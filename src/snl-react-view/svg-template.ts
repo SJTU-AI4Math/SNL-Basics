@@ -354,9 +354,16 @@ function localReferenceIds(root: SVGSVGElement): string[] {
   return references
 }
 
+function elementsWithId(root: SVGSVGElement): Element[] {
+  return [
+    ...(root.hasAttribute('id') ? [root] : []),
+    ...Array.from(root.querySelectorAll('[id]')),
+  ]
+}
+
 function validateLocalReferences(root: SVGSVGElement): void {
   const ids = new Set<string>()
-  for (const element of Array.from(root.querySelectorAll('[id]'))) {
+  for (const element of elementsWithId(root)) {
     if (ids.has(element.id)) reject(`SVG template contains duplicate id "${element.id}"`)
     ids.add(element.id)
   }
@@ -369,7 +376,7 @@ export function instantiateSvgTemplate(template: ParsedSvgTemplate, instanceScop
   if (!/^[A-Za-z_][\w.-]*$/.test(instanceScope)) reject('SVG template instance scope must be a safe identifier')
   const root = template.root.cloneNode(true) as SVGSVGElement
   const rewritten = new Map<string, string>()
-  for (const element of Array.from(root.querySelectorAll('[id]'))) {
+  for (const element of elementsWithId(root)) {
     const scoped = `${instanceScope}--${element.id}`
     rewritten.set(element.id, scoped)
     element.id = scoped
