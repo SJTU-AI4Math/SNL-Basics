@@ -1,7 +1,7 @@
 export interface SvgTemplateAssetIdentity {
-  source: string
-  baseIdentity: string
-  revision: string
+  readonly source: string
+  readonly baseIdentity: string
+  readonly revision: string
 }
 
 export interface SvgTemplateAssetResult<T> {
@@ -108,9 +108,10 @@ export class SvgTemplateAssetRegistry<T = string> {
   }
 
   acquire(identity: SvgTemplateAssetIdentity, requestEpoch: number): SvgTemplateAssetHandle<T> {
-    assertIdentity(identity, requestEpoch)
-    const key = identityKey(identity)
-    const authority = authorityKey(identity)
+    const identitySnapshot: SvgTemplateAssetIdentity = { ...identity }
+    assertIdentity(identitySnapshot, requestEpoch)
+    const key = identityKey(identitySnapshot)
+    const authority = authorityKey(identitySnapshot)
     let state = this.authorities.get(authority)
     const remembered = state ? undefined : this.authorityHistory.get(authority)
     if (remembered) {
@@ -146,7 +147,7 @@ export class SvgTemplateAssetRegistry<T = string> {
       this.settled.delete(key)
       this.settled.set(key, cached)
       return this.createHandle(
-        identity,
+        identitySnapshot,
         requestEpoch,
         authority,
         state,
@@ -191,7 +192,7 @@ export class SvgTemplateAssetRegistry<T = string> {
         this.discardPending(key, ownedEntry)
       })
       try {
-        Promise.resolve(this.loader({ ...identity }, controller.signal)).then(resolveLoader, rejectLoader)
+        Promise.resolve(this.loader(identitySnapshot, controller.signal)).then(resolveLoader, rejectLoader)
       } catch (error) {
         rejectLoader(error)
       }
@@ -200,7 +201,7 @@ export class SvgTemplateAssetRegistry<T = string> {
     }
     const ownedEntry = entry
     return this.createHandle(
-      identity,
+      identitySnapshot,
       requestEpoch,
       authority,
       state,

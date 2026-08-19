@@ -35,6 +35,34 @@ describe('SvgTemplateAssetRegistry', () => {
     freshHandle.release()
   })
 
+  it('snapshots mutable caller identity before loading and result delivery', async () => {
+    const loaded = deferred<string>()
+    const seen: SvgTemplateAssetIdentity[] = []
+    const registry = new SvgTemplateAssetRegistry({
+      loader: async (asset) => {
+        seen.push(asset)
+        return loaded.promise
+      },
+      maxSettled: 1,
+    })
+    const mutable = { source: 'old.svg', baseIdentity: 'workspace-a', revision: 'r1' }
+    const handle = registry.acquire(mutable, 1)
+
+    mutable.source = 'new.svg'
+    mutable.baseIdentity = 'workspace-b'
+    mutable.revision = 'r2'
+    loaded.resolve('<svg id="old"/>')
+
+    await expect(handle.promise).resolves.toMatchObject({
+      identity: { source: 'old.svg', baseIdentity: 'workspace-a', revision: 'r1' },
+      requestEpoch: 1,
+      value: '<svg id="old"/>',
+    })
+    expect(seen).toEqual([{ source: 'old.svg', baseIdentity: 'workspace-a', revision: 'r1' }])
+    expect(seen[0]).not.toBe(mutable)
+    handle.release()
+  })
+
   it('bounds settled cache entries and invalidates source/base/revision identities', async () => {
     const loader = vi.fn(async (asset: SvgTemplateAssetIdentity) => asset.revision)
     const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 1 })
