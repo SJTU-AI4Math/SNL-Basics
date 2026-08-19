@@ -220,8 +220,10 @@ function sanitizeStyleValue(name: string, value: string): string {
 
 function parseViewBox(value: string): void {
   const number = '[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?'
-  const match = new RegExp(`^\\s*(${number})[\\s,]+(${number})[\\s,]+(${number})[\\s,]+(${number})\\s*$`).exec(value)
-  if (!match) reject('SVG template viewBox must contain exactly four finite numbers')
+  const wsp = '[ \t\r\n]'
+  const commaWsp = `(?:${wsp}+,?${wsp}*|,${wsp}*)`
+  const match = new RegExp(`^${wsp}*(${number})${commaWsp}(${number})${commaWsp}(${number})${commaWsp}(${number})${wsp}*$`).exec(value)
+  if (!match) reject('SVG template viewBox must contain exactly four finite numbers using SVG comma-wsp separators')
   const values = match.slice(1).map(Number)
   if (!values.every(Number.isFinite) || values[2] <= 0 || values[3] <= 0) {
     reject('SVG template viewBox width and height must be positive finite numbers')
@@ -272,6 +274,15 @@ function sanitizeAttribute(attr: Attr): { name: string; value: string; namespace
   }
   if (attr.namespaceURI && attr.namespaceURI !== XLINK_NS && attr.namespaceURI !== XML_NS) {
     reject(`SVG template attribute namespace "${attr.name}" is not allowed`)
+  }
+  if (attr.namespaceURI === XML_NS) {
+    if (attr.prefix !== 'xml' || attr.localName !== 'space' || attr.name !== 'xml:space') {
+      reject(`SVG template attribute namespace "${attr.name}" is not allowed`)
+    }
+    if (attr.value !== 'default' && attr.value !== 'preserve') {
+      reject('SVG template xml:space must be "default" or "preserve"')
+    }
+    return { name: 'xml:space', value: attr.value, namespace: XML_NS }
   }
   if (attr.name === 'style') {
     return { name: 'style', value: sanitizeStyle(attr.value), namespace: null }

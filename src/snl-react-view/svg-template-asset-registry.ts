@@ -18,6 +18,7 @@ export type SvgTemplateAssetLoader<T> = (
 export interface SvgTemplateAssetRegistryOptions<T> {
   loader: SvgTemplateAssetLoader<T>
   maxSettled: number
+  maxAuthorityHistory?: number
 }
 
 export interface SvgTemplateAssetHandle<T> {
@@ -30,6 +31,11 @@ interface AuthorityState {
   identityKey: string
   generation: number
   references: number
+}
+
+interface AuthorityHistoryEntry {
+  requestEpoch: number
+  identityKey: string
 }
 
 interface PendingEntry<T> {
@@ -81,17 +87,24 @@ function assertIdentity(identity: SvgTemplateAssetIdentity, requestEpoch: number
 export class SvgTemplateAssetRegistry<T = string> {
   private readonly loader: SvgTemplateAssetLoader<T>
   private readonly maxSettled: number
+  private readonly maxAuthorityHistory: number
   private readonly pending = new Map<string, PendingEntry<T>>()
   private readonly settled = new Map<string, SettledEntry<T>>()
   private readonly authorities = new Map<string, AuthorityState>()
+  private readonly authorityHistory = new Map<string, AuthorityHistoryEntry>()
   private nextGeneration = 0
 
   constructor(options: SvgTemplateAssetRegistryOptions<T>) {
     if (!Number.isSafeInteger(options.maxSettled) || options.maxSettled < 0) {
       throw new Error('SVG template asset settled cache bound must be a non-negative safe integer')
     }
+    const maxAuthorityHistory = options.maxAuthorityHistory ?? Math.max(32, options.maxSettled * 2)
+    if (!Number.isSafeInteger(maxAuthorityHistory) || maxAuthorityHistory < 0) {
+      throw new Error('SVG template asset authority history bound must be a non-negative safe integer')
+    }
     this.loader = options.loader
     this.maxSettled = options.maxSettled
+    this.maxAuthorityHistory = maxAuthorityHistory
   }
 
   acquire(identity: SvgTemplateAssetIdentity, requestEpoch: number): SvgTemplateAssetHandle<T> {
@@ -99,10 +112,21 @@ export class SvgTemplateAssetRegistry<T = string> {
     const key = identityKey(identity)
     const authority = authorityKey(identity)
     let state = this.authorities.get(authority)
-    if (state && requestEpoch < state.requestEpoch) {
+    const remembered = state ? undefined : this.authorityHistory.get(authority)
+    if (remembered) {
+      this.authorityHistory.delete(authority)
+      this.authorityHistory.set(authority, remembered)
+    }
+    const currentEpoch = state?.requestEpoch ?? remembered?.requestEpoch
+    const currentIdentityKey = state?.identityKey ?? remembered?.identityKey
+    if (currentEpoch !== undefined && (
+      requestEpoch < currentEpoch
+      || (requestEpoch === currentEpoch && key !== currentIdentityKey)
+    )) {
       return { promise: Promise.reject(new StaleSvgTemplateAssetError()), release() {} }
     }
     if (!state) {
+      this.authorityHistory.delete(authority)
       state = {
         requestEpoch,
         identityKey: key,
@@ -110,7 +134,7 @@ export class SvgTemplateAssetRegistry<T = string> {
         references: 0,
       }
       this.authorities.set(authority, state)
-    } else if (requestEpoch > state.requestEpoch || state.identityKey !== key) {
+    } else if (requestEpoch > state.requestEpoch) {
       state.requestEpoch = requestEpoch
       state.identityKey = key
       state.generation = this.newGeneration()
@@ -212,7 +236,7 @@ export class SvgTemplateAssetRegistry<T = string> {
     }
   }
 
-  snapshot(): { pending: number; settled: number; consumers: number; authorities: number } {
+  snapshot(): { pending: number; settled: number; consumers: number; authorities: number; authorityHistory: number } {
     let consumers = 0
     for (const entry of this.pending.values()) consumers += entry.consumers
     return {
@@ -220,6 +244,7 @@ export class SvgTemplateAssetRegistry<T = string> {
       settled: this.settled.size,
       consumers,
       authorities: this.authorities.size,
+      authorityHistory: this.authorityHistory.size,
     }
   }
 
@@ -281,6 +306,21 @@ export class SvgTemplateAssetRegistry<T = string> {
     state.references -= 1
     if (state.references === 0 && this.authorities.get(authority) === state) {
       this.authorities.delete(authority)
+      this.rememberAuthority(authority, state)
+    }
+  }
+
+  private rememberAuthority(authority: string, state: AuthorityState): void {
+    if (this.maxAuthorityHistory === 0) return
+    this.authorityHistory.delete(authority)
+    this.authorityHistory.set(authority, {
+      requestEpoch: state.requestEpoch,
+      identityKey: state.identityKey,
+    })
+    while (this.authorityHistory.size > this.maxAuthorityHistory) {
+      const oldest = this.authorityHistory.keys().next().value as string | undefined
+      if (oldest === undefined) break
+      this.authorityHistory.delete(oldest)
     }
   }
 

@@ -53,18 +53,49 @@ describe('svg-template', () => {
       .toThrow(/viewBox/i)
     expect(() => parseSanitizedSvgTemplate('<div />')).toThrow(/svg/i)
   })
-  it('accepts exactly four finite viewBox numbers with positive dimensions', () => {
+  it('accepts the SVG four-number viewBox comma-wsp grammar', () => {
+    const valid = [
+      '0 0 10 10',
+      '-1.5, 2e1, 4.5, 6',
+      '+.5,-.25,1.,2E+1',
+      '\t0 ,\n0\r 10,\t10 ',
+    ]
+    for (const viewBox of valid) {
+      expect(() => parseSanitizedSvgTemplate(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" />`,
+      ), viewBox).not.toThrow()
+    }
+  })
+
+  it('rejects malformed, non-finite, and non-positive viewBox values', () => {
     for (const viewBox of [
       '0 0 10', '0 0 10 10 20', 'garbage', '0 0 NaN 10', '0 0 Infinity 10',
       '0 0 0 10', '0 0 -1 10', '0 0 10 0', '0 0 10 -1',
+      '0,,0,,10,,10', '0, ,0,10,10', '0 0 10 10,', ',0 0 10 10', '0 0,,10 10',
     ]) {
       expect(() => parseSanitizedSvgTemplate(
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" />`,
       ), viewBox).toThrow(/viewBox/i)
     }
-    expect(parseSanitizedSvgTemplate(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1.5, 2e1, 4.5, 6" />',
-    ).viewBox).toBe('-1.5, 2e1, 4.5, 6')
+  })
+
+  it('preserves xml:space in the XML namespace and rejects namespace aliases', () => {
+    const parsed = parseSanitizedSvgTemplate(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">' +
+        '<text xml:space="preserve"> spaced </text>' +
+      '</svg>',
+    )
+    const text = parsed.root.querySelector('text')!
+    expect(text.getAttributeNS('http://www.w3.org/XML/1998/namespace', 'space')).toBe('preserve')
+    expect(text.getAttributeNodeNS('http://www.w3.org/XML/1998/namespace', 'space')?.name).toBe('xml:space')
+
+    for (const source of [
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:alias="http://www.w3.org/XML/1998/namespace" viewBox="0 0 10 10"><text alias:space="preserve" /></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:evil="http://example.com/evil" viewBox="0 0 10 10"><text evil:space="preserve" /></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><text xml:space="invalid" /></svg>',
+    ]) {
+      expect(() => parseSanitizedSvgTemplate(source)).toThrow()
+    }
   })
 
   it('accepts only empty g elements as typed positional anchors', () => {
