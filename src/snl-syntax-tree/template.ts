@@ -1,3 +1,5 @@
+import { createSlotContract } from './slot-contract'
+
 /**
  * Fill a KaTeX template with substituted child slots.
  *
@@ -56,11 +58,11 @@ export function analyzeLatexTemplatePlaceholders(template: string): {
   for (const match of source.matchAll(/#(\d{1,2})(?!\d)/g)) {
     maxIndex = Math.max(maxIndex, Number(match[1]))
   }
-  return {
-    positional_arity: maxIndex + 1,
-    variadic: /#\*/.test(source),
-    invalid: /#\d{3,}/.test(source),
-  }
+  return createSlotContract(
+    maxIndex + 1,
+    /#\*/.test(source),
+    /#\d{3,}/.test(source),
+  )
 }
 
 export function fillLatexTemplate(

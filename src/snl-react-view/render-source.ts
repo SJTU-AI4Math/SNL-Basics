@@ -30,6 +30,7 @@ import {
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { getBindRef, getSrc, getTreeSourcePath } from '../snl-syntax-tree/binding'
 import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
+import { slotContractKey } from '../snl-syntax-tree/slot-contract'
 import { analyzeLatexTemplatePlaceholders, fillLatexTemplate } from '../snl-syntax-tree/template'
 import { isEmptySnlSyntaxTreeNode, type SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { encodeTreePath, type TreePath } from './interaction-driver'
@@ -111,8 +112,7 @@ function assert_valid_template_spec(template: unknown, styleName: string): void 
 }
 
 function template_arity_contract(body: string): string {
-  const analysis = analyzeLatexTemplatePlaceholders(body)
-  return `${analysis.variadic ? 'dynamic' : 'fixed'}:${analysis.positional_arity}`
+  return slotContractKey(analyzeLatexTemplatePlaceholders(body))
 }
 
 const RETIRED_STYLE_FIELDS = [

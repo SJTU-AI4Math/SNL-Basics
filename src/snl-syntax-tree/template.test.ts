@@ -34,6 +34,15 @@ describe('fillLatexTemplate', () => {
     expect(fillLatexTemplate('#100', { child10: 'wrong' })).toBe('#100')
   })
 
+  it('preserves sparse numbered LaTeX placeholder behavior byte-for-byte', () => {
+    expect(analyzeLatexTemplatePlaceholders('#1')).toEqual({
+      positional_arity: 2, variadic: false, invalid: false,
+    })
+    expect(analyzeLatexTemplatePlaceholders('\\#1 #99')).toEqual({
+      positional_arity: 100, variadic: false, invalid: false,
+    })
+  })
+
   it('renders out-of-range #N as a visible numbered slot, not empty', () => {
     expect(fillLatexTemplate('#5', { child0: 'a' })).toBe('\\mathord{\\htmlClass{snlMissingArg}{\\square_{5}}}')
   })

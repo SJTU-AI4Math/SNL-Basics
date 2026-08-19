@@ -34,6 +34,12 @@ export {
   type SnlSemanticResolution,
 } from '../snl-syntax-tree/semantic-resolver'
 export { analyzeLatexTemplatePlaceholders, fillLatexTemplate } from '../snl-syntax-tree/template'
+export {
+  analyzeOrderedSlotIndices,
+  createSlotContract,
+  slotContractKey,
+  type SnlSlotContract,
+} from '../snl-syntax-tree/slot-contract'
 
 export {
   analyzeSnlTreeSources,
