@@ -57,7 +57,7 @@ describe('svg-template', () => {
     const valid = [
       '0 0 10 10',
       '-1.5, 2e1, 4.5, 6',
-      '+.5,-.25,1.,2E+1',
+      '+.5,-.25,1,2E+1',
       '\t0 ,\n0\r 10,\t10 ',
     ]
     for (const viewBox of valid) {
@@ -72,6 +72,7 @@ describe('svg-template', () => {
       '0 0 10', '0 0 10 10 20', 'garbage', '0 0 NaN 10', '0 0 Infinity 10',
       '0 0 0 10', '0 0 -1 10', '0 0 10 0', '0 0 10 -1',
       '0,,0,,10,,10', '0, ,0,10,10', '0 0 10 10,', ',0 0 10 10', '0 0,,10 10',
+      '0 0 1. 2', '0 0 1.e2 2',
     ]) {
       expect(() => parseSanitizedSvgTemplate(
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" />`,

@@ -219,7 +219,7 @@ function sanitizeStyleValue(name: string, value: string): string {
 }
 
 function parseViewBox(value: string): void {
-  const number = '[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?'
+  const number = '[+-]?(?:\\d+|\\d*\\.\\d+)(?:[eE][+-]?\\d+)?'
   const wsp = '[ \t\r\n]'
   const commaWsp = `(?:${wsp}+,?${wsp}*|,${wsp}*)`
   const match = new RegExp(`^${wsp}*(${number})${commaWsp}(${number})${commaWsp}(${number})${commaWsp}(${number})${wsp}*$`).exec(value)
