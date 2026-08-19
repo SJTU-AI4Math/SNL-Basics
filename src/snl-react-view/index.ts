@@ -261,8 +261,18 @@ export {
 } from './render-source'
 export {
   bindSvgTemplateChildren,
+  instantiateSvgTemplate,
   parseSanitizedSvgTemplate,
   type ParsedSvgTemplate,
   type ParseSanitizedSvgTemplateOptions,
   type SvgTemplateSlot,
 } from './svg-template'
+export {
+  StaleSvgTemplateAssetError,
+  SvgTemplateAssetRegistry,
+  type SvgTemplateAssetHandle,
+  type SvgTemplateAssetIdentity,
+  type SvgTemplateAssetLoader,
+  type SvgTemplateAssetRegistryOptions,
+  type SvgTemplateAssetResult,
+} from './svg-template-asset-registry'

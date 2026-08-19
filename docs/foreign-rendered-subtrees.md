@@ -1,6 +1,6 @@
 # Foreign-rendered subtree substrate audit
 
-This note freezes the pre-implementation contract surface for Tasks 1–3 only. It records what is actually shipped today in SNL-Basics and the inspected downstream Extension checkout at `/home/argustest/SNL-Doc-Extension-issue1`.
+This note freezes the pre-implementation contract surface for Tasks 1–3 only. It records what is actually shipped today in SNL-Basics and the downstream Extension at exact commit `8a335687609158744fda09122956721a7cbbf618` (inspected read-only from `/home/argustest/SNL-Doc-Extension-issue1`).
 
 ## Current shipped representation
 
@@ -23,7 +23,7 @@ This note freezes the pre-implementation contract surface for Tasks 1–3 only. 
 | Formula fallback contract | `src/snl-react-view/render-source.ts` | A block descendant inside a formula emits the visible red `block macro ... cannot be used inside a formula` fallback. |
 | Entry surface consumption | `src/entry-react/entry-render.tsx` | `EntrySurface` routes SNL content into `SnlSyntaxTreeView`; no foreign subtree layer exists yet. |
 
-### Downstream Extension (read-only audit)
+### Downstream Extension (read-only audit, `8a335687609158744fda09122956721a7cbbf618`)
 
 | Surface | Evidence path | Current behavior |
 | --- | --- | --- |
@@ -50,6 +50,6 @@ This note freezes the pre-implementation contract surface for Tasks 1–3 only. 
 
 ## Explicit boundary for Tasks 1–3
 
-- Task 3 is **parser/sanitizer infrastructure only**.
-- It is **not** user-visible SVG rendering, persistent foreign-box hosting, KaTeX marker geometry, or export integration.
-- Tasks 4+ remain responsible for persistent hosting, ordinary SVG rendering, formula embedding, convergence, and downstream integration changes.
+- Task 3 includes parser/sanitizer infrastructure **and** a backend-neutral asset registry. Asset authority is bound to authored source, base/workspace identity, revision/hash, and request epoch; loaders are consumer-supplied and AbortSignal-aware.
+- Task 3 also exposes explicit safe instantiation: every clone receives a deterministic caller-supplied instance scope, IDs are rewritten, and all local references are rewritten consistently.
+- It is **not** user-visible SVG rendering, persistent foreign-box hosting, KaTeX marker geometry, or Extension workspace policy. Tasks 4+ remain responsible for persistent hosting, ordinary SVG rendering, formula embedding, convergence, and downstream integration changes.

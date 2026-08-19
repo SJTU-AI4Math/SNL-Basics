@@ -61,9 +61,21 @@ describe('foreign rendered subtree contracts', () => {
 
     expect(seen).toEqual([child0, child1])
     expect(rendered.map(({ slot }) => slot.index)).toEqual([0, 1])
-    expect(rendered[0].rendered).toBe(rendered[0].rendered)
+    expect(rendered[0].rendered.child).toBe(child0)
     expect(rendered[0].rendered).toEqual({ child: child0 })
     expect(rendered[1].rendered).toEqual({ child: child1 })
+  })
+
+  it('rejects dynamic SVG arity and never drops excess child subtrees', () => {
+    const source = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g data-snl-slot="0" /></svg>'
+    expect(() => parseSanitizedSvgTemplate(source, { dynamic_arity: true } as never)).toThrow(/dynamic|fixed/i)
+
+    const parsed = parseSanitizedSvgTemplate(source)
+    const children: SnlSyntaxTree[] = [
+      { macro_name: 'kept', kind: '', mdata: null, children: [] },
+      { macro_name: 'must-not-be-dropped', kind: '', mdata: null, children: [] },
+    ]
+    expect(() => bindSvgTemplateChildren(parsed, children, (child) => child)).toThrow(/excess|exactly|children/i)
   })
 
   it('keeps the current visible block-in-formula fallback', async () => {

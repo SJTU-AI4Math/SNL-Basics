@@ -128,7 +128,7 @@ const TEXT_CONTAINERS = new Set(['text', 'tspan', 'title', 'desc'])
 
 export interface SvgTemplateSlot {
   index: number
-  element: SVGElement
+  element: SVGGElement
 }
 
 export interface ParsedSvgTemplate {
@@ -138,7 +138,7 @@ export interface ParsedSvgTemplate {
 }
 
 export interface ParseSanitizedSvgTemplateOptions {
-  dynamic_arity?: boolean
+  dynamic_arity?: false
 }
 
 function reject(message: string): never {
@@ -157,8 +157,80 @@ function parseSvgDocument(source: string): SVGSVGElement {
   return root
 }
 
+const CSS_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/
+const CSS_LENGTH = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?(?:%|px|pt|pc|mm|cm|in|em|ex)?$/
+const SAFE_STYLE_PROPERTIES = new Set([
+  'clip-path', 'mask', 'fill', 'stroke', 'color', 'opacity', 'fill-opacity',
+  'stroke-opacity', 'stop-color', 'stop-opacity', 'stroke-width',
+  'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'fill-rule',
+  'clip-rule', 'display', 'visibility', 'vector-effect', 'text-anchor',
+  'dominant-baseline', 'font-size', 'font-style', 'font-weight',
+])
+
+function rejectCssEscape(value: string, context: string): void {
+  if (value.includes('\\')) reject(`SVG template ${context} must not contain CSS escapes`)
+}
+
+function sanitizePaint(value: string, name: string): string {
+  const trimmed = value.trim()
+  rejectCssEscape(trimmed, name)
+  if (/^url\s*\(/i.test(trimmed)) return sanitizeLocalUrl(trimmed, name)
+  if (/^(?:none|currentColor|transparent)$/i.test(trimmed)) return trimmed
+  if (/^#[0-9a-f]{3,4}(?:[0-9a-f]{3,4})?$/i.test(trimmed)) return trimmed
+  if (/^[a-z][a-z0-9-]*$/i.test(trimmed)) return trimmed
+  reject(`SVG template ${name} contains an unsupported paint value`)
+}
+
+function sanitizeOpacity(value: string, name: string): string {
+  const trimmed = value.trim()
+  if (!CSS_NUMBER.test(trimmed)) reject(`SVG template ${name} must be numeric`)
+  const number = Number(trimmed)
+  if (!Number.isFinite(number) || number < 0 || number > 1) reject(`SVG template ${name} must be between 0 and 1`)
+  return trimmed
+}
+
+function sanitizeStyleValue(name: string, value: string): string {
+  const trimmed = value.trim()
+  rejectCssEscape(trimmed, `style property "${name}"`)
+  if (PAINT_OR_URL_ATTRIBUTES.has(name) || name === 'color' || name === 'stop-color') {
+    return sanitizePaint(trimmed, name)
+  }
+  if (LOCAL_URL_ONLY_ATTRIBUTES.has(name)) return sanitizeLocalUrl(trimmed, name)
+  if (name.endsWith('opacity') || name === 'opacity') return sanitizeOpacity(trimmed, name)
+  if (name === 'stroke-width' || name === 'stroke-dashoffset' || name === 'font-size') {
+    if (!CSS_LENGTH.test(trimmed)) reject(`SVG template style property "${name}" must be a safe length`)
+    return trimmed
+  }
+  const keywordValues: Record<string, RegExp> = {
+    'stroke-linecap': /^(?:butt|round|square)$/,
+    'stroke-linejoin': /^(?:miter|round|bevel)$/,
+    'fill-rule': /^(?:nonzero|evenodd)$/,
+    'clip-rule': /^(?:nonzero|evenodd)$/,
+    display: /^(?:inline|none)$/,
+    visibility: /^(?:visible|hidden|collapse)$/,
+    'vector-effect': /^(?:none|non-scaling-stroke)$/,
+    'text-anchor': /^(?:start|middle|end)$/,
+    'dominant-baseline': /^[a-z-]+$/,
+    'font-style': /^(?:normal|italic|oblique)$/,
+    'font-weight': /^(?:normal|bold|[1-9]00)$/,
+  }
+  if (keywordValues[name]?.test(trimmed)) return trimmed
+  reject(`SVG template style property "${name}" contains an unsupported value`)
+}
+
+function parseViewBox(value: string): void {
+  const number = '[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?'
+  const match = new RegExp(`^\\s*(${number})[\\s,]+(${number})[\\s,]+(${number})[\\s,]+(${number})\\s*$`).exec(value)
+  if (!match) reject('SVG template viewBox must contain exactly four finite numbers')
+  const values = match.slice(1).map(Number)
+  if (!values.every(Number.isFinite) || values[2] <= 0 || values[3] <= 0) {
+    reject('SVG template viewBox width and height must be positive finite numbers')
+  }
+}
+
 function sanitizeLocalUrl(value: string, attrName: string): string {
   const trimmed = value.trim()
+  rejectCssEscape(trimmed, attrName)
   if (trimmed === 'none') return trimmed
   if (!/^url\(\s*#[A-Za-z_][\w:.-]*\s*\)$/.test(trimmed)) {
     reject(`SVG template ${attrName} must use only local url(#id) references`)
@@ -168,6 +240,7 @@ function sanitizeLocalUrl(value: string, attrName: string): string {
 
 function sanitizeHref(value: string): string {
   const trimmed = value.trim()
+  rejectCssEscape(trimmed, 'href')
   if (!/^#[A-Za-z_][\w:.-]*$/.test(trimmed)) {
     reject('SVG template href must be a local fragment reference')
   }
@@ -175,40 +248,24 @@ function sanitizeHref(value: string): string {
 }
 
 function sanitizeStyle(value: string): string {
-  if (/@import|@font-face|expression\s*\(/i.test(value)) {
-    reject('SVG template style attribute contains unsupported active content')
-  }
-  const parts = value.split(';')
-    .map((part) => part.trim())
-    .filter((part) => part.length > 0)
+  rejectCssEscape(value, 'style attribute')
+  const parts = value.split(';').map((part) => part.trim()).filter(Boolean)
   const sanitized: string[] = []
   for (const part of parts) {
     const colon = part.indexOf(':')
-    if (colon <= 0) reject('SVG template style attribute is malformed')
+    if (colon <= 0 || part.indexOf(':', colon + 1) >= 0) reject('SVG template style attribute is malformed')
     const name = part.slice(0, colon).trim()
     const cssValue = part.slice(colon + 1).trim()
-    if (!ALLOWED_ATTRIBUTES.has(name)) {
-      reject(`SVG template style property "${name}" is not supported`)
-    }
-    if (cssValue.length === 0) reject(`SVG template style property "${name}" is empty`)
-    if (LOCAL_URL_ONLY_ATTRIBUTES.has(name)) {
-      sanitized.push(`${name}:${sanitizeLocalUrl(cssValue, name)}`)
-      continue
-    }
-    if (PAINT_OR_URL_ATTRIBUTES.has(name) && /url\s*\(/i.test(cssValue)) {
-      sanitized.push(`${name}:${sanitizeLocalUrl(cssValue, name)}`)
-      continue
-    }
-    if (/\b(?:javascript:|data:|https?:|file:|ftp:)\b/i.test(cssValue)) {
-      reject(`SVG template style property "${name}" contains an external URL`)
-    }
-    sanitized.push(`${name}:${cssValue}`)
+    if (!SAFE_STYLE_PROPERTIES.has(name)) reject(`SVG template style property "${name}" is not supported`)
+    if (!cssValue) reject(`SVG template style property "${name}" is empty`)
+    sanitized.push(`${name}:${sanitizeStyleValue(name, cssValue)}`)
   }
   return sanitized.join('; ')
 }
 
 function sanitizeAttribute(attr: Attr): { name: string; value: string; namespace: string | null } | null {
   if (attr.namespaceURI === XMLNS_NS) return null
+  rejectCssEscape(attr.value, `attribute "${attr.name}"`)
   if (attr.name.startsWith('on')) reject(`SVG template event attribute "${attr.name}" is not allowed`)
   if (attr.prefix && attr.name !== 'xml:space' && attr.name !== 'xlink:href') {
     reject(`SVG template attribute namespace "${attr.name}" is not allowed`)
@@ -232,8 +289,8 @@ function sanitizeAttribute(attr: Attr): { name: string; value: string; namespace
   if (LOCAL_URL_ONLY_ATTRIBUTES.has(attr.name)) {
     return { name: attr.name, value: sanitizeLocalUrl(attr.value, attr.name), namespace: null }
   }
-  if (PAINT_OR_URL_ATTRIBUTES.has(attr.name) && /url\s*\(/i.test(attr.value)) {
-    return { name: attr.name, value: sanitizeLocalUrl(attr.value, attr.name), namespace: null }
+  if (PAINT_OR_URL_ATTRIBUTES.has(attr.name) || attr.name === 'color' || attr.name === 'stop-color') {
+    return { name: attr.name, value: sanitizePaint(attr.value, attr.name), namespace: null }
   }
   if (/\b(?:javascript:|data:|https?:|file:|ftp:)\b/i.test(attr.value)) {
     reject(`SVG template attribute "${attr.name}" contains an external URL`)
@@ -265,6 +322,10 @@ function sanitizeNode(
   if (!ALLOWED_ELEMENTS.has(element.localName)) {
     reject(`SVG template element "${element.localName}" is not supported`)
   }
+  if (element.hasAttribute('data-snl-slot')) {
+    if (element.localName !== 'g') reject('SVG template slot anchors must be <g> elements')
+    if (element.childNodes.length !== 0) reject('SVG template slot <g> anchors must be empty')
+  }
   const sanitized = ownerDocument.createElementNS(SVG_NS, element.localName)
   for (const attr of Array.from(element.attributes)) {
     const sanitizedAttr = sanitizeAttribute(attr)
@@ -273,7 +334,7 @@ function sanitizeNode(
   }
   const slotValue = sanitized.getAttribute('data-snl-slot')
   if (slotValue !== null) {
-    slots.push({ index: Number(slotValue), element: sanitized as SVGElement })
+    slots.push({ index: Number(slotValue), element: sanitized as SVGGElement })
   }
   for (const child of Array.from(element.childNodes)) {
     const sanitizedChild = sanitizeNode(child, ownerDocument, slots, element.localName)
@@ -282,22 +343,69 @@ function sanitizeNode(
   return sanitized
 }
 
+function localReferenceIds(root: SVGSVGElement): string[] {
+  const references: string[] = []
+  for (const element of [root, ...Array.from(root.querySelectorAll('*'))]) {
+    for (const attr of Array.from(element.attributes)) {
+      if (attr.name === 'href') references.push(attr.value.slice(1))
+      for (const match of attr.value.matchAll(/url\(\s*#([A-Za-z_][\w:.-]*)\s*\)/g)) references.push(match[1])
+    }
+  }
+  return references
+}
+
+function validateLocalReferences(root: SVGSVGElement): void {
+  const ids = new Set<string>()
+  for (const element of Array.from(root.querySelectorAll('[id]'))) {
+    if (ids.has(element.id)) reject(`SVG template contains duplicate id "${element.id}"`)
+    ids.add(element.id)
+  }
+  for (const target of localReferenceIds(root)) {
+    if (!ids.has(target)) reject(`SVG template local fragment target "#${target}" does not exist inside the sanitized root`)
+  }
+}
+
+export function instantiateSvgTemplate(template: ParsedSvgTemplate, instanceScope: string): SVGSVGElement {
+  if (!/^[A-Za-z_][\w.-]*$/.test(instanceScope)) reject('SVG template instance scope must be a safe identifier')
+  const root = template.root.cloneNode(true) as SVGSVGElement
+  const rewritten = new Map<string, string>()
+  for (const element of Array.from(root.querySelectorAll('[id]'))) {
+    const scoped = `${instanceScope}--${element.id}`
+    rewritten.set(element.id, scoped)
+    element.id = scoped
+  }
+  for (const element of [root, ...Array.from(root.querySelectorAll('*'))]) {
+    for (const attr of Array.from(element.attributes)) {
+      let value = attr.value
+      if (attr.name === 'href' && value.startsWith('#')) value = `#${rewritten.get(value.slice(1))}`
+      value = value.replace(/url\(\s*#([A-Za-z_][\w:.-]*)\s*\)/g, (_whole, id: string) => `url(#${rewritten.get(id)})`)
+      if (value !== attr.value) element.setAttribute(attr.name, value)
+    }
+  }
+  return root
+}
+
 export function parseSanitizedSvgTemplate(
   source: string,
   options: ParseSanitizedSvgTemplateOptions = {},
 ): ParsedSvgTemplate {
   const parsedRoot = parseSvgDocument(source)
+  if ((options as { dynamic_arity?: boolean }).dynamic_arity === true) {
+    reject('SVG templates support fixed arity only; dynamic arity has no variadic slot syntax')
+  }
   const viewBox = parsedRoot.getAttribute('viewBox')?.trim()
   if (!viewBox) reject('SVG template must declare a non-empty viewBox')
+  parseViewBox(viewBox)
 
   const slots: SvgTemplateSlot[] = []
   const sanitizedRoot = sanitizeNode(parsedRoot, document, slots, null)
   if (!(sanitizedRoot instanceof SVGSVGElement)) reject('SVG template root did not sanitize to <svg>')
+  validateLocalReferences(sanitizedRoot)
 
   slots.sort((left, right) => left.index - right.index)
   const contract = analyzeOrderedSlotIndices(
     slots.map((slot) => slot.index),
-    options.dynamic_arity ?? false,
+    false,
   )
   if (contract.invalid) reject('SVG template slot markers must form a contiguous positional set')
 
@@ -313,6 +421,9 @@ export function bindSvgTemplateChildren<T>(
   children: readonly SnlSyntaxTree[],
   renderChild: (child: SnlSyntaxTree, index: number) => T,
 ): Array<{ slot: SvgTemplateSlot; rendered: T }> {
+  if (children.length !== template.slots.length) {
+    reject(`SVG template requires exactly ${template.slots.length} children; received ${children.length}`)
+  }
   return template.slots.map((slot) => {
     const child = children[slot.index]
     if (!child) reject(`SVG template slot ${slot.index} has no corresponding child subtree`)
