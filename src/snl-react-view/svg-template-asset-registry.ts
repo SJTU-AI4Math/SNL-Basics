@@ -158,9 +158,16 @@ export class SvgTemplateAssetRegistry {
       }
       this.authorities.set(authority, state)
     } else if (requestEpoch > state.requestEpoch) {
-      state.requestEpoch = requestEpoch
-      state.identityKey = key
-      state.generation = this.newGeneration()
+      const previousState = state
+      previousState.generation = this.newGeneration()
+      state = {
+        requestEpoch,
+        identityKey: key,
+        generation: this.newGeneration(),
+        references: 0,
+      }
+      this.authorities.set(authority, state)
+      this.discardAuthorityEntries(authority, previousState)
     }
     const handleGeneration = state.generation
 
@@ -293,6 +300,9 @@ export class SvgTemplateAssetRegistry {
       return { identity, requestEpoch, value }
     }, (error: unknown) => {
       if (released) throw new ReleasedSvgTemplateAssetError()
+      if (this.authorities.get(authority) !== state || state.generation !== generation) {
+        throw new StaleSvgTemplateAssetError()
+      }
       throw error
     })
     return {
@@ -317,6 +327,21 @@ export class SvgTemplateAssetRegistry {
     this.releaseAuthority(entry.authority, entry.authorityState)
     if (abortReason && !entry.controller.signal.aborted) entry.controller.abort(abortReason)
     return true
+  }
+
+  private discardAuthorityEntries(authority: string, state: AuthorityState): void {
+    const abortReason = new DOMException('SVG template asset request epoch advanced', 'AbortError')
+    for (const [key, entry] of Array.from(this.pending.entries())) {
+      if (entry.authority === authority && entry.authorityState === state) {
+        this.discardPending(key, entry, abortReason)
+      }
+    }
+    for (const [key, entry] of Array.from(this.settled.entries())) {
+      if (entry.authority === authority && entry.authorityState === state) {
+        this.settled.delete(key)
+        this.releaseAuthority(entry.authority, entry.authorityState)
+      }
+    }
   }
 
   private newGeneration(): number {

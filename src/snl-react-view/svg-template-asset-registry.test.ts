@@ -35,6 +35,27 @@ describe('SvgTemplateAssetRegistry', () => {
     freshHandle.release()
   })
 
+  it('starts fresh work when the same identity advances to a higher epoch', async () => {
+    const old = deferred<string>()
+    const fresh = deferred<string>()
+    const loader = vi.fn()
+      .mockImplementationOnce(() => old.promise)
+      .mockImplementationOnce(() => fresh.promise)
+    const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 2 })
+    const asset = identity('r1')
+
+    const oldHandle = registry.acquire(asset, 1)
+    const freshHandle = registry.acquire(asset, 2)
+    expect(loader).toHaveBeenCalledTimes(2)
+
+    fresh.resolve('<svg id="fresh"/>')
+    await expect(freshHandle.promise).resolves.toMatchObject({ value: '<svg id="fresh"/>', requestEpoch: 2 })
+    old.resolve('<svg id="old"/>')
+    await expect(oldHandle.promise).rejects.toBeInstanceOf(StaleSvgTemplateAssetError)
+    oldHandle.release()
+    freshHandle.release()
+  })
+
   it('isolates identity from caller and loader mutation through result delivery', async () => {
     const loaded = deferred<string>()
     let loaderIdentity: { source: string; baseIdentity: string; revision: string } | undefined
