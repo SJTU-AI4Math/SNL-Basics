@@ -62,6 +62,11 @@ describe('public Markdown stylesheet', () => {
     }
   })
 
+  it('wires emitted diff token classes to the contrast-checked palette', () => {
+    expect(declarations('.snl-markdown-body .hljs-addition').get('color')).toBe('var(--snl-md-addition)')
+    expect(declarations('.snl-markdown-body .hljs-deletion').get('color')).toBe('var(--snl-md-deletion)')
+  })
+
   it('provides light and dark token palettes for every emitted core token family', () => {
     const families = ['keyword', 'built_in', 'type', 'literal', 'comment', 'string', 'number', 'meta', 'title', 'attr', 'variable', 'symbol']
     for (const family of families) {

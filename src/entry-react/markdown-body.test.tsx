@@ -69,6 +69,14 @@ describe('MarkdownBody', () => {
     expect(view.container.querySelector('p > code')?.classList.contains('hljs')).toBe(false)
   })
 
+  it('emits addition and deletion tokens for diff fences', () => {
+    const source = ['```diff', '+added line', '-deleted line', '```'].join('\n')
+    const { container } = render(<MarkdownBody source={source} color_scheme="dark" />)
+    const code = container.querySelector('pre > code.language-diff')
+    expect(code?.querySelector('.hljs-addition')?.textContent).toContain('+added line')
+    expect(code?.querySelector('.hljs-deletion')?.textContent).toContain('-deleted line')
+  })
+
   it('provides deterministic basic Lean and Lean 4 highlighting without an LSP', () => {
     const source = [
       '```lean4',
