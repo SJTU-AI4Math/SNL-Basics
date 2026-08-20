@@ -30,14 +30,32 @@ function hasOnlySupportedTransforms(element: Element): boolean {
   return true
 }
 
-function viewportDeltaToHostLocal(host: HTMLElement, hostRect: DOMRect, dx: number, dy: number): { left: number; top: number } | null {
+function hostViewportScale(host: HTMLElement, hostRect = host.getBoundingClientRect()): { x: number; y: number } | null {
   if (!hasOnlySupportedTransforms(host)) return null
   const localWidth = host.offsetWidth
   const localHeight = host.offsetHeight
-  const scaleX = localWidth > 0 && hostRect.width > 0 ? hostRect.width / localWidth : 1
-  const scaleY = localHeight > 0 && hostRect.height > 0 ? hostRect.height / localHeight : 1
-  if (!Number.isFinite(scaleX) || !Number.isFinite(scaleY) || scaleX <= 0 || scaleY <= 0) return null
-  return { left: dx / scaleX - host.clientLeft + host.scrollLeft, top: dy / scaleY - host.clientTop + host.scrollTop }
+  const x = localWidth > 0 && hostRect.width > 0 ? hostRect.width / localWidth : 1
+  const y = localHeight > 0 && hostRect.height > 0 ? hostRect.height / localHeight : 1
+  if (!Number.isFinite(x) || !Number.isFinite(y) || x <= 0 || y <= 0) return null
+  return { x, y }
+}
+
+function viewportDeltaToHostLocal(host: HTMLElement, hostRect: DOMRect, dx: number, dy: number): { left: number; top: number } | null {
+  const scale = hostViewportScale(host, hostRect)
+  if (!scale) return null
+  return { left: dx / scale.x - host.clientLeft + host.scrollLeft, top: dy / scale.y - host.clientTop + host.scrollTop }
+}
+
+function metricsInViewportPixels(metrics: ForeignBoxMetrics, host: HTMLElement | null): ForeignBoxMetrics | null {
+  if (!host) return null
+  const scale = hostViewportScale(host)
+  if (!scale) return null
+  return Object.freeze({
+    width: metrics.width * scale.x,
+    height: metrics.height * scale.y,
+    depth: metrics.depth * scale.y,
+    baseline: metrics.baseline,
+  })
 }
 
 interface RegistrationOptions {
@@ -45,13 +63,14 @@ interface RegistrationOptions {
   readonly child: ReactNode
   readonly onMetrics?: (metrics: ForeignBoxMetrics) => void
   readonly metricEpoch?: number
+  readonly observationEpoch?: number
   readonly onMetricReport?: (report: ForeignBoxMetricReport) => void
   readonly onUnregister?: () => void
   readonly onPositionedChange?: (positioned: boolean) => void
 }
 
 export interface ForeignBoxRegistration {
-  update(options: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'metricEpoch' | 'onMetricReport' | 'onUnregister'>): void
+  update(options: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'metricEpoch' | 'observationEpoch' | 'onMetricReport' | 'onUnregister'>): void
   setMarker(marker: MarkerElement | null): void
   reportMetrics(metrics: ForeignBoxMetrics): void
   unregister(): void
@@ -87,6 +106,7 @@ interface Entry {
   child: ReactNode
   onMetrics?: (metrics: ForeignBoxMetrics) => void
   metricEpoch: number
+  observationEpoch: number
   onMetricReport?: (report: ForeignBoxMetricReport) => void
   onUnregister?: () => void
   onPositionedChange?: (positioned: boolean) => void
@@ -260,7 +280,8 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
       const previous = entriesRef.current.get(slot)
       const entry: Entry = {
         identity, child: options.child, onMetrics: options.onMetrics,
-        metricEpoch: options.metricEpoch ?? 0, onMetricReport: options.onMetricReport, onUnregister: options.onUnregister,
+        metricEpoch: options.metricEpoch ?? 0, observationEpoch: options.observationEpoch ?? 0,
+        onMetricReport: options.onMetricReport, onUnregister: options.onUnregister,
         onPositionedChange: options.onPositionedChange, positioned: false,
         key, slot, token, marker: null, wrapper: null, wrapperRef: () => {},
         measurement: null, intrinsicMeasurement: null, measurementRef: () => {}, metrics: null, focusRestore: null,
@@ -323,13 +344,15 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
       previousUnregister?.()
 
       const isAlive = () => activeRef.current && entriesRef.current.get(slot)?.token === token
-      const update = (next: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'metricEpoch' | 'onMetricReport' | 'onUnregister'>) => {
+      const update = (next: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'metricEpoch' | 'observationEpoch' | 'onMetricReport' | 'onUnregister'>) => {
         if (!isAlive()) return
         entry.child = next.child
         entry.onMetrics = next.onMetrics
         const nextMetricEpoch = next.metricEpoch ?? 0
-        const rotateObserver = entry.metricEpoch !== nextMetricEpoch
+        const nextObservationEpoch = next.observationEpoch ?? 0
+        const rotateObserver = entry.metricEpoch !== nextMetricEpoch || entry.observationEpoch !== nextObservationEpoch
         entry.metricEpoch = nextMetricEpoch
+        entry.observationEpoch = nextObservationEpoch
         entry.onMetricReport = next.onMetricReport
         entry.onUnregister = next.onUnregister
         if (rotateObserver) rotateObserverRef.current?.()
@@ -353,12 +376,18 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
         if (!isAlive()) return
         const metrics = assertForeignBoxMetrics(value)
         if (!isAlive()) return
+        const reportMetricEpoch = entry.metricEpoch
+        const reportObservationEpoch = entry.observationEpoch
+        const reportCallback = entry.onMetricReport
+        const viewportMetrics = metricsInViewportPixels(metrics, hostRef.current)
         entry.metrics = metrics
         scheduleGeometry()
         entry.onMetrics?.(metrics)
-        if (isAlive()) entry.onMetricReport?.({
-          authority: { ...entry.identity, metricEpoch: entry.metricEpoch },
-          metrics,
+        if (viewportMetrics && isAlive() && entry.metricEpoch === reportMetricEpoch && entry.observationEpoch === reportObservationEpoch
+          && entry.onMetricReport === reportCallback) reportCallback?.({
+          authority: { ...entry.identity, metricEpoch: reportMetricEpoch },
+          observationEpoch: reportObservationEpoch,
+          metrics: viewportMetrics,
         })
       }
       const unregister = () => {
@@ -441,12 +470,19 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
             const height = Math.max(0, totalHeight - depth)
             if (Number.isFinite(width) && width >= 0 && Number.isFinite(height)) {
               const metrics = Object.freeze({ width, height, depth, baseline: entry.metrics?.baseline ?? 'bottom' })
+              const reportMetricEpoch = entry.metricEpoch
+              const reportObservationEpoch = entry.observationEpoch
+              const reportCallback = entry.onMetricReport
+              const viewportMetrics = metricsInViewportPixels(metrics, host)
               entry.metrics = metrics
               entry.onMetrics?.(metrics)
-              if (activeRef.current && entriesRef.current.get(entry.slot)?.token === entry.token) {
-                entry.onMetricReport?.({
-                  authority: { ...entry.identity, metricEpoch: entry.metricEpoch },
-                  metrics,
+              if (viewportMetrics && activeRef.current && observerRef.current === observer && entriesRef.current.get(entry.slot)?.token === entry.token
+                && entry.metricEpoch === reportMetricEpoch && entry.observationEpoch === reportObservationEpoch
+                && entry.onMetricReport === reportCallback) {
+                reportCallback?.({
+                  authority: { ...entry.identity, metricEpoch: reportMetricEpoch },
+                  observationEpoch: reportObservationEpoch,
+                  metrics: viewportMetrics,
                 })
               }
             }

@@ -663,7 +663,9 @@ Macro names. A trusted projection may additionally set `measurement: "bounded"`
 to opt into intrinsic measurement: sibling reports are committed once per frame
 in source order, stale observation/semantic epochs and changes at or below 0.5px
 are ignored, and A→B→A oscillation or four unsuccessful iterations fail closed
-to a visible fallback. Metric-only rerenders preserve the persistent child DOM,
+to a visible fallback. Intrinsic and reserved geometry are compared in viewport
+CSS pixels, including supported positive host scaling, before convergence can be
+declared. Metric-only rerenders preserve the persistent child DOM,
 focus, and interaction state. Missing/invalid policy, marker, metrics, children,
 or active SVG fails closed visibly.
 

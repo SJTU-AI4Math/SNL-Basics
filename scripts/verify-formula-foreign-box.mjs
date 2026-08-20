@@ -95,11 +95,11 @@ try {
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: testCase.width, height: testCase.height, deviceScaleFactor: 1, mobile: false })
     await cdp.send('Page.navigate', { url: vite.url })
     await waitFor(() => evaluate(cdp, `Boolean(window.__formulaForeignFixture?.ready())
-      && document.querySelectorAll('.interactive-formula-svg').length === 9
-      && document.querySelectorAll('[data-snl-formula-foreign-marker] .snlFormulaForeignMarker .rule').length === 9`), `${testCase.name} positioned formula boxes`)
+      && document.querySelectorAll('.interactive-formula-svg').length === 10
+      && document.querySelectorAll('[data-snl-formula-foreign-marker] .snlFormulaForeignMarker .rule').length === 10`), `${testCase.name} positioned formula boxes`)
     await lifecycleRace(delay(150))
     try {
-      await waitFor(() => evaluate(cdp, `document.querySelectorAll('.interactive-formula-svg').length === 9`), `${testCase.name} settled formula convergence`)
+      await waitFor(() => evaluate(cdp, `document.querySelectorAll('.interactive-formula-svg').length === 10`), `${testCase.name} settled formula convergence`)
     } catch (error) {
       const diagnostics = await evaluate(cdp, `({
         surfaces: document.querySelectorAll('.interactive-formula-svg').length,
@@ -154,12 +154,12 @@ try {
         font: { main: document.fonts.check('16px KaTeX_Main'), math: document.fonts.check('italic 16px KaTeX_Math'), first: firstFamily(math) },
       };
     })()`)
-    assert(before.contexts.length === 9, `${testCase.name} renders all nine formula contexts`)
+    assert(before.contexts.length === 10, `${testCase.name} renders all ten formula contexts`)
     for (const context of before.contexts) {
       assert(context.markerCount === 1 && context.rule && context.surface, `${testCase.name}/${context.name} has one marker, calibrated rule, and surface`)
       const delta = Math.max(Math.abs(context.rule.x - context.surface.x), Math.abs(context.rule.y - context.surface.y), Math.abs(context.rule.width - context.surface.width), Math.abs(context.rule.height - context.surface.height))
       assert(delta <= 0.75, `${testCase.name}/${context.name} marker/surface alignment drift ${delta}: ${JSON.stringify(context)}`)
-      assert(context.rule.width > 40 && context.rule.height > 25, `${testCase.name}/${context.name} reserves positive fixed TeX geometry`)
+      assert(context.rule.width > (context.name === 'scaled' ? 20 : 40) && context.rule.height > (context.name === 'scaled' ? 12 : 25), `${testCase.name}/${context.name} reserves positive fixed TeX geometry`)
       assert(context.outerState === 'positioned', `${testCase.name}/${context.name} surface is committed`)
       assert(context.overflow.panel === 'visible' && context.overflow.host === 'visible', `${testCase.name}/${context.name} exposes an internal scrollbar or clips foreign geometry: ${JSON.stringify(context.overflow)}`)
       assert(context.accessibleSvg === 1, `${testCase.name}/${context.name} exposes one accessible SVG`)
@@ -187,7 +187,7 @@ try {
     assert(identity.errors.length === 0, `${testCase.name} rerender errors: ${identity.errors.join(' | ')}`)
     await evaluate(cdp, 'window.__formulaForeignFixture.switchLanguage()')
     await waitFor(() => evaluate(cdp, 'document.querySelector("main")?.dataset.languageRevision === "1"'), `${testCase.name} localized projection rerender`)
-    await waitFor(() => evaluate(cdp, `[...document.querySelectorAll('.context svg[role="img"]')].length === 9
+    await waitFor(() => evaluate(cdp, `[...document.querySelectorAll('.context svg[role="img"]')].length === 10
       && [...document.querySelectorAll('.context svg[role="img"]')].every(svg => svg.getAttribute('aria-label') === 'Updated arrow from A to B')`), `${testCase.name} localized formula plan adoption`)
     const localized = await evaluate(cdp, `(() => {
       const after = [...document.querySelectorAll('.interactive-formula-svg')];
@@ -198,7 +198,7 @@ try {
       };
     })()`)
     assert(localized.preserved, `${testCase.name} equal-HTML plan refresh remounted formula foreign DOM`)
-    assert(localized.labels.length === 9 && localized.labels.every(label => label === 'Updated arrow from A to B'), `${testCase.name} retained a stale equal-HTML formula plan: ${JSON.stringify(localized.labels)}`)
+    assert(localized.labels.length === 10 && localized.labels.every(label => label === 'Updated arrow from A to B'), `${testCase.name} retained a stale equal-HTML formula plan: ${JSON.stringify(localized.labels)}`)
     assert(localized.errors.length === 0, `${testCase.name} localized projection errors: ${localized.errors.join(' | ')}`)
     await evaluate(cdp, 'window.__beforeChangedMarkupSurfaces = [...document.querySelectorAll(".interactive-formula-svg")]; window.__formulaForeignFixture.switchMarkup()')
     await waitFor(() => evaluate(cdp, 'window.__formulaForeignFixture.changedMarkupProbe() !== null'), `${testCase.name} changed-markup retirement probe`)
@@ -206,7 +206,7 @@ try {
     assert(retired.wrapperConnected, `${testCase.name} changed-markup probe lost the persistent wrapper before retirement inspection`)
     assert(retired.state === 'staging' && retired.visibility === 'hidden' && retired.ariaHidden === 'true' && retired.inert === true,
       `${testCase.name} stale changed-markup wrapper remained interactive: ${JSON.stringify(retired)}`)
-    await waitFor(() => evaluate(cdp, `[...document.querySelectorAll('.context svg[role="img"]')].length === 9
+    await waitFor(() => evaluate(cdp, `[...document.querySelectorAll('.context svg[role="img"]')].length === 10
       && [...document.querySelectorAll('.context svg[role="img"]')].every(svg => svg.getAttribute('aria-label') === 'Changed-height arrow from A to B')
       && window.__formulaForeignFixture.ready()`), `${testCase.name} changed-markup plan adoption`)
     const changedMarkup = await evaluate(cdp, `(() => {
@@ -219,12 +219,12 @@ try {
       };
     })()`)
     assert(changedMarkup.preserved, `${testCase.name} changed-markup adoption remounted persistent formula children`)
-    assert(changedMarkup.contexts.length === 9 && changedMarkup.contexts.every(context => context.errors === 0 && context.fallbackCount === 0 && context.marker && context.surface),
+    assert(changedMarkup.contexts.length === 10 && changedMarkup.contexts.every(context => context.errors === 0 && context.fallbackCount === 0 && context.marker && context.surface),
       `${testCase.name} changed-markup adoption was not fully live: ${JSON.stringify(changedMarkup.contexts)}`)
     assert(changedMarkup.errors.length === 0, `${testCase.name} changed-markup errors: ${changedMarkup.errors.join(' | ')}`)
     await evaluate(cdp, `(() => {
       window.__beforeDynamicSurfaces = [...document.querySelectorAll('.interactive-formula-svg')];
-      window.__dynamicMarkerMutations = Array.from({ length: 9 }, () => 0);
+      window.__dynamicMarkerMutations = Array.from({ length: 10 }, () => 0);
       [...document.querySelectorAll('.context')].forEach((section, index) => {
         new MutationObserver(records => {
           for (const record of records) {
@@ -236,7 +236,7 @@ try {
       });
       window.__formulaForeignFixture.switchDynamic();
     })()`)
-    await waitFor(() => evaluate(cdp, `[...document.querySelectorAll('.context svg[role="img"]')].length === 9
+    await waitFor(() => evaluate(cdp, `[...document.querySelectorAll('.context svg[role="img"]')].length === 10
       && [...document.querySelectorAll('.context svg[role="img"]')].every(svg => svg.getAttribute('aria-label') === 'Dynamically measured long arrow from A to B')
       && window.__formulaForeignFixture.ready()`), `${testCase.name} dynamic metric adoption`)
     await lifecycleRace(delay(200))
@@ -262,14 +262,14 @@ try {
     assert(dynamic.focused && dynamic.interactions === '1', `${testCase.name} metric convergence lost focus or interaction state: ${JSON.stringify(dynamic)}`)
     assert(dynamic.contexts.every(context => context.rule && context.surface && context.errors === 0
       && Math.max(Math.abs(context.rule.x - context.surface.x), Math.abs(context.rule.y - context.surface.y), Math.abs(context.rule.width - context.surface.width), Math.abs(context.rule.height - context.surface.height)) <= 0.75
-      && context.surface.width >= 89 && context.surface.height >= 44), `${testCase.name} dynamic geometry did not converge: ${JSON.stringify(dynamic.contexts)}`)
+      && context.surface.width >= (context.name === 'scaled' ? 44 : 89) && context.surface.height >= (context.name === 'scaled' ? 22 : 44)), `${testCase.name} dynamic geometry did not converge: ${JSON.stringify(dynamic.contexts)}`)
     assert(dynamic.markerMutations.every(count => count <= 4), `${testCase.name} exceeded the four-iteration convergence cap: ${JSON.stringify(dynamic.markerMutations)}`)
     assert(dynamic.errors.length === 0, `${testCase.name} dynamic convergence errors: ${dynamic.errors.join(' | ')}`)
     const screenshot = join(artifactDir, `formula-foreign-box-${testCase.name}.png`)
     const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
     writeFileSync(screenshot, Buffer.from(capture.data, 'base64'))
     await evaluate(cdp, 'window.__formulaForeignFixture.switchUnstable()')
-    await waitFor(() => evaluate(cdp, `document.querySelectorAll('.snl-formula-foreign-error[data-convergence-fallback]').length === 9`), `${testCase.name} visible iteration-cap fallback`)
+    await waitFor(() => evaluate(cdp, `document.querySelectorAll('.snl-formula-foreign-error[data-convergence-fallback]').length === 10`), `${testCase.name} visible iteration-cap fallback`)
     const unstable = await evaluate(cdp, `(() => {
       const fallbacks = [...document.querySelectorAll('.snl-formula-foreign-error[data-convergence-fallback]')];
       return {
@@ -281,9 +281,11 @@ try {
         errors: window.__fixtureErrors || [],
       };
     })()`)
-    assert(unstable.count === 9 && unstable.visible && unstable.liveSurfaces === 0 && unstable.reasons.every(reason => reason === 'iteration-cap')
-      && unstable.labels.every(label => label === 'Unstable arrow fallback'), `${testCase.name} iteration cap did not fail closed visibly: ${JSON.stringify(unstable)}`)
-    assert(unstable.errors.length === 0, `${testCase.name} iteration-cap fallback errors: ${unstable.errors.join(' | ')}`)
+    assert(unstable.count === 10 && unstable.visible && unstable.liveSurfaces === 0
+      && unstable.reasons.every(reason => reason === 'iteration-cap' || reason === 'oscillation')
+      && unstable.reasons.includes('iteration-cap') && unstable.reasons.includes('oscillation')
+      && unstable.labels.every(label => label === 'Unstable arrow fallback'), `${testCase.name} bounded convergence did not fail closed visibly: ${JSON.stringify(unstable)}`)
+    assert(unstable.errors.length === 0, `${testCase.name} bounded fallback errors: ${unstable.errors.join(' | ')}`)
     results.push({ case: testCase.name, contexts: before.contexts.map(({ name, rule, surface }) => ({ name, rule, surface })), identity, localized, retired, changedMarkup, dynamic, unstable, font: before.font, screenshot })
   }
   assert(vite.viteMessages.length === 0, `Vite diagnostics: ${JSON.stringify(vite.viteMessages)}`)

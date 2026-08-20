@@ -118,6 +118,22 @@ describe('bounded foreign-box convergence', () => {
     expect(frames).toEqual([])
   })
 
+  it('ignores zero-sized convergence observations instead of committing invalid ratios', () => {
+    const frames: Array<() => void> = []
+    const commits = vi.fn()
+    const controller = createForeignBoxConvergenceController({
+      scheduleFrame: callback => { frames.push(callback); return frames.length },
+      cancelFrame: vi.fn(),
+      onCommit: commits,
+      onFallback: vi.fn(),
+    })
+    controller.beginEpoch(3, [report('zero', 3, 20)])
+    controller.report({ ...report('zero', 3, 0), reserved: { width: 20, totalHeight: 10 } })
+    controller.report({ ...report('zero', 3, 20), reserved: { width: 0, totalHeight: 0 } })
+    expect(frames).toEqual([])
+    expect(commits).not.toHaveBeenCalled()
+  })
+
   it('rejects stale observation revisions inside the same semantic metric epoch', () => {
     const frames: Array<() => void> = []
     const commits = vi.fn()

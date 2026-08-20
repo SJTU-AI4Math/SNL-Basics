@@ -40,6 +40,7 @@ const contexts: Record<string, string> = {
   matrix: '\\begin{pmatrix}#0&x\\\\y&z\\end{pmatrix}',
   limits: '\\sum_{i=0}^{#0} i',
   delimiters: '\\left(#0\\right)',
+  scaled: 'a+#0+b',
 }
 
 const localizedProjection = {
@@ -218,7 +219,7 @@ function App() {
     }),
   }
   return <main data-revision={revision} data-language-revision={languageRevision}>
-    <h1>Fixed-metric SVG boxes in KaTeX</h1>
+    <h1>Bounded SVG boxes in KaTeX</h1>
     <button id="rerender" onClick={() => setRevision(value => value + 1)}>rerender surrounding formulas</button>
     <div className="context-grid">
       {stableTrees.map(({ name, tree }) => (

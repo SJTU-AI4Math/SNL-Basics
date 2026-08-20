@@ -268,7 +268,8 @@ without remounting. `measurement: 'bounded'` explicitly enables intrinsic
 content measurement. The formula-root coordinator batches siblings once per
 animation frame in source order, rejects stale semantic and observation epochs,
 uses a 0.5px stability threshold, and fails closed visibly on A→B→A oscillation
-or a four-iteration cap. Persistent child identity, focus, and interaction state
+or a four-iteration cap. Intrinsic and reserved geometry are compared in viewport
+CSS pixels, so supported positive host scaling cannot mix coordinate spaces. Persistent child identity, focus, and interaction state
 survive metric-only KaTeX reservation updates. Missing or invalid
 policy/metrics/marker and every other validation/load failure render a visible
 deterministic fallback.

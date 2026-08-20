@@ -10,6 +10,7 @@ export interface UseForeignBoxOptions {
   readonly ssrFallback?: ReactNode
   readonly onMetrics?: (metrics: ForeignBoxMetrics) => void
   readonly metricEpoch?: number
+  readonly observationEpoch?: number
   readonly onMetricReport?: (report: ForeignBoxMetricReport) => void
   readonly onUnregister?: () => void
 }

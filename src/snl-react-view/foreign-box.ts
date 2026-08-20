@@ -204,6 +204,8 @@ export function createForeignBoxConvergenceController(options: ForeignBoxConverg
       if (!active) return
       const report = snapshotMetricReport(value)
       if (report.authority.metricEpoch !== epoch) return
+      if (report.metrics.width <= 0 || report.metrics.height + report.metrics.depth <= 0
+        || (report.reserved && (report.reserved.width <= 0 || report.reserved.totalHeight <= 0))) return
       const key = foreignBoxIdentityKey(report.authority)
       const observedAt = report.observationEpoch ?? 0
       const latestObservedAt = latestObservationEpoch.get(key) ?? 0

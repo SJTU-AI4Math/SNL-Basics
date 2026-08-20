@@ -27,7 +27,7 @@ export function FormulaForeignSurface({ plan, marker, widthPx, heightPx, child, 
   const publishMetricReport = onMetricReport
     ? (report: ForeignBoxMetricReport) => {
         latestIntrinsicRef.current = report.metrics
-        onMetricReport({ ...report, observationEpoch, reserved: { width: widthPx, totalHeight: heightPx } })
+        onMetricReport({ ...report, reserved: { width: widthPx, totalHeight: heightPx } })
       }
     : undefined
   const surface = (
@@ -53,6 +53,7 @@ export function FormulaForeignSurface({ plan, marker, widthPx, heightPx, child, 
     child: surface,
     ssrFallback: <span role="img" aria-label={plan.accessibilityLabel}>{plan.accessibilityLabel}</span>,
     metricEpoch,
+    observationEpoch,
     onMetricReport: publishMetricReport,
   })
   useSsrSafeLayoutEffect(() => {

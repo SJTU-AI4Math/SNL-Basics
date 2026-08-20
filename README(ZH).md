@@ -584,8 +584,9 @@ SVG 的 `viewBox` 推导，高度与 depth 由 baseline policy 推导。KaTeX �
 TeX rule，持久 React/SVG 子树随后附着到已提交的 rule，且不会重挂载。该固定 metric 路径
 默认不会测量内容，也不会从 Macro 名称推导 policy。可信 projection 可额外设置
 `measurement: "bounded"`，显式启用 intrinsic measurement：同帧 sibling report 按源码顺序
-一次提交；过期 observation/semantic epoch 与不超过 0.5px 的变化会被忽略；A→B→A 振荡或
-四次未收敛会 fail closed 到可见 fallback。仅 metric 的重渲染会保留持久 child DOM、焦点与
+一次提交；过期 observation/semantic epoch 与不超过 0.5px 的变化会被忽略；intrinsic 与
+reservation geometry 会统一换算为 viewport CSS px（包括受支持的正比例 host 缩放）；A→B→A
+振荡或四次未收敛会 fail closed 到可见 fallback。仅 metric 的重渲染会保留持久 child DOM、焦点与
 交互状态。policy、marker、metric、子项缺失或非法，或者 SVG 含主动内容时，都会以可见
 fallback fail closed。
 

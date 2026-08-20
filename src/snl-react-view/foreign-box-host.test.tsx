@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { Component, StrictMode, Suspense, startTransition, useEffect, useLayoutEffect, useState, type ReactNode } from 'react'
 import { act, cleanup, render } from '@testing-library/react'
+import { flushSync } from 'react-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ForeignBoxHost, useForeignBoxRegistry } from './foreign-box-host'
 import { assertForeignBoxMetrics, foreignBoxIdentityKey, type ForeignBoxIdentity } from './foreign-box'
@@ -100,11 +101,12 @@ function Slot({ id = identity(), label = 'foreign', apiRef, markerKey = 'a', onM
   return <><span key={markerKey} ref={api.markerRef} data-testid="marker" />{ssrFallback === undefined ? null : api.ssrFallback}</>
 }
 
-function IntrinsicSlot({ width, apiRef, onMetrics, metricEpoch = 0, onMetricReport }: {
+function IntrinsicSlot({ width, apiRef, onMetrics, metricEpoch = 0, observationEpoch = 0, onMetricReport }: {
   width: number
   apiRef: { current: UseForeignBoxResult | null }
   onMetrics: (metrics: { width: number; height: number; depth: number; baseline: 'alphabetic' | 'axis-center' | 'bottom' }) => void
   metricEpoch?: number
+  observationEpoch?: number
   onMetricReport?: (report: import('./foreign-box').ForeignBoxMetricReport) => void
 }) {
   const api = useForeignBox({
@@ -112,10 +114,24 @@ function IntrinsicSlot({ width, apiRef, onMetrics, metricEpoch = 0, onMetricRepo
     child: <div data-snl-foreign-intrinsic="true"><button data-testid="intrinsic-child" style={{ width: `${width}px`, height: '12px' }}>foreign</button></div>,
     onMetrics,
     metricEpoch,
+    observationEpoch,
     onMetricReport,
   })
   apiRef.current = api
   return <span ref={api.markerRef} data-testid="intrinsic-marker" />
+}
+
+function ReentrantEpochMetricSlot({ onMetricReport }: { onMetricReport: (report: import('./foreign-box').ForeignBoxMetricReport) => void }) {
+  const [metricEpoch, setMetricEpoch] = useState(7)
+  return <IntrinsicSlot
+    width={20}
+    apiRef={{ current: null }}
+    metricEpoch={metricEpoch}
+    onMetrics={() => {
+      if (metricEpoch === 7) flushSync(() => setMetricEpoch(8))
+    }}
+    onMetricReport={onMetricReport}
+  />
 }
 
 function EffectSlot({ kind, calls }: { kind: 'layout' | 'passive'; calls: boolean[] }) {
@@ -288,10 +304,36 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(metrics.mock.calls.at(-1)?.[0]).toEqual({ width: 50, height: 12, depth: 0, baseline: 'bottom' })
     expect(metricReports.mock.calls.at(-1)?.[0]).toEqual({
       authority: { treePath: 'intrinsic-slot', generation: 1, producer: 'renderer:block@r1', metricEpoch: 8 },
+      observationEpoch: 0,
       metrics: { width: 50, height: 12, depth: 0, baseline: 'bottom' },
     })
     expect(shell.style.width).toBe('50px')
     expect(observer.targets.has(shell)).toBe(false)
+  })
+
+  it('does not relabel a measurement when a legacy metrics callback synchronously changes epoch', () => {
+    const metricReports = vi.fn()
+    const view = render(<ForeignBoxHost><ReentrantEpochMetricSlot onMetricReport={metricReports} /></ForeignBoxHost>)
+    const child = view.getByTestId('intrinsic-child')
+    act(flushRaf)
+    const intrinsic = child.parentElement as HTMLElement
+    act(() => { TrackingResizeObserver.instances.at(-1)!.deliverIntrinsic(intrinsic); flushRaf() })
+    expect(metricReports).not.toHaveBeenCalled()
+  })
+
+  it('rotates observer authority when only the observation epoch changes', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const metricReports = vi.fn()
+    const view = render(<ForeignBoxHost><IntrinsicSlot width={20} apiRef={apiRef} onMetrics={vi.fn()} metricEpoch={7} observationEpoch={1} onMetricReport={metricReports} /></ForeignBoxHost>)
+    const intrinsic = view.getByTestId('intrinsic-child').parentElement as HTMLElement
+    const staleObserver = TrackingResizeObserver.instances[0]
+
+    view.rerender(<ForeignBoxHost><IntrinsicSlot width={50} apiRef={apiRef} onMetrics={vi.fn()} metricEpoch={7} observationEpoch={2} onMetricReport={metricReports} /></ForeignBoxHost>)
+    expect(TrackingResizeObserver.instances).toHaveLength(2)
+    act(() => staleObserver.fire(intrinsic, 99, 12))
+    expect(metricReports).not.toHaveBeenCalled()
+    act(() => TrackingResizeObserver.instances[1].fire(intrinsic, 50, 12))
+    expect(metricReports.mock.calls.at(-1)?.[0]).toMatchObject({ observationEpoch: 2, metrics: { width: 50 } })
   })
 
   it('rotates observer authority so a queued prior-epoch record cannot publish as current', () => {
@@ -556,6 +598,26 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(wrapper.style.visibility).toBe('hidden')
     expect(wrapper.getAttribute('aria-hidden')).toBe('true')
     expect(wrapper.hasAttribute('inert')).toBe(true)
+  })
+
+  it('reports intrinsic metrics in viewport pixels under positive host scaling', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const metricReports = vi.fn()
+    const view = render(<ForeignBoxHost><IntrinsicSlot width={90} apiRef={apiRef} onMetrics={vi.fn()} metricEpoch={7} observationEpoch={1} onMetricReport={metricReports} /></ForeignBoxHost>)
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    const intrinsic = view.getByTestId('intrinsic-child').parentElement as HTMLElement
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
+      transform: element === host ? 'matrix(0.5, 0, 0, 0.5, 0, 0)' : 'none',
+    }) as CSSStyleDeclaration)
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    Object.defineProperties(host, {
+      offsetWidth: { value: 200, configurable: true }, offsetHeight: { value: 200, configurable: true },
+    })
+    act(flushRaf)
+    act(() => TrackingResizeObserver.instances.at(-1)!.fire(intrinsic, 90, 12))
+    expect(metricReports.mock.calls.at(-1)?.[0]).toMatchObject({
+      metrics: { width: 45, height: 6, depth: 0, baseline: 'bottom' },
+    })
   })
 
   it('maps scaled viewport rectangles into untransformed host-local coordinates', () => {

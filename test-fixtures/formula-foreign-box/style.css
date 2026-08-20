@@ -17,3 +17,9 @@ h1 { font-size: 22px; margin: 0 0 12px; }
   .context-grid { grid-template-columns: 1fr; }
   .context { min-height: 145px; }
 }
+
+.context[data-context="scaled"] > .snl-formula-foreign-host {
+  width: 200%;
+  transform: scale(0.5);
+  transform-origin: left top;
+}
