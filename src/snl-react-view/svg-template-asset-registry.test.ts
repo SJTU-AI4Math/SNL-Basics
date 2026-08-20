@@ -215,6 +215,69 @@ describe('SvgTemplateAssetRegistry', () => {
     })
   })
 
+  it('shares current work installed by abort reentry while discarding mismatched pending work', async () => {
+    const loads: Array<ReturnType<typeof deferred<string>>> = []
+    let reenterOnDetachedAbort = false
+    let reentrantHandle: ReturnType<SvgTemplateAssetRegistry['acquire']> | undefined
+    const loader = vi.fn((_asset: SvgTemplateAssetIdentity, signal: AbortSignal) => {
+      const call = loader.mock.calls.length
+      const load = deferred<string>()
+      loads.push(load)
+      signal.addEventListener('abort', () => {
+        load.reject(signal.reason)
+        if (call === 1 && reenterOnDetachedAbort) {
+          reentrantHandle = registry.acquire(identity('r2'), 4)
+          void reentrantHandle.promise.catch(() => {})
+        }
+      }, { once: true })
+      return load.promise
+    })
+    const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 1 })
+    type PendingProbe = { authorityState: { references: number } }
+    const pending = (registry as unknown as { pending: Map<string, PendingProbe> }).pending
+    const key = JSON.stringify(['workspace-a', 'diagram.svg', 'r2'])
+
+    const epoch2Handle = registry.acquire(identity('r2'), 2)
+    void epoch2Handle.promise.catch(() => {})
+    const detachedEntry = pending.get(key)
+    expect(detachedEntry).toBeDefined()
+    pending.delete(key)
+
+    const epoch3Handle = registry.acquire(identity('r3'), 3)
+    void epoch3Handle.promise.catch(() => {})
+    pending.set(key, detachedEntry!)
+    reenterOnDetachedAbort = true
+
+    const outerHandle = registry.acquire(identity('r2'), 4)
+    void outerHandle.promise.catch(() => {})
+
+    expect(loader).toHaveBeenCalledTimes(3)
+    expect(reentrantHandle).toBeDefined()
+    expect(registry.snapshot()).toEqual({
+      pending: 1, settled: 0, consumers: 2, authorities: 1, authorityHistory: 0,
+    })
+
+    loads[2].resolve('shared-epoch-4')
+    await Promise.all([
+      expect(epoch2Handle.promise).rejects.toBeInstanceOf(StaleSvgTemplateAssetError),
+      expect(epoch3Handle.promise).rejects.toBeInstanceOf(StaleSvgTemplateAssetError),
+      expect(reentrantHandle!.promise).resolves.toMatchObject({ value: 'shared-epoch-4', requestEpoch: 4 }),
+      expect(outerHandle.promise).resolves.toMatchObject({ value: 'shared-epoch-4', requestEpoch: 4 }),
+    ])
+    expect(registry.snapshot()).toEqual({
+      pending: 0, settled: 1, consumers: 0, authorities: 1, authorityHistory: 0,
+    })
+
+    epoch2Handle.release()
+    epoch3Handle.release()
+    reentrantHandle!.release()
+    outerHandle.release()
+    registry.invalidate(identity('r2'))
+    expect(registry.snapshot()).toEqual({
+      pending: 0, settled: 0, consumers: 0, authorities: 0, authorityHistory: 1,
+    })
+  })
+
   it('isolates identity from caller and loader mutation through result delivery', async () => {
     const loaded = deferred<string>()
     let loaderIdentity: { source: string; baseIdentity: string; revision: string } | undefined

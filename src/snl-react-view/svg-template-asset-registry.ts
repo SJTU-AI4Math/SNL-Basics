@@ -213,16 +213,16 @@ export class SvgTemplateAssetRegistry {
       }
 
       let entry = this.pending.get(key)
-      if (entry && !this.entryOwnsAuthority(entry, authority, state, handleGeneration)) {
+      while (entry && !this.entryOwnsAuthority(entry, authority, state, handleGeneration)) {
         this.discardPending(
           key,
           entry,
           new DOMException('Detached SVG template asset work cannot be reused', 'AbortError'),
         )
-        entry = undefined
         if (!this.isCurrentAuthority(authority, state, handleGeneration)) {
           return { promise: Promise.reject(new StaleSvgTemplateAssetError()), release() {} }
         }
+        entry = this.pending.get(key)
       }
       if (!entry) {
         const controller = new AbortController()
