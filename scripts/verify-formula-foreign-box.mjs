@@ -183,6 +183,7 @@ try {
         errors: window.__fixtureErrors || [],
       };
     })()`)
+    assert(localized.preserved, `${testCase.name} equal-HTML plan refresh remounted formula foreign DOM`)
     assert(localized.labels.length === 9 && localized.labels.every(label => label === 'Updated arrow from A to B'), `${testCase.name} retained a stale equal-HTML formula plan: ${JSON.stringify(localized.labels)}`)
     assert(localized.errors.length === 0, `${testCase.name} localized projection errors: ${localized.errors.join(' | ')}`)
     const screenshot = join(artifactDir, `formula-foreign-box-${testCase.name}.png`)

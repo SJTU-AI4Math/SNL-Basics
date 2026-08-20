@@ -92,7 +92,31 @@ const SvgRenderer: SnlBlockRenderer = (props) => (
 )
 const capability = formulaForeignCapability(BaseSvgRenderer)
 if (!capability) throw new Error('fixture SVG renderer lost its formula capability')
-Object.defineProperty(SvgRenderer, FORMULA_FOREIGN_RENDERER_CAPABILITY, { value: capability })
+Object.defineProperty(SvgRenderer, FORMULA_FOREIGN_RENDERER_CAPABILITY, {
+  value: {
+    ...capability,
+    prepare: async (candidate: Parameters<typeof capability.prepare>[0]) => {
+      const label = (candidate.template as typeof projection).svg_template?.accessibility.label
+      if (label === 'Updated arrow from A to B') {
+        await new Promise<void>((resolve, reject) => {
+          const signal = candidate.signal
+          const onAbort = () => {
+            clearTimeout(timer)
+            signal?.removeEventListener('abort', onAbort)
+            reject(new DOMException('fixture preparation aborted', 'AbortError'))
+          }
+          const timer = setTimeout(() => {
+            signal?.removeEventListener('abort', onAbort)
+            resolve()
+          }, 20)
+          signal?.addEventListener('abort', onAbort, { once: true })
+          if (signal?.aborted) onAbort()
+        })
+      }
+      return capability.prepare(candidate)
+    },
+  },
+})
 const hooks = { renderers: { ...defaultRenderers, 'fixture-formula-svg': SvgRenderer } }
 const trees = Object.keys(contexts).map((name) => ({
   name,

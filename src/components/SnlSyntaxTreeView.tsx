@@ -3,6 +3,7 @@ import {
   forwardRef,
   memo,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -118,6 +119,8 @@ const StableKatexContainer = memo(forwardRef<HTMLDivElement, StableKatexContaine
     />
   },
 ), (previous, next) => previous.html === next.html && previous.handlersRef === next.handlersRef)
+
+const useSsrSafeLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 const ARIA_WIDGET_ROLES = [
   'alertdialog', 'application', 'button', 'checkbox', 'combobox', 'dialog',
@@ -1611,12 +1614,14 @@ export function SnlSyntaxTreeView({
     )
   }
 
-  katexHandlersRef.current = {
-    onMouseMove: handleKaTeXMouseMove,
-    onMouseLeave: handleKaTeXMouseLeave,
-    onClick: handleClick,
-    onKeyDown: handleKeyDown,
-  }
+  useSsrSafeLayoutEffect(() => {
+    katexHandlersRef.current = {
+      onMouseMove: handleKaTeXMouseMove,
+      onMouseLeave: handleKaTeXMouseLeave,
+      onClick: handleClick,
+      onKeyDown: handleKeyDown,
+    }
+  }, [handleKaTeXMouseMove, handleKaTeXMouseLeave, handleClick, handleKeyDown])
   useEffect(() => {
     if (!isKatexRoot || !containerRef.current) return
     containerRef.current.style.cursor = hasHoverTarget ? 'pointer' : ''
@@ -1672,7 +1677,7 @@ export function SnlSyntaxTreeView({
   }
 
   if (isKatexRoot) {
-    if (loading) {
+    if (loading && !result) {
       return <div className="katex-panel">Loading KaTeX ...</div>
     }
     if (error) {

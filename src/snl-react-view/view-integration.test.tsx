@@ -3,6 +3,7 @@
  * Integration tests: data-tree-path DOM attribute, delegated interaction events,
  * and Ctrl/Meta click semantics on SnlSyntaxTreeView.
  */
+import { Suspense, startTransition } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, render, waitFor, fireEvent } from '@testing-library/react'
 import { SnlSyntaxTreeView } from '../components/SnlSyntaxTreeView'
@@ -735,6 +736,45 @@ describe('SnlInteractionDriver integration', () => {
         value: original,
       })
     }
+  })
+
+  it('keeps committed interaction authority when a concurrent render suspends', async () => {
+    const oldClick = vi.fn()
+    const abandonedClick = vi.fn()
+    const tree = createSnlSyntaxTreeNode('sum', {
+      children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')],
+    })
+    const committedDriver = new SnlInteractionDriver({ on_click: oldClick })
+    const abandonedDriver = new SnlInteractionDriver({ on_click: abandonedClick })
+    const pending = new Promise<never>(() => {})
+    const initialHooks = { renderTooltip: (() => <div data-testid="committed-tooltip" />) as never }
+    const suspendedHooks = { renderTooltip: (() => { throw pending }) as never }
+    const view = render(
+      <Suspense fallback={<div data-testid="suspended-fallback" />}>
+        <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} interaction_driver={committedDriver} hooks={initialHooks} />
+      </Suspense>,
+    )
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    fireEvent.click(target)
+    expect(oldClick).toHaveBeenCalledTimes(1)
+    expect(view.getByTestId('committed-tooltip')).toBeTruthy()
+
+    act(() => {
+      startTransition(() => view.rerender(
+        <Suspense fallback={<div data-testid="suspended-fallback" />}>
+          <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} interaction_driver={abandonedDriver} hooks={suspendedHooks} />
+        </Suspense>,
+      ))
+    })
+    expect(target.isConnected).toBe(true)
+    expect(view.queryByTestId('suspended-fallback')).toBeNull()
+    fireEvent.click(target)
+    expect(oldClick).toHaveBeenCalledTimes(2)
+    expect(abandonedClick).not.toHaveBeenCalled()
   })
 
   it('hover dispatch receives the actual node and tree path', async () => {
