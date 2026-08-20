@@ -2,6 +2,8 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnOwnedProcess, terminateOwnedProcess } from './process-group-cleanup.mjs'
+import { Cdp } from './cdp-client.mjs'
+import { closeOwnedVite, raceVerifierLifecycle, startOwnedVite } from './verifier-infrastructure.mjs'
 import { setTimeout as delay } from 'node:timers/promises'
 
 const root = new URL('..', import.meta.url).pathname
@@ -15,57 +17,13 @@ const chrome = process.env.CHROMIUM_PATH || [
 ].find((candidate) => candidate && existsSync(candidate))
 if (!chrome) throw new Error('Chromium not found; set CHROMIUM_PATH')
 
-class Cdp {
-  constructor(url) {
-    this.socket = new WebSocket(url)
-    this.next = 0
-    this.pending = new Map()
-    this.socket.onmessage = ({ data }) => {
-      const message = JSON.parse(data)
-      const pending = this.pending.get(message.id)
-      if (!pending) return
-      this.pending.delete(message.id)
-      message.error ? pending.reject(new Error(JSON.stringify(message.error))) : pending.resolve(message.result)
-    }
-  }
-  async ready() {
-    if (this.socket.readyState === WebSocket.OPEN) return
-    await new Promise((resolve, reject) => { this.socket.onopen = resolve; this.socket.onerror = reject })
-  }
-  send(method, params = {}) {
-    const id = ++this.next
-    return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject })
-      this.socket.send(JSON.stringify({ id, method, params }))
-    })
-  }
-  async close() {
-    const closedError = new Error('CDP socket closed')
-    for (const pending of this.pending.values()) pending.reject(closedError)
-    this.pending.clear()
-    if (this.socket.readyState === WebSocket.CLOSED) return
-    await new Promise((resolve, reject) => {
-      let settled = false
-      const finish = (error) => {
-        if (settled) return
-        settled = true
-        clearTimeout(timer)
-        error ? reject(error) : resolve()
-      }
-      const timer = setTimeout(() => finish(new Error('Timed out closing CDP socket')), 1_000)
-      timer.unref?.()
-      this.socket.addEventListener('close', () => finish(), { once: true })
-      this.socket.addEventListener('error', () => finish(new Error('CDP socket close failed')), { once: true })
-      try { this.socket.close() } catch (error) { finish(error) }
-    })
-  }
-}
+let lifecycleRace = promise => Promise.resolve(promise)
 
 async function waitFor(check, label) {
   for (let attempt = 0; attempt < 120; attempt += 1) {
-    const value = await check()
+    const value = await lifecycleRace(check())
     if (value) return value
-    await delay(25)
+    await lifecycleRace(delay(25))
   }
   throw new Error(`Timed out waiting for ${label}`)
 }
@@ -84,19 +42,21 @@ let viteLog = ''
 let browserLog = ''
 let verificationResults
 let verificationError
+let browserTreeGone = false
 const cleanupErrors = []
 try {
-  vite = await spawnOwnedProcess(process.execPath, [join(root, 'node_modules/vite/bin/vite.js'), fixture, '--host', '127.0.0.1', '--port', '43190', '--strictPort'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] })
-  vite.child.stdout.on('data', (chunk) => { viteLog += chunk })
-  vite.child.stderr.on('data', (chunk) => { viteLog += chunk })
+  vite = await startOwnedVite(fixture)
   profile = mkdtempSync(join(tmpdir(), 'snl-svg-template-chrome-'))
   browser = await spawnOwnedProcess(chrome, ['--headless', '--no-sandbox', '--disable-gpu', `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] })
   browser.child.stderr.on('data', (chunk) => { browserLog += chunk })
-  await waitFor(async () => { try { return (await fetch('http://127.0.0.1:43190/')).ok } catch { return false } }, 'Vite fixture')
+  lifecycleRace = promise => raceVerifierLifecycle(vite, browser, promise)
+  await lifecycleRace(fetch(vite.url).then(response => response.ok || Promise.reject(new Error('owned Vite fixture was not ready'))))
   const websocketUrl = await waitFor(async () => browserLog.match(/DevTools listening on (ws:\/\/[^\s]+)/)?.[1], 'Chromium endpoint')
-  const targets = await (await fetch(`http://${new URL(websocketUrl).host}/json/list`)).json()
+  const targets = await lifecycleRace(fetch(`http://${new URL(websocketUrl).host}/json/list`).then(response => response.json()))
   cdp = new Cdp(targets[0].webSocketDebuggerUrl)
-  await cdp.ready()
+  const rawSend = cdp.send.bind(cdp)
+  cdp.send = (...args) => lifecycleRace(rawSend(...args))
+  await lifecycleRace(cdp.ready())
   await cdp.send('Page.enable')
   await cdp.send('Runtime.enable')
   await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: `
@@ -116,7 +76,7 @@ try {
     const width = testCase.viewportWidth
     const caseLabel = testCase.name
     await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: 760, deviceScaleFactor: 1, mobile: false })
-    await cdp.send('Page.navigate', { url: `http://127.0.0.1:43190${testCase.path}` })
+    await cdp.send('Page.navigate', { url: new URL(testCase.path, vite.url).href })
     await waitFor(() => evaluate(cdp, 'Boolean(window.__svgFixture?.ready())'), `${caseLabel} (viewport ${width}px) positioned fixture`)
     await evaluate(cdp, 'document.fonts.ready.then(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))')
     await waitFor(() => evaluate(cdp, 'Boolean(window.__svgFixture?.ready())'), `${caseLabel} (viewport ${width}px) settled positioned fixture`)
@@ -381,7 +341,7 @@ try {
     cleanupErrors.push(new Error('CDP cleanup failed', { cause: error }))
   }
 
-  let browserTreeGone = !browser
+  browserTreeGone = !browser
   if (browser) {
     try {
       await terminateOwnedProcess(browser)
@@ -391,8 +351,8 @@ try {
     }
   }
   if (vite) {
-    try { await terminateOwnedProcess(vite) } catch (error) {
-      cleanupErrors.push(new Error(`Vite process-group cleanup failed for ${vite.groupId}`, { cause: error }))
+    try { await closeOwnedVite(vite) } catch (error) {
+      cleanupErrors.push(new Error(`Vite server cleanup failed for port ${vite.port}`, { cause: error }))
     }
   }
 
@@ -414,5 +374,5 @@ if (cleanupErrors.length > 0) {
   process.exitCode = 1
 }
 if (!verificationError && cleanupErrors.length === 0) {
-  console.log(`parameterized-svg Chromium PASS ${JSON.stringify(verificationResults)} owned-process-groups ${JSON.stringify({ vite: vite.groupId, chromium: browser.groupId })}`)
+  console.log(`parameterized-svg Chromium PASS ${JSON.stringify(verificationResults)} owned-infrastructure ${JSON.stringify({ vitePort: vite.port, vitePortClosed: vite.closed === true, chromiumGroup: browser.groupId, chromiumAnchor: browser.anchor, chromiumGroupDead: browserTreeGone, profile, profileRemoved: profile ? !existsSync(profile) : true })}`)
 }
