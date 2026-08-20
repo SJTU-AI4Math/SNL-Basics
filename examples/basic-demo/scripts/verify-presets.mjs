@@ -104,14 +104,23 @@ try {
           }
           return 1;
         };
-        const rendered = style => style.display !== 'none' && style.visibility === 'visible' && Number(style.opacity) > 0;
-        const visibleStroke = style => rendered(style) && Number.parseFloat(style.strokeWidth) > 0 && paintAlpha(style.stroke) * Number(style.strokeOpacity) > 0;
-        const visibleFill = style => rendered(style) && paintAlpha(style.fill) * Number(style.fillOpacity) > 0;
+        const rendered = element => {
+          for (let current = element; current && current !== host; current = current.parentElement) {
+            const style = getComputedStyle(current);
+            const authoredDisplay = current.getAttribute('display');
+            const authoredVisibility = current.getAttribute('visibility');
+            const authoredOpacity = current.getAttribute('opacity');
+            if (style.display === 'none' || authoredDisplay === 'none' || style.visibility !== 'visible' || authoredVisibility === 'hidden' || authoredVisibility === 'collapse' || Number(style.opacity) <= 0 || (authoredOpacity !== null && Number(authoredOpacity) <= 0)) return false;
+          }
+          return true;
+        };
+        const visibleStroke = (path, style) => rendered(path) && Number.parseFloat(style.strokeWidth) > 0 && paintAlpha(style.stroke) * Number(style.strokeOpacity) > 0;
+        const visibleFill = (path, style) => rendered(path) && paintAlpha(style.fill) * Number(style.fillOpacity) > 0;
         const painted = paths.filter(path => {
           const style = getComputedStyle(path);
-          return path.getTotalLength() > 0 && (visibleStroke(style) || visibleFill(style));
+          return path.getTotalLength() > 0 && (visibleStroke(path, style) || visibleFill(path, style));
         });
-        const filled = paths.filter(path => visibleFill(getComputedStyle(path)));
+        const filled = paths.filter(path => visibleFill(path, getComputedStyle(path)));
         const list = document.querySelector('[role="list"][aria-label="Mathematical diagram presets"]');
         const buttons = [...list.querySelectorAll('[role="listitem"] > button.preset')];
         return {
