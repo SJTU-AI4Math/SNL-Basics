@@ -22,7 +22,60 @@ function requireExactFormulaIds(actual, label) {
   }
 }
 
-export function extractTemplate(full) {
+const EXACT_WHITE = /^(?:#fff(?:fff)?|white|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))$/i
+const EXACT_BLACK = /^(?:#000(?:000)?|black|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\))$/i
+
+function attribute(tag, name) {
+  return tag.match(new RegExp(`\\s${name}=(['"])(.*?)\\1`, 'i'))?.[2]
+}
+
+function setAttribute(tag, name, value) {
+  const pattern = new RegExp(`\\s${name}=(['"])(.*?)\\1`, 'i')
+  if (pattern.test(tag)) return tag.replace(pattern, ` ${name}="${value}"`)
+  return tag.replace(/\s*\/>$/, ` ${name}="${value}"/>`)
+}
+
+function paintOnly(tag, channel, paint) {
+  let result = setAttribute(tag, 'fill', channel === 'fill' ? paint : 'none')
+  result = setAttribute(result, 'stroke', channel === 'stroke' ? paint : 'none')
+  return result
+}
+
+/** Preserve source painter order while treating exact white as transparent paper. */
+export function postprocessTikzArtwork(source, viewBoxValues) {
+  const masks = []
+  let composite = ''
+  let cursor = 0
+  const paintElement = /<(?:path|rect|circle|ellipse|line|polyline|polygon)\b[^>]*\/>/gi
+  for (const match of source.matchAll(paintElement)) {
+    composite += source.slice(cursor, match.index)
+    cursor = match.index + match[0].length
+    const tag = match[0]
+    const operations = [
+      ['fill', attribute(tag, 'fill') ?? '#000'],
+      ['stroke', attribute(tag, 'stroke') ?? 'none'],
+    ]
+    for (const [channel, authoredPaint] of operations) {
+      if (authoredPaint.toLowerCase() === 'none') continue
+      if (EXACT_WHITE.test(authoredPaint)) {
+        const id = `snl-paper-knockout-${masks.length}`
+        const [x, y, width, height] = viewBoxValues
+        masks.push(`<mask id="${id}" maskUnits="userSpaceOnUse"><rect x="${x}" y="${y}" width="${width}" height="${height}" fill="white"/>${paintOnly(tag, channel, '#000')}</mask>`)
+        composite = `<g mask="url(#${id})">${composite}</g>`
+      } else {
+        const paint = EXACT_BLACK.test(authoredPaint) ? 'currentColor' : authoredPaint
+        composite += paintOnly(tag, channel, paint)
+      }
+    }
+  }
+  composite += source.slice(cursor)
+  if (/(?:fill|stroke)=(['"])(?:#fff(?:fff)?|white|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))\1/i.test(composite)) {
+    throw new Error('TikZ white-paper postprocessing left exact-white ordinary artwork')
+  }
+  return { artwork: composite, defs: masks.length ? `<defs>${masks.join('')}</defs>` : '' }
+}
+
+function extractTemplateWithPaperMode(full, paperMode) {
   const anchors = new Map()
   const anchorIndices = []
   for (const match of full.matchAll(/<g data-snl-anchor='(\d+)' data-snl-bbox='([^']+)'\/>/g)) {
@@ -48,12 +101,13 @@ export function extractTemplate(full) {
     throw new Error(`invalid dvisvgm viewBox: ${viewBox}`)
   }
   const padding = 36
-  const templateViewBox = [
+  const templateViewBoxValues = [
     viewBoxValues[0] - padding,
     viewBoxValues[1] - padding,
     viewBoxValues[2] + 2 * padding,
     viewBoxValues[3] + 2 * padding,
-  ].join(' ')
+  ]
+  const templateViewBox = templateViewBoxValues.join(' ')
 
   let artwork = page
   for (const index of indices) {
@@ -75,17 +129,30 @@ export function extractTemplate(full) {
     return `<g data-snl-slot="${index}" transform="translate(${centerX} ${centerY})"/>`
   }).join('\n')
 
-  artwork = artwork.trim().replaceAll("'", '"')
+  const processed = paperMode === 'knockout'
+    ? postprocessTikzArtwork(artwork.trim(), templateViewBoxValues)
+    : { artwork: artwork.trim(), defs: '' }
+  const normalizedArtwork = processed.artwork.replaceAll("'", '"')
   return [
     '<!-- Generated from tikz/higher-category.tex by scripts/build-tikz-assets.mjs. -->',
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${templateViewBox}">`,
+    processed.defs,
     '<g>',
-    artwork,
+    normalizedArtwork,
     slots,
     '</g>',
     '</svg>',
     '',
-  ].join('\n')
+  ].filter((line) => line !== '').join('\n') + '\n'
+}
+
+export function extractTemplate(full) {
+  return extractTemplateWithPaperMode(full, 'knockout')
+}
+
+/** Test oracle: the extracted template before white-paper/currentColor postprocessing. */
+export function extractLiteralWhiteReference(full) {
+  return extractTemplateWithPaperMode(full, 'literal-white')
 }
 
 export function buildTikzAssets() {

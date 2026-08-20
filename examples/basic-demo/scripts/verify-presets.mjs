@@ -1,10 +1,11 @@
-import { existsSync, mkdtempSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { spawnOwnedProcess, terminateOwnedProcess } from '../../../scripts/process-group-cleanup.mjs'
 import { Cdp } from '../../../scripts/cdp-client.mjs'
 import { closeOwnedVite, raceVerifierLifecycle, startOwnedVite } from '../../../scripts/verifier-infrastructure.mjs'
+import { extractLiteralWhiteReference } from './build-tikz-assets.mjs'
 
 const fixture = process.env.SNL_DEMO_FIXTURE || new URL('..', import.meta.url).pathname
 const chrome = process.env.CHROMIUM_PATH || [
@@ -14,6 +15,9 @@ const chrome = process.env.CHROMIUM_PATH || [
 if (!chrome) throw new Error('Chromium not found; set CHROMIUM_PATH')
 
 const expected = [9, 8, 7, 7, 7]
+const tikzFull = readFileSync(new URL('../tikz/generated/higher-category.full.svg', import.meta.url), 'utf8')
+const tikzTemplate = readFileSync(new URL('../tikz/generated/higher-category.template.svg', import.meta.url), 'utf8')
+const tikzLiteralWhiteReference = extractLiteralWhiteReference(tikzFull)
 const assert = (value, message) => { if (!value) throw new Error(message) }
 let lifecycleRace = promise => Promise.resolve(promise)
 async function evaluate(cdp, expression) {
@@ -149,7 +153,81 @@ try {
       results.push({ mode: mode.name, preset: index, ...metrics })
     }
   }
-  verificationResults = results
+  await evaluate(cdp, `document.querySelectorAll('.preset')[0].click()`)
+  await waitFor(() => evaluate(cdp, `document.querySelectorAll('.snl-svg-template .snl-foreign-box:not(.snl-foreign-box-measure)').length === 9`), 'TikZ theme probe labels')
+  const liveTheme = await evaluate(cdp, `(() => {
+    const host = document.querySelector('.snl-svg-template');
+    const ink = host.querySelector('svg path[stroke="currentColor"], svg path[fill="currentColor"]');
+    host.style.color = 'rgb(17, 34, 51)';
+    const first = { stroke: getComputedStyle(ink).stroke, fill: getComputedStyle(ink).fill };
+    host.style.color = 'rgb(238, 221, 204)';
+    const second = { stroke: getComputedStyle(ink).stroke, fill: getComputedStyle(ink).fill };
+    return { first, second };
+  })()`)
+  assert(Object.values(liveTheme.first).includes('rgb(17, 34, 51)'), `currentColor did not inherit first live host theme: ${JSON.stringify(liveTheme)}`)
+  assert(Object.values(liveTheme.second).includes('rgb(238, 221, 204)'), `currentColor did not react to live host theme switch: ${JSON.stringify(liveTheme)}`)
+
+  const rasterProof = await evaluate(cdp, `(async () => {
+    const transformedSource = ${JSON.stringify(tikzTemplate)};
+    const literalSource = ${JSON.stringify(tikzLiteralWhiteReference)};
+    const render = async (source, color, background = null, scale = 3) => {
+      const documentSvg = new DOMParser().parseFromString(source, 'image/svg+xml').documentElement;
+      const viewBox = documentSvg.getAttribute('viewBox').trim().split(/\\s+/).map(Number);
+      const width = Math.ceil(viewBox[2] * scale);
+      const height = Math.ceil(viewBox[3] * scale);
+      documentSvg.setAttribute('width', String(width));
+      documentSvg.setAttribute('height', String(height));
+      documentSvg.style.color = color;
+      const blob = new Blob([new XMLSerializer().serializeToString(documentSvg)], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      try {
+        const image = new Image();
+        image.src = url;
+        await image.decode();
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        if (background) { context.fillStyle = background; context.fillRect(0, 0, width, height); }
+        context.drawImage(image, 0, 0, width, height);
+        return { data: [...context.getImageData(0, 0, width, height).data], width, height, viewBox, scale };
+      } finally { URL.revokeObjectURL(url); }
+    };
+    const literal = await render(literalSource, '#000', '#fff');
+    const transformedWhite = await render(transformedSource, '#000', '#fff');
+    let maxChannelDelta = 0;
+    let differingChannels = 0;
+    let largeDeltaChannels = 0;
+    let totalChannelDelta = 0;
+    for (let index = 0; index < literal.data.length; index += 1) {
+      const delta = Math.abs(literal.data[index] - transformedWhite.data[index]);
+      maxChannelDelta = Math.max(maxChannelDelta, delta);
+      totalChannelDelta += delta;
+      if (delta > 2) differingChannels += 1;
+      if (delta > 32) largeDeltaChannels += 1;
+    }
+    const transparent = await render(transformedSource, '#fff');
+    const dark = await render(transformedSource, '#f4f4f4', '#313131');
+    const point = (rendered, x, y) => {
+      const px = Math.max(0, Math.min(rendered.width - 1, Math.round((x - rendered.viewBox[0]) * rendered.scale)));
+      const py = Math.max(0, Math.min(rendered.height - 1, Math.round((y - rendered.viewBox[1]) * rendered.scale)));
+      const offset = (py * rendered.width + px) * 4;
+      return rendered.data.slice(offset, offset + 4);
+    };
+    const formulaKnockout = point(dark, -67, 6);
+    const doubleArrowKnockout = point(dark, 4, 0);
+    let opaqueInk = null;
+    for (let offset = 0; offset < transparent.data.length; offset += 4) {
+      if (transparent.data[offset + 3] === 255) { opaqueInk = transparent.data.slice(offset, offset + 4); break; }
+    }
+    return { maxChannelDelta, differingChannels, largeDeltaChannels, totalChannelDelta, pixels: literal.data.length / 4, formulaKnockout, doubleArrowKnockout, opaqueInk };
+  })()`)
+  const visibleChannels = rasterProof.pixels * 3
+  assert(rasterProof.largeDeltaChannels / visibleChannels <= 0.003 && rasterProof.totalChannelDelta / visibleChannels <= 0.45, `white-paper raster equivalence exceeded the antialias budget: ${JSON.stringify(rasterProof)}`)
+  assert(rasterProof.formulaKnockout.slice(0, 3).every(channel => channel === 49), `formula plate did not reveal #313131: ${JSON.stringify(rasterProof.formulaKnockout)}`)
+  assert(rasterProof.doubleArrowKnockout.slice(0, 3).every(channel => channel === 49), `double-arrow gap did not reveal #313131: ${JSON.stringify(rasterProof.doubleArrowKnockout)}`)
+  assert(rasterProof.opaqueInk?.slice(0, 3).every(channel => channel === 255), `currentColor ink did not rasterize with theme foreground: ${JSON.stringify(rasterProof.opaqueInk)}`)
+  verificationResults = { matrix: results, liveTheme, rasterProof }
 } catch (error) {
   verificationError = error
 } finally {
