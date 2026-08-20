@@ -12,7 +12,7 @@ export const leanLanguage: LanguageFn = (hljs) => ({
   aliases: ['lean', 'lean4'],
   unicodeRegex: true,
   keywords: {
-    $pattern: "[\\p{L}\\p{M}\\p{N}_']+",
+    $pattern: "[\\p{L}\\p{M}\\p{N}_'!?]+",
     keyword: [
       'abbrev', 'axiom', 'class', 'constant', 'def', 'deriving', 'do', 'else',
       'end', 'example', 'export', 'extends', 'for', 'forall', 'from', 'fun',
@@ -35,6 +35,12 @@ export const leanLanguage: LanguageFn = (hljs) => ({
     hljs.COMMENT('--', '$'),
     hljs.COMMENT('/-', '-/', { contains: ['self'] }),
     {
+      scope: 'title',
+      begin: /«/,
+      end: /»/,
+      relevance: 0,
+    },
+    {
       scope: 'meta',
       begin: /#[A-Za-z_][A-Za-z0-9_']*/,
       relevance: 10,
@@ -46,7 +52,7 @@ export const leanLanguage: LanguageFn = (hljs) => ({
     hljs.QUOTE_STRING_MODE,
     {
       scope: 'string',
-      match: /(?<![\p{L}\p{N}_'])'(?:\\(?:u\{[0-9A-Fa-f]+\}|.)|[^\\'])'(?![\p{L}\p{N}_'])/u,
+      match: /(?<![\p{L}\p{M}\p{N}_'!?])'(?:\\(?:u\{[0-9A-Fa-f]+\}|.)|[^\\'])'(?![\p{L}\p{M}\p{N}_'!?])/u,
     },
     hljs.C_NUMBER_MODE,
   ],
