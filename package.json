@@ -1,6 +1,6 @@
 {
   "name": "@sjtu-ai4math/snl-basics",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "license": "MIT",
   "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
   "keywords": [
@@ -95,7 +95,9 @@
     "test:root-text-typography": "node scripts/verify-root-text-typography.mjs",
     "test:popover-origin": "node scripts/verify-popover-origin.mjs",
     "test:parameterized-svg": "node scripts/verify-parameterized-svg.mjs",
-    "test:formula-foreign-box": "node scripts/verify-formula-foreign-box.mjs"
+    "test:formula-foreign-box": "node scripts/verify-formula-foreign-box.mjs",
+    "verify:packed-consumer": "node scripts/verify-packed-consumer.mjs",
+    "verify:release": "npm run verify:packed-consumer"
   },
   "peerDependencies": {
     "katex": "^0.16.0",

@@ -1799,7 +1799,7 @@ export function SnlSyntaxTreeView({
   }
 
   if (macroStatus === 'pending') {
-    return <div className="katex-panel">Loading macro data ...</div>
+    return <div className="katex-panel" data-snl-render-state="loading">Loading macro data ...</div>
   }
   if (macroStatus === 'error') {
     return <div className="katex-panel katex-error">Macro query failed: {macroError}</div>
@@ -1808,7 +1808,7 @@ export function SnlSyntaxTreeView({
   const hasRetainedFormulaForeignShell = formulaMarkers.length > 0 && lastHtmlRef.current !== null
   if (isKatexRoot) {
     if (loading && !result && !hasRetainedFormulaForeignShell) {
-      return <div className="katex-panel">Loading KaTeX ...</div>
+      return <div className="katex-panel" data-snl-render-state="loading">Loading KaTeX ...</div>
     }
     if (error) {
       return <div className="katex-panel katex-error">{error}</div>

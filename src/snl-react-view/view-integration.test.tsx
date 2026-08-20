@@ -923,6 +923,7 @@ describe('macro query lifecycle', () => {
     })
     view.rerender(<SnlSyntaxTreeView tree={tree} macro_data_driver={pending} />)
     expect(view.container.textContent).toContain('Loading macro data')
+    expect(view.container.querySelector('[data-snl-render-state="loading"]')).not.toBeNull()
     expect(view.container.textContent).not.toContain('old backend')
   })
 

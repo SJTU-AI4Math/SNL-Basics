@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.2.4 · MIT License · Beta** — [English README](README.md)
+**v0.3.0 · MIT License · Beta** — [English README](README.md)
 
 结构化自然语言（Structured Natural Language, SNL）基础库 —— 将宏 DSL 解析为语法树，
 并渲染为带悬停交互的 KaTeX-in-React。
@@ -181,6 +181,7 @@ const driver = new MacroDataDriver({
 
 ```tsx
 import { EntryDataDriver, EntryPreviewProvider, EntryView } from '@sjtu-ai4math/snl-basics/entry'
+import '@sjtu-ai4math/snl-basics/style.css'
 import '@sjtu-ai4math/snl-basics/entry/style.css'
 
 const entries = new EntryDataDriver({
@@ -551,7 +552,10 @@ arity）。
 拒绝。子节点必须来自同一棵语法树，并使用其规范 tree path。KaTeX marker 的阅读顺序
 位置保留经过转义的纯文本 fallback，accessibility 所有权切换不会产生重复表示。浏览器
 选择保证包含该纯文本；定位在 overlay DOM 中的富 table/list/widget 不能保证原生选择或
-剪贴板复制保留结构，需要结构化复制时请由使用方提供明确的复制操作。
+剪贴板复制保留结构，需要结构化复制时请由使用方提供明确的复制操作。SSR 或无
+measurement 路径默认保留可见、可访问的 label fallback；只有使用方同时提供可信的
+预计算 metrics 与已经可用的渲染内容时才能采用后者。metrics 只保留几何，不会凭空
+提供异步 asset，也不声称保留 live rich child SSR。
 
 ### 可选的参数化 SVG 块渲染器
 
@@ -659,5 +663,5 @@ npm pack            # 产出可发布的 tarball
 
 ## 版本与许可证
 
-- **版本：** `0.2.4`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
+- **版本：** `0.3.0`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
 - **许可证：** [MIT](LICENSE)

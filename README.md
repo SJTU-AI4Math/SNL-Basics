@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.2.4 · MIT License · Beta** — [中文版 README](README(ZH).md)
+**v0.3.0 · MIT License · Beta** — [中文版 README](README(ZH).md)
 
 Structured Natural Language (SNL) base library — parse a macro DSL into syntax
 trees and render them to KaTeX-in-React with hover interactions.
@@ -193,6 +193,7 @@ dependencies.
 
 ```tsx
 import { EntryDataDriver, EntryPreviewProvider, EntryView } from '@sjtu-ai4math/snl-basics/entry'
+import '@sjtu-ai4math/snl-basics/style.css'
 import '@sjtu-ai4math/snl-basics/entry/style.css'
 
 const entries = new EntryDataDriver({
@@ -642,7 +643,11 @@ position while live/fallback accessibility ownership changes atomically.
 Browser selection reliably includes that plain marker fallback. A positioned
 rich table/list/widget is separate overlay DOM, so native selection and clipboard
 copy are **not** guaranteed to reproduce its rich structure; consumers needing
-structured copy must provide an explicit copy action.
+structured copy must provide an explicit copy action. On SSR or any no-measurement
+path, the ordinary document keeps a visible accessible label fallback unless the
+consumer supplies trusted precomputed metrics and already-available render content.
+Metrics reserve geometry only: they do not preserve or claim live rich child SSR
+or make asynchronous assets available.
 
 ### Opt-in parameterized SVG block renderer
 
@@ -764,5 +769,5 @@ npm pack            # produce the publishable tarball
 
 ## Version & License
 
-- **Version:** `0.2.4` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
+- **Version:** `0.3.0` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
 - **License:** [MIT](LICENSE)

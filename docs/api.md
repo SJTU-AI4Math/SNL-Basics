@@ -1,6 +1,6 @@
 # `@sjtu-ai4math/snl-basics` — Public API Reference
 
-Current beta surface for v0.2.4. Import from the package root:
+Current beta surface for v0.3.0. Import from the package root:
 
 ```ts
 import { MacroDataDriver, SnlSyntaxTreeView } from '@sjtu-ai4math/snl-basics'
@@ -265,6 +265,14 @@ the plain marker text. It does not promise rich selection/copy parity for the
 positioned overlay DOM; provide a consumer copy command for structured table,
 list, or widget data.
 
+SSR/no-measurement behavior is deliberately limited. Without consumer-supplied
+trusted precomputed metrics and available render content, the ordinary document
+path keeps a visible accessible label fallback in reading order. Trusted metrics
+can reserve geometry, but do not make an asynchronous asset or child available.
+The fallback does not preserve or claim live rich child SSR; rich overlay content
+requires client data/asset availability and measurement. No parallel SSR renderer,
+persisted asset model, or semantic Macro-name branch is provided.
+
 ## Parameterized SVG block projection
 
 The root barrel exports `createSvgTemplateRenderer`,
@@ -353,6 +361,7 @@ import {
   EntryPreviewProvider,
   resolveEntryContextSources,
 } from '@sjtu-ai4math/snl-basics/entry'
+import '@sjtu-ai4math/snl-basics/style.css'
 import '@sjtu-ai4math/snl-basics/entry/style.css'
 ```
 
