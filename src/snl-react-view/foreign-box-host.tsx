@@ -122,6 +122,13 @@ interface Entry {
   measurementRef: (measurement: HTMLDivElement | null) => void
   metrics: ForeignBoxMetrics | null
   focusRestore: HTMLElement | null
+  focusRestoreCleanup: (() => void) | null
+}
+
+function clearFocusRestore(entry: Entry): void {
+  entry.focusRestoreCleanup?.()
+  entry.focusRestoreCleanup = null
+  entry.focusRestore = null
 }
 
 function setEntryPositioned(entry: Entry, positioned: boolean): void {
@@ -133,7 +140,15 @@ function setEntryPositioned(entry: Entry, positioned: boolean): void {
 function stageEntry(entry: Entry): void {
   const active = entry.wrapper?.ownerDocument.activeElement
   if (active && entry.wrapper?.contains(active) && typeof (active as HTMLElement).focus === 'function') {
-    entry.focusRestore = active as HTMLElement
+    clearFocusRestore(entry)
+    const target = active as HTMLElement
+    const document = target.ownerDocument
+    const cancelOnInterveningFocus = (event: FocusEvent) => {
+      if (event.target !== target) clearFocusRestore(entry)
+    }
+    entry.focusRestore = target
+    document.addEventListener('focusin', cancelOnInterveningFocus, true)
+    entry.focusRestoreCleanup = () => document.removeEventListener('focusin', cancelOnInterveningFocus, true)
   }
   stageWrapper(entry.wrapper)
   setEntryPositioned(entry, false)
@@ -239,7 +254,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
             wrapper.removeAttribute('inert')
             const focusRestore = entry.focusRestore
             if (focusRestore) {
-              entry.focusRestore = null
+              clearFocusRestore(entry)
               const document = focusRestore.ownerDocument
               const active = document.activeElement
               if (focusRestore.isConnected
@@ -289,7 +304,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
         onMetricReport: options.onMetricReport, onUnregister: options.onUnregister,
         onPositionedChange: options.onPositionedChange, positioned: false,
         key, slot, token, marker: null, wrapper: null, wrapperRef: () => {},
-        measurement: null, intrinsicMeasurement: null, measurementRef: () => {}, metrics: null, focusRestore: null,
+        measurement: null, intrinsicMeasurement: null, measurementRef: () => {}, metrics: null, focusRestore: null, focusRestoreCleanup: null,
       }
       entry.wrapperRef = (wrapper) => {
         if (!activeRef.current || entriesRef.current.get(slot)?.token !== token) return
@@ -338,6 +353,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
         }
         previous.marker = null
         previous.metrics = null
+        clearFocusRestore(previous)
         previous.measurement = null
         previous.wrapper = null
         previous.positioned = false
@@ -414,7 +430,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
         entry.marker = null
         entry.measurement = null
         entry.intrinsicMeasurement = null
-        entry.focusRestore = null
+        clearFocusRestore(entry)
         entry.wrapper = null
         setEntryPositioned(entry, false)
         if (entriesRef.current.size === 0 && rafRef.current !== null && typeof cancelAnimationFrame !== 'undefined') {
@@ -520,6 +536,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
       const observer = observerRef.current
       observerRef.current = null
       observer?.disconnect()
+      for (const entry of entriesRef.current.values()) clearFocusRestore(entry)
       if (rafRef.current !== null && typeof cancelAnimationFrame !== 'undefined') {
         cancelAnimationFrame(rafRef.current)
         rafRef.current = null

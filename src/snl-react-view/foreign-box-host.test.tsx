@@ -581,8 +581,10 @@ describe('ForeignBoxHost lifecycle', () => {
 
     view.rerender(<Harness authority="b" />)
     outside.focus()
+    outside.blur()
+    expect(document.activeElement).toBe(document.body)
     act(() => { apiRef.current!.markerRef(marker); flushRaf() })
-    expect(document.activeElement).toBe(outside)
+    expect(document.activeElement).toBe(document.body)
   })
 
   it('uses one observer and one RAF for sibling updates', () => {
