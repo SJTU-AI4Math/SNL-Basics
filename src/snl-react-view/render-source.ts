@@ -524,19 +524,26 @@ export async function resolveNodeLatex(
     node.env_mode ?? resolvedTemplate?.mode ?? 'formula_inline'
   const selfBucket = modeBucket(selfMode)
 
-  const foreignCheckpoint = foreignCollector?.length ?? 0
-  const childRawList = await Promise.all(
-    node.children.map((child, i) => resolveNodeLatex(
-      child,
-      driver,
-      [...treePath, i],
-      signal,
-      reader_runtime,
-      sampled_language,
-      formulaForeign,
-      foreignCollector,
-    )),
+  // Each async child owns an isolated plan collector. Siblings may resolve out
+  // of order, so sharing a mutable array here would let one block's rollback
+  // splice plans already committed by another subtree.
+  const childResults = await Promise.all(
+    node.children.map(async (child, i) => {
+      const childCollector = foreignCollector ? [] as FormulaForeignPlan[] : undefined
+      const latex = await resolveNodeLatex(
+        child,
+        driver,
+        [...treePath, i],
+        signal,
+        reader_runtime,
+        sampled_language,
+        formulaForeign,
+        childCollector,
+      )
+      return { latex, foreignBoxes: childCollector ?? [] }
+    }),
   )
+  const childRawList = childResults.map(result => result.latex)
 
   const wrappedChildren = await Promise.all(childRawList.map(async (latex, index) => {
     const child = node.children[index]
@@ -564,10 +571,8 @@ export async function resolveNodeLatex(
   // A block descendant may enter formula layout only through an explicit,
   // consumer-owned capability resolved from its complete selected projection.
   if (selfBucket === 'block') {
-    // Child marker plans are not part of a block node's final marker/warning.
-    // Roll them back transactionally before deciding whether this block itself
-    // has an explicit embedding capability.
-    foreignCollector?.splice(foreignCheckpoint)
+    // Child marker plans are subtree-local and are intentionally discarded:
+    // a block node's final marker/warning owns the complete selected subtree.
     if (formulaForeign && foreignCollector && resolvedTemplate?.mode === 'block') {
       const resolution = await formulaForeign.resolveBlock({
         node,
@@ -587,6 +592,10 @@ export async function resolveNodeLatex(
       '` cannot be used inside a formula\\}}'
     return wrapHtmlData(node, body, macro, treePath)
   }
+
+  // Merge only after every sibling has resolved, preserving tree/source order
+  // regardless of async completion order.
+  foreignCollector?.push(...childResults.flatMap(result => result.foreignBoxes))
 
   // Synthetic-macro path (delimited-name form).
   if (node.env_mode) {
