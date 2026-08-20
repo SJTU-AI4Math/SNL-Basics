@@ -77,10 +77,18 @@ describe('SvgTemplateRenderer', () => {
     expect(markers).toHaveLength(4)
     expect(markers.map((marker) => marker.getAttribute('data-snl-slot'))).toEqual(['0', '1', '2', '3'])
     expect(markers.map((marker) => marker.getAttribute('transform'))).toEqual([
-      'translate(130 70)', 'translate(500 70)', 'translate(130 290)', 'translate(500 290)',
+      'translate(155 70)', 'translate(500 70)', 'translate(130 310)', 'translate(480 310)',
     ])
     expect(firstSvg.id).not.toBe(secondSvg.id)
-    expect(firstSvg.querySelector('path')?.getAttribute('d')).toBe('M150 80H480')
+    expect(firstSvg.querySelector('path')?.getAttribute('d')).toBe('M330 80H460')
+    const edges = [...firstSvg.querySelectorAll('.snl-svg-edge')]
+    const arrowheads = [...firstSvg.querySelectorAll('.snl-svg-arrowhead')]
+    expect(edges).toHaveLength(4)
+    expect(arrowheads).toHaveLength(4)
+    expect(edges.every((edge) => {
+      const stroke = edge.getAttribute('stroke')
+      return Boolean(stroke && stroke !== 'none' && !stroke.startsWith('url('))
+    })).toBe(true)
   })
 
   it('maps exact validated slot indices through renderChild rather than array order', async () => {
@@ -94,6 +102,7 @@ describe('SvgTemplateRenderer', () => {
       return <span>{child.macro_name}</span>
     })} />)
     await waitFor(() => expect(view.container.querySelector('svg')).not.toBeNull())
+    expect(view.container.querySelectorAll('.snl-foreign-box-measure > .snl-svg-template-slot-content')).toHaveLength(4)
     expect(seen).toEqual(['0:A', '1:B', '2:C', '3:D'])
   })
 

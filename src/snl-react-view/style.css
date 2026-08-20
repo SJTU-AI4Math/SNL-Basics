@@ -288,6 +288,20 @@
   height: auto;
   overflow: visible;
 }
+/* The shared ForeignBox measure surface remains intrinsic. This renderer-owned
+ * child surface supplies the responsive placement policy for live and fallback
+ * SVG labels: short labels stay intrinsic while long labels wrap before they can
+ * escape the remaining right-hand viewBox corridor. */
+.snl-svg-template-slot-content {
+  display: flow-root;
+  box-sizing: border-box;
+  width: fit-content;
+  min-width: 0;
+  max-width: clamp(5rem, 22vw, 11rem);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 .snl-svg-template-slot-fallback {
   overflow-wrap: anywhere;
 }

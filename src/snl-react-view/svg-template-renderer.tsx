@@ -184,7 +184,7 @@ function ReadySurface(props: ReadySurfaceProps): ReactElement {
         if (props.childMode(child) === 'block') {
           throw new Error(`block-mode child at SVG slot ${index} is not supported`)
         }
-        return props.renderChild(child, index)
+        return <div className="snl-svg-template-slot-content">{props.renderChild(child, index)}</div>
       })
       const slots = rendered.map(({ slot, rendered: child }) => {
         const marker = artwork.markersByIndex.get(slot.index)

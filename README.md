@@ -599,6 +599,7 @@ import {
 
 const assets = new SvgTemplateAssetRegistry({
   loader: async (identity, signal) => loadTrustedSvgSource(identity, signal),
+  maxSettled: 32,
 })
 const Diagram = createSvgTemplateRenderer({ assetRegistry: assets })
 

@@ -40,7 +40,7 @@ const db: SnlMacroRecord = {
   },
   labelA: {
     name: 'labelA', description: '', source: { entries: [], urls: [] }, kind: 'const',
-    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'A — a deliberately long source object label' } }],
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'A — responsive-label-needs-wrapping' } }],
   },
   labelB: {
     name: 'labelB', description: '', source: { entries: [], urls: [] }, kind: 'const',
@@ -48,11 +48,11 @@ const db: SnlMacroRecord = {
   },
   labelC: {
     name: 'labelC', description: '', source: { entries: [], urls: [] }, kind: 'const',
-    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'C / universal comparison target' } }],
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'C target' } }],
   },
   labelD: {
     name: 'labelD', description: '', source: { entries: [], urls: [] }, kind: 'const',
-    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'formula_inline', body: '\\forall x,\\; f(x)=g(x)' } }],
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'formula_inline', body: 'f=g' } }],
   },
 }
 const driver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name }) => db[macro_name] ?? null } })
@@ -82,7 +82,7 @@ function App() {
   const [alternate, setAlternate] = useState(false)
   window.__svgFixture = {
     toggle: () => setAlternate((value) => !value),
-    ready: () => document.querySelectorAll('.snl-foreign-box[data-state="positioned"]').length === 4,
+    ready: () => document.querySelectorAll('.fixture-frame .snl-foreign-box[data-state="positioned"]').length === 4,
     snapshot: () => {
       const svg = document.querySelector('svg.snl-svg-template-artwork')
       const host = document.querySelector('.fixture-frame') as HTMLElement | null
