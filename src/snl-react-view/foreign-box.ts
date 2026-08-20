@@ -17,17 +17,29 @@ export interface ForeignBoxIdentity {
 
 const BASELINES: ReadonlySet<string> = new Set(['alphabetic', 'axis-center', 'bottom'])
 
+export function snapshotForeignBoxIdentity(identity: ForeignBoxIdentity): ForeignBoxIdentity {
+  const treePath = identity.treePath
+  const generation = identity.generation
+  const producer = identity.producer
+  if (typeof treePath !== 'string') throw new TypeError('ForeignBox treePath must be a string')
+  if (!Number.isSafeInteger(generation) || generation < 0) throw new TypeError('ForeignBox generation must be a nonnegative safe integer')
+  if (typeof producer !== 'string' || producer.length === 0) throw new TypeError('ForeignBox producer identity is required')
+  return Object.freeze({ treePath, generation, producer })
+}
+
 export function assertForeignBoxMetrics(metrics: ForeignBoxMetrics): ForeignBoxMetrics {
-  for (const [name, value] of [['width', metrics.width], ['height', metrics.height], ['depth', metrics.depth]] as const) {
-    if (!Number.isFinite(value) || value < 0) throw new TypeError(`ForeignBox ${name} must be finite and nonnegative`)
+  const width = metrics.width
+  const height = metrics.height
+  const depth = metrics.depth
+  const baseline = metrics.baseline
+  for (const [name, value] of [['width', width], ['height', height], ['depth', depth]] as const) {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new TypeError(`ForeignBox ${name} must be finite and nonnegative`)
   }
-  if (!BASELINES.has(metrics.baseline)) throw new TypeError('ForeignBox baseline is invalid')
-  return { width: metrics.width, height: metrics.height, depth: metrics.depth, baseline: metrics.baseline }
+  if (typeof baseline !== 'string' || !BASELINES.has(baseline)) throw new TypeError('ForeignBox baseline is invalid')
+  return Object.freeze({ width, height, depth, baseline })
 }
 
 export function foreignBoxIdentityKey(identity: ForeignBoxIdentity): string {
-  if (typeof identity.treePath !== 'string' || identity.treePath.length === 0) throw new TypeError('ForeignBox treePath is required')
-  if (!Number.isSafeInteger(identity.generation) || identity.generation < 0) throw new TypeError('ForeignBox generation must be a nonnegative safe integer')
-  if (typeof identity.producer !== 'string' || identity.producer.length === 0) throw new TypeError('ForeignBox producer identity is required')
-  return JSON.stringify([identity.treePath, identity.generation, identity.producer])
+  const snapshot = snapshotForeignBoxIdentity(identity)
+  return JSON.stringify([snapshot.treePath, snapshot.generation, snapshot.producer])
 }

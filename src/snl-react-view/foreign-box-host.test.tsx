@@ -33,8 +33,8 @@ class TrackingResizeObserver {
 let rafCallbacks: Map<number, FrameRequestCallback>
 let nextRaf: number
 let cancelledRafs: number[]
-let listenerAdds: Array<[EventTarget, string]>
-let listenerRemoves: Array<[EventTarget, string]>
+let listenerAdds: Array<[EventTarget, string, EventListenerOrEventListenerObject | null, boolean | AddEventListenerOptions | undefined]>
+let listenerRemoves: Array<[EventTarget, string, EventListenerOrEventListenerObject | null, boolean | EventListenerOptions | undefined]>
 
 beforeEach(() => {
   TrackingResizeObserver.instances = []
@@ -48,10 +48,10 @@ beforeEach(() => {
   const add = EventTarget.prototype.addEventListener
   const remove = EventTarget.prototype.removeEventListener
   vi.spyOn(EventTarget.prototype, 'addEventListener').mockImplementation(function (this: EventTarget, type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions) {
-    listenerAdds.push([this, type]); return add.call(this, type, listener, options)
+    listenerAdds.push([this, type, listener, options]); return add.call(this, type, listener, options)
   })
   vi.spyOn(EventTarget.prototype, 'removeEventListener').mockImplementation(function (this: EventTarget, type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions) {
-    listenerRemoves.push([this, type]); return remove.call(this, type, listener, options)
+    listenerRemoves.push([this, type, listener, options]); return remove.call(this, type, listener, options)
   })
 })
 
@@ -80,10 +80,10 @@ function Slot({ id = identity(), label = 'foreign', apiRef, markerKey = 'a', onM
   return <span key={markerKey} ref={api.markerRef} data-testid="marker" />
 }
 
-function EffectSlot({ kind, calls }: { kind: 'layout' | 'passive'; calls: UseForeignBoxResult[] }) {
+function EffectSlot({ kind, calls }: { kind: 'layout' | 'passive'; calls: boolean[] }) {
   const api = useForeignBox({ identity: identity(`strict-${kind}`), child: <span data-testid={`strict-${kind}`}>{kind}</span> })
   const effect = kind === 'layout' ? useLayoutEffect : useEffect
-  effect(() => { calls.push(api) }, [api])
+  effect(() => { calls.push(api.isAlive()) }, [api])
   return <span ref={api.markerRef} />
 }
 
@@ -93,12 +93,40 @@ describe('ForeignBox contracts', () => {
     for (const value of [NaN, Infinity, -1]) {
       expect(() => assertForeignBoxMetrics({ width: value, height: 1, depth: 0, baseline: 'bottom' })).toThrow()
     }
+    expect(foreignBoxIdentityKey(identity('', 0, 'root@r1'))).toBe('["",0,"root@r1"]')
     expect(foreignBoxIdentityKey(identity('0/1', 4, 'asset:a@rev7'))).not.toBe(foreignBoxIdentityKey(identity('0/1', 3, 'asset:a@rev7')))
     expect(foreignBoxIdentityKey(identity('0/1', 4, 'asset:a@rev7'))).not.toBe(foreignBoxIdentityKey(identity('0/1', 4, 'asset:a@rev8')))
+  })
+
+  it('reads public identity and metrics fields once and returns frozen primitive snapshots', () => {
+    const reads = { treePath: 0, generation: 0, producer: 0, width: 0, height: 0, depth: 0, baseline: 0 }
+    const changingIdentity = {
+      get treePath() { reads.treePath++; return reads.treePath === 1 ? 'slot' : 'changed' },
+      get generation() { reads.generation++; return reads.generation === 1 ? 1 : 2 },
+      get producer() { reads.producer++; return reads.producer === 1 ? 'p@1' : 'p@2' },
+    }
+    expect(foreignBoxIdentityKey(changingIdentity)).toBe('["slot",1,"p@1"]')
+    expect(reads).toMatchObject({ treePath: 1, generation: 1, producer: 1 })
+    const metrics = assertForeignBoxMetrics({
+      get width() { reads.width++; return reads.width === 1 ? 10 : 99 },
+      get height() { reads.height++; return reads.height === 1 ? 4 : 99 },
+      get depth() { reads.depth++; return reads.depth === 1 ? 1 : 99 },
+      get baseline() { reads.baseline++; return reads.baseline === 1 ? 'alphabetic' as const : 'bottom' as const },
+    })
+    expect(metrics).toEqual({ width: 10, height: 4, depth: 1, baseline: 'alphabetic' })
+    expect(Object.isFrozen(metrics)).toBe(true)
+    expect(reads).toMatchObject({ width: 1, height: 1, depth: 1, baseline: 1 })
   })
 })
 
 describe('ForeignBoxHost lifecycle', () => {
+  it('registers the root tree path as a live slot', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot id={identity('', 0, 'root@1')} apiRef={apiRef} /></ForeignBoxHost>)
+    expect(apiRef.current!.isAlive()).toBe(true)
+    expect(view.getByTestId('foreign-child').parentElement?.getAttribute('data-tree-path')).toBe('')
+  })
+
   it('keeps one child DOM node while staging, measuring, and positioning', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
@@ -134,6 +162,44 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(rafCallbacks.size).toBeLessThanOrEqual(1)
   })
 
+  it('retires the previous authority when a replacement registers at the same tree path', () => {
+    const oldRef = { current: null as UseForeignBoxResult | null }
+    const nextRef = { current: null as UseForeignBoxResult | null }
+    const oldMetrics = vi.fn(); const nextMetrics = vi.fn()
+    render(<ForeignBoxHost>
+      <Slot id={identity('same-slot', 1, 'old@1')} apiRef={oldRef} onMetrics={oldMetrics} />
+      <Slot id={identity('same-slot', 2, 'new@2')} apiRef={nextRef} onMetrics={nextMetrics} />
+    </ForeignBoxHost>)
+    expect(oldRef.current!.isAlive()).toBe(false)
+    expect(nextRef.current!.isAlive()).toBe(true)
+    act(() => oldRef.current!.reportMetrics({ width: 99, height: 99, depth: 0, baseline: 'bottom' }))
+    expect(oldMetrics).not.toHaveBeenCalled()
+    expect(nextMetrics).not.toHaveBeenCalled()
+  })
+
+  it('updates fresh JSX and callbacks in place without unregistering or losing focus and metrics', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const unregister = vi.fn(); const firstMetrics = vi.fn(); const nextMetrics = vi.fn()
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} label="first" onMetrics={firstMetrics} onUnregister={unregister} /></ForeignBoxHost>)
+    const child = view.getByTestId('foreign-child') as HTMLButtonElement
+    const wrapper = child.parentElement as HTMLElement
+    const marker = view.getByTestId('marker')
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 300, height: 200 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 20, top: 30, width: 20, height: 10 }))
+    child.focus()
+    act(() => { apiRef.current!.reportMetrics({ width: 30, height: 12, depth: 2, baseline: 'alphabetic' }); flushRaf() })
+    view.rerender(<ForeignBoxHost><Slot apiRef={apiRef} label="second" onMetrics={nextMetrics} onUnregister={unregister} /></ForeignBoxHost>)
+    expect(view.getByTestId('foreign-child')).toBe(child)
+    expect(document.activeElement).toBe(child)
+    expect(wrapper.dataset.state).toBe('positioned')
+    expect(wrapper.style.height).toBe('14px')
+    expect(unregister).not.toHaveBeenCalled()
+    act(() => TrackingResizeObserver.instances[0].fire(wrapper, 31, 14))
+    expect(nextMetrics).toHaveBeenCalled()
+    expect(firstMetrics).toHaveBeenCalledTimes(1)
+  })
+
   it('uses one observer and one RAF for sibling updates', () => {
     const a = { current: null as UseForeignBoxResult | null }
     const b = { current: null as UseForeignBoxResult | null }
@@ -148,6 +214,71 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(view.getAllByTestId('foreign-child').map(node => node.parentElement?.style.width)).toEqual(['10px', '20px'])
   })
 
+  it('keeps staging foreign controls inert and hidden until positioning, preserving the child node', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
+    const child = view.getByTestId('foreign-child'); const wrapper = child.parentElement as HTMLElement
+    const marker = view.getByTestId('marker'); const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    const overlay = view.container.querySelector('.snl-foreign-box-overlay') as HTMLElement
+    expect(overlay.hasAttribute('aria-hidden')).toBe(false)
+    expect(wrapper.style.visibility).toBe('hidden')
+    expect(wrapper.getAttribute('aria-hidden')).toBe('true')
+    expect(wrapper.hasAttribute('inert')).toBe(true)
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 20, top: 20, width: 10, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
+    expect(view.getByTestId('foreign-child')).toBe(child)
+    expect(wrapper.style.visibility).toBe('visible')
+    expect(wrapper.getAttribute('aria-hidden')).toBe('false')
+    expect(wrapper.hasAttribute('inert')).toBe(false)
+    act(() => apiRef.current!.markerRef(null))
+    expect(wrapper.style.visibility).toBe('hidden')
+    expect(wrapper.getAttribute('aria-hidden')).toBe('true')
+    expect(wrapper.hasAttribute('inert')).toBe(true)
+  })
+
+  it('maps scaled viewport rectangles into untransformed host-local coordinates', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
+    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 100, top: 50, width: 200, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 140, top: 90, width: 20, height: 20 }))
+    Object.defineProperties(host, {
+      offsetWidth: { value: 100, configurable: true }, offsetHeight: { value: 50, configurable: true },
+      scrollLeft: { value: 3, configurable: true }, scrollTop: { value: 4, configurable: true },
+    })
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
+    expect(wrapper.style.transform).toBe('translate(23px, 24px)')
+  })
+
+  it('observes targets registered before host layout observer creation and reacts to marker geometry', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
+    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    expect(TrackingResizeObserver.instances[0].targets).toEqual(new Set([host, marker, wrapper]))
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 10, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 35, top: 45, width: 10, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 55, top: 65, width: 10, height: 10 }))
+    act(() => { TrackingResizeObserver.instances[0].fire(marker); flushRaf() })
+    expect(wrapper.style.transform).toBe('translate(45px, 55px)')
+  })
+
+  it('keeps positive-depth wrapper measurement at a stable fixed point', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }; const metrics = vi.fn()
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} onMetrics={metrics} /></ForeignBoxHost>)
+    const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    act(() => { apiRef.current!.reportMetrics({ width: 30, height: 12, depth: 2, baseline: 'alphabetic' }); flushRaf() })
+    expect(wrapper.style.height).toBe('14px')
+    act(() => { TrackingResizeObserver.instances[0].fire(wrapper, 30, 14); flushRaf() })
+    act(() => { TrackingResizeObserver.instances[0].fire(wrapper, 30, 14); flushRaf() })
+    expect(metrics.mock.calls.at(-1)?.[0]).toEqual({ width: 30, height: 12, depth: 2, baseline: 'alphabetic' })
+    expect(wrapper.style.height).toBe('14px')
+    expect(rafCallbacks.size).toBe(0)
+  })
+
   it('unobserves a replaced marker and positions from only the live marker', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} markerKey="old" /></ForeignBoxHost>)
@@ -158,6 +289,12 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(TrackingResizeObserver.instances[0].unobserved).toContain(oldMarker)
     expect(TrackingResizeObserver.instances[0].targets.has(oldMarker)).toBe(false)
     expect(TrackingResizeObserver.instances[0].targets.has(newMarker)).toBe(true)
+    const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 10, width: 100, height: 100 }))
+    vi.spyOn(newMarker, 'getBoundingClientRect').mockReturnValue(rect({ left: 60, top: 70, width: 10, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 5, depth: 0, baseline: 'bottom' }); TrackingResizeObserver.instances[0].fire(newMarker); flushRaf() })
+    expect(wrapper.style.transform).toBe('translate(50px, 60px)')
   })
 
   it('drops detached marker targets during the centralized geometry batch', () => {
@@ -188,12 +325,12 @@ describe('ForeignBoxHost lifecycle', () => {
   })
 
   it('rearms descendant layout and passive registrations through StrictMode replay', () => {
-    const layout: UseForeignBoxResult[] = []; const passive: UseForeignBoxResult[] = []
+    const layout: boolean[] = []; const passive: boolean[] = []
     const view = render(<StrictMode><ForeignBoxHost><EffectSlot kind="layout" calls={layout} /><EffectSlot kind="passive" calls={passive} /></ForeignBoxHost></StrictMode>)
     expect(layout.length).toBeGreaterThanOrEqual(2)
     expect(passive.length).toBeGreaterThanOrEqual(2)
-    expect(layout.at(-1)!.isAlive()).toBe(true)
-    expect(passive.at(-1)!.isAlive()).toBe(true)
+    expect(layout.every(Boolean)).toBe(true)
+    expect(passive.every(Boolean)).toBe(true)
     expect(view.getAllByTestId('strict-layout')).toHaveLength(1)
     expect(view.getAllByTestId('strict-passive')).toHaveLength(1)
   })
@@ -258,5 +395,13 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(windowRemove).toHaveBeenCalledWith('resize', expect.any(Function))
     expect(viewportRemove).toHaveBeenCalledWith('scroll', expect.any(Function))
     expect(viewportRemove).toHaveBeenCalledWith('resize', expect.any(Function))
+    const ownedAdds = listenerAdds.filter(([target, type]) => (target === window || target === viewport) && (type === 'scroll' || type === 'resize'))
+    const ownedRemoves = listenerRemoves.filter(([target, type]) => (target === window || target === viewport) && (type === 'scroll' || type === 'resize'))
+    for (const [target, type, callback, options] of ownedAdds) {
+      expect(ownedRemoves.some(([removedTarget, removedType, removedCallback, removedOptions]) =>
+        removedTarget === target && removedType === type && removedCallback === callback && removedOptions === options)).toBe(true)
+    }
+    act(() => { window.dispatchEvent(new Event('scroll')); window.dispatchEvent(new Event('resize')); viewport.dispatchEvent(new Event('scroll')) })
+    expect(rafCallbacks.size).toBe(0)
   })
 })

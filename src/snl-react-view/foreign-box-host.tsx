@@ -9,11 +9,28 @@ import {
   useRef,
   type ReactNode,
 } from 'react'
-import { assertForeignBoxMetrics, foreignBoxIdentityKey, type ForeignBoxIdentity, type ForeignBoxMetrics } from './foreign-box'
+import { assertForeignBoxMetrics, foreignBoxIdentityKey, snapshotForeignBoxIdentity, type ForeignBoxIdentity, type ForeignBoxMetrics } from './foreign-box'
 
 const useSsrSafeLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 type MarkerElement = HTMLElement | SVGElement
+
+function viewportDeltaToHostLocal(host: HTMLElement, hostRect: DOMRect, dx: number, dy: number): { left: number; top: number } | null {
+  if (typeof getComputedStyle !== 'undefined') {
+    const transform = getComputedStyle(host).transform
+    const match = /^matrix\(([^)]+)\)$/.exec(transform)
+    if (match) {
+      const values = match[1].split(',').map(Number)
+      if (values.length >= 4 && (Math.abs(values[1]) > 1e-9 || Math.abs(values[2]) > 1e-9)) return null
+    }
+  }
+  const localWidth = host.offsetWidth
+  const localHeight = host.offsetHeight
+  const scaleX = localWidth > 0 && hostRect.width > 0 ? hostRect.width / localWidth : 1
+  const scaleY = localHeight > 0 && hostRect.height > 0 ? hostRect.height / localHeight : 1
+  if (!Number.isFinite(scaleX) || !Number.isFinite(scaleY) || scaleX <= 0 || scaleY <= 0) return null
+  return { left: dx / scaleX + host.scrollLeft, top: dy / scaleY + host.scrollTop }
+}
 
 interface RegistrationOptions {
   readonly identity: ForeignBoxIdentity
@@ -23,6 +40,7 @@ interface RegistrationOptions {
 }
 
 export interface ForeignBoxRegistration {
+  update(options: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'onUnregister'>): void
   setMarker(marker: MarkerElement | null): void
   reportMetrics(metrics: ForeignBoxMetrics): void
   unregister(): void
@@ -33,8 +51,21 @@ interface ForeignBoxRegistry {
   register(options: RegistrationOptions): ForeignBoxRegistration
 }
 
-interface Entry extends RegistrationOptions {
+function stageWrapper(wrapper: HTMLDivElement | null): void {
+  if (!wrapper) return
+  wrapper.dataset.state = 'staging'
+  wrapper.style.visibility = 'hidden'
+  wrapper.setAttribute('aria-hidden', 'true')
+  wrapper.setAttribute('inert', '')
+}
+
+interface Entry {
+  readonly identity: ForeignBoxIdentity
+  child: ReactNode
+  onMetrics?: (metrics: ForeignBoxMetrics) => void
+  onUnregister?: () => void
   readonly key: string
+  readonly slot: string
   readonly token: object
   marker: MarkerElement | null
   wrapper: HTMLDivElement | null
@@ -88,6 +119,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
           elementEntriesRef.current.delete(marker)
           entry.marker = null
           marker = null
+          stageWrapper(wrapper)
         }
         if (wrapper && !wrapper.isConnected) {
           observerRef.current?.unobserve(wrapper)
@@ -97,10 +129,20 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
         }
         if (!marker || !wrapper || !metrics) continue
         const markerRect = marker.getBoundingClientRect()
-        const left = markerRect.left - hostRect.left + host.scrollLeft
-        const top = markerRect.top - hostRect.top + host.scrollTop
+        const local = viewportDeltaToHostLocal(host, hostRect, markerRect.left - hostRect.left, markerRect.top - hostRect.top)
+        if (!local) {
+          wrapper.dataset.state = 'unsupported-transform'
+          wrapper.dataset.geometryError = 'rotation-or-skew'
+          wrapper.setAttribute('aria-hidden', 'true')
+          wrapper.setAttribute('inert', '')
+          continue
+        }
+        delete wrapper.dataset.geometryError
         wrapper.dataset.state = 'positioned'
-        wrapper.style.transform = `translate(${left}px, ${top}px)`
+        wrapper.style.visibility = 'visible'
+        wrapper.setAttribute('aria-hidden', 'false')
+        wrapper.removeAttribute('inert')
+        wrapper.style.transform = `translate(${local.left}px, ${local.top}px)`
         wrapper.style.width = `${metrics.width}px`
         wrapper.style.height = `${metrics.height + metrics.depth}px`
         wrapper.style.setProperty('--snl-foreign-box-depth', `${metrics.depth}px`)
@@ -110,20 +152,30 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
 
   const registry = useMemo<ForeignBoxRegistry>(() => ({
     register(options) {
-      const key = foreignBoxIdentityKey(options.identity)
+      const identity = snapshotForeignBoxIdentity(options.identity)
+      const key = foreignBoxIdentityKey(identity)
+      const slot = identity.treePath
       const token = {}
-      const entry: Entry = { ...options, key, token, marker: null, wrapper: null, metrics: null }
+      const previous = entriesRef.current.get(slot)
+      const entry: Entry = {
+        identity, child: options.child, onMetrics: options.onMetrics, onUnregister: options.onUnregister,
+        key, slot, token, marker: previous?.marker ?? null, wrapper: previous?.wrapper ?? null, metrics: previous?.metrics ?? null,
+      }
       if (!activeRef.current) return inertRegistration
 
-      const previous = entriesRef.current.get(key)
-      if (previous) {
-        if (previous.marker) observerRef.current?.unobserve(previous.marker)
-        if (previous.wrapper) observerRef.current?.unobserve(previous.wrapper)
-      }
-      entriesRef.current.set(key, entry)
+      entriesRef.current.set(slot, entry)
+      if (entry.marker) elementEntriesRef.current.set(entry.marker, entry)
+      if (entry.wrapper) elementEntriesRef.current.set(entry.wrapper, entry)
       renderEntries()
 
-      const isAlive = () => activeRef.current && entriesRef.current.get(key)?.token === token
+      const isAlive = () => activeRef.current && entriesRef.current.get(slot)?.token === token
+      const update = (next: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'onUnregister'>) => {
+        if (!isAlive()) return
+        entry.child = next.child
+        entry.onMetrics = next.onMetrics
+        entry.onUnregister = next.onUnregister
+        renderEntries()
+      }
       const setMarker = (marker: MarkerElement | null) => {
         if (!isAlive() || entry.marker === marker) return
         if (entry.marker) {
@@ -131,6 +183,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
           elementEntriesRef.current.delete(entry.marker)
         }
         entry.marker = marker
+        if (!marker) stageWrapper(entry.wrapper)
         if (marker) {
           elementEntriesRef.current.set(marker, entry)
           observerRef.current?.observe(marker)
@@ -147,7 +200,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
       }
       const unregister = () => {
         if (!isAlive()) return
-        entriesRef.current.delete(key)
+        entriesRef.current.delete(slot)
         if (entry.marker) {
           observerRef.current?.unobserve(entry.marker)
           elementEntriesRef.current.delete(entry.marker)
@@ -161,7 +214,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
         renderEntries()
         entry.onUnregister?.()
       }
-      return { setMarker, reportMetrics, unregister, isAlive }
+      return { update, setMarker, reportMetrics, unregister, isAlive }
     },
   }), [scheduleGeometry])
 
@@ -194,12 +247,14 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
         for (const record of records) {
           if (record.target === host) continue
           const entry = elementEntriesRef.current.get(record.target)
-          if (!entry || entriesRef.current.get(entry.key)?.token !== entry.token) continue
+          if (!entry || entriesRef.current.get(entry.slot)?.token !== entry.token) continue
           if (record.target === entry.wrapper) {
             const width = record.contentRect.width
-            const height = record.contentRect.height
+            const totalHeight = record.contentRect.height
+            const depth = entry.metrics?.depth ?? 0
+            const height = totalHeight - depth
             if (Number.isFinite(width) && width >= 0 && Number.isFinite(height) && height >= 0) {
-              const metrics = { width, height, depth: entry.metrics?.depth ?? 0, baseline: entry.metrics?.baseline ?? 'bottom' } as const
+              const metrics = Object.freeze({ width, height, depth, baseline: entry.metrics?.baseline ?? 'bottom' })
               entry.metrics = metrics
               entry.onMetrics?.(metrics)
             }
@@ -209,6 +264,10 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
       })
       observerRef.current = observer
       if (host) observer.observe(host)
+      for (const entry of entriesRef.current.values()) {
+        if (entry.marker) observer.observe(entry.marker)
+        if (entry.wrapper) observer.observe(entry.wrapper)
+      }
     }
 
     const update = () => scheduleGeometry()
@@ -242,12 +301,15 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
     <ForeignBoxContext.Provider value={registry}>
       <div ref={hostRef} className={className ? `snl-foreign-box-host ${className}` : 'snl-foreign-box-host'} data-snl-foreign-box-host="true">
         {children}
-        <div className="snl-foreign-box-overlay" aria-hidden="false">
+        <div className="snl-foreign-box-overlay">
           {records.map((entry) => (
             <div
-              key={entry.key}
+              key={entry.slot}
               className="snl-foreign-box"
               data-state="staging"
+              style={{ visibility: 'hidden' }}
+              aria-hidden="true"
+              inert={true}
               data-tree-path={entry.identity.treePath}
               ref={(wrapper) => {
                 if (!activeRef.current) return
@@ -273,5 +335,5 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
 }
 
 const inertRegistration: ForeignBoxRegistration = {
-  setMarker() {}, reportMetrics() {}, unregister() {}, isAlive: () => false,
+  update() {}, setMarker() {}, reportMetrics() {}, unregister() {}, isAlive: () => false,
 }
