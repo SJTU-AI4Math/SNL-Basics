@@ -42,17 +42,20 @@ describe('public Markdown stylesheet', () => {
 
   it('keeps dark muted code text above WCAG AA contrast in the built-in dark surface', () => {
     const dark = declarations('.snl-markdown-body[data-color-scheme="dark"]')
-    const muted = dark.get('--snl-md-muted')
-    expect(muted).toMatch(/^#[0-9a-f]{6}$/i)
+    const colors = [dark.get('--snl-md-muted'), dark.get('--snl-md-comment')]
+      .map((value) => value?.match(/#[0-9a-f]{6}/i)?.[0])
+    for (const color of colors) expect(color).toMatch(/^#[0-9a-f]{6}$/i)
     const luminance = (hex: string): number => {
       const channels = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255)
         .map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
       return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
     }
-    const foreground = luminance(muted!)
     const background = luminance('#313131')
-    const contrast = (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05)
-    expect(contrast).toBeGreaterThanOrEqual(4.5)
+    for (const color of colors) {
+      const foreground = luminance(color!)
+      const contrast = (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05)
+      expect(contrast, color).toBeGreaterThanOrEqual(4.5)
+    }
   })
 
   it('provides light and dark token palettes for every emitted core token family', () => {

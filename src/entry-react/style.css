@@ -39,7 +39,7 @@
   --snl-md-built-in: var(--vscode-symbolIcon-functionForeground, #d2a8ff);
   --snl-md-type: var(--vscode-symbolIcon-classForeground, #ffa657);
   --snl-md-literal: var(--vscode-symbolIcon-booleanForeground, #79c0ff);
-  --snl-md-comment: var(--vscode-descriptionForeground, #8b949e);
+  --snl-md-comment: var(--vscode-descriptionForeground, #9ca3af);
   --snl-md-string: var(--vscode-symbolIcon-stringForeground, #a5d6ff);
   --snl-md-number: var(--vscode-symbolIcon-numberForeground, #79c0ff);
   --snl-md-meta: var(--vscode-symbolIcon-keyForeground, #e3b341);
