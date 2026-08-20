@@ -186,10 +186,32 @@ try {
     assert(localized.preserved, `${testCase.name} equal-HTML plan refresh remounted formula foreign DOM`)
     assert(localized.labels.length === 9 && localized.labels.every(label => label === 'Updated arrow from A to B'), `${testCase.name} retained a stale equal-HTML formula plan: ${JSON.stringify(localized.labels)}`)
     assert(localized.errors.length === 0, `${testCase.name} localized projection errors: ${localized.errors.join(' | ')}`)
+    await evaluate(cdp, 'window.__beforeChangedMarkupSurfaces = [...document.querySelectorAll(".interactive-formula-svg")]; window.__formulaForeignFixture.switchMarkup()')
+    await waitFor(() => evaluate(cdp, 'window.__formulaForeignFixture.changedMarkupProbe() !== null'), `${testCase.name} changed-markup retirement probe`)
+    const retired = await evaluate(cdp, 'window.__formulaForeignFixture.changedMarkupProbe()')
+    assert(retired.wrapperConnected, `${testCase.name} changed-markup probe lost the persistent wrapper before retirement inspection`)
+    assert(retired.state === 'staging' && retired.visibility === 'hidden' && retired.ariaHidden === 'true' && retired.inert === true,
+      `${testCase.name} stale changed-markup wrapper remained interactive: ${JSON.stringify(retired)}`)
+    await waitFor(() => evaluate(cdp, `[...document.querySelectorAll('.context svg[role="img"]')].length === 9
+      && [...document.querySelectorAll('.context svg[role="img"]')].every(svg => svg.getAttribute('aria-label') === 'Changed-height arrow from A to B')
+      && window.__formulaForeignFixture.ready()`), `${testCase.name} changed-markup plan adoption`)
+    const changedMarkup = await evaluate(cdp, `(() => {
+      const after = [...document.querySelectorAll('.interactive-formula-svg')];
+      const snapshot = window.__formulaForeignFixture.snapshot();
+      return {
+        preserved: after.length === window.__beforeChangedMarkupSurfaces.length && after.every((node, index) => node === window.__beforeChangedMarkupSurfaces[index]),
+        contexts: snapshot.contexts,
+        errors: window.__fixtureErrors || [],
+      };
+    })()`)
+    assert(changedMarkup.preserved, `${testCase.name} changed-markup adoption remounted persistent formula children`)
+    assert(changedMarkup.contexts.length === 9 && changedMarkup.contexts.every(context => context.errors === 0 && context.fallbackCount === 0 && context.marker && context.surface),
+      `${testCase.name} changed-markup adoption was not fully live: ${JSON.stringify(changedMarkup.contexts)}`)
+    assert(changedMarkup.errors.length === 0, `${testCase.name} changed-markup errors: ${changedMarkup.errors.join(' | ')}`)
     const screenshot = join(artifactDir, `formula-foreign-box-${testCase.name}.png`)
     const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
     writeFileSync(screenshot, Buffer.from(capture.data, 'base64'))
-    results.push({ case: testCase.name, contexts: before.contexts.map(({ name, rule, surface }) => ({ name, rule, surface })), identity, localized, font: before.font, screenshot })
+    results.push({ case: testCase.name, contexts: before.contexts.map(({ name, rule, surface }) => ({ name, rule, surface })), identity, localized, retired, changedMarkup, font: before.font, screenshot })
   }
   assert(vite.viteMessages.length === 0, `Vite diagnostics: ${JSON.stringify(vite.viteMessages)}`)
   assert(networkFailures.length === 0, `network failures: ${networkFailures.join(' | ')}`)

@@ -221,6 +221,36 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(TrackingResizeObserver.instances).toHaveLength(1)
   })
 
+  it('stages every live wrapper before an enclosing layout effect observes changed host authority', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    let observed: { state?: string; visibility: string; ariaHidden: string | null; inert: boolean } | undefined
+    function Harness({ authority, inspect = false }: { authority: string; inspect?: boolean }) {
+      useLayoutEffect(() => {
+        if (!inspect) return
+        const wrapper = document.querySelector<HTMLElement>('.snl-foreign-box')!
+        observed = {
+          state: wrapper.dataset.state,
+          visibility: wrapper.style.visibility,
+          ariaHidden: wrapper.getAttribute('aria-hidden'),
+          inert: wrapper.hasAttribute('inert'),
+        }
+      }, [authority, inspect])
+      return <ForeignBoxHost authorityKey={authority}><Slot apiRef={apiRef} /></ForeignBoxHost>
+    }
+    const view = render(<Harness authority="markup-a" />)
+    const wrapper = view.getByTestId('foreign-child').parentElement!.parentElement as HTMLElement
+    const marker = view.getByTestId('marker')
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 20, width: 20, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 20, height: 10, depth: 0, baseline: 'bottom' }); flushRaf() })
+    expect(wrapper.dataset.state).toBe('positioned')
+
+    view.rerender(<Harness authority="markup-b" inspect />)
+    expect(observed).toEqual({ state: 'staging', visibility: 'hidden', ariaHidden: 'true', inert: true })
+    expect(view.getByTestId('foreign-child')).toBe(wrapper.querySelector('[data-testid="foreign-child"]'))
+  })
+
   it('measures same-identity intrinsic growth from an inner surface without observing the fixed shell', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const metrics = vi.fn()

@@ -58,6 +58,7 @@ export interface ForeignBoxRegistration {
 
 interface ForeignBoxRegistry {
   register(options: RegistrationOptions): ForeignBoxRegistration
+  stageAll(): void
 }
 
 function stageWrapper(wrapper: HTMLDivElement | null): void {
@@ -124,6 +125,8 @@ export function useForeignBoxRegistry(): ForeignBoxRegistry {
 export interface ForeignBoxHostProps {
   readonly children?: ReactNode
   readonly className?: string
+  /** Correlates serialized host markup with every live sidecar registration. */
+  readonly authorityKey?: string
 }
 
 /**
@@ -132,7 +135,7 @@ export interface ForeignBoxHostProps {
  * scroll coordinate space. Browser-specific non-affine transform correction is
  * intentionally left behind this single geometry seam until browser-tested.
  */
-export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
+export function ForeignBoxHost({ children, className, authorityKey }: ForeignBoxHostProps) {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const entriesRef = useRef(new Map<string, Entry>())
   const registrationNonceRef = useRef(0)
@@ -140,6 +143,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
   const activeRef = useRef(false)
   const terminalCallbacksRef = useRef<Array<() => void>>([])
   const lifecycleEpochRef = useRef(0)
+  const committedAuthorityRef = useRef(authorityKey)
   const observerRef = useRef<ResizeObserver | null>(null)
   const rafRef = useRef<number | null>(null)
   const [, renderEntries] = useReducer((value: number) => value + 1, 0)
@@ -203,6 +207,23 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
   }, [])
 
   const registry = useMemo<ForeignBoxRegistry>(() => ({
+    stageAll() {
+      if (!activeRef.current) return
+      let changed = false
+      for (const entry of entriesRef.current.values()) {
+        if (entry.marker) {
+          observerRef.current?.unobserve(entry.marker)
+          elementEntriesRef.current.delete(entry.marker)
+          entry.marker = null
+        }
+        stageEntry(entry)
+        changed = true
+      }
+      if (changed) {
+        renderEntries()
+        scheduleGeometry()
+      }
+    },
     register(options) {
       const identity = snapshotForeignBoxIdentity(options.identity)
       const key = `${foreignBoxIdentityKey(identity)}#${++registrationNonceRef.current}`
@@ -341,6 +362,12 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
       })
     }
   }, [])
+
+  useSsrSafeLayoutEffect(() => {
+    if (Object.is(committedAuthorityRef.current, authorityKey)) return
+    committedAuthorityRef.current = authorityKey
+    registry.stageAll()
+  }, [authorityKey, registry])
 
   useSsrSafeLayoutEffect(() => {
     const epoch = lifecycleEpochRef.current

@@ -897,7 +897,7 @@ export function SnlSyntaxTreeView({
     setFormulaMarkers([])
   }, [isKatexRoot, renderTree])
 
-  useEffect(() => {
+  useSsrSafeLayoutEffect(() => {
     const el = containerRef.current
     if (!el || !result) return
     if (lastHtmlRef.current !== result.html) {
@@ -1702,7 +1702,7 @@ export function SnlSyntaxTreeView({
        * per mode; containerRef binds to whichever branch is mounted.
        */}
       {isKatexRoot ? (
-        <ForeignBoxHost className="snl-formula-foreign-host">
+        <ForeignBoxHost className="snl-formula-foreign-host" authorityKey={result?.html}>
           <StableKatexContainer
             key="katex"
             ref={containerRef}

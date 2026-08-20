@@ -47,6 +47,7 @@ const localizedProjection = {
   values: {
     en: projection,
     'zh-CN': { ...projection, svg_template: { ...projection.svg_template, accessibility: { label: 'Updated arrow from A to B' } } },
+    fr: { ...projection, svg_template: { ...projection.svg_template, accessibility: { label: 'Changed-height arrow from A to B' }, formula_embed: { total_height_em: 2.0, baseline_ratio: 0.72 } } },
   },
 }
 
@@ -97,7 +98,7 @@ Object.defineProperty(SvgRenderer, FORMULA_FOREIGN_RENDERER_CAPABILITY, {
     ...capability,
     prepare: async (candidate: Parameters<typeof capability.prepare>[0]) => {
       const label = (candidate.template as typeof projection).svg_template?.accessibility.label
-      if (label === 'Updated arrow from A to B') {
+      if (label === 'Updated arrow from A to B' || label === 'Changed-height arrow from A to B') {
         await new Promise<void>((resolve, reject) => {
           const signal = candidate.signal
           const onAbort = () => {
@@ -133,6 +134,8 @@ declare global {
       ready(): boolean
       rerender(): void
       switchLanguage(): void
+      switchMarkup(): void
+      changedMarkupProbe(): unknown
       snapshot(): unknown
     }
   }
@@ -149,6 +152,27 @@ function App() {
       currentLanguage = currentLanguage === 'en' ? 'zh-CN' : 'en'
       setLanguageRevision(value => value + 1)
     },
+    switchMarkup: () => {
+      const oldMarker = document.querySelector<HTMLElement>('.snlFormulaForeignMarker .rule')
+      const oldSurface = document.querySelector<HTMLElement>('.interactive-formula-svg')
+      const oldWrapper = oldSurface?.closest<HTMLElement>('.snl-foreign-box') ?? null
+      ;(window as typeof window & { __changedMarkupProbe?: unknown }).__changedMarkupProbe = null
+      const observer = new MutationObserver(() => {
+        if (!oldMarker || oldMarker.isConnected) return
+        ;(window as typeof window & { __changedMarkupProbe?: unknown }).__changedMarkupProbe = {
+          wrapperConnected: oldWrapper?.isConnected ?? false,
+          state: oldWrapper?.dataset.state ?? null,
+          visibility: oldWrapper?.style.visibility ?? null,
+          ariaHidden: oldWrapper?.getAttribute('aria-hidden') ?? null,
+          inert: oldWrapper?.hasAttribute('inert') ?? false,
+        }
+        observer.disconnect()
+      })
+      observer.observe(document.body, { childList: true, subtree: true })
+      currentLanguage = 'fr'
+      setLanguageRevision(value => value + 1)
+    },
+    changedMarkupProbe: () => (window as typeof window & { __changedMarkupProbe?: unknown }).__changedMarkupProbe ?? null,
     snapshot: () => ({
       revision, languageRevision, currentLanguage,
       contexts: [...document.querySelectorAll<HTMLElement>('.context')].map(section => {
