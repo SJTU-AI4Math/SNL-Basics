@@ -2,8 +2,8 @@ import { spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { setTimeout as delay } from 'node:timers/promises'
 
-const supervisorPath = new URL('./owned-process-supervisor.mjs', import.meta.url).pathname
-const subreaperWrapperPath = new URL('./linux-subreaper-exec.py', import.meta.url).pathname
+const defaultSupervisorPath = new URL('./owned-process-supervisor.mjs', import.meta.url).pathname
+const defaultSubreaperWrapperPath = new URL('./linux-subreaper-exec.py', import.meta.url).pathname
 const emergencyHelperPath = new URL('./owned_process_emergency.py', import.meta.url).pathname
 const RESULT_FRAME = 'SNL_OWNED_PROCESS_EMERGENCY_RESULT\t'
 
@@ -92,6 +92,10 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
   if (process.platform !== 'linux') throw new Error('owned process containment requires Linux pidfd/prctl support')
   const onStartupEvent = dependencies.onStartupEvent ?? (() => {})
   const afterChildSpawn = dependencies.afterChildSpawn ?? (() => {})
+  const supervisorPath = dependencies.supervisorPath ?? defaultSupervisorPath
+  const subreaperWrapperPath = dependencies.subreaperWrapperPath ?? defaultSubreaperWrapperPath
+  const startupTimeoutMs = dependencies.startupTimeoutMs ?? 5_000
+  if (!Number.isFinite(startupTimeoutMs) || startupTimeoutMs <= 0) throw new Error('startupTimeoutMs must be positive')
   const activationToken = randomUUID()
   const config = Buffer.from(JSON.stringify({ command, args, cwd: options.cwd, env: options.env, activationToken })).toString('base64url')
   const python = options.env?.PYTHON ?? process.env.PYTHON ?? 'python3'
@@ -101,10 +105,14 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
     env: options.env,
     stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
   })
+  // Subscribe synchronously after spawn so no startup terminal event can race
+  // past ownership establishment.
+  const supervisorDisconnect = new Promise(resolve => supervisor.once('disconnect', resolve))
+  const supervisorError = new Promise(resolve => supervisor.once('error', resolve))
+  const supervisorExit = new Promise(resolve => supervisor.once('exit', (code, signal) => resolve({ code, signal })))
   const startup = deferred()
   const failed = deferred()
   failed.promise.catch(() => {})
-  const supervisorExit = new Promise(resolve => supervisor.once('exit', (code, signal) => resolve({ code, signal })))
   let stderr = ''
   supervisor.stderr?.setEncoding('utf8').on('data', chunk => { stderr += chunk })
   const owned = {
@@ -116,18 +124,27 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
     cleaning: false,
     exited: supervisorExit,
   }
-  const state = { subreaperReady: false, childReady: false, settled: false }
-  const resolveStartup = () => {
-    if (state.settled || !state.subreaperReady || !state.childReady) return
-    state.settled = true
-    startup.resolve(owned)
-  }
-  const rejectStartup = error => {
+  const state = { subreaperReady: false, launchAccepted: false, childReady: false, settled: false }
+  let startupTimer
+  const settleStartup = (settler, value) => {
     if (state.settled) return false
     state.settled = true
-    startup.reject(error)
+    clearTimeout(startupTimer)
+    settler(value)
     return true
   }
+  const resolveStartup = () => {
+    if (!state.subreaperReady || !state.launchAccepted || !state.childReady) return
+    settleStartup(startup.resolve, owned)
+  }
+  const rejectStartup = error => settleStartup(startup.reject, error)
+  startupTimer = setTimeout(() => rejectStartup(new Error(`owned supervisor startup timed out after ${startupTimeoutMs}ms`)), startupTimeoutMs)
+  startupTimer.unref?.()
+  supervisorDisconnect.then(() => {
+    const error = new Error('owned supervisor IPC disconnected during startup')
+    if (rejectStartup(error) && !owned.cleaning) failed.reject(error)
+  })
+
 
   supervisor.on('message', async message => {
     if (message?.type === 'subreaper-ready') {
@@ -139,12 +156,28 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
       owned.anchor = { pid: supervisor.pid, ppid: message.ppid, starttime: message.starttime }
       state.subreaperReady = true
       onStartupEvent('subreaper-verified')
+      if (!supervisor.connected) {
+        rejectStartup(new Error('owned supervisor IPC disconnected before launch command'))
+        return
+      }
+      supervisor.send({ type: 'launch-child', activationToken }, error => {
+        if (error) rejectStartup(new Error(`owned supervisor launch command failed: ${error.message}`))
+      })
+      return
+    }
+    if (message?.type === 'launch-accepted') {
+      if (!state.subreaperReady || message.activationToken !== activationToken || state.launchAccepted) {
+        rejectStartup(new Error('invalid owned supervisor launch acknowledgement'))
+        return
+      }
+      state.launchAccepted = true
+      onStartupEvent('launch-accepted')
       resolveStartup()
       return
     }
     if (message?.type === 'child-spawn') {
-      if (!state.subreaperReady) {
-        rejectStartup(new Error('owned child launched before verified subreaper handshake'))
+      if (!state.subreaperReady || !state.launchAccepted) {
+        rejectStartup(new Error('owned child launched before verified launch acknowledgement'))
         return
       }
       if (!Number.isSafeInteger(message.pid) || message.pid <= 0 || !/^\d+$/.test(message.starttime ?? '')) {
@@ -176,7 +209,7 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
       if (!owned.cleaning) failed.reject(error)
     }
   })
-  supervisor.once('error', error => { rejectStartup(error); if (!owned.cleaning) failed.reject(error) })
+  supervisorError.then(error => { rejectStartup(error); if (!owned.cleaning) failed.reject(error) })
   supervisorExit.then(({ code, signal }) => {
     const detail = stderr.trim() ? `: ${stderr.trim()}` : ''
     const error = new Error(`owned supervisor exited unexpectedly (code ${code}, signal ${signal})${detail}`)
@@ -188,6 +221,9 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
   catch (error) {
     owned.cleaning = true
     let cleanupError
+    const startupError = stderr.trim() && !error.message.includes(stderr.trim())
+      ? new Error(`${error.message}: ${stderr.trim()}`, { cause: error })
+      : error
     if (owned.anchor) {
       try { await terminateOwnedProcess(owned) }
       catch (normalError) {
@@ -203,8 +239,8 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
         if (!exited) throw new Error('subreaper wrapper did not exit after direct ChildProcess cleanup')
       } catch (directError) { cleanupError = directError }
     }
-    if (cleanupError) throw cleanupFailure(error, cleanupError)
-    throw error
+    if (cleanupError) throw cleanupFailure(startupError, cleanupError)
+    throw startupError
   }
 }
 

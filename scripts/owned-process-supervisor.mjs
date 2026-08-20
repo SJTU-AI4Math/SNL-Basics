@@ -11,7 +11,7 @@ const RESULT_FRAME = 'SNL_OWNED_PROCESS_EMERGENCY_RESULT\t'
 // Group SIGTERM is deliberately deferred: this process is the live ownership
 // capability and group leader until an explicit release or self-group SIGKILL.
 process.on('SIGTERM', () => {})
-process.on('disconnect', () => {})
+process.on('disconnect', abortStartup)
 
 function send(message, callback) {
   try {
@@ -58,6 +58,24 @@ async function waitForGroupConvergence(timeoutMs, pollIntervalMs = 10) {
 let child
 let childPid
 let commandChain = Promise.resolve()
+let readyDelivered = false
+let pendingLaunch
+let launchStarted = false
+let launchAccepted = false
+let startupAborted = false
+
+function abortStartup() {
+  if (startupAborted) return
+  startupAborted = true
+  if (!launchStarted) {
+    setImmediate(() => process.exit(1))
+    return
+  }
+  try { child?.kill('SIGKILL') } catch {}
+  // Stay a bounded live anchor long enough for the owner to perform exact
+  // pidfd/subreaper emergency cleanup after losing IPC.
+  setTimeout(() => process.exit(1), 5_000)
+}
 
 async function runDescendantShutdown(timeoutMs = 6_000) {
   const identity = await ownIdentity()
@@ -105,7 +123,39 @@ function reportFailure(type, requestId, error) {
   send({ type, requestId, ok: false, cleanupIncomplete: true, message: error.message })
 }
 
+function acceptLaunch(message) {
+  if (!readyDelivered) { pendingLaunch = message; return }
+  if (startupAborted || launchAccepted || message?.activationToken !== activationToken || !process.connected) {
+    abortStartup()
+    return
+  }
+  launchAccepted = true
+  send({ type: 'launch-accepted', activationToken }, error => {
+    if (error || !process.connected || startupAborted) { launchAccepted = false; abortStartup(); return }
+    launchStarted = true
+    const childEnv = { ...(env ?? process.env) }
+    delete childEnv.SNL_OWNED_SUBREAPER_TOKEN
+    child = spawn(command, args, { cwd, env: childEnv, detached: false, stdio: ['ignore', 'pipe', 'pipe'] })
+    child.stdout?.pipe(process.stdout)
+    child.stderr?.pipe(process.stderr)
+    child.once('spawn', async () => {
+      childPid = child.pid
+      const direct = await readIdentity(child.pid)
+      if (!direct || direct.ppid !== process.pid) {
+        send({ type: 'child-error', message: `owned direct-child ancestry mismatch for PID ${child.pid}` })
+        return
+      }
+      send({ type: 'child-spawn', pid: child.pid, starttime: direct.starttime }, sendError => {
+        if (sendError) abortStartup()
+      })
+    })
+    child.on('error', error => send({ type: 'child-error', message: error.message, code: error.code }))
+    child.once('exit', (code, signal) => send({ type: 'child-exit', pid: childPid, code, signal }))
+  })
+}
+
 process.on('message', message => {
+  if (message?.type === 'launch-child') { acceptLaunch(message); return }
   commandChain = commandChain.then(async () => {
     const requestId = message?.requestId
     if (message?.type === 'group-term') {
@@ -152,31 +202,18 @@ async function start() {
     throw new Error('verified Linux subreaper activation token is missing')
   }
   const identity = await ownIdentity()
-  send({
+  if (process.env.SNL_TEST_READY_SEND_FAILURE === '1') process.disconnect()
+  await new Promise((resolve, reject) => send({
     type: 'subreaper-ready',
     pid: process.pid,
     pgrp: identity.pgrp,
     ppid: identity.ppid,
     starttime: identity.starttime,
     activationToken,
-  })
-
-  const childEnv = { ...(env ?? process.env) }
-  delete childEnv.SNL_OWNED_SUBREAPER_TOKEN
-  child = spawn(command, args, { cwd, env: childEnv, detached: false, stdio: ['ignore', 'pipe', 'pipe'] })
-  child.stdout?.pipe(process.stdout)
-  child.stderr?.pipe(process.stderr)
-  child.once('spawn', async () => {
-    childPid = child.pid
-    const direct = await readIdentity(child.pid)
-    if (!direct || direct.ppid !== process.pid) {
-      send({ type: 'child-error', message: `owned direct-child ancestry mismatch for PID ${child.pid}` })
-      return
-    }
-    send({ type: 'child-spawn', pid: child.pid, starttime: direct.starttime })
-  })
-  child.on('error', error => send({ type: 'child-error', message: error.message, code: error.code }))
-  child.once('exit', (code, signal) => send({ type: 'child-exit', pid: childPid, code, signal }))
+  }, error => error ? reject(error) : resolve()))
+  if (!process.connected || startupAborted) throw new Error('owned supervisor IPC disconnected before launch')
+  readyDelivered = true
+  if (pendingLaunch) { const launch = pendingLaunch; pendingLaunch = undefined; acceptLaunch(launch) }
 }
 
 start().catch(error => {

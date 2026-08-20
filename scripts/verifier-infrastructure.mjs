@@ -1,5 +1,8 @@
 import { createConnection, createServer as createNetServer } from 'node:net'
-import { createServer } from 'vite'
+import { createLogger, createServer } from 'vite'
+import { realpathSync } from 'node:fs'
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 function deferred() {
   let reject
@@ -23,14 +26,32 @@ export async function startOwnedVite(root) {
   // A racing external listener can only make startup fail; it cannot be accepted.
   const port = await reserveEphemeralPort()
   const lifecycle = deferred()
+  const repoRoot = dirname(fileURLToPath(new URL('../package.json', import.meta.url)))
+  const katexFontDir = realpathSync(fileURLToPath(new URL('../node_modules/katex/dist/fonts/', import.meta.url)))
+  const viteMessages = []
+  const logger = createLogger('silent')
+  const capture = level => message => {
+    const text = String(message)
+    viteMessages.push({ level, message: text })
+    lifecycle.reject(new Error(`unexpected Vite ${level}: ${text}`))
+    if (level === 'error') logger.hasErrorLogged = () => true
+  }
+  logger.warn = capture('warn')
+  logger.warnOnce = logger.warn
+  logger.error = capture('error')
   const owned = {
     server: await createServer({
       root,
-      logLevel: 'error',
-      server: { host: '127.0.0.1', port, strictPort: true },
+      customLogger: logger,
+      server: {
+        host: '127.0.0.1', port, strictPort: true,
+        fs: { allow: [root, repoRoot, katexFontDir] },
+      },
     }),
     closing: false,
     failure: lifecycle.promise,
+    katexFontDir,
+    viteMessages,
   }
   owned.server.httpServer?.once('close', () => {
     if (!owned.closing) lifecycle.reject(new Error('owned Vite server closed unexpectedly'))

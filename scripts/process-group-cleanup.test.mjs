@@ -12,6 +12,7 @@ const loosePids = new Set()
 const profiles = new Set()
 const alive = pid => { try { process.kill(pid, 0); return true } catch (error) { if (error?.code === 'ESRCH') return false; throw error } }
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
+const testSupervisorPath = new URL('./fixtures/startup-test-supervisor.mjs', import.meta.url).pathname
 async function eventually(check, timeoutMs = 3_000) {
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) { if (await check()) return; await wait(10) }
@@ -76,6 +77,49 @@ describe('Linux subreaper owned-process cleanup', () => {
     expect(owned.anchor.pid).toBe(owned.child.pid)
     expect(owned.anchor.starttime).toMatch(/^\d+$/)
     await eventually(() => existsSync(marker))
+  })
+
+  it('rejects a supervisor disconnect before ready without launching a child', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-subreaper-disconnect-before-ready-'))
+    profiles.add(profile)
+    const marker = join(profile, 'child')
+    await expect(spawnOwnedProcess(process.execPath, ['-e', `require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'launched')`], {
+      cwd: profile,
+      env: { ...process.env, SNL_TEST_STARTUP_MODE: 'disconnect-before-ready' },
+    }, { supervisorPath: testSupervisorPath, startupTimeoutMs: 500 })).rejects.toThrow(/disconnect/i)
+    expect(existsSync(marker)).toBe(false)
+  })
+
+  it('exits without launching a child when the ready send callback fails', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-subreaper-ready-send-failure-'))
+    profiles.add(profile)
+    const marker = join(profile, 'child')
+    await expect(spawnOwnedProcess(process.execPath, ['-e', `require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'launched')`], {
+      cwd: profile,
+      env: { ...process.env, SNL_TEST_READY_SEND_FAILURE: '1' },
+    }, { startupTimeoutMs: 500 })).rejects.toThrow(/disconnect|exited|IPC/i)
+    expect(existsSync(marker)).toBe(false)
+  })
+
+  it('cleans a child tree when IPC disconnects after launch before child-spawn confirmation', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-subreaper-disconnect-after-launch-'))
+    profiles.add(profile)
+    const pidFile = join(profile, 'child-pid')
+    await expect(spawnOwnedProcess(process.execPath, ['-e', `require('node:fs').writeFileSync(${JSON.stringify(pidFile)}, String(process.pid)); setInterval(()=>{},1000)`], {
+      cwd: profile,
+      env: { ...process.env, SNL_TEST_STARTUP_MODE: 'disconnect-after-launch' },
+    }, { supervisorPath: testSupervisorPath, startupTimeoutMs: 1_000 })).rejects.toThrow(/disconnect/i)
+    await eventually(() => existsSync(pidFile))
+    const childPid = Number(readFileSync(pidFile, 'utf8'))
+    await eventually(() => !alive(childPid))
+  })
+
+  it('times out a silent startup wrapper within the configured bound', async () => {
+    const started = Date.now()
+    await expect(spawnOwnedProcess(process.execPath, ['-e', 'setInterval(()=>{},1000)'], {
+      env: { ...process.env, SNL_TEST_STARTUP_MODE: 'silent' },
+    }, { supervisorPath: testSupervisorPath, startupTimeoutMs: 120 })).rejects.toThrow(/startup timed out.*120ms/i)
+    expect(Date.now() - started).toBeLessThan(2_000)
   })
 
   it('fails closed on prctl failure and never launches the configured child', async () => {
@@ -186,6 +230,14 @@ describe('Linux subreaper owned-process cleanup', () => {
     expect(parent).not.toMatch(/\.kill\s*\(\s*-\s*(?:owned|supervisor|group)/)
     expect(supervisor).toContain("process.kill(0, 'SIGTERM')")
     expect(supervisor).toContain("process.kill(0, 'SIGKILL')")
+    expect(parent).toContain("supervisor.once('disconnect', resolve)")
+    expect(parent).toContain('startupTimeoutMs')
+    expect(parent).toMatch(/startupTimer = setTimeout\([^\n]+startupTimeoutMs/)
+    expect(parent).toContain('clearTimeout(startupTimer)')
+    expect(parent).toContain("type: 'launch-child'")
+    expect(supervisor).toContain("message?.type === 'launch-child'")
+    expect(supervisor).toMatch(/message\?\.type === 'launch-child'[^\n]+acceptLaunch/)
+    expect(supervisor.indexOf('if (startupAborted || launchAccepted')).toBeLessThan(supervisor.lastIndexOf('child = spawn(command'))
   })
 
   it('keeps verifier cleanup awaited and ordered', () => {

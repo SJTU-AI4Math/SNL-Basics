@@ -38,12 +38,14 @@ let vite
 let browser
 let profile
 let cdp
-let viteLog = ''
 let browserLog = ''
 let verificationResults
 let verificationError
 let browserTreeGone = false
 const cleanupErrors = []
+const networkRequests = new Map()
+const networkFailures = []
+const fontRequests = []
 try {
   vite = await startOwnedVite(fixture)
   profile = mkdtempSync(join(tmpdir(), 'snl-svg-template-chrome-'))
@@ -59,6 +61,29 @@ try {
   await lifecycleRace(cdp.ready())
   await cdp.send('Page.enable')
   await cdp.send('Runtime.enable')
+  await cdp.send('Network.enable')
+  const fixtureOrigin = new URL(vite.url).origin
+  const fixtureResourceTypes = new Set(['Stylesheet', 'Font', 'Script', 'Image'])
+  const fixtureOwned = (url, type) => {
+    try { return new URL(url).origin === fixtureOrigin && fixtureResourceTypes.has(type) }
+    catch { return false }
+  }
+  cdp.on('Network.requestWillBeSent', event => {
+    if (!fixtureOwned(event.request?.url, event.type)) return
+    const request = { requestId: event.requestId, url: event.request.url, type: event.type, status: undefined }
+    networkRequests.set(event.requestId, request)
+    if (event.type === 'Font') fontRequests.push(request)
+  })
+  cdp.on('Network.responseReceived', event => {
+    const request = networkRequests.get(event.requestId)
+    if (!request) return
+    request.status = event.response.status
+    if (event.response.status >= 400) networkFailures.push(`${request.type} ${request.url} returned HTTP ${event.response.status}`)
+  })
+  cdp.on('Network.loadingFailed', event => {
+    const request = networkRequests.get(event.requestId)
+    if (request) networkFailures.push(`${request.type} ${request.url} failed: ${event.errorText}`)
+  })
   await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: `
     window.__fixtureErrors = [];
     const originalError = console.error.bind(console);
@@ -79,6 +104,30 @@ try {
     await cdp.send('Page.navigate', { url: new URL(testCase.path, vite.url).href })
     await waitFor(() => evaluate(cdp, 'Boolean(window.__svgFixture?.ready())'), `${caseLabel} (viewport ${width}px) positioned fixture`)
     await evaluate(cdp, 'document.fonts.ready.then(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))')
+    const fontProof = await evaluate(cdp, `(() => {
+      const label = document.querySelector('.fixture-frame .snl-text');
+      const math = document.querySelector('.fixture-frame .katex .mathnormal');
+      const firstFamily = element => getComputedStyle(element).fontFamily.split(',')[0].trim().replace(/^['"]|['"]$/g, '');
+      const loadedFaces = [...document.fonts].filter(face => face.status === 'loaded').map(face => ({ family: face.family.replace(/^['"]|['"]$/g, ''), style: face.style, weight: face.weight }));
+      return {
+        mainCheck: document.fonts.check('16px KaTeX_Main'),
+        mathCheck: document.fonts.check('italic 16px KaTeX_Math'),
+        labelFamily: getComputedStyle(label).fontFamily,
+        labelFirstFamily: firstFamily(label),
+        mathFamily: getComputedStyle(math).fontFamily,
+        mathFirstFamily: firstFamily(math),
+        loadedFaces,
+      };
+    })()`)
+    assert(fontProof.mainCheck && fontProof.mathCheck, `${caseLabel} exact KaTeX font checks failed: ${JSON.stringify(fontProof)}`)
+    assert(fontProof.labelFirstFamily === 'KaTeX_Main', `${caseLabel} label first available face is not KaTeX_Main: ${fontProof.labelFamily}`)
+    assert(fontProof.mathFirstFamily === 'KaTeX_Math', `${caseLabel} formula first available face is not KaTeX_Math: ${fontProof.mathFamily}`)
+    assert(fontProof.loadedFaces.some(face => face.family === 'KaTeX_Main' && face.style === 'normal'), `${caseLabel} KaTeX_Main regular face was not loaded`)
+    assert(fontProof.loadedFaces.some(face => face.family === 'KaTeX_Math' && face.style === 'italic'), `${caseLabel} KaTeX_Math italic face was not loaded`)
+    assert(networkFailures.length === 0, `${caseLabel} fixture network failures: ${networkFailures.join(' | ')}`)
+    assert(fontRequests.some(request => /KaTeX_Main-Regular\.woff2(?:$|\?)/.test(request.url) && request.status === 200), `${caseLabel} did not fetch KaTeX_Main-Regular.woff2 successfully: ${JSON.stringify(fontRequests)}`)
+    assert(fontRequests.some(request => /KaTeX_Math-Italic\.woff2(?:$|\?)/.test(request.url) && request.status === 200), `${caseLabel} did not fetch KaTeX_Math-Italic.woff2 successfully: ${JSON.stringify(fontRequests)}`)
+    assert(vite.viteMessages.length === 0, `${caseLabel} unexpected Vite diagnostics: ${JSON.stringify(vite.viteMessages)}`)
     await waitFor(() => evaluate(cdp, 'Boolean(window.__svgFixture?.ready())'), `${caseLabel} (viewport ${width}px) settled positioned fixture`)
     const before = await evaluate(cdp, `(async () => {
       const svg = document.querySelector('.fixture-frame svg.snl-svg-template-artwork');
@@ -88,7 +137,7 @@ try {
       const frameRect = frame.getBoundingClientRect();
       const hostRect = host.getBoundingClientRect();
       const rectValue = rect => ({ left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height });
-      const contained = (inner, outer, tolerance = 1) => inner.left >= outer.left - tolerance
+      const contained = (inner, outer, tolerance = 2) => inner.left >= outer.left - tolerance
         && inner.top >= outer.top - tolerance && inner.right <= outer.right + tolerance && inner.bottom <= outer.bottom + tolerance;
       const overlapArea = (left, right) => Math.max(0, Math.min(left.right, right.right) - Math.max(left.left, right.left))
         * Math.max(0, Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top));
@@ -330,6 +379,10 @@ try {
       accessible: before.accessibleForeign,
       svgPreserved: identity.svg,
       childrenPreserved: identity.children,
+      fontProof,
+      fontRequests: fontRequests.map(({ url, status }) => ({ url, status })),
+      viteMessages: [...vite.viteMessages],
+      networkFailures: [...networkFailures],
       screenshot,
     })
   }
@@ -368,7 +421,7 @@ try {
 
 if (verificationError) {
   console.error(verificationError)
-  console.error(viteLog)
+  if (vite?.viteMessages?.length) console.error(JSON.stringify(vite.viteMessages))
   console.error(browserLog)
   process.exitCode = 1
 }

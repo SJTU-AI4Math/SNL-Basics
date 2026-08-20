@@ -3,6 +3,7 @@ export class Cdp {
     this.socket = new WebSocket(url)
     this.next = 0
     this.pending = new Map()
+    this.listeners = new Map()
     this.commandTimeoutMs = commandTimeoutMs
     this.closeTimeoutMs = closeTimeoutMs
     this.transportError = null
@@ -20,6 +21,10 @@ export class Cdp {
     this.socket.addEventListener('message', ({ data }) => {
       let message
       try { message = JSON.parse(data) } catch (error) { this.fail(new Error('invalid CDP response', { cause: error })); return }
+      if (message.method) {
+        for (const listener of this.listeners.get(message.method) ?? []) listener(message.params ?? {})
+        return
+      }
       const pending = this.pending.get(message.id)
       if (!pending) return
       this.pending.delete(message.id)
@@ -46,6 +51,16 @@ export class Cdp {
       this.fail(new Error('CDP socket closed before ready'))
     }
     return this.readyPromise
+  }
+
+  on(method, listener) {
+    const listeners = this.listeners.get(method) ?? new Set()
+    listeners.add(listener)
+    this.listeners.set(method, listeners)
+    return () => {
+      listeners.delete(listener)
+      if (listeners.size === 0) this.listeners.delete(method)
+    }
   }
 
   send(method, params = {}) {
