@@ -101,7 +101,13 @@ class EmergencyShutdownTests(unittest.TestCase):
                 self.assertGreater(len(pids), 2)
                 for pid in pids:
                     current = emergency.LinuxKernel().read_identity(pid)
-                    self.assertTrue(current is None or current.state == 'Z', f'PID {pid} survived as {current}')
+                    # pidfd readiness means the task has exited. Linux may expose
+                    # that terminal task briefly as zombie (Z) or dead (X/x)
+                    # before /proc removes it; none of those states can run.
+                    self.assertTrue(
+                        current is None or current.state in ('Z', 'X', 'x'),
+                        f'PID {pid} survived as {current}',
+                    )
             finally:
                 if child.poll() is None: child.kill()
                 child.wait(timeout=2)

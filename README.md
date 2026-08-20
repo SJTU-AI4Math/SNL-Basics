@@ -761,7 +761,7 @@ on `import type { … } from '@sjtu-ai4math/snl-basics'`.
 
 ```bash
 npm install
-npm run build:lib   # emits dist-lib/ (JS + types + style.css + core macro DB)
+npm run build:lib   # emits dist-lib/ (JS + types + public CSS)
 npm test            # full Vitest suite
 npm run dev         # interactive demo (src/App.tsx)
 npm pack            # produce the publishable tarball

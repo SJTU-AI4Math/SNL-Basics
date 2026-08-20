@@ -43,6 +43,16 @@ describe('0.3 packed-consumer release contract', () => {
     expect(verifier).not.toMatch(/from ['"]\.\.?\//)
   })
 
+  it('does not claim that the packed library contains the retired Macro DB assets', () => {
+    const readme = read('README.md')
+    const readmeZh = read('README(ZH).md')
+    const copier = read('scripts/copy-lib-assets.mjs')
+    expect(copier).toContain("rmSync(join(root, 'dist-lib/snl-macro-db.json')")
+    expect(copier).toContain("rmSync(join(root, 'dist-lib/snl-macro-db-samples.json')")
+    expect(readme).not.toMatch(/build:lib[^\n]*core macro DB/i)
+    expect(readmeZh).not.toMatch(/build:lib[^\n]*核心宏数据库/)
+  })
+
   it('loads root CSS in the source-linked Entry demo', () => {
     const main = read('examples/basic-demo/src/main.tsx')
     expect(main).toContain("import '@sjtu-ai4math/snl-basics/style.css'")
