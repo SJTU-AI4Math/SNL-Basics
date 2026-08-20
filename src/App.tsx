@@ -9,8 +9,37 @@ import {
 } from './snl-react-view'
 import { SnlSyntaxTreeEditor } from './components/SnlSyntaxTreeEditor/SnlSyntaxTreeEditor'
 import type { SnlMacroRecord } from './snl-macro/types'
+import { MarkdownBody } from './entry-react'
 
 const INITIAL_INPUT = '群.示例(@x,x)'
+
+const MARKDOWN_DEMO = `# Markdown mode
+
+GFM supports **strong text**, ~~strikethrough~~, [links](https://example.com),
+task lists, tables, inline code such as \`Nat.succ\`, and KaTeX math $e^{i\\pi}+1=0$.
+
+- [x] CommonMark and GFM structure
+- [x] Mainstream syntax highlighting
+- [x] Basic lexical Lean 4 highlighting
+
+| Surface | Status |
+| --- | --- |
+| Typography | Ready |
+| Code fences | Ready |
+
+~~~typescript
+interface Result<T> { value: T }
+const answer: Result<number> = { value: 42 }
+~~~
+
+~~~lean4
+import Mathlib
+
+/-- A lexical Lean fixture; semantic tokens still require an LSP. -/
+theorem markdown_demo (n : Nat) : n = n := by
+  #check Nat.succ
+  rfl
+~~~`
 
 const MAX_UNDO_CHECKPOINTS = 10
 
@@ -163,6 +192,18 @@ export default function App() {
         <div className="section">
           <h2>5) 生成的 KaTeX 源码</h2>
           <pre className="latex-preview">{latexSource || '等待生成...'}</pre>
+        </div>
+      </div>
+
+      <div className="section markdown-demo">
+        <h2>6) 完整 Markdown 模式</h2>
+        <div className="markdown-demo-grid">
+          <div className="markdown-demo-surface light">
+            <MarkdownBody source={MARKDOWN_DEMO} color_scheme="light" />
+          </div>
+          <div className="markdown-demo-surface dark">
+            <MarkdownBody source={MARKDOWN_DEMO} color_scheme="dark" />
+          </div>
         </div>
       </div>
     </div>

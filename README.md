@@ -212,6 +212,15 @@ handles empty/error cards and title math, queries context-bound sources, and
 supports recursive macro-source previews. Storage, pointers, and host actions
 remain injected adapters. See [Generic Entry rendering](docs/entry-rendering.md).
 
+Markdown bodies support GFM tables/task lists/autolinks, KaTeX math, responsive
+images, inline and fenced code typography, and deterministic syntax highlighting
+for the mainstream language set bundled by `lowlight`. Fences marked `lean` or
+`lean4` receive a basic lexical Lean 4 grammar (commands, keywords, tactics,
+types, literals, comments, strings, numerals, and `#` commands). Semantic name
+resolution, diagnostics, tactic state, and other LSP-derived tokens are
+intentionally out of scope. Import `@sjtu-ai4math/snl-basics/entry/style.css` to
+receive both Markdown typography and the light/dark token palettes.
+
 `EntryKind.name` and optional `EntryKind.description` accept either a legacy
 string or the shared `Localized<string, string>` I18n envelope. The driver keeps
 the raw map; `EntrySurface` resolves the displayed Kind name through its supplied

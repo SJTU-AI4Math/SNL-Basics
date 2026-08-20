@@ -22,7 +22,7 @@ try {
   }, null, 2));
   execFileSync('npm', [
     'install', '--ignore-scripts', '--no-audit', '--no-fund',
-    tarball, 'react@19', 'react-dom@19', 'katex@0.16', 'typescript@5.9'
+    tarball, 'react@19', 'react-dom@19', '@types/react@19', '@types/react-dom@19', 'katex@0.16', 'typescript@5.9'
   ], { cwd: consumer, stdio: 'inherit' });
   writeFileSync(join(consumer, 'tsconfig.json'), JSON.stringify({
     compilerOptions: {
@@ -32,8 +32,11 @@ try {
     include: ['fixture.mts']
   }, null, 2));
   writeFileSync(join(consumer, 'fixture.mts'), `
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { ReaderRuntime } from '@sjtu-ai4math/snl-basics/runtime';
 import {
+  MarkdownBody,
   resolve_entry_kind,
   type EntryKind,
 } from '@sjtu-ai4math/snl-basics/entry';
@@ -60,7 +63,17 @@ const legacy: EntryKind = { id: 'definition', name: 'Definition' };
 if (resolve_entry_kind(legacy).name !== 'Definition') {
   throw new Error('packed legacy Entry Kind compatibility failed');
 }
-console.log('packed Entry Kind I18n and legacy scalar compatibility pass');
+const markdown = renderToStaticMarkup(createElement(MarkdownBody, {
+  source: '~~~lean4\\ntheorem packed : True := by trivial\\n~~~\\n\\n~~~typescript\\nconst packed = 42\\n~~~',
+  color_scheme: 'dark',
+}));
+if (!markdown.includes('data-color-scheme="dark"') ||
+    !markdown.includes('language-lean4') ||
+    !markdown.includes('hljs-keyword') ||
+    !markdown.includes('language-typescript')) {
+  throw new Error('packed Markdown syntax highlighting failed');
+}
+console.log('packed Entry Kind I18n, Markdown highlighting, and legacy scalar compatibility pass');
 `);
   execFileSync(join(consumer, 'node_modules', '.bin', 'tsc'), ['-p', 'tsconfig.json'], {
     cwd: consumer, stdio: 'inherit'

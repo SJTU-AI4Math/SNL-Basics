@@ -337,7 +337,7 @@ export function EntrySurface(props: EntrySurfaceProps): ReactElement {
       <div className="snl-entry-body" data-entry-body={bodySurface} style={{ padding: '0.9rem', boxSizing: 'border-box', minWidth: 0, maxWidth: '100%', overflowX: 'auto', fontSize: '1.05rem', color: colorScheme === 'dark' ? '#f5f5f5' : background === 'transparent' ? undefined : '#111' }}>
         {bodySurface === 'error' ? <div role="alert" className="snl-entry-error">Entry content localization error: {contentError}</div> : null}
         {bodySurface === 'snl' ? <SnlEntryBody source={content.snl!} entry_data_driver={props.entry_data_driver} macro_data_driver={macro_data_driver} reader_runtime={reader_runtime} interaction_driver={effectiveInteractionDriver} deactivation_controller={deactivation_controller} hooks={hooks} kind_palette={kind_palette} /> : null}
-        {bodySurface === 'markdown' ? <MarkdownBody source={content.markdown!} image_url_transform={props.markdown_image_url_transform} /> : null}
+        {bodySurface === 'markdown' ? <MarkdownBody source={content.markdown!} image_url_transform={props.markdown_image_url_transform} color_scheme={colorScheme} /> : null}
         {bodySurface === 'typst' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%', minWidth: 0, fontFamily: 'inherit' }}>{content.typst}</pre> : null}
         {bodySurface === 'latex' ? <LatexBody source={content.latex!} /> : null}
         {bodySurface === 'text' ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%', minWidth: 0, fontFamily: 'inherit' }}>{content.text}</pre> : null}

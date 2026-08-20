@@ -4,9 +4,95 @@
   max-width: 100%;
   overflow-wrap: anywhere;
   word-break: break-word;
+  color: inherit;
+  font-family: var(--vscode-font-family, Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+  font-size: 1rem;
+  line-height: 1.6;
+  --snl-md-muted: #57606a;
+  --snl-md-border: rgba(31, 35, 40, 0.22);
+  --snl-md-soft-bg: rgba(175, 184, 193, 0.2);
+  --snl-md-code-bg: rgba(175, 184, 193, 0.22);
+  --snl-md-keyword: var(--vscode-symbolIcon-keywordForeground, #cf222e);
+  --snl-md-built-in: var(--vscode-symbolIcon-functionForeground, #8250df);
+  --snl-md-type: var(--vscode-symbolIcon-classForeground, #953800);
+  --snl-md-literal: var(--vscode-symbolIcon-booleanForeground, #0550ae);
+  --snl-md-comment: var(--vscode-descriptionForeground, #6e7781);
+  --snl-md-string: var(--vscode-symbolIcon-stringForeground, #0a3069);
+  --snl-md-number: var(--vscode-symbolIcon-numberForeground, #0550ae);
+  --snl-md-meta: var(--vscode-symbolIcon-keyForeground, #9a6700);
+  --snl-md-title: var(--vscode-symbolIcon-methodForeground, #8250df);
+  --snl-md-attr: var(--vscode-symbolIcon-propertyForeground, #0550ae);
+  --snl-md-variable: var(--vscode-symbolIcon-variableForeground, #953800);
+  --snl-md-symbol: var(--vscode-symbolIcon-operatorForeground, #cf222e);
+}
+.snl-markdown-body[data-color-scheme="light"] {
+  color-scheme: light;
+}
+.snl-markdown-body[data-color-scheme="dark"] {
+  color-scheme: dark;
+  --snl-md-muted: #8b949e;
+  --snl-md-border: rgba(240, 246, 252, 0.2);
+  --snl-md-soft-bg: rgba(110, 118, 129, 0.2);
+  --snl-md-code-bg: rgba(110, 118, 129, 0.24);
+  --snl-md-keyword: var(--vscode-symbolIcon-keywordForeground, #ff7b72);
+  --snl-md-built-in: var(--vscode-symbolIcon-functionForeground, #d2a8ff);
+  --snl-md-type: var(--vscode-symbolIcon-classForeground, #ffa657);
+  --snl-md-literal: var(--vscode-symbolIcon-booleanForeground, #79c0ff);
+  --snl-md-comment: var(--vscode-descriptionForeground, #8b949e);
+  --snl-md-string: var(--vscode-symbolIcon-stringForeground, #a5d6ff);
+  --snl-md-number: var(--vscode-symbolIcon-numberForeground, #79c0ff);
+  --snl-md-meta: var(--vscode-symbolIcon-keyForeground, #e3b341);
+  --snl-md-title: var(--vscode-symbolIcon-methodForeground, #d2a8ff);
+  --snl-md-attr: var(--vscode-symbolIcon-propertyForeground, #79c0ff);
+  --snl-md-variable: var(--vscode-symbolIcon-variableForeground, #ffa657);
+  --snl-md-symbol: var(--vscode-symbolIcon-operatorForeground, #ff7b72);
 }
 .snl-markdown-body > *:first-child { margin-top: 0; }
 .snl-markdown-body > *:last-child { margin-bottom: 0; }
+.snl-markdown-body p { margin: 0 0 1em; }
+.snl-markdown-body h1 {
+  margin: 1.25em 0 0.6em;
+  padding-bottom: 0.28em;
+  border-bottom: 1px solid var(--snl-md-border);
+  font-size: 2em;
+  line-height: 1.25;
+}
+.snl-markdown-body h2 {
+  margin: 1.2em 0 0.55em;
+  padding-bottom: 0.22em;
+  border-bottom: 1px solid var(--snl-md-border);
+  font-size: 1.5em;
+  line-height: 1.3;
+}
+.snl-markdown-body h3 { margin: 1.1em 0 0.5em; font-size: 1.25em; line-height: 1.35; }
+.snl-markdown-body h4 { margin: 1em 0 0.45em; font-size: 1em; line-height: 1.4; }
+.snl-markdown-body h5 { margin: 1em 0 0.45em; font-size: 0.875em; line-height: 1.4; }
+.snl-markdown-body h6 { margin: 1em 0 0.45em; color: var(--snl-md-muted); font-size: 0.85em; line-height: 1.4; }
+.snl-markdown-body ul,
+.snl-markdown-body ol { margin: 0 0 1em; padding-left: 2em; }
+.snl-markdown-body li { margin: 0.2em 0; }
+.snl-markdown-body li > ul,
+.snl-markdown-body li > ol { margin-top: 0.2em; margin-bottom: 0; }
+.snl-markdown-body blockquote {
+  margin: 0 0 1em;
+  padding: 0.15em 1em;
+  border-left: 0.25em solid var(--snl-md-border);
+  color: var(--snl-md-muted);
+}
+.snl-markdown-body blockquote > :last-child { margin-bottom: 0; }
+.snl-markdown-body a {
+  color: var(--vscode-textLink-foreground, #0969da);
+  text-decoration: none;
+}
+.snl-markdown-body a:hover { text-decoration: underline; }
+.snl-markdown-body a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.snl-markdown-body hr {
+  height: 0.2em;
+  margin: 1.5em 0;
+  padding: 0;
+  border: 0;
+  background: var(--snl-md-border);
+}
 .snl-markdown-body p,
 .snl-markdown-body li,
 .snl-markdown-body blockquote,
@@ -23,26 +109,103 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+.snl-markdown-body code {
+  font-family: var(--vscode-editor-font-family, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace);
+  font-size: 0.9em;
+  font-variant-ligatures: none;
+  tab-size: 2;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.snl-markdown-body :not(pre) > code {
+  margin: 0;
+  padding: 0.16em 0.35em;
+  border-radius: 0.3em;
+  background: var(--snl-md-code-bg);
+  white-space: break-spaces;
+}
 .snl-markdown-body pre {
   box-sizing: border-box;
   max-width: 100%;
+  margin: 0 0 1em;
+  padding: 0.8em 1em;
+  border: 1px solid var(--snl-md-border);
+  border-radius: 0.4em;
+  background: var(--snl-md-soft-bg);
   white-space: pre;
   overflow-x: auto;
+  overflow-y: hidden;
   overflow-wrap: normal;
   word-break: normal;
-  padding: .5em .7em;
-  background: rgba(127,127,127,.1);
+  line-height: 1.45;
+  scrollbar-width: thin;
 }
-.snl-markdown-body code {
-  overflow-wrap: normal;
-  word-break: normal;
+.snl-markdown-body pre code {
+  display: block;
+  min-width: max-content;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  white-space: inherit;
 }
-.snl-markdown-body pre code { white-space: inherit; }
+.snl-markdown-body table {
+  width: max-content;
+  min-width: min(100%, 32rem);
+  max-width: none;
+  margin: 0 0 1em;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+.snl-markdown-body th,
+.snl-markdown-body td { border: 1px solid var(--snl-md-border); padding: 0.4em 0.7em; }
+.snl-markdown-body th { background: var(--snl-md-soft-bg); font-weight: 600; }
+.snl-markdown-body tr:nth-child(2n) { background: color-mix(in srgb, currentColor 4%, transparent); }
+.snl-markdown-body input[type="checkbox"] {
+  margin: 0 0.45em 0.15em 0;
+  vertical-align: -0.1em;
+  accent-color: var(--vscode-focusBorder, #0969da);
+}
+.snl-markdown-body .contains-task-list { padding-left: 0; list-style: none; }
+.snl-markdown-body .task-list-item { list-style: none; }
+.snl-markdown-body img { display: block; max-width: 100%; height: auto; margin: 0.5em auto 1em; }
 .snl-markdown-body .katex,
 .snl-latex-body .katex {
   overflow-wrap: normal;
   word-break: normal;
 }
+.snl-markdown-body .hljs-keyword { color: var(--snl-md-keyword); }
+.snl-markdown-body .hljs-built_in { color: var(--snl-md-built-in); }
+.snl-markdown-body .hljs-type { color: var(--snl-md-type); }
+.snl-markdown-body .hljs-literal { color: var(--snl-md-literal); }
+.snl-markdown-body .hljs-comment,
+.snl-markdown-body .hljs-quote { color: var(--snl-md-comment); font-style: italic; }
+.snl-markdown-body .hljs-string,
+.snl-markdown-body .hljs-regexp { color: var(--snl-md-string); }
+.snl-markdown-body .hljs-number { color: var(--snl-md-number); }
+.snl-markdown-body .hljs-meta,
+.snl-markdown-body .hljs-meta .hljs-keyword { color: var(--snl-md-meta); }
+.snl-markdown-body .hljs-title,
+.snl-markdown-body .hljs-section,
+.snl-markdown-body .hljs-function { color: var(--snl-md-title); }
+.snl-markdown-body .hljs-attr,
+.snl-markdown-body .hljs-attribute,
+.snl-markdown-body .hljs-property { color: var(--snl-md-attr); }
+.snl-markdown-body .hljs-variable,
+.snl-markdown-body .hljs-params { color: var(--snl-md-variable); }
+.snl-markdown-body .hljs-symbol,
+.snl-markdown-body .hljs-operator,
+.snl-markdown-body .hljs-punctuation { color: var(--snl-md-symbol); }
+.snl-markdown-body .hljs-doctag,
+.snl-markdown-body .hljs-name,
+.snl-markdown-body .hljs-tag,
+.snl-markdown-body .hljs-selector-tag,
+.snl-markdown-body .hljs-selector-class,
+.snl-markdown-body .hljs-selector-id { color: var(--snl-md-keyword); }
+.snl-markdown-body .hljs-emphasis { font-style: italic; }
+.snl-markdown-body .hljs-strong { font-weight: 700; }
+.snl-markdown-body .hljs-addition { color: var(--vscode-gitDecoration-addedResourceForeground, #1a7f37); }
+.snl-markdown-body .hljs-deletion { color: var(--vscode-gitDecoration-deletedResourceForeground, #cf222e); }
+
 .snl-latex-body {
   box-sizing: border-box;
   min-width: 0;
@@ -61,9 +224,7 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
-[data-entry-body] .snl-text .snl-text {
-  font-size: 1em;
-}
+[data-entry-body] .snl-text .snl-text { font-size: 1em; }
 [data-entry-body] .snl-text .snl-math-span {
   font-size: calc(1em / 1.21);
   overflow-wrap: normal;
@@ -81,17 +242,14 @@
   overflow-wrap: normal;
   word-break: normal;
 }
+[data-entry-body] .katex-panel .katex {
+  overflow-wrap: normal;
+  word-break: normal;
+}
 [data-entry-body] .katex-panel {
   box-sizing: border-box;
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
 }
-[data-entry-body] .katex-panel .katex {
-  overflow-wrap: normal;
-  word-break: normal;
-}
-.snl-markdown-body table { border-collapse: collapse; }
-.snl-markdown-body img { display: block; max-width: 100%; height: auto; }
-.snl-markdown-body th, .snl-markdown-body td { border: 1px solid rgba(127,127,127,.3); padding: .25em .5em; }
 .snl-entry-error { padding: .4rem .6rem; color: #8a1f11; background: #fdecea; border: 1px solid #f5c2c0; }

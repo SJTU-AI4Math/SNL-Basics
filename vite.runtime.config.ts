@@ -34,6 +34,8 @@ export default defineConfig({
         'react/jsx-runtime',
         'katex',
         'react-markdown',
+        'rehype-highlight',
+        'lowlight',
         'remark-gfm',
         'remark-math',
         'rehype-katex',

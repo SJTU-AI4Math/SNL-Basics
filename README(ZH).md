@@ -199,6 +199,14 @@ const entries = new EntryDataDriver({
 标题公式，查询上下文绑定的来源，并支持递归的宏来源预览。存储、指针与宿主动作仍然是注入的
 适配器。详见 [Generic Entry rendering](docs/entry-rendering.md)。
 
+Markdown 正文支持 GFM 表格、任务列表与自动链接、KaTeX 公式、响应式图片、
+行内/围栏代码字体，以及 `lowlight` 内置主流语言的确定性语法染色。标为
+`lean` 或 `lean4` 的代码围栏使用基础 Lean 4 词法语法，覆盖命令、关键字、
+常用 tactic、类型、字面量、注释、字符串、数字与 `#` 命令。名称解析、诊断、
+tactic state 等依赖 LSP 的语义 token 明确不在本功能范围内。必须导入
+`@sjtu-ai4math/snl-basics/entry/style.css` 才能获得 Markdown 排版、代码字体和
+明暗 token 配色。
+
 ### KaTeX 选项 —— 按命令限定的信任策略
 
 `SnlSyntaxTreeView` 使用一个 KaTeX trust 回调，只允许 `\htmlData`（悬停元数据）与
