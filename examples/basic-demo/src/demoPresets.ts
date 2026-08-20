@@ -71,7 +71,7 @@ export const DEMO_SVG_SOURCES: Record<string, string> = {
     '<path d="M590 350 l-15 -8 v16 z" fill="#22c55e"/>' +
     '<path d="M330 366 H590" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="5 6"/>' +
     '<g data-snl-slot="0" transform="translate(170 105)"/><g data-snl-slot="1" transform="translate(170 315)"/><g data-snl-slot="2" transform="translate(505 70)"/>' +
-    '<g data-snl-slot="3" transform="translate(505 160)"/><g data-snl-slot="4" transform="translate(505 250)"/><g data-snl-slot="5" transform="translate(330 175)"/><g data-snl-slot="6" transform="translate(460 315)"/>'),
+    '<g data-snl-slot="3" transform="translate(505 160)"/><g data-snl-slot="4" transform="translate(505 235)"/><g data-snl-slot="5" transform="translate(330 175)"/><g data-snl-slot="6" transform="translate(460 315)"/>'),
 
   'projective-geometry.svg': svg('0 0 720 420',
     '<rect x="8" y="8" width="704" height="404" rx="24" fill="none" stroke="#8b5cf6" stroke-width="3"/>' +
