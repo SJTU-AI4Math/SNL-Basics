@@ -22,6 +22,10 @@ export interface FormulaForeignSurfaceProps {
  * authored values never become CSS pixels directly.
  */
 export function FormulaForeignSurface({ plan, marker, widthPx, heightPx, child, metricEpoch = 0, observationEpoch = 0, onMetricReport }: FormulaForeignSurfaceProps): ReactElement {
+  // The marker geometry is calibrated in viewport pixels, but this surface is
+  // authored in the marker's transformed local coordinate space.
+  const localWidthPx = marker.offsetWidth > 0 ? marker.offsetWidth : widthPx
+  const localHeightPx = marker.offsetHeight > 0 ? marker.offsetHeight : heightPx
   const latestIntrinsicRef = useRef<ForeignBoxMetrics | null>(null)
   useSsrSafeLayoutEffect(() => { latestIntrinsicRef.current = null }, [metricEpoch])
   const publishMetricReport = onMetricReport
@@ -33,7 +37,7 @@ export function FormulaForeignSurface({ plan, marker, widthPx, heightPx, child, 
   const surface = (
     <div
       className="snl-formula-foreign-surface"
-      style={{ minWidth: `${widthPx}px`, minHeight: `${heightPx}px` }}
+      style={{ minWidth: `${localWidthPx}px`, minHeight: `${localHeightPx}px` }}
       data-snl-formula-foreign-surface={plan.identity}
     >
       <div

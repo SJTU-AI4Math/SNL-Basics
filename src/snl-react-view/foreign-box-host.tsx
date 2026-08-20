@@ -238,9 +238,14 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
             wrapper.setAttribute('aria-hidden', 'false')
             wrapper.removeAttribute('inert')
             const focusRestore = entry.focusRestore
-            if (focusRestore?.isConnected) {
+            if (focusRestore) {
               entry.focusRestore = null
-              focusRestore.focus({ preventScroll: true })
+              const document = focusRestore.ownerDocument
+              const active = document.activeElement
+              if (focusRestore.isConnected
+                && (active === null || active === focusRestore || active === document.body || active === document.documentElement)) {
+                focusRestore.focus({ preventScroll: true })
+              }
             }
             wrapper.style.transform = `translate(${local.left}px, ${local.top}px)`
             wrapper.style.width = `${metrics.width}px`

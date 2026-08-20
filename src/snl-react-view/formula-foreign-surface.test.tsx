@@ -57,6 +57,24 @@ describe('FormulaForeignSurface lifecycle', () => {
     view.unmount(); marker.remove()
   })
 
+  it('converts viewport marker dimensions back to local CSS minima under positive scaling', () => {
+    const marker = document.createElement('span')
+    Object.defineProperties(marker, {
+      offsetWidth: { value: 80, configurable: true },
+      offsetHeight: { value: 40, configurable: true },
+    })
+    document.body.append(marker)
+    const view = render(
+      <ForeignBoxHost>
+        <FormulaForeignSurface plan={plan('scaled', 1)} marker={marker} widthPx={40} heightPx={20} child={<button>scaled</button>} />
+      </ForeignBoxHost>,
+    )
+    const surface = view.container.querySelector<HTMLElement>('.snl-formula-foreign-surface')!
+    expect(surface.style.minWidth).toBe('80px')
+    expect(surface.style.minHeight).toBe('40px')
+    view.unmount(); marker.remove()
+  })
+
   it('revokes stale marker authority on replacement and unmount', () => {
     const first = document.createElement('span')
     const second = document.createElement('span')

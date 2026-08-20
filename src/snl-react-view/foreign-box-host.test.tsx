@@ -563,6 +563,28 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(firstMetrics).toHaveBeenCalledTimes(1)
   })
 
+  it('does not restore stale foreign focus after the user focuses another control while staged', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    function Harness({ authority }: { authority: string }) {
+      return <><button data-testid="outside">outside</button><ForeignBoxHost authorityKey={authority}><Slot apiRef={apiRef} /></ForeignBoxHost></>
+    }
+    const view = render(<Harness authority="a" />)
+    const child = view.getByTestId('foreign-child') as HTMLButtonElement
+    const outside = view.getByTestId('outside') as HTMLButtonElement
+    const marker = view.getByTestId('marker')
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 300, height: 200 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 20, top: 30, width: 20, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 30, height: 12, depth: 2, baseline: 'alphabetic' }); flushRaf() })
+    child.focus()
+    expect(document.activeElement).toBe(child)
+
+    view.rerender(<Harness authority="b" />)
+    outside.focus()
+    act(() => { apiRef.current!.markerRef(marker); flushRaf() })
+    expect(document.activeElement).toBe(outside)
+  })
+
   it('uses one observer and one RAF for sibling updates', () => {
     const a = { current: null as UseForeignBoxResult | null }
     const b = { current: null as UseForeignBoxResult | null }
