@@ -5,6 +5,7 @@ describe('basic demo Entry integration route', () => {
   it('renders and previews through the public Entry path rather than the bare syntax-tree view', () => {
     const app = readFileSync(new URL('../../examples/basic-demo/src/App.tsx', import.meta.url), 'utf8')
     const main = readFileSync(new URL('../../examples/basic-demo/src/main.tsx', import.meta.url), 'utf8')
+    const presets = readFileSync(new URL('../../examples/basic-demo/src/demoPresets.ts', import.meta.url), 'utf8')
     const readme = readFileSync(new URL('../../README.md', import.meta.url), 'utf8')
     const readmeZh = readFileSync(new URL('../../README(ZH).md', import.meta.url), 'utf8')
     const pkg = JSON.parse(readFileSync(new URL('../../examples/basic-demo/package.json', import.meta.url), 'utf8')) as { dependencies: Record<string, string>; scripts: Record<string, string> }
@@ -14,9 +15,11 @@ describe('basic demo Entry integration route', () => {
     expect(app).toContain('EntryDataDriver')
     expect(app).toContain('createSvgTemplateRenderer')
     expect(app).toContain('SvgTemplateAssetRegistry')
-    expect(app).toContain("block_template_name: 'svg_template'")
-    expect(app).toContain('formula_embed')
+    expect(presets).toContain("block_template_name: 'svg_template'")
+    expect(presets).toContain('formula_embed')
     expect(app).toContain("renderers: { svg_template: svgRenderer }")
+    expect(app).toContain('DEMO_PRESETS.map')
+    expect(app).toContain('aria-pressed={preset.id === activePresetId}')
     expect(app).not.toContain('SnlSyntaxTreeView')
     expect(app).not.toContain('prefers-color-scheme: dark')
     expect(app).not.toContain("color_scheme: 'dark'")
