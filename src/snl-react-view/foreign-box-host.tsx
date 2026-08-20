@@ -37,7 +37,7 @@ function viewportDeltaToHostLocal(host: HTMLElement, hostRect: DOMRect, dx: numb
   const scaleX = localWidth > 0 && hostRect.width > 0 ? hostRect.width / localWidth : 1
   const scaleY = localHeight > 0 && hostRect.height > 0 ? hostRect.height / localHeight : 1
   if (!Number.isFinite(scaleX) || !Number.isFinite(scaleY) || scaleX <= 0 || scaleY <= 0) return null
-  return { left: dx / scaleX + host.scrollLeft, top: dy / scaleY + host.scrollTop }
+  return { left: dx / scaleX - host.clientLeft + host.scrollLeft, top: dy / scaleY - host.clientTop + host.scrollTop }
 }
 
 interface RegistrationOptions {
@@ -226,6 +226,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
       const previousUnregister = previous?.onUnregister
       const previousPositionedChange = previous?.positioned ? previous.onPositionedChange : undefined
       if (previous) {
+        stageWrapper(previous.wrapper)
         previous.onUnregister = undefined
         previous.onPositionedChange = undefined
         if (previous.marker) {
@@ -279,6 +280,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
       }
       const unregister = () => {
         if (!isAlive()) return
+        stageWrapper(entry.wrapper)
         entriesRef.current.delete(slot)
         if (entry.marker) {
           observerRef.current?.unobserve(entry.marker)
