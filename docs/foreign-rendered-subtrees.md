@@ -54,3 +54,23 @@ This note freezes the pre-implementation contract surface for Tasks 1–3 only. 
 - The registry retains inactive authority tombstones in a separate LRU, bounded by `maxAuthorityHistory` (default `max(32, maxSettled * 2)`). Within that retained horizon, lower epochs and same-epoch/different-revision identities are rejected without loading; active authority state is never history-evicted. Once an inactive authority is evicted from this explicitly bounded history, an ancient epoch for that authority can be accepted again, so stale detection is deliberately bounded rather than eternal. Registry-global monotonic generations still reject late results from invalidation or authority changes independently of cancellation.
 - Task 3 also exposes explicit safe instantiation: every clone receives a deterministic caller-supplied instance scope, IDs are rewritten, and all local references are rewritten consistently.
 - It is **not** user-visible SVG rendering, persistent foreign-box hosting, KaTeX marker geometry, or Extension workspace policy. Tasks 4+ remain responsible for persistent hosting, ordinary SVG rendering, formula embedding, convergence, and downstream integration changes.
+
+
+## Task 4 foreign-box fallback boundary
+
+`useForeignBox` keeps both representations mounted: the live child stays in the host overlay, while the ordinary-tree fallback stays inside a stable `data-snl-foreign-box-fallback` boundary. The boundary uses `display: contents` while exposed and the native `hidden` attribute while isolated. Positioning synchronously applies `hidden`, `inert`, and `aria-hidden` to that boundary before revealing the live wrapper; fail-closed staging hides/inerts the live wrapper before synchronously exposing the fallback. React state mirrors the completed DOM handoff rather than defining its atomicity.
+
+For the compatibility path, render `result.ssrFallback`; it is now a persistent inline (`span`) boundary rather than a node that unmounts after positioning. New integrations should render `ForeignBoxFallback` explicitly so the HTML container matches the authored subtree:
+
+```tsx
+const foreign = useForeignBox({ identity, child: liveChild })
+
+return <>
+  <span ref={foreign.markerRef} />
+  <ForeignBoxFallback foreign={foreign} as="span">
+    {inlineFallback}
+  </ForeignBoxFallback>
+</>
+```
+
+Use `as="span"` for inline/formula fallbacks and `as="div"` for flow/block fallbacks; this avoids placing block content inside a phrasing element. Server output and the first hydration render expose the same boundary, and the fallback subtree and live subtree retain their DOM identities through positioned and fail-closed transitions.

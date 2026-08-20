@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { createElement, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react'
 import type { ForeignBoxIdentity, ForeignBoxMetrics } from './foreign-box'
 import { foreignBoxIdentityKey, snapshotForeignBoxIdentity } from './foreign-box'
 import { useForeignBoxRegistry, type ForeignBoxRegistration } from './foreign-box-host'
@@ -12,22 +12,62 @@ export interface UseForeignBoxOptions {
   readonly onUnregister?: () => void
 }
 
-export interface UseForeignBoxResult {
-  /** Render this in the consumer tree; it remains until the live wrapper is non-inert and positioned. */
-  readonly ssrFallback: ReactNode | null
+export interface ForeignBoxFallbackController {
+  /** Stable ref that lets the geometry callback gate the ordinary-tree fallback synchronously. */
+  readonly fallbackRef: (boundary: HTMLElement | null) => void
+  /** Declarative mirror of the imperative accessibility gate. */
+  readonly fallbackHidden: boolean
+}
+
+export interface ForeignBoxFallbackProps {
+  readonly foreign: ForeignBoxFallbackController
+  /** Use `span` for inline/formula fallbacks and `div` for flow/block fallbacks. */
+  readonly as?: 'span' | 'div'
+  readonly children?: ReactNode
+  readonly className?: string
+}
+
+/**
+ * Stable SSR-safe boundary for the ordinary-tree representation of a foreign box.
+ * It stays mounted with `display: contents`; the live geometry callback toggles its
+ * hidden/inert/aria-hidden gate before mirroring the same state through React.
+ */
+export function ForeignBoxFallback({ foreign, as = 'span', children, className }: ForeignBoxFallbackProps) {
+  return createElement(as, {
+    ref: foreign.fallbackRef,
+    className,
+    'data-snl-foreign-box-fallback': 'true',
+    style: { display: 'contents' },
+    hidden: foreign.fallbackHidden || undefined,
+    inert: foreign.fallbackHidden || undefined,
+    'aria-hidden': foreign.fallbackHidden ? 'true' : undefined,
+  }, children)
+}
+
+export interface UseForeignBoxResult extends ForeignBoxFallbackController {
+  /** Backward-compatible prebuilt inline boundary; prefer ForeignBoxFallback when block semantics are required. */
+  readonly ssrFallback: ReactNode
   readonly markerRef: (marker: HTMLElement | SVGElement | null) => void
   readonly reportMetrics: (metrics: ForeignBoxMetrics) => void
   readonly isAlive: () => boolean
 }
 
 const useSsrSafeLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
-const subscribeToHydration = () => () => {}
-const getClientSnapshot = () => true
-const getServerSnapshot = () => false
+
+function setFallbackHidden(boundary: HTMLElement | null, hidden: boolean): void {
+  if (!boundary) return
+  boundary.hidden = hidden
+  if (hidden) {
+    boundary.setAttribute('inert', '')
+    boundary.setAttribute('aria-hidden', 'true')
+  } else {
+    boundary.removeAttribute('inert')
+    boundary.removeAttribute('aria-hidden')
+  }
+}
 
 export function useForeignBox(options: UseForeignBoxOptions): UseForeignBoxResult {
   const registry = useForeignBoxRegistry()
-  const clientMounted = useSyncExternalStore(subscribeToHydration, getClientSnapshot, getServerSnapshot)
   const identity = snapshotForeignBoxIdentity(options.identity)
   const identityKey = foreignBoxIdentityKey(identity)
   const [positionedState, setPositionedState] = useState(() => ({ key: identityKey, positioned: false }))
@@ -35,23 +75,32 @@ export function useForeignBox(options: UseForeignBoxOptions): UseForeignBoxResul
   const holder = useMemo(() => ({
     registration: null as ForeignBoxRegistration | null,
     marker: null as HTMLElement | SVGElement | null,
+    fallback: null as HTMLElement | null,
+    positioned: false,
+    reactMounted: false,
   }), [identityKey])
 
   useSsrSafeLayoutEffect(() => {
+    holder.reactMounted = true
     const registration = registry.register({
       ...options,
       identity,
       onPositionedChange(nextPositioned) {
-        setPositionedState(current => current.key === identityKey && current.positioned === nextPositioned
-          ? current
-          : { key: identityKey, positioned: nextPositioned })
+        holder.positioned = nextPositioned
+        setFallbackHidden(holder.fallback, nextPositioned)
+        if (holder.reactMounted) {
+          setPositionedState(current => current.key === identityKey && current.positioned === nextPositioned
+            ? current
+            : { key: identityKey, positioned: nextPositioned })
+        }
       },
     })
     holder.registration = registration
     registration.setMarker(holder.marker)
     return () => {
-      registration.unregister()
+      holder.reactMounted = false
       if (holder.registration === registration) holder.registration = null
+      registration.unregister()
     }
   }, [registry, identityKey, holder])
 
@@ -60,6 +109,10 @@ export function useForeignBox(options: UseForeignBoxOptions): UseForeignBoxResul
   })
 
   const controls = useMemo(() => ({
+    fallbackRef(boundary: HTMLElement | null) {
+      holder.fallback = boundary
+      setFallbackHidden(boundary, holder.positioned)
+    },
     markerRef(marker: HTMLElement | SVGElement | null) {
       holder.marker = marker
       holder.registration?.setMarker(marker)
@@ -72,8 +125,14 @@ export function useForeignBox(options: UseForeignBoxOptions): UseForeignBoxResul
     },
   }), [holder])
 
+  const fallbackController = useMemo<ForeignBoxFallbackController>(() => ({
+    fallbackRef: controls.fallbackRef,
+    fallbackHidden: positioned,
+  }), [controls.fallbackRef, positioned])
+
   return useMemo(() => ({
     ...controls,
-    ssrFallback: clientMounted && positioned ? null : (options.ssrFallback ?? options.child),
-  }), [controls, clientMounted, positioned, options.ssrFallback, options.child])
+    ...fallbackController,
+    ssrFallback: createElement(ForeignBoxFallback, { foreign: fallbackController }, options.ssrFallback ?? options.child),
+  }), [controls, fallbackController, options.ssrFallback, options.child])
 }

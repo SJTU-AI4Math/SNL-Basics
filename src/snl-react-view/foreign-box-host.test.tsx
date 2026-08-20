@@ -692,21 +692,27 @@ describe('ForeignBoxHost lifecycle', () => {
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     const marker = view.getByTestId('marker')
     const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const fallbackBoundary = view.container.querySelector('[data-snl-foreign-box-fallback]') as HTMLElement
+    const fallbackChild = view.getByTestId('fallback')
     let hostTransform = 'none'
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({ transform: element === host ? hostTransform : 'none' }) as CSSStyleDeclaration)
     vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
     vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 20, width: 10, height: 10 }))
-    expect(view.getByTestId('fallback')).toBeTruthy()
+    expect(fallbackBoundary.hidden).toBe(false)
     expect(wrapper.hasAttribute('inert')).toBe(true)
 
     act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
-    expect(view.queryByTestId('fallback')).toBeNull()
+    expect(view.getByTestId('fallback')).toBe(fallbackChild)
+    expect(fallbackBoundary.hidden).toBe(true)
+    expect(fallbackBoundary.hasAttribute('inert')).toBe(true)
     expect(wrapper.dataset.state).toBe('positioned')
     expect(wrapper.hasAttribute('inert')).toBe(false)
 
     hostTransform = 'rotate(4deg)'
     act(flushRaf)
-    expect(view.getByTestId('fallback')).toBeTruthy()
+    expect(view.getByTestId('fallback')).toBe(fallbackChild)
+    expect(fallbackBoundary.hidden).toBe(false)
+    expect(fallbackBoundary.hasAttribute('inert')).toBe(false)
     expect(wrapper.dataset.state).toBe('unsupported-transform')
     expect(wrapper.hasAttribute('inert')).toBe(true)
   })

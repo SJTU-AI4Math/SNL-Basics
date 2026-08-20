@@ -176,6 +176,9 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
               failClosedEntry(entry, wrapper)
               continue
             }
+            // Isolate the ordinary-tree fallback synchronously before exposing
+            // this live wrapper. React state only mirrors the completed handoff.
+            setEntryPositioned(entry, true)
             delete wrapper.dataset.geometryError
             wrapper.dataset.state = 'positioned'
             wrapper.style.visibility = 'visible'
@@ -185,7 +188,6 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
             wrapper.style.width = `${metrics.width}px`
             wrapper.style.height = `${metrics.height + metrics.depth}px`
             wrapper.style.setProperty('--snl-foreign-box-depth', `${metrics.depth}px`)
-            setEntryPositioned(entry, true)
           }
         }
         schedule()
