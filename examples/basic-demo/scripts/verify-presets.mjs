@@ -67,8 +67,8 @@ try {
   await waitFor(() => evaluate(cdp, "document.querySelectorAll('.preset').length === 5"), 'five preset buttons')
 
   const modes = [
-    { name: 'desktop', stageWidth: null },
-    { name: '300px-host', stageWidth: 360 },
+    { name: 'desktop', stageWidth: null, hostMin: 600, hostMax: 700 },
+    { name: '300px-host', stageWidth: 360, hostMin: 270, hostMax: 300 },
   ]
   const results = []
   for (const mode of modes) {
@@ -87,6 +87,8 @@ try {
         const svg = host.querySelector('svg.snl-svg-template-artwork');
         const boxes = [...host.querySelectorAll('.snl-foreign-box:not(.snl-foreign-box-measure)')];
         const hr = host.getBoundingClientRect();
+        const stage = document.querySelector('.demo-entry-stage');
+        const sr = stage.getBoundingClientRect();
         const rects = boxes.map(box => { const r = box.getBoundingClientRect(); return { left:r.left, right:r.right, top:r.top, bottom:r.bottom, width:r.width, height:r.height } });
         const overlaps = [];
         for (let i=0;i<rects.length;i++) for (let j=i+1;j<rects.length;j++) {
@@ -94,21 +96,38 @@ try {
           if (area > 1) overlaps.push([i,j,area]);
         }
         const paths = [...svg.querySelectorAll('path')];
+        const paintAlpha = (paint) => {
+          if (!paint || paint === 'none' || paint === 'transparent') return 0;
+          if (paint.startsWith('rgba(')) {
+            const channels = paint.slice(5, -1).split(',').map(channel => channel.trim());
+            if (channels.length === 4) return Number(channels[3]);
+          }
+          return 1;
+        };
+        const visibleStroke = style => paintAlpha(style.stroke) * Number(style.strokeOpacity) * Number(style.opacity) > 0;
+        const visibleFill = style => paintAlpha(style.fill) * Number(style.fillOpacity) * Number(style.opacity) > 0;
         const painted = paths.filter(path => {
-          const style = getComputedStyle(path); const opacity = Number(style.opacity) * Number(style.strokeOpacity) * Number(style.fillOpacity);
-          return path.getTotalLength() > 0 && opacity > 0 && (style.stroke !== 'none' || style.fill !== 'none');
+          const style = getComputedStyle(path);
+          return path.getTotalLength() > 0 && (visibleStroke(style) || visibleFill(style));
         });
-        const filled = paths.filter(path => { const style=getComputedStyle(path); return style.fill !== 'none' && style.fill !== 'rgba(0, 0, 0, 0)' && Number(style.fillOpacity) > 0; });
+        const filled = paths.filter(path => visibleFill(getComputedStyle(path)));
         const list = document.querySelector('[role="list"][aria-label="Mathematical diagram presets"]');
         const buttons = [...list.querySelectorAll('[role="listitem"] > button.preset')];
         return {
-          hostWidth: hr.width, hostOverflowX: host.scrollWidth-host.clientWidth, hostOverflowY: host.scrollHeight-host.clientHeight,
+          hostWidth: hr.width, stageWidth: sr.width, viewportWidth: document.documentElement.clientWidth,
+          documentOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          hostContainedByStage: hr.left >= sr.left - 1 && hr.right <= sr.right + 1 && hr.top >= sr.top - 1 && hr.bottom <= sr.bottom + 1,
+          stageContainedByViewport: sr.left >= -1 && sr.right <= document.documentElement.clientWidth + 1,
+          hostOverflowX: host.scrollWidth-host.clientWidth, hostOverflowY: host.scrollHeight-host.clientHeight,
           outside: rects.map((r,i)=>({i,r})).filter(({r})=>r.left<hr.left-1||r.right>hr.right+1||r.top<hr.top-1||r.bottom>hr.bottom+1),
           overlaps, labels: boxes.length, paths: paths.length, painted: painted.length, filled: filled.length,
           buttons: buttons.length, pressed: buttons.filter(button=>button.getAttribute('aria-pressed')==='true').map(button=>buttons.indexOf(button)),
           errors: window.__presetErrors,
         };
       })()`)
+      assert(metrics.hostWidth >= mode.hostMin && metrics.hostWidth <= mode.hostMax, `${mode.name} preset ${index}: host width ${metrics.hostWidth} outside ${mode.hostMin}..${mode.hostMax}`)
+      if (mode.stageWidth !== null) assert(Math.abs(metrics.stageWidth - mode.stageWidth) <= 1, `${mode.name} preset ${index}: stage width ${metrics.stageWidth} did not reach ${mode.stageWidth}`)
+      assert(metrics.hostContainedByStage && metrics.stageContainedByViewport && metrics.documentOverflowX <= 1, `${mode.name} preset ${index}: host/stage/document containment failed`)
       assert(metrics.labels === expected[index], `${mode.name} preset ${index}: expected ${expected[index]} visible labels, got ${metrics.labels}`)
       assert(metrics.hostOverflowX <= 1 && metrics.hostOverflowY <= 1, `${mode.name} preset ${index}: host overflow ${metrics.hostOverflowX}x${metrics.hostOverflowY}`)
       assert(metrics.outside.length === 0, `${mode.name} preset ${index}: labels outside host ${JSON.stringify(metrics.outside)}`)

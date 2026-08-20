@@ -55,12 +55,36 @@ describe('basic demo mathematical SVG presets', () => {
     const plot = parseSanitizedSvgTemplate(DEMO_SVG_SOURCES['function-plot.svg']).root
     const functionPath = plot.querySelector('path[stroke="#3b82f6"]')?.getAttribute('d') ?? ''
     const functionNumbers = functionPath.match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? []
-    expect(functionNumbers[1]).toBeGreaterThan((functionNumbers.at(-1) ?? 0) + 100)
+    expect(functionNumbers).toHaveLength(8)
+    const [, y0, , y1, , y2, , y3] = functionNumbers
+    const cubicA = -y0 + 3 * y1 - 3 * y2 + y3
+    const cubicB = 3 * y0 - 6 * y1 + 3 * y2
+    const cubicC = -3 * y0 + 3 * y1
+    const discriminant = (2 * cubicB) ** 2 - 4 * 3 * cubicA * cubicC
+    const stationary = [
+      (-2 * cubicB - Math.sqrt(discriminant)) / (6 * cubicA),
+      (-2 * cubicB + Math.sqrt(discriminant)) / (6 * cubicA),
+    ].sort((left, right) => left - right)
+    expect(stationary).toEqual([0.25, 0.75])
 
     const derivativePath = plot.querySelector('path[stroke="#f97316"]')?.getAttribute('d') ?? ''
-    expect(derivativePath).toBe('M90 120 Q360 350 630 120')
-    const criticalPoints = [...plot.querySelectorAll('circle[fill="#22c55e"]')].map((circle) => Number(circle.getAttribute('cy')))
-    expect(criticalPoints[0]).toBeLessThan(criticalPoints[1])
+    const derivativeNumbers = derivativePath.match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? []
+    expect(derivativeNumbers).toHaveLength(6)
+    const [, q0, , q1, , q2] = derivativeNumbers
+    const qa = q0 - 2 * q1 + q2
+    const qb = -2 * q0 + 2 * q1
+    const qc = q0 - 210
+    const qd = qb ** 2 - 4 * qa * qc
+    const derivativeZeros = [(-qb - Math.sqrt(qd)) / (2 * qa), (-qb + Math.sqrt(qd)) / (2 * qa)].sort((left, right) => left - right)
+    expect(derivativeZeros).toEqual(stationary)
+
+    const point = (p0: number, p1: number, p2: number, p3: number, t: number) =>
+      (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3
+    const criticalPoints = [...plot.querySelectorAll('circle[fill="#22c55e"]')].map((circle) => [Number(circle.getAttribute('cx')), Number(circle.getAttribute('cy'))])
+    expect(criticalPoints).toEqual(stationary.map((t) => [
+      point(functionNumbers[0], functionNumbers[2], functionNumbers[4], functionNumbers[6], t),
+      point(y0, y1, y2, y3, t),
+    ]))
 
     const geometry = parseSanitizedSvgTemplate(DEMO_SVG_SOURCES['projective-geometry.svg']).root
     const circle = geometry.querySelector('circle')!

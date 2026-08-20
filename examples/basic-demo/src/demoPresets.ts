@@ -105,16 +105,16 @@ export const DEMO_SVG_SOURCES: Record<string, string> = {
     '<rect x="8" y="8" width="704" height="394" rx="24" fill="none" stroke="#14b8a6" stroke-width="3"/>' +
     '<path d="M70 210 H655 M360 355 V45" fill="none" stroke="currentColor" stroke-width="3"/>' +
     '<path d="M655 210 l-15 -8 v16 z M360 45 l-8 15 h16 z" fill="currentColor"/>' +
-    '<path d="M85 330 C145 365 185 250 230 100 C275 65 320 170 360 210 C400 250 445 355 490 320 C535 170 580 55 635 90" fill="none" stroke="#3b82f6" stroke-width="5"/>' +
-    '<path d="M90 120 Q360 350 630 120" fill="none" stroke="#f97316" stroke-width="4" stroke-dasharray="11 8"/>' +
-    '<path d="M630 120 l-15 -2 l8 13 z" fill="#f97316"/>' +
-    '<path d="M230 100 V210 M490 210 V320" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="6 6"/>' +
-    '<path d="M230 100 l-7 14 h14 z M490 320 l-7 -14 h14 z" fill="#a855f7"/>' +
-    '<circle cx="230" cy="100" r="7" fill="#22c55e"/><circle cx="490" cy="320" r="7" fill="#22c55e"/>' +
+    '<path d="M90 280 C270 -140 450 560 630 140" fill="none" stroke="#3b82f6" stroke-width="5"/>' +
+    '<path d="M90 75 Q360 435 630 75" fill="none" stroke="#f97316" stroke-width="4" stroke-dasharray="11 8"/>' +
+    '<path d="M630 75 l-15 -2 l8 13 z" fill="#f97316"/>' +
+    '<path d="M225 140 V210 M495 210 V280" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="6 6"/>' +
+    '<path d="M225 140 l-7 14 h14 z M495 280 l-7 -14 h14 z" fill="#a855f7"/>' +
+    '<circle cx="225" cy="140" r="7" fill="#22c55e"/><circle cx="495" cy="280" r="7" fill="#22c55e"/>' +
     '<path d="M145 165 Q215 95 285 165" fill="none" stroke="#ec4899" stroke-width="3"/>' +
     '<path d="M285 165 l-14 -5 l7 13 z" fill="#ec4899"/>' +
-    '<g data-snl-slot="0" transform="translate(360 325)"/><g data-snl-slot="1" transform="translate(555 70)"/><g data-snl-slot="2" transform="translate(230 245)"/>' +
-    '<g data-snl-slot="3" transform="translate(490 245)"/><g data-snl-slot="4" transform="translate(190 70)"/><g data-snl-slot="5" transform="translate(540 330)"/><g data-snl-slot="6" transform="translate(360 175)"/>'),
+    '<g data-snl-slot="0" transform="translate(360 325)"/><g data-snl-slot="1" transform="translate(555 70)"/><g data-snl-slot="2" transform="translate(225 245)"/>' +
+    '<g data-snl-slot="3" transform="translate(495 245)"/><g data-snl-slot="4" transform="translate(190 70)"/><g data-snl-slot="5" transform="translate(540 330)"/><g data-snl-slot="6" transform="translate(360 175)"/>'),
 }
 
 const leaf = (name: string, body: string, mode: 'formula_inline' | 'text' = 'formula_inline'): DemoMacro => ({
