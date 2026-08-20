@@ -242,7 +242,8 @@
   transform-origin: top left;
 }
 
-.snl-foreign-box[data-state='staging'] {
+.snl-foreign-box[data-state='staging'],
+.snl-foreign-box[data-state='unsupported-transform'] {
   width: max-content;
   opacity: 0;
   pointer-events: none;

@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { StrictMode, useEffect, useLayoutEffect } from 'react'
 import { act, cleanup, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -464,6 +466,69 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(wrapper.style.getPropertyValue('--snl-foreign-box-depth')).toBe('')
   })
 
+  it('retains intrinsic staging measurement while transform support is unavailable', () => {
+    const stylesheet = document.createElement('style')
+    stylesheet.textContent = readFileSync(resolve(process.cwd(), 'src/snl-react-view/style.css'), 'utf8')
+    document.head.append(stylesheet)
+    try {
+      let registry!: ReturnType<typeof useForeignBoxRegistry>
+      const metrics = vi.fn()
+      const view = render(<ForeignBoxHost><RegistryCapture setRegistry={value => { registry = value }} /></ForeignBoxHost>)
+      let registration!: ReturnType<typeof registry.register>
+      act(() => {
+        registration = registry.register({
+          identity: identity('wide-intrinsic', 1, 'wide@1'),
+          child: <div data-testid="wide-intrinsic-child" style={{ width: '240px' }}>wide</div>,
+          onMetrics: metrics,
+        })
+      })
+      const wrapper = view.getByTestId('wide-intrinsic-child').parentElement as HTMLElement
+      const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+      const marker = document.createElement('span')
+      host.append(marker)
+      let hostTransform = 'none'
+      const actualGetComputedStyle = window.getComputedStyle.bind(window)
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => (
+        element === host ? { transform: hostTransform } as CSSStyleDeclaration : actualGetComputedStyle(element)
+      ))
+      vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 80, height: 100 }))
+      vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 20, width: 10, height: 10 }))
+
+      act(() => {
+        registration.setMarker(marker)
+        registration.reportMetrics({ width: 240, height: 12, depth: 0, baseline: 'bottom' })
+        flushRaf()
+      })
+      expect(wrapper.dataset.state).toBe('positioned')
+      expect(wrapper.style.width).toBe('240px')
+      metrics.mockClear()
+
+      hostTransform = 'rotate(4deg)'
+      act(flushRaf)
+      const unsupportedStyle = actualGetComputedStyle(wrapper)
+      expect(wrapper.dataset.state).toBe('unsupported-transform')
+      expect(unsupportedStyle.width).toBe('max-content')
+      expect(unsupportedStyle.opacity).toBe('0')
+      expect(unsupportedStyle.pointerEvents).toBe('none')
+      expect(unsupportedStyle.transform).toBe('translate(-100000px, -100000px)')
+      expect(wrapper.style.visibility).toBe('hidden')
+      expect(wrapper.hasAttribute('inert')).toBe(true)
+      expect(wrapper.getAttribute('aria-hidden')).toBe('true')
+
+      const retainedWidth = unsupportedStyle.width === 'max-content' ? 240 : 80
+      act(() => TrackingResizeObserver.instances[0].fire(wrapper, retainedWidth, 12))
+      expect(metrics).toHaveBeenCalledWith({ width: 240, height: 12, depth: 0, baseline: 'bottom' })
+      expect(metrics.mock.calls.some(([value]) => value.width === 80)).toBe(false)
+
+      hostTransform = 'none'
+      act(flushRaf)
+      expect(wrapper.dataset.state).toBe('positioned')
+      expect(wrapper.style.width).toBe('240px')
+    } finally {
+      stylesheet.remove()
+    }
+  })
+
   it.each([
     ['reflection', 'matrix(-1, 0, 0, 1, 0, 0)'],
     ['finite micro-skew', 'matrix(1, 0.000000000001, 0, 1, 0, 0)'],
@@ -562,6 +627,63 @@ describe('ForeignBoxHost lifecycle', () => {
 
     act(() => next.reportMetrics({ width: 12, height: 8, depth: 0, baseline: 'bottom' }))
     expect(nextMetrics).toHaveBeenCalledTimes(1)
+  })
+
+  it('isolates queued observer records when an exact identity registers twice', () => {
+    let registry!: ReturnType<typeof useForeignBoxRegistry>
+    const view = render(<ForeignBoxHost><RegistryCapture setRegistry={value => { registry = value }} /></ForeignBoxHost>)
+    const oldMetrics = vi.fn(); const nextMetrics = vi.fn(); const oldUnregister = vi.fn()
+    const exactIdentity = identity('exact-record-slot', 7, 'same-producer@7')
+    let old!: ReturnType<typeof registry.register>
+    act(() => {
+      old = registry.register({
+        identity: exactIdentity,
+        child: <span data-testid="exact-record-old">old</span>,
+        onMetrics: oldMetrics,
+        onUnregister: oldUnregister,
+      })
+    })
+    const oldWrapper = view.getByTestId('exact-record-old').parentElement as HTMLElement
+    const observer = TrackingResizeObserver.instances[0]
+    const oldRecord = {
+      target: oldWrapper,
+      contentRect: rect({ left: 0, top: 0, width: 99, height: 77 }),
+    } as unknown as ResizeObserverEntry
+
+    let next!: ReturnType<typeof registry.register>
+    act(() => {
+      next = registry.register({
+        identity: exactIdentity,
+        child: <span data-testid="exact-record-new">new</span>,
+        onMetrics: nextMetrics,
+      })
+    })
+    const nextWrapper = view.getByTestId('exact-record-new').parentElement as HTMLElement
+    expect(oldUnregister).toHaveBeenCalledTimes(1)
+    expect(old.isAlive()).toBe(false)
+    expect(next.isAlive()).toBe(true)
+    expect(nextWrapper).not.toBe(oldWrapper)
+    expect(nextWrapper.dataset.state).toBe('staging')
+
+    act(() => observer.callback([oldRecord], observer as unknown as ResizeObserver))
+    expect(oldMetrics).not.toHaveBeenCalled()
+    expect(nextMetrics).not.toHaveBeenCalled()
+    expect(nextWrapper.dataset.state).toBe('staging')
+
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    const marker = document.createElement('span')
+    host.append(marker)
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 12, top: 18, width: 10, height: 10 }))
+    act(() => {
+      next.setMarker(marker)
+      observer.fire(nextWrapper, 42, 12)
+      flushRaf()
+    })
+    expect(nextMetrics).toHaveBeenCalledWith({ width: 42, height: 12, depth: 0, baseline: 'bottom' })
+    expect(nextWrapper.dataset.state).toBe('positioned')
+    expect(nextWrapper.style.transform).toBe('translate(12px, 18px)')
+    expect(nextWrapper.style.width).toBe('42px')
   })
 
   it('keeps fallback until positioned and restores it after transform support is lost', () => {

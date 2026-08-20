@@ -133,6 +133,7 @@ export interface ForeignBoxHostProps {
 export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const entriesRef = useRef(new Map<string, Entry>())
+  const registrationNonceRef = useRef(0)
   const elementEntriesRef = useRef(new WeakMap<Element, Entry>())
   const activeRef = useRef(false)
   const terminalCallbacksRef = useRef<Array<() => void>>([])
@@ -196,7 +197,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
   const registry = useMemo<ForeignBoxRegistry>(() => ({
     register(options) {
       const identity = snapshotForeignBoxIdentity(options.identity)
-      const key = foreignBoxIdentityKey(identity)
+      const key = `${foreignBoxIdentityKey(identity)}#${++registrationNonceRef.current}`
       const slot = identity.treePath
       const token = {}
       const previous = entriesRef.current.get(slot)
