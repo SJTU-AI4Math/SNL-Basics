@@ -1,11 +1,14 @@
 import {
   Fragment,
+  forwardRef,
+  memo,
   useEffect,
   useMemo,
   useRef,
   useState,
   type KeyboardEventHandler,
   type MouseEventHandler,
+  type MutableRefObject,
   type ReactElement,
   type ReactNode,
 } from 'react'
@@ -89,6 +92,32 @@ interface FormulaMarkerBinding {
   readonly heightPx: number
   readonly error?: string
 }
+
+interface KatexContainerHandlers {
+  readonly onMouseMove: MouseEventHandler<HTMLDivElement>
+  readonly onMouseLeave: MouseEventHandler<HTMLDivElement>
+  readonly onClick: MouseEventHandler<HTMLDivElement>
+  readonly onKeyDown: KeyboardEventHandler<HTMLDivElement>
+}
+
+interface StableKatexContainerProps {
+  readonly html: string
+  readonly handlersRef: MutableRefObject<KatexContainerHandlers>
+}
+
+const StableKatexContainer = memo(forwardRef<HTMLDivElement, StableKatexContainerProps>(
+  function StableKatexContainer({ html, handlersRef }, ref) {
+    return <div
+      ref={ref}
+      className="katex-html"
+      dangerouslySetInnerHTML={{ __html: html }}
+      onMouseMove={(event) => handlersRef.current.onMouseMove(event)}
+      onMouseLeave={(event) => handlersRef.current.onMouseLeave(event)}
+      onClick={(event) => handlersRef.current.onClick(event)}
+      onKeyDown={(event) => handlersRef.current.onKeyDown(event)}
+    />
+  },
+), (previous, next) => previous.html === next.html && previous.handlersRef === next.handlersRef)
 
 const ARIA_WIDGET_ROLES = [
   'alertdialog', 'application', 'button', 'checkbox', 'combobox', 'dialog',
@@ -819,6 +848,9 @@ export function SnlSyntaxTreeView({
   const infoRequestRef = useRef<{ key: string; generation: number } | null>(null)
   const hoverMarkedElsRef = useRef<HTMLElement[]>([])
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const katexHandlersRef = useRef<KatexContainerHandlers>({
+    onMouseMove: () => {}, onMouseLeave: () => {}, onClick: () => {}, onKeyDown: () => {},
+  })
   const lastHtmlRef = useRef<string | null>(null)
   const bvarScopeIndexRef = useRef<Map<string, BvarScopeEntry>>(new Map())
 
@@ -865,11 +897,15 @@ export function SnlSyntaxTreeView({
   useEffect(() => {
     const el = containerRef.current
     if (!el || !result) return
-    if (lastHtmlRef.current === result.html) return
-    lastHtmlRef.current = result.html
-    el.innerHTML = result.html
-    tightenHoverBoxes(el)
-    bvarScopeIndexRef.current = buildBvarScopeIndex(el)
+    if (lastHtmlRef.current !== result.html) {
+      lastHtmlRef.current = result.html
+      if (!el.firstChild) el.innerHTML = result.html
+      tightenHoverBoxes(el)
+      bvarScopeIndexRef.current = buildBvarScopeIndex(el)
+    }
+    // Equal KaTeX HTML may still carry a newer complete projection/plan (for
+    // example, a localized accessibility label). Rebind every accepted result
+    // while retaining the already-committed marker DOM.
     const candidates = [...el.querySelectorAll<HTMLElement>('[data-snl-formula-foreign-marker]')]
     const bindings = result.foreignBoxes.map((plan): FormulaMarkerBinding => {
       const id = formulaForeignMarkerId(plan.identity)
@@ -1575,6 +1611,17 @@ export function SnlSyntaxTreeView({
     )
   }
 
+  katexHandlersRef.current = {
+    onMouseMove: handleKaTeXMouseMove,
+    onMouseLeave: handleKaTeXMouseLeave,
+    onClick: handleClick,
+    onKeyDown: handleKeyDown,
+  }
+  useEffect(() => {
+    if (!isKatexRoot || !containerRef.current) return
+    containerRef.current.style.cursor = hasHoverTarget ? 'pointer' : ''
+  }, [hasHoverTarget, isKatexRoot])
+
   const renderFormulaForeignBinding = (binding: FormulaMarkerBinding): ReactElement => {
     if (binding.error || !binding.marker) {
       return <span key={binding.plan.identity} className="snl-formula-foreign-error" role="alert">Formula foreign box unavailable: {binding.error ?? 'marker missing'}</span>
@@ -1651,15 +1698,11 @@ export function SnlSyntaxTreeView({
        */}
       {isKatexRoot ? (
         <ForeignBoxHost className="snl-formula-foreign-host">
-          <div
+          <StableKatexContainer
             key="katex"
             ref={containerRef}
-            className="katex-html"
-            style={{ cursor: hasHoverTarget ? 'pointer' : undefined }}
-            onMouseMove={handleKaTeXMouseMove}
-            onMouseLeave={handleKaTeXMouseLeave}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
+            html={result?.html ?? ''}
+            handlersRef={katexHandlersRef}
           />
           {formulaMarkers.map(renderFormulaForeignBinding)}
         </ForeignBoxHost>

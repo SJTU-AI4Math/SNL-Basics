@@ -171,10 +171,24 @@ try {
     })()`)
     assert(identity.preserved && identity.focused && identity.interactions === '1' && identity.ready, `${testCase.name} rerender remounted or disrupted interactive foreign DOM: ${JSON.stringify(identity)}`)
     assert(identity.errors.length === 0, `${testCase.name} rerender errors: ${identity.errors.join(' | ')}`)
+    await evaluate(cdp, 'window.__formulaForeignFixture.switchLanguage()')
+    await waitFor(() => evaluate(cdp, 'document.querySelector("main")?.dataset.languageRevision === "1"'), `${testCase.name} localized projection rerender`)
+    await waitFor(() => evaluate(cdp, `[...document.querySelectorAll('.context svg[role="img"]')].length === 9
+      && [...document.querySelectorAll('.context svg[role="img"]')].every(svg => svg.getAttribute('aria-label') === 'Updated arrow from A to B')`), `${testCase.name} localized formula plan adoption`)
+    const localized = await evaluate(cdp, `(() => {
+      const after = [...document.querySelectorAll('.interactive-formula-svg')];
+      return {
+        preserved: after.length === window.__beforeFormulaSurfaces.length && after.every((node, index) => node === window.__beforeFormulaSurfaces[index]),
+        labels: [...document.querySelectorAll('.context svg[role="img"]')].map(svg => svg.getAttribute('aria-label')),
+        errors: window.__fixtureErrors || [],
+      };
+    })()`)
+    assert(localized.labels.length === 9 && localized.labels.every(label => label === 'Updated arrow from A to B'), `${testCase.name} retained a stale equal-HTML formula plan: ${JSON.stringify(localized.labels)}`)
+    assert(localized.errors.length === 0, `${testCase.name} localized projection errors: ${localized.errors.join(' | ')}`)
     const screenshot = join(artifactDir, `formula-foreign-box-${testCase.name}.png`)
     const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
     writeFileSync(screenshot, Buffer.from(capture.data, 'base64'))
-    results.push({ case: testCase.name, contexts: before.contexts.map(({ name, rule, surface }) => ({ name, rule, surface })), identity, font: before.font, screenshot })
+    results.push({ case: testCase.name, contexts: before.contexts.map(({ name, rule, surface }) => ({ name, rule, surface })), identity, localized, font: before.font, screenshot })
   }
   assert(vite.viteMessages.length === 0, `Vite diagnostics: ${JSON.stringify(vite.viteMessages)}`)
   assert(networkFailures.length === 0, `network failures: ${networkFailures.join(' | ')}`)

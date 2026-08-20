@@ -5,6 +5,7 @@ import '../../src/snl-react-view/style.css'
 import './style.css'
 import { SnlSyntaxTreeView } from '../../src/components/SnlSyntaxTreeView'
 import { MacroDataDriver } from '../../src/snl-macro/macro-data-driver'
+import { ReaderRuntime } from '../../src/runtime'
 import type { SnlMacroRecord } from '../../src/snl-macro/types'
 import { createSnlSyntaxTreeNode } from '../../src/snl-syntax-tree/types'
 import { defaultRenderers, type SnlBlockRenderer } from '../../src/snl-react-view/hooks'
@@ -41,10 +42,18 @@ const contexts: Record<string, string> = {
   delimiters: '\\left(#0\\right)',
 }
 
+const localizedProjection = {
+  type: 'i18n' as const, default_language: 'en',
+  values: {
+    en: projection,
+    'zh-CN': { ...projection, svg_template: { ...projection.svg_template, accessibility: { label: 'Updated arrow from A to B' } } },
+  },
+}
+
 const db: SnlMacroRecord = {
   diagram: {
     name: 'diagram', description: '', source: { entries: [], urls: [] }, kind: 'const',
-    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: projection }],
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: localizedProjection }],
   },
   A: {
     name: 'A', description: '', source: { entries: [], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
@@ -62,6 +71,8 @@ for (const [name, body] of Object.entries(contexts)) {
   }
 }
 
+let currentLanguage = 'en'
+const readerRuntime = new ReaderRuntime({ queries: { query_environment: () => ({ language: currentLanguage }) } })
 const driver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name }) => db[macro_name] ?? null } })
 const registry = new SvgTemplateAssetRegistry({ loader: async () => arrowSource, maxSettled: 4 })
 const BaseSvgRenderer = createSvgTemplateRenderer({ assetRegistry: registry })
@@ -97,6 +108,7 @@ declare global {
     __formulaForeignFixture?: {
       ready(): boolean
       rerender(): void
+      switchLanguage(): void
       snapshot(): unknown
     }
   }
@@ -104,12 +116,17 @@ declare global {
 
 function App() {
   const [revision, setRevision] = useState(0)
+  const [languageRevision, setLanguageRevision] = useState(0)
   const stableTrees = useMemo(() => trees, [])
   window.__formulaForeignFixture = {
     ready: () => document.querySelectorAll('.context .snl-foreign-box[data-state="positioned"] .interactive-formula-svg').length === stableTrees.length,
     rerender: () => setRevision(value => value + 1),
+    switchLanguage: () => {
+      currentLanguage = currentLanguage === 'en' ? 'zh-CN' : 'en'
+      setLanguageRevision(value => value + 1)
+    },
     snapshot: () => ({
-      revision,
+      revision, languageRevision, currentLanguage,
       contexts: [...document.querySelectorAll<HTMLElement>('.context')].map(section => {
         const marker = section.querySelector<HTMLElement>('[data-snl-formula-foreign-marker]')
         const surface = section.querySelector<HTMLElement>('.interactive-formula-svg')
@@ -131,14 +148,14 @@ function App() {
       page: { clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, clientHeight: document.documentElement.clientHeight, scrollHeight: document.documentElement.scrollHeight },
     }),
   }
-  return <main data-revision={revision}>
+  return <main data-revision={revision} data-language-revision={languageRevision}>
     <h1>Fixed-metric SVG boxes in KaTeX</h1>
     <button id="rerender" onClick={() => setRevision(value => value + 1)}>rerender surrounding formulas</button>
     <div className="context-grid">
       {stableTrees.map(({ name, tree }) => (
         <section className="context" data-context={name} key={name}>
           <h2>{name}</h2>
-          <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} hooks={hooks} />
+          <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} reader_runtime={readerRuntime} hooks={hooks} />
         </section>
       ))}
     </div>

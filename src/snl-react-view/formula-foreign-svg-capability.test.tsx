@@ -40,6 +40,33 @@ describe('SVG fixed formula capability', () => {
     expect(result.identity).toContain('2,1')
   })
 
+  it('releases never-settling asset work immediately when formula preparation aborts', async () => {
+    let loaderSignal: AbortSignal | undefined
+    const registry = new SvgTemplateAssetRegistry({
+      loader: async (_identity, signal) => {
+        loaderSignal = signal
+        return await new Promise<string>(() => {})
+      },
+      maxSettled: 2,
+    })
+    const capability = formulaForeignCapability(createSvgTemplateRenderer({ assetRegistry: registry }))!
+    const controller = new AbortController()
+    const preparing = capability.prepare({
+      node: createSnlSyntaxTreeNode('diagram'), template, treePath: [3],
+      dynamicArity: false, signal: controller.signal,
+    })
+    await Promise.resolve()
+    expect(registry.snapshot()).toMatchObject({ pending: 1, consumers: 1, authorities: 1 })
+    controller.abort()
+    const bounded = Promise.race([
+      preparing,
+      new Promise<never>((_resolve, reject) => setTimeout(() => reject(new Error('abort did not settle preparation')), 50)),
+    ])
+    await expect(bounded).rejects.toMatchObject({ name: 'AbortError' })
+    expect(loaderSignal?.aborted).toBe(true)
+    expect(registry.snapshot()).toEqual({ pending: 0, settled: 0, consumers: 0, authorities: 0, authorityHistory: 1 })
+  })
+
   it('rejects dynamic arity and malformed/missing baseline policy before publication', async () => {
     const registry = new SvgTemplateAssetRegistry({ loader: async () => source, maxSettled: 2 })
     const capability = formulaForeignCapability(createSvgTemplateRenderer({ assetRegistry: registry }))!

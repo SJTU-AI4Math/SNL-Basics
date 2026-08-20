@@ -296,10 +296,20 @@ export function createSvgTemplateRenderer(options: SvgTemplateRendererOptions): 
         if (candidate.dynamicArity) throw new Error('SVG formula embedding supports fixed arity only')
         const projection = readSvgTemplateProjection(candidate.template)
         const policy = readFixedFormulaEmbedPolicy(candidate.template)
+        if (candidate.signal?.aborted) throw new DOMException('SVG formula embedding aborted', 'AbortError')
         const handle = options.assetRegistry.acquire(projection.asset, projection.asset.requestEpoch)
+        let removeAbortListener = () => {}
         try {
-          const result = await handle.promise
-          if (candidate.signal?.aborted) throw new DOMException('SVG formula embedding aborted', 'AbortError')
+          const abort = candidate.signal
+            ? new Promise<never>((_resolve, reject) => {
+                const signal = candidate.signal!
+                const onAbort = () => reject(new DOMException('SVG formula embedding aborted', 'AbortError'))
+                signal.addEventListener('abort', onAbort, { once: true })
+                removeAbortListener = () => signal.removeEventListener('abort', onAbort)
+                if (signal.aborted) onAbort()
+              })
+            : new Promise<never>(() => {})
+          const result = await Promise.race([handle.promise, abort])
           const parsed = parseSanitizedSvgTemplate(result.value)
           const metrics = deriveFixedFormulaMetrics(parsed.viewBox, policy)
           const producer = JSON.stringify([
@@ -318,6 +328,7 @@ export function createSvgTemplateRenderer(options: SvgTemplateRendererOptions): 
             accessibilityLabel: projection.accessibilityLabel,
           })
         } finally {
+          removeAbortListener()
           handle.release()
         }
       },
