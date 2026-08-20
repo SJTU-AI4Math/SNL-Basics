@@ -61,6 +61,7 @@ function metricsInViewportPixels(metrics: ForeignBoxMetrics, host: HTMLElement |
 interface RegistrationOptions {
   readonly identity: ForeignBoxIdentity
   readonly child: ReactNode
+  readonly alignment?: 'top-left' | 'center'
   readonly onMetrics?: (metrics: ForeignBoxMetrics) => void
   readonly metricEpoch?: number
   readonly observationEpoch?: number
@@ -70,7 +71,7 @@ interface RegistrationOptions {
 }
 
 export interface ForeignBoxRegistration {
-  update(options: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'metricEpoch' | 'observationEpoch' | 'onMetricReport' | 'onUnregister'>): void
+  update(options: Pick<RegistrationOptions, 'child' | 'alignment' | 'onMetrics' | 'metricEpoch' | 'observationEpoch' | 'onMetricReport' | 'onUnregister'>): void
   setMarker(marker: MarkerElement | null): void
   reportMetrics(metrics: ForeignBoxMetrics): void
   unregister(): void
@@ -104,6 +105,7 @@ function failClosedWrapper(wrapper: HTMLDivElement): void {
 interface Entry {
   readonly identity: ForeignBoxIdentity
   child: ReactNode
+  alignment: 'top-left' | 'center'
   onMetrics?: (metrics: ForeignBoxMetrics) => void
   metricEpoch: number
   observationEpoch: number
@@ -239,7 +241,9 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
             }
             if (!marker || !wrapper || !entry.measurement || !metrics) continue
             const markerRect = marker.getBoundingClientRect()
-            const local = viewportDeltaToHostLocal(host, hostRect, markerRect.left - hostRect.left, markerRect.top - hostRect.top)
+            const markerX = markerRect.left + (entry.alignment === 'center' ? markerRect.width / 2 : 0)
+            const markerY = markerRect.top + (entry.alignment === 'center' ? markerRect.height / 2 : 0)
+            const local = viewportDeltaToHostLocal(host, hostRect, markerX - hostRect.left, markerY - hostRect.top)
             if (!local) {
               failClosedEntry(entry, wrapper)
               continue
@@ -262,7 +266,9 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
                 focusRestore.focus({ preventScroll: true })
               }
             }
-            wrapper.style.transform = `translate(${local.left}px, ${local.top}px)`
+            const left = local.left - (entry.alignment === 'center' ? metrics.width / 2 : 0)
+            const top = local.top - (entry.alignment === 'center' ? (metrics.height + metrics.depth) / 2 : 0)
+            wrapper.style.transform = `translate(${left}px, ${top}px)`
             wrapper.style.width = `${metrics.width}px`
             wrapper.style.height = `${metrics.height + metrics.depth}px`
             wrapper.style.setProperty('--snl-foreign-box-depth', `${metrics.depth}px`)
@@ -299,7 +305,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
       const token = {}
       const previous = entriesRef.current.get(slot)
       const entry: Entry = {
-        identity, child: options.child, onMetrics: options.onMetrics,
+        identity, child: options.child, alignment: options.alignment ?? 'top-left', onMetrics: options.onMetrics,
         metricEpoch: options.metricEpoch ?? 0, observationEpoch: options.observationEpoch ?? 0,
         onMetricReport: options.onMetricReport, onUnregister: options.onUnregister,
         onPositionedChange: options.onPositionedChange, positioned: false,
@@ -370,9 +376,12 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
       previousUnregister?.()
 
       const isAlive = () => activeRef.current && entriesRef.current.get(slot)?.token === token
-      const update = (next: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'metricEpoch' | 'observationEpoch' | 'onMetricReport' | 'onUnregister'>) => {
+      const update = (next: Pick<RegistrationOptions, 'child' | 'alignment' | 'onMetrics' | 'metricEpoch' | 'observationEpoch' | 'onMetricReport' | 'onUnregister'>) => {
         if (!isAlive()) return
         entry.child = next.child
+        const nextAlignment = next.alignment ?? 'top-left'
+        const realign = entry.alignment !== nextAlignment
+        entry.alignment = nextAlignment
         entry.onMetrics = next.onMetrics
         const nextMetricEpoch = next.metricEpoch ?? 0
         const nextObservationEpoch = next.observationEpoch ?? 0
@@ -382,6 +391,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
         entry.onMetricReport = next.onMetricReport
         entry.onUnregister = next.onUnregister
         if (rotateObserver) rotateObserverRef.current?.()
+        if (realign) scheduleGeometry()
         renderEntries()
       }
       const setMarker = (marker: MarkerElement | null) => {

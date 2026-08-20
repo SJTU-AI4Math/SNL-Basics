@@ -1,8 +1,9 @@
 html { color-scheme: light dark; font-family: system-ui, sans-serif; }
 body { margin: 0; padding: 24px; background: Canvas; color: CanvasText; }
 main { max-width: 900px; margin: 0 auto; }
-.fixture-frame { width: min(100%, 720px); min-width: 0; border: 1px solid #98a2b3; padding: 12px; overflow-x: auto; }
+.fixture-frame { width: min(100%, 720px); min-width: 0; border: 1px solid #98a2b3; padding: 12px; overflow-x: auto; transform: scale(0.9); transform-origin: top left; }
 .fixture-frame.alternate { color: #175cd3; }
+.fixture-frame.alternate .snl-foreign-box-overlay > .snl-foreign-box:nth-child(3) .snl-svg-template-slot-content { padding: 0 12px; }
 .narrow-sidebar-fixture .fixture-frame { width: 300px; max-width: 300px; }
 /* Adversarial consumer rule reproducing the release regression: author styles
    outrank the UA [hidden] rule unless the library's hidden gate is explicit. */

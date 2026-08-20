@@ -129,6 +129,7 @@ function SlotSurface({ marker, child, treePath, generation, producer }: SlotSurf
   const foreign = useForeignBox({
     identity: { treePath, generation, producer },
     child,
+    alignment: 'center',
     ssrFallback: child,
   })
   useLayoutEffect(() => {

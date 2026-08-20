@@ -134,9 +134,11 @@ try {
       const frame = document.querySelector('.fixture-frame');
       const host = document.querySelector('.fixture-frame .snl-svg-template');
       const labels = [...document.querySelectorAll('.fixture-frame .snl-foreign-box[data-state="positioned"]')];
+      const markers = [...svg.querySelectorAll('g[data-snl-slot]')];
       const frameRect = frame.getBoundingClientRect();
       const hostRect = host.getBoundingClientRect();
       const rectValue = rect => ({ left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height });
+      const center = rect => ({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
       const contained = (inner, outer, tolerance = 2) => inner.left >= outer.left - tolerance
         && inner.top >= outer.top - tolerance && inner.right <= outer.right + tolerance && inner.bottom <= outer.bottom + tolerance;
       const overlapArea = (left, right) => Math.max(0, Math.min(left.right, right.right) - Math.max(left.left, right.left))
@@ -194,6 +196,12 @@ try {
       window.__svgBefore = svg;
       window.__svgBeforeChildren = [...document.querySelectorAll('.fixture-frame .snl-foreign-box-measure > *')];
       const labelRects = labels.map(label => rectValue(label.getBoundingClientRect()));
+      const markerRects = markers.map(marker => rectValue(marker.getBoundingClientRect()));
+      const centerDeltas = labelRects.map((label, index) => {
+        const labelCenter = center(label);
+        const markerCenter = center(markerRects[index]);
+        return { x: labelCenter.x - markerCenter.x, y: labelCenter.y - markerCenter.y };
+      });
       // This fixture's four straight arrows deliberately terminate outside the
       // endpoint labels. Treat each painted stroke/arrowhead as a protected
       // corridor rather than exempting endpoint labels from collision checks.
@@ -242,6 +250,9 @@ try {
           frame: { clientWidth: frame.clientWidth, scrollWidth: frame.scrollWidth, clientHeight: frame.clientHeight, scrollHeight: frame.scrollHeight, rect: rectValue(frameRect) },
           host: { clientWidth: host.clientWidth, scrollWidth: host.scrollWidth, clientHeight: host.clientHeight, scrollHeight: host.scrollHeight, rect: rectValue(hostRect) },
           labelRects,
+          markerRects,
+          centerDeltas,
+          ancestorScale: frameRect.width / frame.offsetWidth,
           labelsContainedInFrame: labelRects.every(rect => contained(rect, frameRect)),
           labelsContainedInHost: labelRects.every(rect => contained(rect, hostRect)),
           maxPairOverlap: labelRects.reduce((maximum, left, index) => Math.max(maximum,
@@ -297,7 +308,7 @@ try {
       };
     })()`)
     assert(before.markerCount === 4, `${caseLabel} (viewport ${width}px) has four real g markers`)
-    assert(JSON.stringify(before.transforms) === JSON.stringify(['translate(155 70)', 'translate(500 70)', 'translate(130 310)', 'translate(480 310)']), `${caseLabel} (viewport ${width}px) preserves transformed marker geometry`)
+    assert(JSON.stringify(before.transforms) === JSON.stringify(['translate(200 85)', 'translate(570 85)', 'translate(130 340)', 'translate(520 330)']), `${caseLabel} (viewport ${width}px) preserves transformed marker geometry`)
     assert(before.edgePaint.length === 4, `${caseLabel} (viewport ${width}px) has four directed edge paths`)
     before.edgePaint.forEach((edge, index) => {
       assert(edge.directStroke && edge.directStroke !== 'none' && !edge.directStroke.startsWith('url('), `${caseLabel} (viewport ${width}px) edge ${index} has a direct non-URL stroke`)
@@ -311,6 +322,9 @@ try {
     })
     assert(before.rasterCorridors.every(pixels => pixels > 180), `${caseLabel} (viewport ${width}px) edge corridors contain rasterized artwork: ${before.rasterCorridors.join(',')}`)
     assert(before.positioned === 4, `${caseLabel} (viewport ${width}px) positions every foreign label`)
+    assert(Math.abs(before.geometry.ancestorScale - 0.9) <= 0.01, `${caseLabel} (viewport ${width}px) exercises an effective common-ancestor transform: ${before.geometry.ancestorScale}`)
+    assert(before.geometry.centerDeltas.every(delta => Math.abs(delta.x) <= 0.75 && Math.abs(delta.y) <= 0.75),
+      `${caseLabel} (viewport ${width}px) aligns every non-square SNL child center to its SVG slot center: ${JSON.stringify(before.geometry.centerDeltas)}`)
     assert(before.accessibleArtwork === 1, `${caseLabel} (viewport ${width}px) exposes exactly one labelled SVG artwork`)
     assert(before.accessibleForeign === 4, `${caseLabel} (viewport ${width}px) exposes exactly four positioned foreign labels`)
     assert(before.geometry.frame.scrollWidth <= before.geometry.frame.clientWidth + 1, `${caseLabel} (viewport ${width}px) fixture frame has no internal horizontal overflow`)
@@ -345,17 +359,39 @@ try {
     assert(before.pageWidth <= before.viewport, `${caseLabel} (viewport ${width}px) fixture has no page overflow`)
     await evaluate(cdp, 'window.__svgFixture.toggle()')
     await waitFor(() => evaluate(cdp, 'document.querySelector(".fixture-frame svg")?.getAttribute("aria-label") === "Updated commutative square projection"'), `${caseLabel} (viewport ${width}px) projection update`)
+    await waitFor(() => evaluate(cdp, `(() => {
+      const markers = [...document.querySelectorAll('.fixture-frame g[data-snl-slot]')];
+      const labels = [...document.querySelectorAll('.fixture-frame .snl-foreign-box[data-state="positioned"]')];
+      return labels.length === markers.length && labels[2].getBoundingClientRect().width > 25
+        && labels.every((label, index) => {
+          const child = label.getBoundingClientRect(); const marker = markers[index].getBoundingClientRect();
+          return Math.abs(child.left + child.width / 2 - marker.left - marker.width / 2) <= 0.75
+            && Math.abs(child.top + child.height / 2 - marker.top - marker.height / 2) <= 0.75;
+        });
+    })()`), `${caseLabel} (viewport ${width}px) centered dynamic measurement update`)
     const identity = await evaluate(cdp, `(() => {
       const afterChildren = [...document.querySelectorAll('.fixture-frame .snl-foreign-box-measure > *')];
+      const markers = [...document.querySelectorAll('.fixture-frame g[data-snl-slot]')];
+      const labels = [...document.querySelectorAll('.fixture-frame .snl-foreign-box[data-state="positioned"]')];
       return {
         svg: window.__svgBefore === document.querySelector('svg.snl-svg-template-artwork'),
         children: afterChildren.length === window.__svgBeforeChildren.length && afterChildren.every((node, index) => node === window.__svgBeforeChildren[index]),
+        widths: labels.map(label => label.getBoundingClientRect().width),
+        centerDeltas: labels.map((label, index) => {
+          const child = label.getBoundingClientRect(); const marker = markers[index].getBoundingClientRect();
+          return { x: child.left + child.width / 2 - marker.left - marker.width / 2,
+            y: child.top + child.height / 2 - marker.top - marker.height / 2 };
+        }),
         ready: window.__svgFixture.ready(),
         errors: window.__fixtureErrors || []
       };
     })()` )
     assert(identity.svg, `${caseLabel} (viewport ${width}px) projection update preserves SVG DOM identity`)
     assert(identity.children, `${caseLabel} (viewport ${width}px) projection update preserves every child DOM identity`)
+    assert(identity.widths[2] >= before.geometry.labelRects[2].width + 20,
+      `${caseLabel} (viewport ${width}px) dynamic child measurement changes painted width: ${before.geometry.labelRects[2].width} -> ${identity.widths[2]}`)
+    assert(identity.centerDeltas.every(delta => Math.abs(delta.x) <= 0.75 && Math.abs(delta.y) <= 0.75),
+      `${caseLabel} (viewport ${width}px) keeps updated child centers on SVG slot centers: ${JSON.stringify(identity.centerDeltas)}`)
     assert(identity.ready, `${caseLabel} (viewport ${width}px) projection update keeps all children positioned`)
     assert(identity.errors.length === 0, `${caseLabel} (viewport ${width}px) update has no console/runtime errors: ${identity.errors.join(' | ')}`)
     const screenshot = join(artifactDir, `parameterized-svg-${caseLabel}.png`)

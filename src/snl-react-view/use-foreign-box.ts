@@ -6,6 +6,8 @@ import { useForeignBoxRegistry, type ForeignBoxRegistration } from './foreign-bo
 export interface UseForeignBoxOptions {
   readonly identity: ForeignBoxIdentity
   readonly child: ReactNode
+  /** Align the measured foreign rectangle to the marker origin or center. */
+  readonly alignment?: 'top-left' | 'center'
   /** Accessible content rendered until the live wrapper is measured and positioned. */
   readonly ssrFallback?: ReactNode
   readonly onMetrics?: (metrics: ForeignBoxMetrics) => void

@@ -11,8 +11,8 @@
     <path class="snl-svg-arrowhead" d="M123 273L130 287L137 273Z" />
     <path class="snl-svg-arrowhead" d="M473 273L480 287L487 273Z" />
   </g>
-  <g data-snl-slot="0" transform="translate(155 70)" />
-  <g data-snl-slot="1" transform="translate(500 70)" />
-  <g data-snl-slot="2" transform="translate(130 310)" />
-  <g data-snl-slot="3" transform="translate(480 310)" />
+  <g data-snl-slot="0" transform="translate(200 85)" />
+  <g data-snl-slot="1" transform="translate(570 85)" />
+  <g data-snl-slot="2" transform="translate(130 340)" />
+  <g data-snl-slot="3" transform="translate(520 330)" />
 </svg>

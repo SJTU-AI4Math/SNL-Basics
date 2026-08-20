@@ -88,7 +88,7 @@ describe('SvgTemplateRenderer', () => {
     expect(markers).toHaveLength(4)
     expect(markers.map((marker) => marker.getAttribute('data-snl-slot'))).toEqual(['0', '1', '2', '3'])
     expect(markers.map((marker) => marker.getAttribute('transform'))).toEqual([
-      'translate(155 70)', 'translate(500 70)', 'translate(130 310)', 'translate(480 310)',
+      'translate(200 85)', 'translate(570 85)', 'translate(130 340)', 'translate(520 330)',
     ])
     expect(firstSvg.id).not.toBe(secondSvg.id)
     expect(firstSvg.querySelector('path')?.getAttribute('d')).toBe('M330 80H460')
