@@ -2,7 +2,7 @@
 import { StrictMode, useEffect, useLayoutEffect } from 'react'
 import { act, cleanup, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ForeignBoxHost } from './foreign-box-host'
+import { ForeignBoxHost, useForeignBoxRegistry } from './foreign-box-host'
 import { assertForeignBoxMetrics, foreignBoxIdentityKey, type ForeignBoxIdentity } from './foreign-box'
 import { useForeignBox, type UseForeignBoxResult } from './use-foreign-box'
 
@@ -85,6 +85,11 @@ function EffectSlot({ kind, calls }: { kind: 'layout' | 'passive'; calls: boolea
   const effect = kind === 'layout' ? useLayoutEffect : useEffect
   effect(() => { calls.push(api.isAlive()) }, [api])
   return <span ref={api.markerRef} />
+}
+
+function RegistryCapture({ setRegistry }: { setRegistry: (registry: ReturnType<typeof useForeignBoxRegistry>) => void }) {
+  setRegistry(useForeignBoxRegistry())
+  return null
 }
 
 describe('ForeignBox contracts', () => {
@@ -177,6 +182,80 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(nextMetrics).not.toHaveBeenCalled()
   })
 
+  it('resets marker and geometry before notifying a replaced authority while preserving its wrapper', () => {
+    let registry!: ReturnType<typeof useForeignBoxRegistry>
+    const view = render(<ForeignBoxHost><RegistryCapture setRegistry={value => { registry = value }} /></ForeignBoxHost>)
+    const oldUnregister = vi.fn()
+    let oldAliveDuringCallback = true
+    let old!: ReturnType<typeof registry.register>
+    act(() => {
+      old = registry.register({
+        identity: identity('direct-slot', 1, 'old@1'),
+        child: <button data-testid="direct-old">old</button>,
+        onUnregister: () => { oldAliveDuringCallback = old.isAlive(); oldUnregister() },
+      })
+    })
+    const wrapper = view.getByTestId('direct-old').parentElement as HTMLElement
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    const marker = document.createElement('span')
+    host.append(marker)
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 20, top: 30, width: 10, height: 10 }))
+    act(() => {
+      old.setMarker(marker)
+      old.reportMetrics({ width: 12, height: 8, depth: 2, baseline: 'alphabetic' })
+      flushRaf()
+    })
+    expect(wrapper.dataset.state).toBe('positioned')
+
+    let next!: ReturnType<typeof registry.register>
+    act(() => {
+      next = registry.register({ identity: identity('direct-slot', 2, 'new@2'), child: <button data-testid="direct-new">new</button> })
+    })
+    expect(oldUnregister).toHaveBeenCalledTimes(1)
+    expect(oldAliveDuringCallback).toBe(false)
+    expect(old.isAlive()).toBe(false)
+    expect(next.isAlive()).toBe(true)
+    expect(view.getByTestId('direct-new').parentElement).toBe(wrapper)
+    expect(wrapper.dataset.state).toBe('staging')
+    expect(wrapper.style.visibility).toBe('hidden')
+    expect(wrapper.style.transform).toBe('')
+    expect(wrapper.style.width).toBe('')
+    expect(TrackingResizeObserver.instances[0].targets.has(marker)).toBe(false)
+    expect(TrackingResizeObserver.instances[0].unobserved).toContain(wrapper)
+
+    const nextMarker = document.createElement('span')
+    host.append(nextMarker)
+    act(() => { next.setMarker(nextMarker); flushRaf() })
+    expect(wrapper.dataset.state).toBe('staging')
+    old.unregister()
+    expect(oldUnregister).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not let an outer replacement overwrite authority registered reentrantly by the old callback', () => {
+    let registry!: ReturnType<typeof useForeignBoxRegistry>
+    render(<ForeignBoxHost><RegistryCapture setRegistry={value => { registry = value }} /></ForeignBoxHost>)
+    let third!: ReturnType<typeof registry.register>
+    let old!: ReturnType<typeof registry.register>
+    act(() => {
+      old = registry.register({
+        identity: identity('reentrant-slot', 1, 'old@1'),
+        child: <span>old</span>,
+        onUnregister: () => {
+          expect(old.isAlive()).toBe(false)
+          third = registry.register({ identity: identity('reentrant-slot', 3, 'third@3'), child: <span>third</span> })
+        },
+      })
+    })
+    let second!: ReturnType<typeof registry.register>
+    act(() => {
+      second = registry.register({ identity: identity('reentrant-slot', 2, 'second@2'), child: <span>second</span> })
+    })
+    expect(old.isAlive()).toBe(false)
+    expect(second.isAlive()).toBe(false)
+    expect(third.isAlive()).toBe(true)
+  })
+
   it('updates fresh JSX and callbacks in place without unregistering or losing focus and metrics', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const unregister = vi.fn(); const firstMetrics = vi.fn(); const nextMetrics = vi.fn()
@@ -242,6 +321,9 @@ describe('ForeignBoxHost lifecycle', () => {
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
     const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
+      transform: element === host ? 'matrix(2, 0, 0, 2, 10, 20)' : 'none',
+    }) as CSSStyleDeclaration)
     vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 100, top: 50, width: 200, height: 100 }))
     vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 140, top: 90, width: 20, height: 20 }))
     Object.defineProperties(host, {
@@ -250,6 +332,83 @@ describe('ForeignBoxHost lifecycle', () => {
     })
     act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
     expect(wrapper.style.transform).toBe('translate(23px, 24px)')
+  })
+
+  it('atomically hides and clears a positioned wrapper when the host becomes rotated', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
+    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    let hostTransform = 'none'
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
+      transform: element === host ? hostTransform : 'none',
+    }) as CSSStyleDeclaration)
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 20, top: 30, width: 10, height: 10 }))
+
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 2, baseline: 'alphabetic' }); flushRaf() })
+    expect(wrapper.dataset.state).toBe('positioned')
+    expect(wrapper.style.transform).toBe('translate(20px, 30px)')
+
+    hostTransform = 'rotate(10deg)'
+    act(() => { window.dispatchEvent(new Event('scroll')); flushRaf() })
+    expect(wrapper.dataset.state).toBe('unsupported-transform')
+    expect(wrapper.dataset.geometryError).toBe('unsupported-transform')
+    expect(wrapper.style.visibility).toBe('hidden')
+    expect(wrapper.getAttribute('aria-hidden')).toBe('true')
+    expect(wrapper.hasAttribute('inert')).toBe(true)
+    expect(wrapper.style.transform).toBe('')
+    expect(wrapper.style.width).toBe('')
+    expect(wrapper.style.height).toBe('')
+    expect(wrapper.style.getPropertyValue('--snl-foreign-box-depth')).toBe('')
+  })
+
+  it.each([
+    ['reflection', 'matrix(-1, 0, 0, 1, 0, 0)'],
+    ['finite micro-skew', 'matrix(1, 0.000000000001, 0, 1, 0, 0)'],
+    ['rotate(180)', 'matrix(-1, 0, 0, -1, 0, 0)'],
+    ['3D transform', 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)'],
+  ])('fails closed after a positioned host changes to %s', (_label: string, unsupportedTransform: string) => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
+    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    let hostTransform = 'none'
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
+      transform: element === host ? hostTransform : 'none',
+    }) as CSSStyleDeclaration)
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 20, top: 30, width: 10, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 2, baseline: 'alphabetic' }); flushRaf() })
+    expect(wrapper.dataset.state).toBe('positioned')
+
+    hostTransform = unsupportedTransform
+    act(() => { window.dispatchEvent(new Event('scroll')); flushRaf() })
+    expect(wrapper.dataset.state).toBe('unsupported-transform')
+    expect(wrapper.style.visibility).toBe('hidden')
+    expect(wrapper.style.transform).toBe('')
+    expect(wrapper.style.width).toBe('')
+  })
+
+  it('fails closed when an ancestor affecting the host becomes rotated', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
+    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    let ancestorTransform = 'none'
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
+      transform: element === document.body ? ancestorTransform : 'none',
+    }) as CSSStyleDeclaration)
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 20, top: 30, width: 10, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
+    expect(wrapper.dataset.state).toBe('positioned')
+
+    ancestorTransform = 'matrix(0, 1, -1, 0, 0, 0)'
+    act(() => { window.dispatchEvent(new Event('scroll')); flushRaf() })
+    expect(wrapper.dataset.state).toBe('unsupported-transform')
+    expect(wrapper.style.visibility).toBe('hidden')
+    expect(wrapper.style.transform).toBe('')
   })
 
   it('observes targets registered before host layout observer creation and reacts to marker geometry', () => {

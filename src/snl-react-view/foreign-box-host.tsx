@@ -15,15 +15,23 @@ const useSsrSafeLayoutEffect = typeof window === 'undefined' ? useEffect : useLa
 
 type MarkerElement = HTMLElement | SVGElement
 
-function viewportDeltaToHostLocal(host: HTMLElement, hostRect: DOMRect, dx: number, dy: number): { left: number; top: number } | null {
-  if (typeof getComputedStyle !== 'undefined') {
-    const transform = getComputedStyle(host).transform
+function hasOnlySupportedTransforms(element: Element): boolean {
+  if (typeof getComputedStyle === 'undefined') return true
+  for (let current: Element | null = element; current; current = current.parentElement) {
+    const transform = getComputedStyle(current).transform.trim()
+    if (transform === '' || transform === 'none') continue
     const match = /^matrix\(([^)]+)\)$/.exec(transform)
-    if (match) {
-      const values = match[1].split(',').map(Number)
-      if (values.length >= 4 && (Math.abs(values[1]) > 1e-9 || Math.abs(values[2]) > 1e-9)) return null
-    }
+    if (!match) return false
+    const values = match[1].split(',').map(value => Number(value.trim()))
+    if (values.length !== 6 || values.some(value => !Number.isFinite(value))) return false
+    const [a, b, c, d] = values
+    if (b !== 0 || c !== 0 || a <= 0 || d <= 0) return false
   }
+  return true
+}
+
+function viewportDeltaToHostLocal(host: HTMLElement, hostRect: DOMRect, dx: number, dy: number): { left: number; top: number } | null {
+  if (!hasOnlySupportedTransforms(host)) return null
   const localWidth = host.offsetWidth
   const localHeight = host.offsetHeight
   const scaleX = localWidth > 0 && hostRect.width > 0 ? hostRect.width / localWidth : 1
@@ -54,9 +62,20 @@ interface ForeignBoxRegistry {
 function stageWrapper(wrapper: HTMLDivElement | null): void {
   if (!wrapper) return
   wrapper.dataset.state = 'staging'
+  delete wrapper.dataset.geometryError
   wrapper.style.visibility = 'hidden'
+  wrapper.style.transform = ''
+  wrapper.style.width = ''
+  wrapper.style.height = ''
+  wrapper.style.removeProperty('--snl-foreign-box-depth')
   wrapper.setAttribute('aria-hidden', 'true')
   wrapper.setAttribute('inert', '')
+}
+
+function failClosedWrapper(wrapper: HTMLDivElement): void {
+  stageWrapper(wrapper)
+  wrapper.dataset.state = 'unsupported-transform'
+  wrapper.dataset.geometryError = 'unsupported-transform'
 }
 
 interface Entry {
@@ -131,10 +150,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
         const markerRect = marker.getBoundingClientRect()
         const local = viewportDeltaToHostLocal(host, hostRect, markerRect.left - hostRect.left, markerRect.top - hostRect.top)
         if (!local) {
-          wrapper.dataset.state = 'unsupported-transform'
-          wrapper.dataset.geometryError = 'rotation-or-skew'
-          wrapper.setAttribute('aria-hidden', 'true')
-          wrapper.setAttribute('inert', '')
+          failClosedWrapper(wrapper)
           continue
         }
         delete wrapper.dataset.geometryError
@@ -159,14 +175,33 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
       const previous = entriesRef.current.get(slot)
       const entry: Entry = {
         identity, child: options.child, onMetrics: options.onMetrics, onUnregister: options.onUnregister,
-        key, slot, token, marker: previous?.marker ?? null, wrapper: previous?.wrapper ?? null, metrics: previous?.metrics ?? null,
+        key, slot, token, marker: null, wrapper: previous?.wrapper ?? null, metrics: null,
       }
       if (!activeRef.current) return inertRegistration
 
+      const previousUnregister = previous?.onUnregister
+      if (previous) {
+        previous.onUnregister = undefined
+        if (previous.marker) {
+          observerRef.current?.unobserve(previous.marker)
+          elementEntriesRef.current.delete(previous.marker)
+        }
+        if (previous.wrapper) {
+          observerRef.current?.unobserve(previous.wrapper)
+          elementEntriesRef.current.delete(previous.wrapper)
+        }
+        previous.marker = null
+        previous.metrics = null
+        previous.wrapper = null
+      }
       entriesRef.current.set(slot, entry)
-      if (entry.marker) elementEntriesRef.current.set(entry.marker, entry)
-      if (entry.wrapper) elementEntriesRef.current.set(entry.wrapper, entry)
+      if (entry.wrapper) {
+        stageWrapper(entry.wrapper)
+        elementEntriesRef.current.set(entry.wrapper, entry)
+        observerRef.current?.observe(entry.wrapper)
+      }
       renderEntries()
+      previousUnregister?.()
 
       const isAlive = () => activeRef.current && entriesRef.current.get(slot)?.token === token
       const update = (next: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'onUnregister'>) => {
