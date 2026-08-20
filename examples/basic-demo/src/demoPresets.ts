@@ -51,8 +51,8 @@ export const DEMO_SVG_SOURCES: Record<string, string> = {
     '<path d="M275 230 C305 185 415 185 445 230 C415 278 305 278 275 230Z" fill="none" stroke="#f59e0b" stroke-width="3"/>' +
     '<path d="M360 270 l-7 -13 l14 0 z" fill="#f59e0b"/>' +
     '<g data-snl-slot="0" transform="translate(92 82)"/><g data-snl-slot="1" transform="translate(360 82)"/><g data-snl-slot="2" transform="translate(628 82)"/>' +
-    '<g data-snl-slot="3" transform="translate(220 24)"/><g data-snl-slot="4" transform="translate(220 142)"/><g data-snl-slot="5" transform="translate(500 24)"/>' +
-    '<g data-snl-slot="6" transform="translate(252 82)"/><g data-snl-slot="7" transform="translate(508 82)"/><g data-snl-slot="8" transform="translate(360 232)"/>'),
+    '<g data-snl-slot="3" transform="translate(220 35)"/><g data-snl-slot="4" transform="translate(220 195)"/><g data-snl-slot="5" transform="translate(500 35)"/>' +
+    '<g data-snl-slot="6" transform="translate(252 115)"/><g data-snl-slot="7" transform="translate(508 115)"/><g data-snl-slot="8" transform="translate(360 232)"/>'),
 
   'derived-cube.svg': svg('0 0 720 420',
     '<rect x="8" y="8" width="704" height="404" rx="24" fill="none" stroke="#2563eb" stroke-width="3"/>' +
@@ -80,41 +80,41 @@ export const DEMO_SVG_SOURCES: Record<string, string> = {
     '<path d="M505 240 l-8 -14 h16 z" fill="#a855f7"/>' +
     '<path d="M370 185 C320 165 300 175 280 205" fill="none" stroke="#f59e0b" stroke-width="4"/>' +
     '<path d="M280 205 l3 -15 l11 10 z" fill="#f59e0b"/>' +
-    '<path d="M330 320 H590" fill="none" stroke="#22c55e" stroke-width="3"/>' +
-    '<path d="M590 320 l-15 -8 v16 z" fill="#22c55e"/>' +
-    '<path d="M330 336 H590" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="5 6"/>' +
+    '<path d="M330 350 H590" fill="none" stroke="#22c55e" stroke-width="3"/>' +
+    '<path d="M590 350 l-15 -8 v16 z" fill="#22c55e"/>' +
+    '<path d="M330 366 H590" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="5 6"/>' +
     '<g data-snl-slot="0" transform="translate(170 105)"/><g data-snl-slot="1" transform="translate(170 315)"/><g data-snl-slot="2" transform="translate(505 70)"/>' +
-    '<g data-snl-slot="3" transform="translate(505 160)"/><g data-snl-slot="4" transform="translate(505 250)"/><g data-snl-slot="5" transform="translate(330 175)"/><g data-snl-slot="6" transform="translate(460 350)"/>'),
+    '<g data-snl-slot="3" transform="translate(505 160)"/><g data-snl-slot="4" transform="translate(505 250)"/><g data-snl-slot="5" transform="translate(330 175)"/><g data-snl-slot="6" transform="translate(460 315)"/>'),
 
   'projective-geometry.svg': svg('0 0 720 420',
     '<rect x="8" y="8" width="704" height="404" rx="24" fill="none" stroke="#8b5cf6" stroke-width="3"/>' +
-    '<circle cx="330" cy="220" r="150" fill="none" stroke="currentColor" stroke-width="3"/>' +
-    '<path d="M175 310 L330 55 L535 310 Z" fill="none" stroke="#3b82f6" stroke-width="4"/>' +
-    '<path d="M175 310 L455 145 M330 55 L330 310 M535 310 L245 150" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="9 7"/>' +
+    '<circle cx="360" cy="210" r="150" fill="none" stroke="currentColor" stroke-width="3"/>' +
+    '<path d="M237.128 296.036 L360 60 L489.904 285 Z" fill="none" stroke="#3b82f6" stroke-width="4"/>' +
+    '<path d="M237.128 296.036 L424.952 172.5 M360 60 L363.516 290.518 M489.904 285 L298.564 178.018" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="9 7"/>' +
     '<path d="M120 335 C250 260 470 260 600 335" fill="none" stroke="#f97316" stroke-width="4"/>' +
     '<path d="M600 335 l-15 -2 l8 13 z" fill="#f97316"/>' +
-    '<path d="M330 220 m-18 0 a18 18 0 1 0 36 0 a18 18 0 1 0 -36 0" fill="none" stroke="#22c55e" stroke-width="3"/>' +
-    '<path d="M330 220 L430 220" fill="none" stroke="#22c55e" stroke-width="3"/>' +
-    '<path d="M430 220 l-14 -7 v14 z" fill="#22c55e"/>' +
-    '<path d="M235 150 Q330 255 455 145" fill="none" stroke="#ec4899" stroke-width="3"/>' +
-    '<path d="M455 145 l-15 1 l9 11 z" fill="#ec4899"/>' +
-    '<g data-snl-slot="0" transform="translate(330 32)"/><g data-snl-slot="1" transform="translate(145 326)"/><g data-snl-slot="2" transform="translate(560 326)"/>' +
-    '<g data-snl-slot="3" transform="translate(330 220)"/><g data-snl-slot="4" transform="translate(330 342)"/><g data-snl-slot="5" transform="translate(230 122)"/><g data-snl-slot="6" transform="translate(474 130)"/>'),
+    '<path d="M360 210 m-18 0 a18 18 0 1 0 36 0 a18 18 0 1 0 -36 0" fill="none" stroke="#22c55e" stroke-width="3"/>' +
+    '<path d="M360 210 L460 210" fill="none" stroke="#22c55e" stroke-width="3"/>' +
+    '<path d="M460 210 l-14 -7 v14 z" fill="#22c55e"/>' +
+    '<path d="M255 145 Q360 260 470 135" fill="none" stroke="#ec4899" stroke-width="3"/>' +
+    '<path d="M470 135 l-15 1 l9 11 z" fill="#ec4899"/>' +
+    '<g data-snl-slot="0" transform="translate(360 35)"/><g data-snl-slot="1" transform="translate(210 315)"/><g data-snl-slot="2" transform="translate(520 305)"/>' +
+    '<g data-snl-slot="3" transform="translate(345 210)"/><g data-snl-slot="4" transform="translate(390 238)"/><g data-snl-slot="5" transform="translate(220 120)"/><g data-snl-slot="6" transform="translate(510 120)"/>'),
 
   'function-plot.svg': svg('0 0 720 410',
     '<rect x="8" y="8" width="704" height="394" rx="24" fill="none" stroke="#14b8a6" stroke-width="3"/>' +
     '<path d="M70 210 H655 M360 355 V45" fill="none" stroke="currentColor" stroke-width="3"/>' +
     '<path d="M655 210 l-15 -8 v16 z M360 45 l-8 15 h16 z" fill="currentColor"/>' +
-    '<path d="M85 305 C145 365 220 338 270 245 C310 170 330 90 360 85 C390 90 410 170 450 245 C500 338 575 365 635 305" fill="none" stroke="#3b82f6" stroke-width="5"/>' +
-    '<path d="M90 105 C170 55 250 85 315 175 C380 265 470 320 630 250" fill="none" stroke="#f97316" stroke-width="4" stroke-dasharray="11 8"/>' +
-    '<path d="M630 250 l-15 -2 l8 13 z" fill="#f97316"/>' +
-    '<path d="M215 210 V326 M505 210 V326" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="6 6"/>' +
-    '<path d="M215 326 l-7 -14 h14 z M505 326 l-7 -14 h14 z" fill="#a855f7"/>' +
-    '<circle cx="215" cy="326" r="7" fill="#22c55e"/><circle cx="505" cy="326" r="7" fill="#22c55e"/>' +
+    '<path d="M85 330 C145 365 185 250 230 100 C275 65 320 170 360 210 C400 250 445 355 490 320 C535 170 580 55 635 90" fill="none" stroke="#3b82f6" stroke-width="5"/>' +
+    '<path d="M90 120 Q360 350 630 120" fill="none" stroke="#f97316" stroke-width="4" stroke-dasharray="11 8"/>' +
+    '<path d="M630 120 l-15 -2 l8 13 z" fill="#f97316"/>' +
+    '<path d="M230 100 V210 M490 210 V320" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="6 6"/>' +
+    '<path d="M230 100 l-7 14 h14 z M490 320 l-7 -14 h14 z" fill="#a855f7"/>' +
+    '<circle cx="230" cy="100" r="7" fill="#22c55e"/><circle cx="490" cy="320" r="7" fill="#22c55e"/>' +
     '<path d="M145 165 Q215 95 285 165" fill="none" stroke="#ec4899" stroke-width="3"/>' +
     '<path d="M285 165 l-14 -5 l7 13 z" fill="#ec4899"/>' +
-    '<g data-snl-slot="0" transform="translate(170 365)"/><g data-snl-slot="1" transform="translate(550 70)"/><g data-snl-slot="2" transform="translate(215 355)"/>' +
-    '<g data-snl-slot="3" transform="translate(505 355)"/><g data-snl-slot="4" transform="translate(205 60)"/><g data-snl-slot="5" transform="translate(505 285)"/><g data-snl-slot="6" transform="translate(360 175)"/>'),
+    '<g data-snl-slot="0" transform="translate(360 325)"/><g data-snl-slot="1" transform="translate(555 70)"/><g data-snl-slot="2" transform="translate(230 245)"/>' +
+    '<g data-snl-slot="3" transform="translate(490 245)"/><g data-snl-slot="4" transform="translate(190 70)"/><g data-snl-slot="5" transform="translate(540 330)"/><g data-snl-slot="6" transform="translate(360 175)"/>'),
 }
 
 const leaf = (name: string, body: string, mode: 'formula_inline' | 'text' = 'formula_inline'): DemoMacro => ({
@@ -170,7 +170,7 @@ export const DEMO_MACROS: Record<string, DemoMacro> = {
 
   'Plot.F': leaf('Plot.F', 'f(x)=x^3-3x'), 'Plot.DF': leaf('Plot.DF', "f'(x)"), 'Plot.Minus': leaf('Plot.Minus', 'x_-'),
   'Plot.Plus': leaf('Plot.Plus', 'x_+'), 'Plot.Max': leaf('Plot.Max', '\\operatorname{max}f'), 'Plot.Min': leaf('Plot.Min', '\\operatorname{min}f'),
-  'Plot.Tangent': leaf('Plot.Tangent', 'T_af'),
+  'Plot.Zero': leaf('Plot.Zero', 'f(0)=0'),
 }
 
 export const DEMO_PRESETS: readonly DemoPreset[] = [
@@ -194,14 +194,14 @@ export const DEMO_PRESETS: readonly DemoPreset[] = [
   },
   {
     id: 'projective-geometry', label: 'Geometry · conic and incidence',
-    description: 'A projective triangle, circumconic, cevians, center, polar line, and curved incidence correspondence.',
+    description: 'An inscribed projective triangle, circumcircle, cevians, centers, polar line, and curved incidence correspondence.',
     source: 'Diagram.geometry(Geo.A,Geo.B,Geo.C,Geo.O,Geo.H,Geo.Angle,Geo.Polar)',
     rootMacro: 'Diagram.geometry', diagramMacro: 'Diagram.geometry', slotCount: 7,
   },
   {
     id: 'function-plot', label: 'Analysis · function plot',
-    description: 'A cubic-like function, derivative curve, critical points, extrema, and tangent data in one diagram.',
-    source: 'Diagram.plot(Plot.F,Plot.DF,Plot.Minus,Plot.Plus,Plot.Max,Plot.Min,Plot.Tangent)',
+    description: 'A cubic function, its derivative parabola, critical points, extrema, and the zero crossing in one diagram.',
+    source: 'Diagram.plot(Plot.F,Plot.DF,Plot.Minus,Plot.Plus,Plot.Max,Plot.Min,Plot.Zero)',
     rootMacro: 'Diagram.plot', diagramMacro: 'Diagram.plot', slotCount: 7,
   },
 ]

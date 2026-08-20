@@ -9,7 +9,8 @@
     "dev": "vite",
     "prebuild": "node scripts/prepare-local-package.mjs",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify:presets": "npm run build && node scripts/verify-presets.mjs"
   },
   "dependencies": {
     "@sjtu-ai4math/snl-basics": "file:../..",

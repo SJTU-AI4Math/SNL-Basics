@@ -51,4 +51,27 @@ describe('basic demo mathematical SVG presets', () => {
     }
   })
 
+  it('draws the advertised cubic, derivative, extrema, and circumconic faithfully', () => {
+    const plot = parseSanitizedSvgTemplate(DEMO_SVG_SOURCES['function-plot.svg']).root
+    const functionPath = plot.querySelector('path[stroke="#3b82f6"]')?.getAttribute('d') ?? ''
+    const functionNumbers = functionPath.match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? []
+    expect(functionNumbers[1]).toBeGreaterThan((functionNumbers.at(-1) ?? 0) + 100)
+
+    const derivativePath = plot.querySelector('path[stroke="#f97316"]')?.getAttribute('d') ?? ''
+    expect(derivativePath).toBe('M90 120 Q360 350 630 120')
+    const criticalPoints = [...plot.querySelectorAll('circle[fill="#22c55e"]')].map((circle) => Number(circle.getAttribute('cy')))
+    expect(criticalPoints[0]).toBeLessThan(criticalPoints[1])
+
+    const geometry = parseSanitizedSvgTemplate(DEMO_SVG_SOURCES['projective-geometry.svg']).root
+    const circle = geometry.querySelector('circle')!
+    const center = [Number(circle.getAttribute('cx')), Number(circle.getAttribute('cy'))]
+    const radius = Number(circle.getAttribute('r'))
+    const triangle = geometry.querySelector('path[stroke="#3b82f6"]')?.getAttribute('d') ?? ''
+    const coordinates = triangle.match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? []
+    const vertices = [[coordinates[0], coordinates[1]], [coordinates[2], coordinates[3]], [coordinates[4], coordinates[5]]]
+    for (const [x, y] of vertices) {
+      expect(Math.hypot(x - center[0], y - center[1])).toBeCloseTo(radius, 1)
+    }
+  })
+
 })
