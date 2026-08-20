@@ -453,6 +453,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
       terminalCallbacksRef.current = [...entriesRef.current.values()]
         .map((entry) => entry.onUnregister)
         .filter((callback): callback is () => void => Boolean(callback))
+      for (const entry of entriesRef.current.values()) clearFocusRestore(entry)
       entriesRef.current.clear()
       elementEntriesRef.current = new WeakMap()
       const callbacks = terminalCallbacksRef.current.splice(0)

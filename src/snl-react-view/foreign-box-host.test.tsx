@@ -587,6 +587,29 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(document.activeElement).toBe(document.body)
   })
 
+  it('removes a pending focus-intent listener when the host unmounts while staged', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    function Harness({ authority }: { authority: string }) {
+      return <ForeignBoxHost authorityKey={authority}><Slot apiRef={apiRef} /></ForeignBoxHost>
+    }
+    const view = render(<Harness authority="a" />)
+    const child = view.getByTestId('foreign-child') as HTMLButtonElement
+    const marker = view.getByTestId('marker')
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 300, height: 200 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 20, top: 30, width: 20, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 30, height: 12, depth: 2, baseline: 'alphabetic' }); flushRaf() })
+    child.focus()
+    const add = vi.spyOn(document, 'addEventListener')
+    const remove = vi.spyOn(document, 'removeEventListener')
+
+    view.rerender(<Harness authority="b" />)
+    const focusRegistration = add.mock.calls.find(([type]) => type === 'focusin')
+    expect(focusRegistration).toBeDefined()
+    view.unmount()
+    expect(remove).toHaveBeenCalledWith('focusin', focusRegistration![1], true)
+  })
+
   it('uses one observer and one RAF for sibling updates', () => {
     const a = { current: null as UseForeignBoxResult | null }
     const b = { current: null as UseForeignBoxResult | null }
