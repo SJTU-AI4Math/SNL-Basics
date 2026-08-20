@@ -63,6 +63,7 @@ let pendingLaunch
 let launchStarted = false
 let launchAccepted = false
 let startupAborted = false
+let containmentInterval
 
 function abortStartup() {
   if (startupAborted) return
@@ -71,10 +72,11 @@ function abortStartup() {
     setImmediate(() => process.exit(1))
     return
   }
-  try { child?.kill('SIGKILL') } catch {}
-  // Stay a bounded live anchor long enough for the owner to perform exact
-  // pidfd/subreaper emergency cleanup after losing IPC.
-  setTimeout(() => process.exit(1), 5_000)
+  // IPC loss after launch is a lifecycle failure, but this process must remain
+  // the live subreaper anchor until the owner performs exact pidfd emergency
+  // cleanup. Killing only the direct child or exiting on a timer would release
+  // reparented and setsid descendants from the verified containment root.
+  containmentInterval ??= setInterval(() => {}, 60_000)
 }
 
 async function runDescendantShutdown(timeoutMs = 6_000) {

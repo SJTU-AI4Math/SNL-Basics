@@ -124,7 +124,7 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
     cleaning: false,
     exited: supervisorExit,
   }
-  const state = { subreaperReady: false, launchAccepted: false, childReady: false, settled: false }
+  const state = { subreaperReady: false, launchAccepted: false, childReady: false, settled: false, lifecycleFailed: false }
   let startupTimer
   const settleStartup = (settler, value) => {
     if (state.settled) return false
@@ -138,11 +138,19 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
     settleStartup(startup.resolve, owned)
   }
   const rejectStartup = error => settleStartup(startup.reject, error)
+  const rejectLifecycle = error => {
+    if (owned.cleaning || state.lifecycleFailed) return false
+    state.lifecycleFailed = true
+    failed.reject(error)
+    return true
+  }
   startupTimer = setTimeout(() => rejectStartup(new Error(`owned supervisor startup timed out after ${startupTimeoutMs}ms`)), startupTimeoutMs)
   startupTimer.unref?.()
   supervisorDisconnect.then(() => {
-    const error = new Error('owned supervisor IPC disconnected during startup')
-    if (rejectStartup(error) && !owned.cleaning) failed.reject(error)
+    const phase = state.settled ? 'after startup' : 'during startup'
+    const error = new Error(`owned supervisor IPC disconnected `)
+    rejectStartup(error)
+    rejectLifecycle(error)
   })
 
 
@@ -188,7 +196,7 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
       try { await afterChildSpawn(owned) }
       catch (error) {
         rejectStartup(error)
-        if (!owned.cleaning) failed.reject(error)
+        rejectLifecycle(error)
         return
       }
       if (state.settled) return
@@ -200,21 +208,21 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
     if (message?.type === 'child-error' || message?.type === 'supervisor-startup-error') {
       const error = new Error(`owned ${message.type}: ${message.message}`)
       rejectStartup(error)
-      if (!owned.cleaning) failed.reject(error)
+      rejectLifecycle(error)
       return
     }
     if (message?.type === 'child-exit') {
       const error = new Error(`owned child exited unexpectedly (code ${message.code}, signal ${message.signal})`)
       rejectStartup(error)
-      if (!owned.cleaning) failed.reject(error)
+      rejectLifecycle(error)
     }
   })
-  supervisorError.then(error => { rejectStartup(error); if (!owned.cleaning) failed.reject(error) })
+  supervisorError.then(error => { rejectStartup(error); rejectLifecycle(error) })
   supervisorExit.then(({ code, signal }) => {
     const detail = stderr.trim() ? `: ${stderr.trim()}` : ''
     const error = new Error(`owned supervisor exited unexpectedly (code ${code}, signal ${signal})${detail}`)
     rejectStartup(error)
-    if (!owned.cleaning) failed.reject(error)
+    rejectLifecycle(error)
   })
 
   try { return await startup.promise }

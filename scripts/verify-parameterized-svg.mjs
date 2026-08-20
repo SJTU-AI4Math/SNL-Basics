@@ -239,8 +239,8 @@ try {
         accessibleArtwork: document.querySelectorAll('.fixture-frame svg[role="img"][aria-label]').length,
         accessibleForeign: document.querySelectorAll('.fixture-frame .snl-foreign-box[data-state="positioned"][aria-hidden="false"]:not([inert])').length,
         geometry: {
-          frame: { clientWidth: frame.clientWidth, scrollWidth: frame.scrollWidth, rect: rectValue(frameRect) },
-          host: { clientWidth: host.clientWidth, scrollWidth: host.scrollWidth, rect: rectValue(hostRect) },
+          frame: { clientWidth: frame.clientWidth, scrollWidth: frame.scrollWidth, clientHeight: frame.clientHeight, scrollHeight: frame.scrollHeight, rect: rectValue(frameRect) },
+          host: { clientWidth: host.clientWidth, scrollWidth: host.scrollWidth, clientHeight: host.clientHeight, scrollHeight: host.scrollHeight, rect: rectValue(hostRect) },
           labelRects,
           labelsContainedInFrame: labelRects.every(rect => contained(rect, frameRect)),
           labelsContainedInHost: labelRects.every(rect => contained(rect, hostRect)),
@@ -315,6 +315,8 @@ try {
     assert(before.accessibleForeign === 4, `${caseLabel} (viewport ${width}px) exposes exactly four positioned foreign labels`)
     assert(before.geometry.frame.scrollWidth <= before.geometry.frame.clientWidth + 1, `${caseLabel} (viewport ${width}px) fixture frame has no internal horizontal overflow`)
     assert(before.geometry.host.scrollWidth <= before.geometry.host.clientWidth + 1, `${caseLabel} (viewport ${width}px) SVG host has no internal horizontal overflow`)
+    assert(before.geometry.frame.scrollHeight <= before.geometry.frame.clientHeight + 1, `${caseLabel} (viewport ${width}px) fixture frame has no internal vertical overflow (${before.geometry.frame.clientHeight}/${before.geometry.frame.scrollHeight})`)
+    assert(before.geometry.host.scrollHeight <= before.geometry.host.clientHeight + 1, `${caseLabel} (viewport ${width}px) SVG host has no internal vertical overflow (${before.geometry.host.clientHeight}/${before.geometry.host.scrollHeight})`)
     if (testCase.narrowSidebar) {
       assert(before.geometry.host.clientWidth >= 275 && before.geometry.host.clientWidth <= 305,
         `${caseLabel} uses an approximately 300px sidebar host (received ${before.geometry.host.clientWidth}px)`)
@@ -369,8 +371,12 @@ try {
       pageOverflow: Math.max(0, before.pageWidth - before.viewport),
       frameClientWidth: before.geometry.frame.clientWidth,
       frameScrollWidth: before.geometry.frame.scrollWidth,
+      frameClientHeight: before.geometry.frame.clientHeight,
+      frameScrollHeight: before.geometry.frame.scrollHeight,
       hostClientWidth: before.geometry.host.clientWidth,
       hostScrollWidth: before.geometry.host.scrollWidth,
+      hostClientHeight: before.geometry.host.clientHeight,
+      hostScrollHeight: before.geometry.host.scrollHeight,
       maxPairOverlap: before.geometry.maxPairOverlap,
       labelEdgeCrossings: before.geometry.labelEdgeCrossings.length,
       clippedLabels: before.geometry.clippedLabels,

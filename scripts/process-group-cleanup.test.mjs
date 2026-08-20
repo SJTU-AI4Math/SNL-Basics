@@ -194,6 +194,52 @@ describe('Linux subreaper owned-process cleanup', () => {
     loosePids.delete(daemonPid)
   })
 
+  it("rejects lifecycle immediately and retains the subreaper after a post-startup IPC disconnect", async () => {
+    const profile = mkdtempSync(join(tmpdir(), "snl-subreaper-post-startup-disconnect-"))
+    profiles.add(profile)
+    const ready = join(profile, "ready")
+    const daemonFile = join(profile, "daemon-pid")
+    const source = `
+import os, signal, time
+ready=${JSON.stringify(ready)}
+daemon_file=${JSON.stringify(daemonFile)}
+first=os.fork()
+if first == 0:
+    os.setsid()
+    second=os.fork()
+    if second > 0: os._exit(0)
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    open(daemon_file, "w").write(str(os.getpid()))
+    while True: time.sleep(1)
+open(ready, "w").write("ready")
+while True: time.sleep(1)
+`
+    const owned = await spawnOwnedProcess("python3", ["-c", source], { cwd: profile })
+    ownedProcesses.add(owned)
+    await eventually(() => existsSync(ready) && existsSync(daemonFile))
+    const daemonPid = Number(readFileSync(daemonFile, "utf8"))
+    loosePids.add(daemonPid)
+
+    const started = Date.now()
+    owned.child.disconnect()
+    await expect(owned.failure).rejects.toThrow(/IPC disconnected/i)
+    expect(Date.now() - started).toBeLessThan(1_000)
+
+    await wait(5_300)
+    expect(alive(owned.anchor.pid)).toBe(true)
+    expect(alive(daemonPid)).toBe(true)
+    const daemonIdentity = await readProcessIdentity(daemonPid)
+    expect(daemonIdentity.state).not.toBe("Z")
+
+    const result = await terminateOwnedProcess(owned, { sigkillTimeoutMs: 2_000 })
+    ownedProcesses.delete(owned)
+    expect(result.emergency).toBe(true)
+    await eventually(() => !alive(owned.anchor.pid) && !alive(daemonPid))
+    loosePids.delete(daemonPid)
+    rmSync(profile, { recursive: true })
+    profiles.delete(profile)
+  }, 10_000)
+
   it('escalates stubborn descendants via bounded IPC group-kill without unhandled rejection', async () => {
     const unhandled = []
     const listener = reason => unhandled.push(reason)
