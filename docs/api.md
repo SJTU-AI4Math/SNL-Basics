@@ -370,7 +370,11 @@ It applies the same bounded cache, cancellation, in-flight deduplication, and
 cache-clear race guarantees as `MacroDataDriver`. `EntryView` queries both the
 Entry and its kind, while `EntrySurface` dispatches SNL, Markdown, LaTeX, and
 text bodies. See [`entry-rendering.md`](entry-rendering.md) for the complete
-rendering and host-port contract.
+rendering and host-port contract. Markdown rendering includes GFM and KaTeX,
+fenced-code highlighting for the `lowlight` common language set, and a basic
+lexical `lean`/`lean4` grammar. The public Entry stylesheet owns prose/code font
+stacks and light/dark token palettes; Lean semantic tokens still require an LSP
+and are not synthesized by this renderer.
 
 `EntryPreviewProvider` accepts both `deactivation_controller` and
 `dismiss_controller`, and propagates the matching activation lease into every

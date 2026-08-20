@@ -197,8 +197,36 @@ button {
   white-space: pre-wrap;
 }
 
+
+.markdown-demo-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.markdown-demo-surface {
+  min-width: 0;
+  max-height: 720px;
+  padding: 16px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+.markdown-demo-surface.light {
+  color: #1f2328;
+  background: #ffffff;
+}
+
+.markdown-demo-surface.dark {
+  color: #f0f6fc;
+  background: #313131;
+  --vscode-textLink-foreground: #58a6ff;
+}
+
 @media (max-width: 900px) {
-  .grid {
+  .grid,
+  .markdown-demo-grid {
     grid-template-columns: 1fr;
   }
 }
