@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const expectedVersion = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version;
 const scratch = mkdtempSync(join(tmpdir(), 'snl-basics-packed-entry-i18n-'));
 try {
   const artifacts = join(scratch, 'artifacts');
@@ -68,7 +69,7 @@ console.log('packed Entry Kind I18n and legacy scalar compatibility pass');
     cwd: consumer, stdio: 'inherit'
   });
   const packageJson = JSON.parse(readFileSync(join(consumer, 'node_modules', '@sjtu-ai4math', 'snl-basics', 'package.json'), 'utf8'));
-  if (packageJson.version !== '0.2.3') throw new Error(`expected packed 0.2.3, got ${packageJson.version}`);
+  if (packageJson.version !== expectedVersion) throw new Error(`expected packed ${expectedVersion}, got ${packageJson.version}`);
   console.log(JSON.stringify({ tarball, integrity: packed[0].integrity, version: packageJson.version }));
 } finally {
   rmSync(scratch, { recursive: true, force: true });

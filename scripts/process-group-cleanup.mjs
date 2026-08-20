@@ -41,8 +41,11 @@ function deferred() {
   return { promise, resolve, reject }
 }
 
-export async function spawnOwnedProcess(command, args, options = {}) {
+export async function spawnOwnedProcess(command, args, options = {}, dependencies = {}) {
   if (process.platform !== 'linux') throw new Error('anchored process cleanup requires Linux /proc')
+  const readAnchorIdentity = dependencies.readIdentity ?? readIdentity
+  const beforeChildSpawn = dependencies.beforeChildSpawn ?? (() => {})
+  const onStartupEvent = dependencies.onStartupEvent ?? (() => {})
   const config = Buffer.from(JSON.stringify({ command, args, cwd: options.cwd, env: options.env })).toString('base64url')
   const supervisor = spawn(process.execPath, [supervisorPath, config], {
     detached: true,
@@ -63,40 +66,89 @@ export async function spawnOwnedProcess(command, args, options = {}) {
     failure: failed.promise,
     cleaning: false,
   }
+  const startupState = { anchorReady: false, childReady: false, settled: false }
+  const resolveStartupIfReady = () => {
+    if (startupState.settled || !startupState.anchorReady || !startupState.childReady) return
+    startupState.settled = true
+    startup.resolve(owned)
+  }
+  const rejectStartup = error => {
+    if (startupState.settled) return false
+    startupState.settled = true
+    startup.reject(error)
+    return true
+  }
   const supervisorExit = new Promise(resolve => supervisor.once('exit', (code, signal) => resolve({ code, signal })))
   owned.exited = supervisorExit
-  supervisor.once('spawn', async () => {
-    try {
-      const stat = await readIdentity(supervisor.pid)
-      if (!stat || stat.pgrp !== supervisor.pid) throw new Error('supervisor did not become its own process-group leader')
-      owned.groupId = supervisor.pid
-      owned.anchor = { pid: supervisor.pid, starttime: stat.starttime }
-    } catch (error) { startup.reject(error) }
+  let supervisorSpawned = false
+  let anchorCheck
+  supervisor.once('spawn', () => {
+    supervisorSpawned = true
+    anchorCheck = (async () => {
+      try {
+        const stat = await readAnchorIdentity(supervisor.pid)
+        if (!stat || stat.pgrp !== supervisor.pid) throw new Error('supervisor did not become its own process-group leader')
+        owned.groupId = supervisor.pid
+        owned.anchor = { pid: supervisor.pid, starttime: stat.starttime }
+        startupState.anchorReady = true
+        onStartupEvent('anchor-verified')
+        resolveStartupIfReady()
+      } catch (error) { rejectStartup(error) }
+    })()
+    anchorCheck.catch(() => {})
   })
-  supervisor.on('message', message => {
+  supervisor.on('message', async message => {
     if (message?.type === 'child-spawn') {
+      onStartupEvent('child-spawn-received')
+      try { await beforeChildSpawn() }
+      catch (error) {
+        rejectStartup(error)
+        if (!owned.cleaning) failed.reject(error)
+        return
+      }
+      if (startupState.settled) return
+      if (!Number.isSafeInteger(message.pid) || message.pid <= 0) {
+        rejectStartup(new Error(`owned child reported invalid PID ${message.pid}`))
+        return
+      }
+      if (owned.pid != null && owned.pid !== message.pid) {
+        const error = new Error(`owned child reported conflicting PIDs ${owned.pid} and ${message.pid}`)
+        if (!rejectStartup(error) && !owned.cleaning) failed.reject(error)
+        return
+      }
       owned.pid = message.pid
-      startup.resolve(owned)
+      startupState.childReady = true
+      onStartupEvent('child-spawn-accepted')
+      resolveStartupIfReady()
     } else if (message?.type === 'child-error') {
       const error = new Error(`owned child spawn/error: ${message.message}`)
-      if (owned.pid == null) startup.reject(error)
+      rejectStartup(error)
       if (!owned.cleaning) failed.reject(error)
-    } else if (message?.type === 'child-exit' && !owned.cleaning) {
-      failed.reject(new Error(`owned child exited unexpectedly (code ${message.code}, signal ${message.signal})`))
+    } else if (message?.type === 'child-exit') {
+      const error = new Error(`owned child exited unexpectedly (code ${message.code}, signal ${message.signal})`)
+      rejectStartup(error)
+      if (!owned.cleaning) failed.reject(error)
     }
   })
-  supervisor.once('error', error => { startup.reject(error); if (!owned.cleaning) failed.reject(error) })
+  supervisor.once('error', error => { rejectStartup(error); if (!owned.cleaning) failed.reject(error) })
   supervisorExit.then(({ code, signal }) => {
     const error = new Error(`owned supervisor exited unexpectedly (code ${code}, signal ${signal})`)
-    startup.reject(error)
+    rejectStartup(error)
     if (!owned.cleaning) failed.reject(error)
   })
   try {
     return await startup.promise
   } catch (error) {
     owned.cleaning = true
-    if (owned.anchor) await terminateOwnedProcess(owned).catch(() => {})
-    else { try { supervisor.kill('SIGKILL') } catch {} }
+    await anchorCheck?.catch(() => {})
+    if (owned.anchor) {
+      await terminateOwnedProcess(owned).catch(() => {})
+    } else if (supervisorSpawned) {
+      signalExactGroup(supervisor.pid, 'SIGKILL')
+      await supervisorExit
+    } else {
+      try { supervisor.kill('SIGKILL') } catch {}
+    }
     throw error
   }
 }

@@ -1,12 +1,26 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { spawn } from 'node:child_process'
 import { spawnOwnedProcess, terminateOwnedProcess } from './process-group-cleanup.mjs'
 
 const ownedProcesses = new Set()
 const looseProcesses = new Set()
+const profiles = new Set()
 const alive = pid => { try { process.kill(pid, 0); return true } catch (error) { if (error?.code === 'ESRCH') return false; throw error } }
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
+function deferred() {
+  let resolve
+  const promise = new Promise(res => { resolve = res })
+  return { promise, resolve }
+}
+async function readProcessIdentity(pid) {
+  const text = await readFile(`/proc/${pid}/stat`, 'utf8')
+  const fields = text.slice(text.lastIndexOf(')') + 2).trim().split(/\s+/)
+  return { state: fields[0], pgrp: Number(fields[2]), starttime: fields[19] }
+}
 async function readFirstLine(stream) {
   let text = ''
   for await (const chunk of stream) {
@@ -25,10 +39,127 @@ async function eventually(check, timeoutMs = 2_000) {
 afterEach(async () => {
   for (const owned of ownedProcesses) await terminateOwnedProcess(owned, { sigtermTimeoutMs: 50 }).catch(() => {})
   for (const child of looseProcesses) { try { child.kill('SIGKILL') } catch {} }
-  ownedProcesses.clear(); looseProcesses.clear()
+  for (const profile of profiles) rmSync(profile, { recursive: true, force: true })
+  ownedProcesses.clear(); looseProcesses.clear(); profiles.clear()
 })
 
 describe('anchored owned process-group cleanup', () => {
+  it('waits for verified anchor identity when child-spawn IPC arrives first', async () => {
+    const anchorGate = deferred()
+    const anchorVerified = deferred()
+    const childSpawnReceived = deferred()
+    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-startup-profile-'))
+    profiles.add(profile)
+    let returned = false
+    const spawning = spawnOwnedProcess(
+      process.execPath,
+      ['-e', 'setInterval(() => {}, 1000)'],
+      { cwd: profile },
+      {
+        readIdentity: async pid => {
+          await anchorGate.promise
+          return readProcessIdentity(pid)
+        },
+        onStartupEvent: event => {
+          if (event === 'anchor-verified') anchorVerified.resolve()
+          if (event === 'child-spawn-received') childSpawnReceived.resolve()
+        },
+      },
+    ).then(value => { returned = true; return value })
+
+    await childSpawnReceived.promise
+    await new Promise(resolve => setImmediate(resolve))
+    const returnedBeforeAnchor = returned
+    anchorGate.resolve()
+    await anchorVerified.promise
+
+    const owned = await spawning
+    ownedProcesses.add(owned)
+    expect(returnedBeforeAnchor).toBe(false)
+    expect(owned.groupId).toBe(owned.anchor.pid)
+    expect(owned.anchor.starttime).toMatch(/^\d+$/)
+    await terminateOwnedProcess(owned)
+    ownedProcesses.delete(owned)
+    rmSync(profile, { recursive: true, force: true })
+    profiles.delete(profile)
+    expect(alive(owned.anchor.pid)).toBe(false)
+    expect(existsSync(profile)).toBe(false)
+  })
+  it('waits for child-spawn IPC acceptance when anchor verification finishes first', async () => {
+    const childGate = deferred()
+    const anchorVerified = deferred()
+    const childSpawnReceived = deferred()
+    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-startup-profile-'))
+    profiles.add(profile)
+    let returned = false
+    const spawning = spawnOwnedProcess(
+      process.execPath,
+      ['-e', 'setInterval(() => {}, 1000)'],
+      { cwd: profile },
+      {
+        beforeChildSpawn: () => childGate.promise,
+        onStartupEvent: event => {
+          if (event === 'anchor-verified') anchorVerified.resolve()
+          if (event === 'child-spawn-received') childSpawnReceived.resolve()
+        },
+      },
+    ).then(value => { returned = true; return value })
+
+    await Promise.all([anchorVerified.promise, childSpawnReceived.promise])
+    await new Promise(resolve => setImmediate(resolve))
+    const returnedBeforeChildSpawn = returned
+    childGate.resolve()
+
+    const owned = await spawning
+    ownedProcesses.add(owned)
+    expect(returnedBeforeChildSpawn).toBe(false)
+    expect(owned.groupId).toBe(owned.anchor.pid)
+    expect(owned.pid).toBeGreaterThan(0)
+    await terminateOwnedProcess(owned)
+    ownedProcesses.delete(owned)
+    rmSync(profile, { recursive: true, force: true })
+    profiles.delete(profile)
+    expect(alive(owned.anchor.pid)).toBe(false)
+    expect(existsSync(profile)).toBe(false)
+  })
+
+  it('rejects an anchor read failure and removes the unreturned process group', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-startup-profile-'))
+    profiles.add(profile)
+    let groupId
+    await expect(spawnOwnedProcess(
+      process.execPath,
+      ['-e', 'setInterval(() => {}, 1000)'],
+      { cwd: profile },
+      { readIdentity: async pid => { groupId = pid; throw new Error('anchor probe failed') } },
+    )).rejects.toThrow(/anchor probe failed/)
+
+    await eventually(() => !alive(groupId))
+    rmSync(profile, { recursive: true, force: true })
+    profiles.delete(profile)
+    expect(existsSync(profile)).toBe(false)
+  })
+
+  it('rejects and cleans up when the child exits before delayed IPC acceptance', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-startup-profile-'))
+    profiles.add(profile)
+    let groupId
+    await expect(spawnOwnedProcess(
+      process.execPath,
+      ['-e', 'process.exit(9)'],
+      { cwd: profile },
+      {
+        readIdentity: async pid => { groupId = pid; return readProcessIdentity(pid) },
+        beforeChildSpawn: () => new Promise(() => {}),
+      },
+    )).rejects.toThrow(/child exited unexpectedly.*9/i)
+
+    await eventually(() => !alive(groupId))
+    rmSync(profile, { recursive: true, force: true })
+    profiles.delete(profile)
+    expect(existsSync(profile)).toBe(false)
+  })
+
   it('retains a verified supervisor anchor after the Chromium child exits', async () => {
     const owned = await spawnOwnedProcess(process.execPath, ['-e', 'process.exit(7)'], { stdio: 'ignore' })
     ownedProcesses.add(owned)
