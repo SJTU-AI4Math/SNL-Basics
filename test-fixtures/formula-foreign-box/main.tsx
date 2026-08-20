@@ -218,14 +218,16 @@ function App() {
       page: { clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, clientHeight: document.documentElement.clientHeight, scrollHeight: document.documentElement.scrollHeight },
     }),
   }
-  return <main data-revision={revision} data-language-revision={languageRevision}>
+  return <main data-revision={revision} data-language-revision={languageRevision} data-current-language={currentLanguage}>
     <h1>Bounded SVG boxes in KaTeX</h1>
     <button id="rerender" onClick={() => setRevision(value => value + 1)}>rerender surrounding formulas</button>
     <div className="context-grid">
       {stableTrees.map(({ name, tree }) => (
         <section className="context" data-context={name} key={name}>
           <h2>{name}</h2>
-          <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} reader_runtime={readerRuntime} hooks={hooks} />
+          {name === 'scaled'
+            ? <div className="scaled-host"><SnlSyntaxTreeView tree={tree} macro_data_driver={driver} reader_runtime={readerRuntime} hooks={hooks} /></div>
+            : <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} reader_runtime={readerRuntime} hooks={hooks} />}
         </section>
       ))}
     </div>

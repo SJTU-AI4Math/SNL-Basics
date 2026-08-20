@@ -18,7 +18,8 @@ h1 { font-size: 22px; margin: 0 0 12px; }
   .context { min-height: 145px; }
 }
 
-.context[data-context="scaled"] > .snl-formula-foreign-host {
+.scaled-host { font-size: 22px; }
+main[data-current-language="de"] .scaled-host {
   width: 200%;
   transform: scale(0.5);
   transform-origin: left top;

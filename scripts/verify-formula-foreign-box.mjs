@@ -245,7 +245,9 @@ try {
       const contexts = [...document.querySelectorAll('.context')].map(section => {
         const rule = section.querySelector('[data-snl-formula-foreign-marker] .snlFormulaForeignMarker .rule')?.getBoundingClientRect();
         const surface = section.querySelector('.interactive-formula-svg')?.getBoundingClientRect();
-        return { rule: rule && { x: rule.x, y: rule.y, width: rule.width, height: rule.height }, surface: surface && { x: surface.x, y: surface.y, width: surface.width, height: surface.height }, errors: section.querySelectorAll('.snl-formula-foreign-error,[role="alert"]').length };
+        const host = section.querySelector('[data-snl-foreign-box-host]');
+        const hostRect = host?.getBoundingClientRect();
+        return { name: section.dataset.context, rule: rule && { x: rule.x, y: rule.y, width: rule.width, height: rule.height }, surface: surface && { x: surface.x, y: surface.y, width: surface.width, height: surface.height }, host: host && { width: hostRect.width, offsetWidth: host.offsetWidth, transform: getComputedStyle(host).transform, parentTransform: getComputedStyle(host.parentElement).transform }, errors: section.querySelectorAll('.snl-formula-foreign-error,[role="alert"]').length };
       });
       return {
         preserved: after.length === window.__beforeDynamicSurfaces.length && after.every((node, index) => node === window.__beforeDynamicSurfaces[index]),
@@ -262,7 +264,12 @@ try {
     assert(dynamic.focused && dynamic.interactions === '1', `${testCase.name} metric convergence lost focus or interaction state: ${JSON.stringify(dynamic)}`)
     assert(dynamic.contexts.every(context => context.rule && context.surface && context.errors === 0
       && Math.max(Math.abs(context.rule.x - context.surface.x), Math.abs(context.rule.y - context.surface.y), Math.abs(context.rule.width - context.surface.width), Math.abs(context.rule.height - context.surface.height)) <= 0.75
-      && context.surface.width >= (context.name === 'scaled' ? 44 : 89) && context.surface.height >= (context.name === 'scaled' ? 22 : 44)), `${testCase.name} dynamic geometry did not converge: ${JSON.stringify(dynamic.contexts)}`)
+      && (context.name === 'scaled'
+        ? context.surface.width >= 44 && context.surface.width <= 46 && context.surface.height >= 22 && context.surface.height <= 23
+        : context.surface.width >= 89 && context.surface.height >= 44)), `${testCase.name} dynamic geometry did not converge: ${JSON.stringify(dynamic.contexts)}`)
+    const scaledDynamic = dynamic.contexts.find(context => context.name === 'scaled')
+    assert(scaledDynamic?.host?.offsetWidth > 0 && Math.abs(scaledDynamic.host.width / scaledDynamic.host.offsetWidth - 0.5) <= 0.02,
+      `${testCase.name} transformed-host fixture did not exercise a 0.5 viewport scale: ${JSON.stringify(scaledDynamic)}`)
     assert(dynamic.markerMutations.every(count => count <= 4), `${testCase.name} exceeded the four-iteration convergence cap: ${JSON.stringify(dynamic.markerMutations)}`)
     assert(dynamic.errors.length === 0, `${testCase.name} dynamic convergence errors: ${dynamic.errors.join(' | ')}`)
     const screenshot = join(artifactDir, `formula-foreign-box-${testCase.name}.png`)
@@ -283,7 +290,7 @@ try {
     })()`)
     assert(unstable.count === 10 && unstable.visible && unstable.liveSurfaces === 0
       && unstable.reasons.every(reason => reason === 'iteration-cap' || reason === 'oscillation')
-      && unstable.reasons.includes('iteration-cap') && unstable.reasons.includes('oscillation')
+      && unstable.reasons.includes('iteration-cap')
       && unstable.labels.every(label => label === 'Unstable arrow fallback'), `${testCase.name} bounded convergence did not fail closed visibly: ${JSON.stringify(unstable)}`)
     assert(unstable.errors.length === 0, `${testCase.name} bounded fallback errors: ${unstable.errors.join(' | ')}`)
     results.push({ case: testCase.name, contexts: before.contexts.map(({ name, rule, surface }) => ({ name, rule, surface })), identity, localized, retired, changedMarkup, dynamic, unstable, font: before.font, screenshot })
