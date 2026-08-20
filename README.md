@@ -583,6 +583,67 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 />
 ```
 
+### Explicit generic block renderers inside formulas
+
+Ordinary block renderers remain ineligible inside KaTeX formulas, even when a
+formula's selected block projection names their registry key. Opt in by wrapping
+a renderer with `createFormulaBlockRenderer`; the original renderer (including
+built-in singleton renderers) is not mutated:
+
+```tsx
+import {
+  createFormulaBlockRenderer,
+  defaultRenderers,
+} from '@sjtu-ai4math/snl-basics'
+
+const FormulaTable = createFormulaBlockRenderer(defaultRenderers.table, {
+  async prepare(candidate) {
+    // candidate.template is the exact, complete localized TemplateSpec selected
+    // for this node. Validate your consumer-owned projection here.
+    const policy = candidate.template.consumer_formula_policy as {
+      width_px: number
+      baseline_ratio: number
+      revision: number
+      label: string
+    }
+    return {
+      seed: { widthEm: 8, totalHeightEm: 3, baselineRatio: policy.baseline_ratio },
+      producer: 'consumer-table-v1',
+      generation: policy.revision,
+      accessibilityText: policy.label,
+      layout: { width: { px: policy.width_px }, overflow: 'clip' },
+    }
+  },
+})
+
+<SnlSyntaxTreeView
+  tree={tree}
+  macro_data_driver={driver}
+  hooks={{ renderers: { ...defaultRenderers, 'formula-table': FormulaTable } }}
+/>
+```
+
+The wrapper binds the returned plan to the selected `block_template_name` and
+derives its identity centrally; a preparation callback cannot redirect to a
+different renderer. Width must be either `"intrinsic"` (unconstrained
+`max-content`) or one positive fixed `{ px }` width. Fixed width is applied as
+equal CSS width/min-width/max-width and retains intrinsic height. Overflow must
+be explicit: `"visible"`, `"clip"`, or `"fallback-block"`. Seed width and total
+height are positive finite TeX-em values, and the trusted baseline ratio must be
+strictly between 0 and 1. Generic capabilities may accept dynamic arity; each
+specialized capability decides independently (the SVG capability still rejects
+it).
+
+Formula blocks may render formula and text descendants. Any direct or indirect
+block descendant is rejected before capability publication, and renderer child
+dispatch accepts only real nodes owned by the canonical syntax tree. The plain
+fallback text is escaped and retained at the KaTeX marker's reading-order
+position while live/fallback accessibility ownership changes atomically.
+Browser selection reliably includes that plain marker fallback. A positioned
+rich table/list/widget is separate overlay DOM, so native selection and clipboard
+copy are **not** guaranteed to reproduce its rich structure; consumers needing
+structured copy must provide an explicit copy action.
+
 ### Opt-in parameterized SVG block renderer
 
 `createSvgTemplateRenderer` projects an existing block Macro through sanitized SVG

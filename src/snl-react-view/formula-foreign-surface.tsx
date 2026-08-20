@@ -34,15 +34,29 @@ export function FormulaForeignSurface({ plan, marker, widthPx, heightPx, child, 
         onMetricReport({ ...report, reserved: { width: widthPx, totalHeight: heightPx } })
       }
     : undefined
+  const genericLayout = plan.layout
+  const surfaceStyle = genericLayout
+    ? genericLayout.width === 'intrinsic'
+      ? { width: 'max-content', height: 'max-content', minHeight: `${localHeightPx}px`, overflow: genericLayout.overflow === 'clip' ? 'clip' : 'visible' }
+      : { width: `${genericLayout.width.px}px`, minWidth: `${genericLayout.width.px}px`, maxWidth: `${genericLayout.width.px}px`, height: 'max-content', minHeight: `${localHeightPx}px`, overflow: genericLayout.overflow === 'clip' ? 'clip' : 'visible' }
+    : { minWidth: `${localWidthPx}px`, minHeight: `${localHeightPx}px` }
+  const intrinsicStyle = !onMetricReport
+    ? { display: 'contents' as const }
+    : genericLayout && genericLayout.width !== 'intrinsic'
+      ? {
+          width: `${genericLayout.width.px}px`, minWidth: `${genericLayout.width.px}px`, maxWidth: `${genericLayout.width.px}px`,
+          height: 'max-content', overflow: genericLayout.overflow === 'clip' ? 'clip' : 'visible',
+        }
+      : { width: 'max-content', height: 'max-content' }
   const surface = (
     <div
       className="snl-formula-foreign-surface"
-      style={{ minWidth: `${localWidthPx}px`, minHeight: `${localHeightPx}px` }}
+      style={surfaceStyle}
       data-snl-formula-foreign-surface={plan.identity}
     >
       <div
         data-snl-foreign-intrinsic={onMetricReport ? 'true' : undefined}
-        style={onMetricReport ? { width: 'max-content', height: 'max-content' } : { display: 'contents' }}
+        style={intrinsicStyle}
       >
         {child}
       </div>
@@ -71,19 +85,20 @@ export function FormulaForeignSurface({ plan, marker, widthPx, heightPx, child, 
     })
   }, [heightPx, metricEpoch, observationEpoch, onMetricReport, plan.generation, plan.producer, plan.treePath, widthPx])
   useSsrSafeLayoutEffect(() => {
-    marker.setAttribute('aria-hidden', 'true')
-    marker.setAttribute('role', 'presentation')
+    const accessibilityMarker = marker.closest<HTMLElement>('[data-snl-formula-foreign-marker]') ?? marker
+    accessibilityMarker.setAttribute('aria-hidden', 'true')
+    accessibilityMarker.setAttribute('role', 'presentation')
     foreign.markerRef(marker)
     return () => {
       foreign.markerRef(null)
-      if (marker.isConnected) {
-        marker.removeAttribute('aria-hidden')
-        marker.removeAttribute('role')
+      if (accessibilityMarker.isConnected) {
+        accessibilityMarker.removeAttribute('aria-hidden')
+        accessibilityMarker.removeAttribute('role')
       }
     }
   }, [foreign.markerRef, marker])
   return (
-    <ForeignBoxFallback foreign={foreign} as="span" className="snl-formula-foreign-fallback">
+    <ForeignBoxFallback foreign={foreign} as={plan.layout?.overflow === 'fallback-block' ? 'div' : 'span'} className="snl-formula-foreign-fallback">
       <span role="img" aria-label={plan.accessibilityLabel}>{plan.accessibilityLabel}</span>
     </ForeignBoxFallback>
   )

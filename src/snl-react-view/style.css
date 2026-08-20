@@ -332,6 +332,22 @@
   height: max-content;
   overflow: visible;
 }
+/* Formula-side block renderers use the KaTeX marker as their sole external
+   reservation. Normal block margins would collapse through the intrinsic
+   witness and shift the overlay away from that marker. */
+.snl-formula-foreign-surface .snl-block {
+  margin: 0;
+}
+/* Keep the escaped marker fallback in DOM/selection/accessibility order without
+   letting its glyph run affect formula geometry or narrow-page overflow. */
+.snlFormulaForeignFallbackText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .snl-formula-foreign-surface .snl-svg-template,
 .snl-formula-foreign-surface .snl-svg-template-canvas,
 .snl-formula-foreign-surface .snl-svg-template-artwork {

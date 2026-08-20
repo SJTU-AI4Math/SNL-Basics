@@ -2,6 +2,7 @@ import type { SnlBlockMacroTemplate } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import type { TreePath } from './interaction-driver'
 import type { ForeignBoxMetrics } from './foreign-box'
+import type { SnlBlockRenderer } from './hooks'
 
 export interface FixedFormulaEmbedPolicy {
   readonly totalHeightEm: number
@@ -32,6 +33,35 @@ export interface FormulaForeignResolution {
   readonly generation: number
   readonly accessibilityLabel: string
   readonly dynamicMetrics?: boolean
+  /** Generic block layout policy. Omitted by the fixed SVG capability. */
+  readonly layout?: GenericFormulaLayoutPolicy
+}
+
+export type GenericFormulaWidth = 'intrinsic' | { readonly px: number }
+export type GenericFormulaOverflow = 'visible' | 'clip' | 'fallback-block'
+
+export interface GenericFormulaLayoutPolicy {
+  readonly width: GenericFormulaWidth
+  readonly overflow: GenericFormulaOverflow
+}
+
+export interface GenericFormulaSeedMetrics {
+  readonly widthEm: number
+  readonly totalHeightEm: number
+  readonly baselineRatio: number
+}
+
+export interface GenericFormulaBlockPreparation {
+  readonly seed: GenericFormulaSeedMetrics
+  readonly producer: string
+  readonly generation: number
+  readonly accessibilityText: string
+  readonly layout: GenericFormulaLayoutPolicy
+}
+
+export interface FormulaBlockRendererOptions {
+  /** Receives the exact selected TemplateSpec projection; no macro-name inference is performed. */
+  readonly prepare: (candidate: FormulaForeignCandidate) => Promise<GenericFormulaBlockPreparation>
 }
 
 export interface FormulaForeignRendererCapability {
@@ -48,6 +78,92 @@ export function formulaForeignCapability(renderer: unknown): FormulaForeignRende
   if ((typeof renderer !== 'function' && (typeof renderer !== 'object' || renderer === null))) return null
   const capability = (renderer as FormulaForeignCapableRenderer)[FORMULA_FOREIGN_RENDERER_CAPABILITY]
   return capability && typeof capability.prepare === 'function' ? capability : null
+}
+
+function finiteNonNegativeInteger(value: unknown, label: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
+    throw new TypeError(`generic formula ${label} must be a non-negative safe integer`)
+  }
+  return value
+}
+
+function readGenericLayout(value: unknown): GenericFormulaLayoutPolicy {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError('generic formula layout policy is required')
+  }
+  const record = value as Record<string, unknown>
+  const rawWidth = record.width
+  let width: GenericFormulaWidth
+  if (rawWidth === 'intrinsic') {
+    width = 'intrinsic'
+  } else if (rawWidth && typeof rawWidth === 'object' && !Array.isArray(rawWidth)) {
+    const entries = Object.entries(rawWidth)
+    const px = (rawWidth as Record<string, unknown>).px
+    if (entries.length !== 1 || entries[0]?.[0] !== 'px' || typeof px !== 'number' || !Number.isFinite(px) || px <= 0) {
+      throw new TypeError('generic formula fixed width must be one positive finite px value')
+    }
+    width = Object.freeze({ px })
+  } else {
+    throw new TypeError('generic formula width must be intrinsic or fixed pixels')
+  }
+  const overflow = record.overflow
+  if (overflow !== 'visible' && overflow !== 'clip' && overflow !== 'fallback-block') {
+    throw new TypeError('generic formula overflow must be visible, clip, or fallback-block')
+  }
+  return Object.freeze({ width, overflow })
+}
+
+function genericFormulaMetrics(seed: GenericFormulaSeedMetrics): FixedFormulaMetrics {
+  const widthEm = finitePositive(seed?.widthEm, 'seed width')
+  const totalHeightEm = finitePositive(seed?.totalHeightEm, 'seed total height')
+  const baselineRatio = finitePositive(seed?.baselineRatio, 'seed baseline ratio')
+  if (baselineRatio >= 1) throw new TypeError('generic formula baseline ratio must be strictly between zero and one')
+  const heightEm = totalHeightEm * baselineRatio
+  return Object.freeze({ widthEm, totalHeightEm, heightEm, depthEm: totalHeightEm - heightEm })
+}
+
+/**
+ * Return a new renderer with an explicit generic formula capability. The input
+ * renderer is never mutated, so built-in singleton renderers remain ineligible.
+ */
+export function createFormulaBlockRenderer(
+  renderer: SnlBlockRenderer,
+  options: FormulaBlockRendererOptions,
+): SnlBlockRenderer {
+  if (typeof renderer !== 'function' || !options || typeof options.prepare !== 'function') {
+    throw new TypeError('generic formula renderer and prepare callback are required')
+  }
+  const wrapped: SnlBlockRenderer = props => renderer(props)
+  const capability: FormulaForeignRendererCapability = {
+    async prepare(candidate) {
+      const rendererKey = candidate.template.block_template_name
+      if (typeof rendererKey !== 'string' || rendererKey.length === 0) {
+        throw new TypeError('generic formula embedding requires an explicitly selected renderer key')
+      }
+      const prepared = await options.prepare(candidate)
+      if (!prepared || typeof prepared !== 'object') throw new TypeError('generic formula preparation is required')
+      const producer = prepared.producer
+      if (typeof producer !== 'string' || producer.length === 0) throw new TypeError('generic formula producer must be non-empty')
+      const generation = finiteNonNegativeInteger(prepared.generation, 'generation')
+      const accessibilityLabel = prepared.accessibilityText
+      if (typeof accessibilityLabel !== 'string' || accessibilityLabel.length === 0) {
+        throw new TypeError('generic formula accessibility text must be non-empty')
+      }
+      const metrics = genericFormulaMetrics(prepared.seed)
+      const layout = readGenericLayout(prepared.layout)
+      const path = candidate.treePath.join('.')
+      const layoutIdentity = layout.width === 'intrinsic' ? 'intrinsic' : `px:${layout.width.px}`
+      const identity = `generic:${encodeURIComponent(rendererKey)}:${path}:${encodeURIComponent(producer)}:${generation}:${layoutIdentity}:${layout.overflow}`
+      return Object.freeze({
+        identity, metrics, rendererKey, producer, generation, accessibilityLabel,
+        dynamicMetrics: true, layout,
+      })
+    },
+  }
+  Object.defineProperty(wrapped, FORMULA_FOREIGN_RENDERER_CAPABILITY, {
+    configurable: false, enumerable: false, writable: false, value: Object.freeze(capability),
+  })
+  return wrapped
 }
 
 interface FormulaEmbedRecord {
@@ -115,7 +231,15 @@ export function formulaForeignMarkerId(identity: string): string {
   return `ff-${encoded}`
 }
 
-export function formulaForeignMarkerLatex(identity: string, metrics: FixedFormulaMetrics): string {
+function escapeFormulaFallbackText(value: string): string {
+  const replacements: Readonly<Record<string, string>> = {
+    '\\': '\\textbackslash{}', '{': '\\{', '}': '\\}', '$': '\\$',
+    '&': '\\&', '#': '\\#', '%': '\\%', '_': '\\_', '^': '\\^{}', '~': '\\~{}',
+  }
+  return value.replace(/[\\{}$&#%_^~]/g, character => replacements[character])
+}
+
+export function formulaForeignMarkerLatex(identity: string, metrics: FixedFormulaMetrics, fallbackText?: string): string {
   const id = formulaForeignMarkerId(identity)
   const width = texNumber(metrics.widthEm)
   const depth = texNumber(metrics.depthEm)
@@ -123,7 +247,10 @@ export function formulaForeignMarkerLatex(identity: string, metrics: FixedFormul
   if (metrics.heightEm <= 0 || Math.abs(metrics.heightEm + metrics.depthEm - metrics.totalHeightEm) > 1e-7) {
     throw new TypeError('formula foreign height and depth must compose the total height')
   }
-  return `\\htmlData{snl-formula-foreign-marker=${id}}{\\htmlClass{snlFormulaForeignMarker}{\\color{transparent}{\\rule[-${depth}em]{${width}em}{${total}em}}}}`
+  const fallback = fallbackText === undefined
+    ? ''
+    : `\\htmlClass{snlFormulaForeignFallbackText}{\\rlap{\\text{${escapeFormulaFallbackText(fallbackText)}}}}`
+  return `\\htmlData{snl-formula-foreign-marker=${id}}{\\htmlClass{snlFormulaForeignMarker}{\\color{transparent}{\\rule[-${depth}em]{${width}em}{${total}em}${fallback}}}}`
 }
 
 export interface FormulaReservedPixels {

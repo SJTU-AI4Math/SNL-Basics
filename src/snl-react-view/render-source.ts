@@ -529,7 +529,9 @@ export async function resolveNodeLatex(
   // splice plans already committed by another subtree.
   const childResults = await Promise.all(
     node.children.map(async (child, i) => {
-      const childCollector = foreignCollector ? [] as FormulaForeignPlan[] : undefined
+      // A block owns its whole foreign subtree. Do not prepare nested block
+      // capabilities only to discard them when the ancestor is rejected.
+      const childCollector = foreignCollector && selfBucket !== 'block' ? [] as FormulaForeignPlan[] : undefined
       const latex = await resolveNodeLatex(
         child,
         driver,
@@ -537,7 +539,7 @@ export async function resolveNodeLatex(
         signal,
         reader_runtime,
         sampled_language,
-        formulaForeign,
+        selfBucket === 'block' ? undefined : formulaForeign,
         childCollector,
       )
       return { latex, foreignBoxes: childCollector ?? [] }
@@ -583,7 +585,7 @@ export async function resolveNodeLatex(
       })
       if (resolution) {
         foreignCollector.push({ ...resolution, node, template: resolvedTemplate, treePath: [...treePath] })
-        return wrapHtmlData(node, formulaForeignMarkerLatex(resolution.identity, resolution.metrics), macro, treePath)
+        return wrapHtmlData(node, formulaForeignMarkerLatex(resolution.identity, resolution.metrics, resolution.accessibilityLabel), macro, treePath)
       }
     }
     const body =

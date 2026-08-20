@@ -285,6 +285,7 @@ export {
 } from './render-source'
 export {
   FORMULA_FOREIGN_RENDERER_CAPABILITY,
+  createFormulaBlockRenderer,
   deriveFixedFormulaMetrics,
   formulaForeignCapability,
   formulaForeignMarkerId,
@@ -296,6 +297,12 @@ export {
   type FormulaForeignCapableRenderer,
   type FormulaForeignRendererCapability,
   type FormulaForeignResolution,
+  type FormulaBlockRendererOptions,
+  type GenericFormulaBlockPreparation,
+  type GenericFormulaLayoutPolicy,
+  type GenericFormulaOverflow,
+  type GenericFormulaSeedMetrics,
+  type GenericFormulaWidth,
 } from './formula-foreign-box'
 export {
   bindSvgTemplateChildren,

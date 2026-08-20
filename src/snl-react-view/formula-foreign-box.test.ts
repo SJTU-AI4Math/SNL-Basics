@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import katex from 'katex'
 import { describe, expect, it } from 'vitest'
 import {
@@ -46,6 +47,23 @@ describe('fixed formula foreign boxes', () => {
       ...template,
       svg_template: { formula_embed: { total_height_em: 2, baseline_ratio: 0.75, measurement: 'unbounded' } },
     })).toThrow(/measurement/)
+  })
+
+  it('puts escaped plain fallback text at marker reading order without raw markup or TeX injection', () => {
+    const hostile = String.raw`Status <img onerror=alert(1)> \frac{pwn}{x} {ok} & 100% #1`
+    const latex = formulaForeignMarkerLatex('accessible', {
+      widthEm: 2, heightEm: 0.7, depthEm: 0.3, totalHeightEm: 1,
+    }, hostile)
+    const html = katex.renderToString(latex, { trust: true, strict: false })
+    expect(html).toContain('snlFormulaForeignFallbackText')
+    expect(html).toContain('&lt;img onerror=alert(1)&gt;')
+    expect(html).not.toContain('<img')
+    expect(html).not.toContain('<script')
+    expect(html).not.toContain('<span class="mfrac">')
+    expect(html).toContain('frac')
+    const container = document.createElement('div')
+    container.innerHTML = html
+    expect(container.querySelector('.snlFormulaForeignFallbackText')?.textContent?.replaceAll(' ', ' ')).toBe(hostile)
   })
 
   it('emits a separate deterministic formula marker with TeX height and depth', () => {

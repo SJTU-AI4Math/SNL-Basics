@@ -871,14 +871,17 @@ export function SnlSyntaxTreeView({
   const formulaForeignResolver = useMemo<FormulaForeignResolverOptions>(() => ({
     async resolveBlock(candidate) {
       const key = candidate.template.block_template_name
-      if (!key || candidate.dynamicArity || subtreeContainsSelectedBlock(candidate.node)) return null
+      if (!key || subtreeContainsSelectedBlock(candidate.node)) return null
       const Renderer = mergedHooks.renderers?.[key]
       const capability = formulaForeignCapability(Renderer)
       if (!capability) return null
       try {
         const prepared = await capability.prepare(candidate)
-        const metrics = formulaMetricOverrides.get(prepared.identity)
-        return metrics ? { ...prepared, metrics } : prepared
+        // Renderer selection is authoritative: a capability may not redirect a
+        // selected projection to a different registry entry.
+        const selected = prepared.rendererKey === key ? prepared : { ...prepared, rendererKey: key }
+        const metrics = formulaMetricOverrides.get(selected.identity)
+        return metrics ? { ...selected, metrics } : selected
       } catch {
         return null
       }
@@ -1767,10 +1770,20 @@ export function SnlSyntaxTreeView({
                 return subtreeContainsSelectedBlock(child)
               } catch { return true }
             }}
-            renderChild={(child: SnlSyntaxTree, index?: number) => renderNode(
-              child,
-              pathStr ? `${pathStr}.${index ?? node.children.indexOf(child)}` : `${index ?? node.children.indexOf(child)}`,
-            )}
+            renderChild={(child: SnlSyntaxTree) => {
+              const canonicalPath = treePaths.get(child)
+              if (canonicalPath === undefined) {
+                return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer rejected an unowned synthetic child</span>
+              }
+              try {
+                if (nodeMode(child, resolvedMacros[child.macro_name] ?? null, renderLanguage) === 'block' || subtreeContainsSelectedBlock(child)) {
+                  return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer rejected a recursive block descendant</span>
+                }
+              } catch {
+                return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer could not validate its child mode</span>
+              }
+              return renderNode(child, canonicalPath)
+            }}
           />
         )}
       />

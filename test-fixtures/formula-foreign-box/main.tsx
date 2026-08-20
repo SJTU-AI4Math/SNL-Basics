@@ -11,7 +11,7 @@ import { createSnlSyntaxTreeNode } from '../../src/snl-syntax-tree/types'
 import { defaultRenderers, type SnlBlockRenderer } from '../../src/snl-react-view/hooks'
 import { SvgTemplateAssetRegistry } from '../../src/snl-react-view/svg-template-asset-registry'
 import { createSvgTemplateRenderer } from '../../src/snl-react-view/svg-template-renderer'
-import { FORMULA_FOREIGN_RENDERER_CAPABILITY, formulaForeignCapability } from '../../src/snl-react-view/formula-foreign-box'
+import { createFormulaBlockRenderer, FORMULA_FOREIGN_RENDERER_CAPABILITY, formulaForeignCapability } from '../../src/snl-react-view/formula-foreign-box'
 import arrowSource from './arrow.svg?raw'
 
 const projection = {
@@ -66,6 +66,14 @@ const db: SnlMacroRecord = {
   B: {
     name: 'B', description: '', source: { entries: [], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
     styles: [{ style_name: 'default', tags: [], template: { mode: 'formula_inline', body: 'B' } }],
+  },
+  'generic-badge': {
+    name: 'generic-badge', description: '', source: { entries: [], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
+    styles: [{ style_name: 'default', tags: [], template: { mode: 'block', body: '#0', block_template_name: 'fixture-formula-badge', formula_embed: { kind: 'badge' } } }],
+  },
+  'generic-table': {
+    name: 'generic-table', description: '', source: { entries: [], urls: [] }, kind: 'const', dynamic_arity: true, tags: [],
+    styles: [{ style_name: 'default', tags: [], template: { mode: 'block', body: '#*', separator: ',', block_template_name: 'fixture-formula-table', formula_embed: { kind: 'table' } } }],
   },
 }
 for (const [name, body] of Object.entries(contexts)) {
@@ -136,15 +144,56 @@ Object.defineProperty(SvgRenderer, FORMULA_FOREIGN_RENDERER_CAPABILITY, {
     },
   },
 })
-const hooks = { renderers: { ...defaultRenderers, 'fixture-formula-svg': SvgRenderer } }
-const trees = Object.keys(contexts).map((name) => ({
-  name,
-  tree: createSnlSyntaxTreeNode(`context-${name}`, {
-    children: [createSnlSyntaxTreeNode('diagram', {
-      children: [createSnlSyntaxTreeNode('A'), createSnlSyntaxTreeNode('B')],
-    })],
-  }),
-}))
+const BadgeBase: SnlBlockRenderer = ({ node, renderChild }) => (
+  <span className="interactive-formula-block generic-badge" role="img" aria-label="Build passed">✓ {renderChild(node.children[0])}</span>
+)
+const TableBase: SnlBlockRenderer = props => (
+  <div className="interactive-formula-block generic-table" role="group" aria-label="Fixed formula table">{defaultRenderers.table(props)}</div>
+)
+const BadgeRenderer = createFormulaBlockRenderer(BadgeBase, { prepare: async candidate => {
+  if ((candidate.template.formula_embed as { kind?: unknown } | undefined)?.kind !== 'badge') throw new Error('badge projection missing')
+  return {
+    seed: { widthEm: 2.2, totalHeightEm: 1.2, baselineRatio: 0.72 }, producer: 'fixture-badge@1', generation: 1,
+    accessibilityText: 'Build passed', layout: { width: 'intrinsic', overflow: 'visible' },
+  }
+} })
+const TableRenderer = createFormulaBlockRenderer(TableBase, { prepare: async candidate => {
+  if ((candidate.template.formula_embed as { kind?: unknown } | undefined)?.kind !== 'table') throw new Error('table projection missing')
+  return {
+    seed: { widthEm: 9, totalHeightEm: 1.6, baselineRatio: 0.72 }, producer: 'fixture-table@1', generation: 1,
+    accessibilityText: 'Fixed formula table', layout: { width: { px: 180 }, overflow: 'clip' },
+  }
+} })
+const hooks = { renderers: {
+  ...defaultRenderers,
+  'fixture-formula-svg': SvgRenderer,
+  'fixture-formula-badge': BadgeRenderer,
+  'fixture-formula-table': TableRenderer,
+} }
+const trees = [
+  ...Object.keys(contexts).map((name) => ({
+    name, kind: 'svg' as const,
+    tree: createSnlSyntaxTreeNode(`context-${name}`, {
+      children: [createSnlSyntaxTreeNode('diagram', {
+        children: [createSnlSyntaxTreeNode('A'), createSnlSyntaxTreeNode('B')],
+      })],
+    }),
+  })),
+  {
+    name: 'generic-badge', kind: 'generic' as const,
+    tree: createSnlSyntaxTreeNode('context-inline', { children: [
+      createSnlSyntaxTreeNode('generic-badge', { children: [createSnlSyntaxTreeNode('A')] }),
+    ] }),
+  },
+  {
+    name: 'generic-table', kind: 'generic' as const,
+    tree: createSnlSyntaxTreeNode('context-inline', { children: [
+      createSnlSyntaxTreeNode('generic-table', { children: [
+        createSnlSyntaxTreeNode('row', { children: [createSnlSyntaxTreeNode('A'), createSnlSyntaxTreeNode('B')] }),
+      ] }),
+    ] }),
+  },
+]
 
 declare global {
   interface Window {
@@ -166,7 +215,9 @@ function App() {
   const [languageRevision, setLanguageRevision] = useState(0)
   const stableTrees = useMemo(() => trees, [])
   window.__formulaForeignFixture = {
-    ready: () => document.querySelectorAll('.context .snl-foreign-box[data-state="positioned"] .interactive-formula-svg').length === stableTrees.length,
+    ready: () => [...document.querySelectorAll<HTMLElement>('.context')].every(section =>
+      section.querySelector('.snl-foreign-box[data-state="positioned"] .interactive-formula-svg, .snl-foreign-box[data-state="positioned"] .interactive-formula-block') !== null,
+    ),
     rerender: () => setRevision(value => value + 1),
     switchLanguage: () => {
       currentLanguage = currentLanguage === 'en' ? 'zh-CN' : 'en'
@@ -199,7 +250,7 @@ function App() {
       revision, languageRevision, currentLanguage,
       contexts: [...document.querySelectorAll<HTMLElement>('.context')].map(section => {
         const marker = section.querySelector<HTMLElement>('[data-snl-formula-foreign-marker]')
-        const surface = section.querySelector<HTMLElement>('.interactive-formula-svg')
+        const surface = section.querySelector<HTMLElement>('.snl-foreign-box[data-state="positioned"] .interactive-formula-svg, .snl-foreign-box[data-state="positioned"] .interactive-formula-block')
         const svg = surface?.querySelector<SVGSVGElement>('svg')
         const markerRect = marker?.getBoundingClientRect()
         const surfaceRect = surface?.getBoundingClientRect()
@@ -222,8 +273,8 @@ function App() {
     <h1>Bounded SVG boxes in KaTeX</h1>
     <button id="rerender" onClick={() => setRevision(value => value + 1)}>rerender surrounding formulas</button>
     <div className="context-grid">
-      {stableTrees.map(({ name, tree }) => (
-        <section className="context" data-context={name} key={name}>
+      {stableTrees.map(({ name, kind, tree }) => (
+        <section className="context" data-context={name} data-kind={kind} key={name}>
           <h2>{name}</h2>
           {name === 'scaled'
             ? <div className="scaled-host"><SnlSyntaxTreeView tree={tree} macro_data_driver={driver} reader_runtime={readerRuntime} hooks={hooks} /></div>

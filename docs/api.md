@@ -216,6 +216,55 @@ retains the old sibling while the new pin is still created. Native controls and
 `[data-snl-interaction-boundary]` descendants take pointer/keyboard ownership
 before delegated SNL activation.
 
+## Generic formula block renderer opt-in
+
+```ts
+function createFormulaBlockRenderer(
+  renderer: SnlBlockRenderer,
+  options: {
+    prepare(candidate: FormulaForeignCandidate): Promise<{
+      seed: { widthEm: number; totalHeightEm: number; baselineRatio: number }
+      producer: string
+      generation: number
+      accessibilityText: string
+      layout: {
+        width: 'intrinsic' | { px: number }
+        overflow: 'visible' | 'clip' | 'fallback-block'
+      }
+    }>
+  },
+): SnlBlockRenderer
+```
+
+This is the only generic block-in-formula opt-in. Registry presence, renderer
+key, and Macro name never infer eligibility. `candidate.template` is the exact
+complete selected/localized projection and is passed by identity. The helper
+validates trusted metrics/layout, derives deterministic identity, and forces
+`rendererKey` to that projection's selected `block_template_name`.
+
+`intrinsic` uses an unconstrained `max-content` surface. `{ px }` must be a
+positive finite number and becomes equal local CSS width/min-width/max-width;
+height remains intrinsic. Fill, percentage, host-relative, `auto`, and other
+self-dependent wrapping modes are rejected. The baseline split is numeric and
+trusted (`0 < baselineRatio < 1`); no DOM baseline is inferred. Overflow is
+mandatory. `fallback-block` puts the plain failure label in a real flow `<div>` boundary, so
+the fallback itself remains valid beside table/list renderers; it does not clone
+or serialize the rich live child.
+
+Dynamic arity is decided by the concrete capability: this generic helper may
+accept it, while `createSvgTemplateRenderer` continues to reject it. Formula
+blocks may contain formula/text descendants, but a direct or indirect block
+descendant is rejected before preparation/publication. `renderChild` resolves
+only canonical tree-owned nodes and rejects synthetic nodes visibly.
+
+The marker carries escaped plain `accessibilityText` at its KaTeX reading-order
+position; it is never interpolated as raw HTML or executable LaTeX. Marker,
+fallback, and live sidecar ownership is handed off with `aria-hidden`/`inert` so
+only one representation is exposed at a time. Browser DOM selection includes
+the plain marker text. It does not promise rich selection/copy parity for the
+positioned overlay DOM; provide a consumer copy command for structured table,
+list, or widget data.
+
 ## Parameterized SVG block projection
 
 The root barrel exports `createSvgTemplateRenderer`,

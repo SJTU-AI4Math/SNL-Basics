@@ -96,7 +96,7 @@ try {
     await cdp.send('Page.navigate', { url: vite.url })
     await waitFor(() => evaluate(cdp, `Boolean(window.__formulaForeignFixture?.ready())
       && document.querySelectorAll('.interactive-formula-svg').length === 10
-      && document.querySelectorAll('[data-snl-formula-foreign-marker] .snlFormulaForeignMarker .rule').length === 10`), `${testCase.name} positioned formula boxes`)
+      && document.querySelectorAll('[data-snl-formula-foreign-marker] .snlFormulaForeignMarker .rule').length === 12`), `${testCase.name} positioned formula boxes`)
     await lifecycleRace(delay(150))
     try {
       await waitFor(() => evaluate(cdp, `document.querySelectorAll('.interactive-formula-svg').length === 10`), `${testCase.name} settled formula convergence`)
@@ -116,7 +116,8 @@ try {
       const contexts = [...document.querySelectorAll('.context')].map(section => {
         const marker = section.querySelector('[data-snl-formula-foreign-marker]');
         const rule = marker?.querySelector('.snlFormulaForeignMarker .rule');
-        const surface = section.querySelector('.interactive-formula-svg');
+        const content = section.querySelector('.interactive-formula-svg, .interactive-formula-block');
+        const surface = content?.closest('.snl-formula-foreign-surface');
         const outer = section.querySelector('.snl-foreign-box[data-state="positioned"]');
         const panel = section.querySelector('.katex-panel');
         const host = section.querySelector('.snl-formula-foreign-host');
@@ -126,6 +127,9 @@ try {
         const cr = section.getBoundingClientRect();
         const fractionLines = [...section.querySelectorAll('.frac-line')].map(line => line.getBoundingClientRect());
         const delimiters = [...section.querySelectorAll('.delimsizing, .mopen, .mclose')].map(item => item.getBoundingClientRect()).filter(rect => rect.height > 0);
+        const selectionRange = document.createRange();
+        const katexHtml = section.querySelector('.katex-html');
+        if (katexHtml) selectionRange.selectNodeContents(katexHtml);
         return {
           name: section.dataset.context,
           markerCount: section.querySelectorAll('[data-snl-formula-foreign-marker]').length,
@@ -137,7 +141,10 @@ try {
           fallbackHidden: Boolean(fallback?.hidden),
           fallbackDisplay: fallback ? getComputedStyle(fallback).display : 'missing',
           fallbackRects: fallback ? fallback.getClientRects().length : -1,
+          markerFallbackText: marker?.querySelector('.snlFormulaForeignFallbackText')?.textContent || '',
+          selectionText: selectionRange.toString(),
           errors: section.querySelectorAll('.snl-formula-foreign-error,[role="alert"]').length,
+          errorText: [...section.querySelectorAll('.snl-formula-foreign-error,[role="alert"]')].map(node => node.textContent),
           contained: Boolean(sr && sr.x >= cr.x - 1 && sr.right <= cr.right + 1 && sr.y >= cr.y - 1 && sr.bottom <= cr.bottom + 1),
           fractionOverlap: rr ? fractionLines.reduce((sum, line) => sum + overlap(rr, line), 0) : -1,
           delimiterMaxHeight: delimiters.reduce((max, rect) => Math.max(max, rect.height), 0),
@@ -150,26 +157,30 @@ try {
       return {
         contexts,
         errors: window.__fixtureErrors || [],
-        page: { clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth },
+        page: { clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, offenders: [...document.querySelectorAll('*')].map(node => ({ node: node.tagName + '.' + node.className, right: node.getBoundingClientRect().right, width: node.getBoundingClientRect().width })).filter(item => item.right > document.documentElement.clientWidth + 1).sort((a, b) => b.right - a.right).slice(0, 8) },
         font: { main: document.fonts.check('16px KaTeX_Main'), math: document.fonts.check('italic 16px KaTeX_Math'), first: firstFamily(math) },
       };
     })()`)
-    assert(before.contexts.length === 10, `${testCase.name} renders all ten formula contexts`)
+    assert(before.contexts.length === 12, `${testCase.name} renders ten SVG and two generic formula contexts`)
     for (const context of before.contexts) {
-      assert(context.markerCount === 1 && context.rule && context.surface, `${testCase.name}/${context.name} has one marker, calibrated rule, and surface`)
+      assert(context.markerCount === 1 && context.rule && context.surface, `${testCase.name}/${context.name} has one marker, calibrated rule, and surface: ${JSON.stringify(context)}`)
       const delta = Math.max(Math.abs(context.rule.x - context.surface.x), Math.abs(context.rule.y - context.surface.y), Math.abs(context.rule.width - context.surface.width), Math.abs(context.rule.height - context.surface.height))
       assert(delta <= 0.75, `${testCase.name}/${context.name} marker/surface alignment drift ${delta}: ${JSON.stringify(context)}`)
-      assert(context.rule.width > (context.name === 'scaled' ? 20 : 40) && context.rule.height > (context.name === 'scaled' ? 12 : 25), `${testCase.name}/${context.name} reserves positive fixed TeX geometry`)
+      const generic = context.name.startsWith('generic-')
+      const expectedFallback = context.name === 'generic-badge' ? 'Build passed' : context.name === 'generic-table' ? 'Fixed formula table' : 'Arrow from A to B'
+      assert(context.rule.width > (context.name === 'scaled' ? 20 : context.name === 'generic-badge' ? 10 : 40) && context.rule.height > (context.name === 'scaled' ? 12 : context.name === 'generic-badge' ? 8 : 25), `${testCase.name}/${context.name} reserves positive fixed TeX geometry`)
       assert(context.outerState === 'positioned', `${testCase.name}/${context.name} surface is committed`)
       assert(context.overflow.panel === 'visible' && context.overflow.host === 'visible', `${testCase.name}/${context.name} exposes an internal scrollbar or clips foreign geometry: ${JSON.stringify(context.overflow)}`)
-      assert(context.accessibleSvg === 1, `${testCase.name}/${context.name} exposes one accessible SVG`)
+      assert(generic ? context.accessibleSvg === 0 : context.accessibleSvg === 1, `${testCase.name}/${context.name} accessible representation mismatch`)
+      assert(context.markerFallbackText.replace(/\s+/gu, ' ').trim() === expectedFallback, `${testCase.name}/${context.name} marker lost escaped reading-order fallback text: ${JSON.stringify(context.markerFallbackText)}`)
+      assert(context.selectionText.replace(/\s+/gu, ' ').includes(expectedFallback), `${testCase.name}/${context.name} DOM selection omits the marker fallback: ${JSON.stringify(context.selectionText)}`)
       assert(context.fallbackHidden && context.fallbackDisplay === 'none' && context.fallbackRects === 0, `${testCase.name}/${context.name} has no duplicate fallback geometry`)
       assert(context.errors === 0 && context.contained, `${testCase.name}/${context.name} is visible, contained, and error-free`)
       assert(context.fractionOverlap <= 0.1, `${testCase.name}/${context.name} foreign rule crosses a fraction line`)
       if (context.name === 'delimiters') assert(context.delimiterMaxHeight >= context.rule.height * 0.75, `${testCase.name} delimiters scale around the fixed box`)
     }
     assert(before.errors.length === 0, `${testCase.name} console/runtime errors: ${before.errors.join(' | ')}`)
-    assert(before.page.scrollWidth <= before.page.clientWidth + 1, `${testCase.name} has horizontal page overflow`)
+    assert(before.page.scrollWidth <= before.page.clientWidth + 1, `${testCase.name} has horizontal page overflow: ${JSON.stringify(before.page)}`)
     assert(before.font.main && before.font.math && before.font.first === 'KaTeX_Math', `${testCase.name} does not use real KaTeX fonts: ${JSON.stringify(before.font)}`)
     await evaluate(cdp, 'window.__formulaForeignFixture.rerender()')
     await waitFor(() => evaluate(cdp, 'document.querySelector("main")?.dataset.revision === "1"'), `${testCase.name} surrounding rerender`)
@@ -219,13 +230,13 @@ try {
       };
     })()`)
     assert(changedMarkup.preserved, `${testCase.name} changed-markup adoption remounted persistent formula children`)
-    assert(changedMarkup.contexts.length === 10 && changedMarkup.contexts.every(context => context.errors === 0 && context.fallbackCount === 0 && context.marker && context.surface),
+    assert(changedMarkup.contexts.length === 12 && changedMarkup.contexts.every(context => context.errors === 0 && context.fallbackCount === 0 && context.marker && context.surface),
       `${testCase.name} changed-markup adoption was not fully live: ${JSON.stringify(changedMarkup.contexts)}`)
     assert(changedMarkup.errors.length === 0, `${testCase.name} changed-markup errors: ${changedMarkup.errors.join(' | ')}`)
     await evaluate(cdp, `(() => {
       window.__beforeDynamicSurfaces = [...document.querySelectorAll('.interactive-formula-svg')];
       window.__dynamicMarkerMutations = Array.from({ length: 10 }, () => 0);
-      [...document.querySelectorAll('.context')].forEach((section, index) => {
+      [...document.querySelectorAll('.context[data-kind="svg"]')].forEach((section, index) => {
         new MutationObserver(records => {
           for (const record of records) {
             if ([...record.addedNodes, ...record.removedNodes].some(node => node.nodeType === 1 && (node.matches?.('[data-snl-formula-foreign-marker]') || node.querySelector?.('[data-snl-formula-foreign-marker]')))) {
@@ -242,7 +253,7 @@ try {
     await lifecycleRace(delay(200))
     const dynamic = await evaluate(cdp, `(() => {
       const after = [...document.querySelectorAll('.interactive-formula-svg')];
-      const contexts = [...document.querySelectorAll('.context')].map(section => {
+      const contexts = [...document.querySelectorAll('.context[data-kind="svg"]')].map(section => {
         const rule = section.querySelector('[data-snl-formula-foreign-marker] .snlFormulaForeignMarker .rule')?.getBoundingClientRect();
         const surface = section.querySelector('.interactive-formula-svg')?.getBoundingClientRect();
         const host = section.querySelector('[data-snl-foreign-box-host]');

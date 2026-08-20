@@ -515,6 +515,44 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 />
 ```
 
+### 在公式中显式启用通用块渲染器
+
+普通块渲染器即使被选中的块投影以 registry key 指名，也不会自动进入 KaTeX
+公式。必须使用 `createFormulaBlockRenderer` 包装；原渲染器（包括内置单例）不会
+被修改：
+
+```tsx
+const FormulaTable = createFormulaBlockRenderer(defaultRenderers.table, {
+  async prepare(candidate) {
+    // candidate.template 是该节点已选择、已本地化的完整 TemplateSpec。
+    const policy = candidate.template.consumer_formula_policy as {
+      width_px: number; baseline_ratio: number; revision: number; label: string
+    }
+    return {
+      seed: { widthEm: 8, totalHeightEm: 3, baselineRatio: policy.baseline_ratio },
+      producer: 'consumer-table-v1',
+      generation: policy.revision,
+      accessibilityText: policy.label,
+      layout: { width: { px: policy.width_px }, overflow: 'clip' },
+    }
+  },
+})
+```
+
+包装器会把计划强制绑定到所选 `block_template_name`，并集中生成 identity；prepare
+不能跳转到另一个渲染器。宽度只能是 `"intrinsic"`（无约束 `max-content`）或正数
+固定 `{ px }`；固定宽度会同时设置 CSS width/min-width/max-width，高度仍按内容测量。
+溢出策略必须显式为 `"visible"`、`"clip"` 或 `"fallback-block"`。seed 的宽度与总
+高度必须是正的有限 TeX-em 数；可信 baseline ratio 必须严格位于 0 与 1 之间。通用
+capability 可以自行接受动态 arity；每种专用 capability 独立决定（SVG 仍拒绝动态
+arity）。
+
+公式中的块可包含公式和文本后代；任何直接或间接块后代都会在 capability 发布前被
+拒绝。子节点必须来自同一棵语法树，并使用其规范 tree path。KaTeX marker 的阅读顺序
+位置保留经过转义的纯文本 fallback，accessibility 所有权切换不会产生重复表示。浏览器
+选择保证包含该纯文本；定位在 overlay DOM 中的富 table/list/widget 不能保证原生选择或
+剪贴板复制保留结构，需要结构化复制时请由使用方提供明确的复制操作。
+
 ### 可选的参数化 SVG 块渲染器
 
 `createSvgTemplateRenderer` 用经过清理的 SVG 图形投影现有块 Macro，同时每个标签仍走
