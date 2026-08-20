@@ -96,6 +96,15 @@ describe('MarkdownBody', () => {
     expect(code.querySelector('.hljs-meta')?.textContent).toBe('#check')
   })
 
+  it('does not highlight keyword prefixes inside Lean identifiers', () => {
+    const source = "```lean4\ndef theorem' : Nat := 0\ndef theoremα : Nat := 1\n```"
+    const { container } = render(<MarkdownBody source={source} />)
+    const keywords = [...container.querySelectorAll('.hljs-keyword')].map((node) => node.textContent)
+    expect(keywords).toEqual(['def', 'def'])
+    expect(container.querySelector('code')?.textContent).toContain("theorem'")
+    expect(container.querySelector('code')?.textContent).toContain('theoremα')
+  })
+
   it('distinguishes Lean character literals from apostrophes in identifiers', () => {
     const source = "```lean4\ndef keepPrime (n' : Nat) := ('a', n')\ndef pairedPrime (x'y' : Nat) := x'y'\n```"
     const { container } = render(<MarkdownBody source={source} />)

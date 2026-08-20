@@ -12,6 +12,7 @@ export const leanLanguage: LanguageFn = (hljs) => ({
   aliases: ['lean', 'lean4'],
   unicodeRegex: true,
   keywords: {
+    $pattern: /[\p{L}\p{M}\p{N}_']+/u,
     keyword: [
       'abbrev', 'axiom', 'class', 'constant', 'def', 'deriving', 'do', 'else',
       'end', 'example', 'export', 'extends', 'for', 'forall', 'from', 'fun',
