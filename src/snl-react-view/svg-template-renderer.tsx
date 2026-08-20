@@ -184,6 +184,12 @@ function ReadySurface(props: ReadySurfaceProps): ReactElement {
         if (props.childMode(child) === 'block') {
           throw new Error(`block-mode child at SVG slot ${index} is not supported`)
         }
+        if (!props.childContainsBlock) {
+          throw new Error(`recursive block capability at SVG slot ${index} is unavailable`)
+        }
+        if (props.childContainsBlock(child)) {
+          throw new Error(`descendant block content at SVG slot ${index} is not supported`)
+        }
         return <div className="snl-svg-template-slot-content">{props.renderChild(child, index)}</div>
       })
       const slots = rendered.map(({ slot, rendered: child }) => {
@@ -196,7 +202,7 @@ function ReadySurface(props: ReadySurfaceProps): ReactElement {
     } catch (reason) {
       return { slots: [], error: reason instanceof Error ? reason.message : String(reason) }
     }
-  }, [artwork, props.node.children, props.renderChild, props.childMode])
+  }, [artwork, props.node.children, props.renderChild, props.childMode, props.childContainsBlock])
 
   const mountSvg = (host: HTMLDivElement | null): void => {
     if (!host || !artwork.root) return

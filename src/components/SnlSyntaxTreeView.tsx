@@ -1429,6 +1429,30 @@ export function SnlSyntaxTreeView({
               dynamicArity={macro?.dynamic_arity ?? false}
               treePath={pathStr}
               childMode={(child: SnlSyntaxTree) => nodeMode(child, resolvedMacros[child.macro_name] ?? null, renderLanguage)}
+              childContainsBlock={(child: SnlSyntaxTree) => {
+                const visit = (descendant: SnlSyntaxTree): boolean => {
+                  try {
+                    const descendantMacro = resolvedMacros[descendant.macro_name] ?? null
+                    const descendantMode = descendant.env_mode
+                      ? descendant.env_mode
+                      : descendantMacro
+                        ? resolve_style_template(
+                            resolveStyle(descendant, descendantMacro, renderLanguage),
+                            reader_runtime,
+                            renderLanguage,
+                            descendantMacro.dynamic_arity,
+                          ).mode
+                        : nodeMode(descendant, null, renderLanguage)
+                    if (descendantMode === 'block') return true
+                  } catch {
+                    // An unresolved capability is unsafe at a foreign-content
+                    // boundary: fail closed before recursively rendering it.
+                    return true
+                  }
+                  return descendant.children.some(visit)
+                }
+                return visit(child)
+              }}
               renderChild={(child: SnlSyntaxTree) => renderNode(child, treePaths.get(child) ?? '')}
             />
           </div>

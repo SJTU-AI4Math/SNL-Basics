@@ -18,6 +18,7 @@ import {
 } from './svg-template-renderer'
 
 const source = readFileSync(resolve(process.cwd(), 'test-fixtures/parameterized-svg/commutative-square.svg'), 'utf8')
+const rendererCss = readFileSync(resolve(process.cwd(), 'src/snl-react-view/style.css'), 'utf8')
 const driver = new MacroDataDriver({ queries: { query_macro: async () => null } })
 const children = ['A', 'B', 'C', 'D'].map((name) => createSnlSyntaxTreeNode(name))
 const node = createSnlSyntaxTreeNode('consumer.diagram', { children })
@@ -50,6 +51,7 @@ function rendererProps(template = projection(), renderChild?: SvgTemplateRendere
     dynamicArity: false,
     treePath: '2.4',
     childMode: () => 'text',
+    childContainsBlock: () => false,
     renderChild: renderChild ?? ((child) => <span data-child={child.macro_name}>{child.macro_name}</span>),
   }
 }
@@ -62,6 +64,15 @@ function makeRenderer(svgSource = source) {
 afterEach(cleanup)
 
 describe('SvgTemplateRenderer', () => {
+  it('sizes SVG slots from their host container rather than the viewport', () => {
+    const hostRule = rendererCss.match(/\.snl-svg-template\s*\{([^}]*)\}/)?.[1] ?? ''
+    const slotRule = rendererCss.match(/\.snl-svg-template-slot-content\s*\{([^}]*)\}/)?.[1] ?? ''
+    expect(hostRule).toMatch(/container-type\s*:\s*inline-size\s*;/)
+    expect(slotRule).toMatch(/max-width\s*:\s*min\(11rem,\s*20cqw\)\s*;/)
+    expect(slotRule).not.toMatch(/\bvw\b/)
+    expect(slotRule).not.toMatch(/min-width\s*:\s*[1-9]/)
+  })
+
   it('loads immutable raw source, sanitizes per consumer, scopes IDs, and mounts the real transformed g markers', async () => {
     const { Renderer } = makeRenderer()
     const first = render(<Renderer {...rendererProps()} />)
@@ -151,6 +162,107 @@ describe('SvgTemplateRenderer', () => {
     await waitFor(() => expect(mounts).toBeGreaterThan(initialMounts))
     expect([...view.container.querySelectorAll('.snl-foreign-box')].every((wrapper, index) => wrapper !== firstWrappers[index])).toBe(true)
     expect(view.container.querySelectorAll('.snl-foreign-box')).toHaveLength(4)
+  })
+
+  it('rejects a direct text child whose resolved subtree contains block content before renderChild', async () => {
+    const renderChild = vi.fn(() => <span>unsafe nested block</span>)
+    const { Renderer } = makeRenderer()
+    const view = render(<Renderer
+      {...rendererProps(projection(), renderChild)}
+      childContainsBlock={() => true}
+    />)
+
+    await waitFor(() => expect(view.getByRole('alert').textContent).toMatch(/descendant block content/i))
+    expect(renderChild).not.toHaveBeenCalled()
+    expect(view.container.querySelector('.snl-foreign-box-host')).toBeNull()
+    expect(view.container.querySelector('svg')).toBeNull()
+  })
+
+  it('fails closed when recursive subtree capability is unavailable', async () => {
+    const renderChild = vi.fn(() => <span>unchecked child</span>)
+    const { Renderer } = makeRenderer()
+    const props = rendererProps(projection(), renderChild)
+    const { childContainsBlock: _omitted, ...withoutCapability } = props
+    const view = render(<Renderer {...withoutCapability} />)
+
+    await waitFor(() => expect(view.getByRole('alert').textContent).toMatch(/recursive block capability/i))
+    expect(renderChild).not.toHaveBeenCalled()
+    expect(view.container.querySelector('.snl-foreign-box-host')).toBeNull()
+  })
+
+  it.each([
+    ['one text level', (block: SnlSyntaxTree) => createSnlSyntaxTreeNode('textShell', { children: [block] })],
+    ['two text levels', (block: SnlSyntaxTree) => createSnlSyntaxTreeNode('textShell', {
+      children: [createSnlSyntaxTreeNode('textShell', { children: [block] })],
+    })],
+  ])('rejects %s above a nested SVG block before invoking the outer renderChild', async (_name, wrap) => {
+    let outerRenderChildCalls = 0
+    const { Renderer: BaseRenderer } = makeRenderer()
+    const GuardedRenderer = (props: SvgTemplateRendererProps) => (
+      <BaseRenderer
+        {...props}
+        renderChild={(child, index) => {
+          outerRenderChildCalls += 1
+          return props.renderChild(child, index)
+        }}
+      />
+    )
+    const macro = (name: string, template: SnlMacroRecord[string]['styles'][number]['template']): SnlMacroRecord[string] => ({
+      name, description: '', source: { entries: [], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
+      styles: [{ style_name: 'default', tags: [], template }],
+    })
+    const db: SnlMacroRecord = {
+      outer: macro('outer', projection()),
+      nestedSvg: macro('nestedSvg', projection()),
+      textShell: macro('textShell', { mode: 'text', body: '#0' }),
+      formulaLeaf: macro('formulaLeaf', { mode: 'formula_inline', body: 'x' }),
+    }
+    const nestedBlock = createSnlSyntaxTreeNode('nestedSvg', { children: children.map(() => createSnlSyntaxTreeNode('formulaLeaf')) })
+    const unsafe = wrap(nestedBlock)
+    const tree = createSnlSyntaxTreeNode('outer', {
+      children: [unsafe, ...children.slice(1).map(() => createSnlSyntaxTreeNode('formulaLeaf'))],
+    })
+    const macroDriver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name }) => db[macro_name] ?? null } })
+    const view = render(<SnlSyntaxTreeView
+      tree={tree}
+      macro_data_driver={macroDriver}
+      hooks={{ renderers: { ...defaultRenderers, 'consumer-svg': GuardedRenderer } }}
+    />)
+
+    await waitFor(() => expect(view.getByRole('alert').textContent).toMatch(/descendant block content/i))
+    expect(outerRenderChildCalls).toBe(0)
+    expect(view.container.querySelectorAll('.snl-foreign-box-host')).toHaveLength(0)
+    expect(view.container.querySelector('svg')).toBeNull()
+  })
+
+  it('allows ordinary nested text and formula subtrees with no resolved block mode', async () => {
+    const { Renderer } = makeRenderer()
+    const macro = (name: string, template: SnlMacroRecord[string]['styles'][number]['template']): SnlMacroRecord[string] => ({
+      name, description: '', source: { entries: [], urls: [] }, kind: 'const', dynamic_arity: false, tags: [],
+      styles: [{ style_name: 'default', tags: [], template }],
+    })
+    const db: SnlMacroRecord = {
+      outer: macro('outer', projection()),
+      textShell: macro('textShell', { mode: 'text', body: 'safe #0' }),
+      formulaLeaf: macro('formulaLeaf', { mode: 'formula_inline', body: 'x^2' }),
+    }
+    const safeText = createSnlSyntaxTreeNode('textShell', {
+      children: [createSnlSyntaxTreeNode('textShell', { children: [createSnlSyntaxTreeNode('formulaLeaf')] })],
+    })
+    const tree = createSnlSyntaxTreeNode('outer', {
+      children: [safeText, ...children.slice(1).map(() => createSnlSyntaxTreeNode('formulaLeaf'))],
+    })
+    const macroDriver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name }) => db[macro_name] ?? null } })
+    const view = render(<SnlSyntaxTreeView
+      tree={tree}
+      macro_data_driver={macroDriver}
+      hooks={{ renderers: { ...defaultRenderers, 'consumer-svg': Renderer } }}
+    />)
+
+    await waitFor(() => expect(view.container.querySelector('svg')).not.toBeNull())
+    expect(view.container.querySelector('[data-name="textShell"][data-tree-path="0.0"]')).not.toBeNull()
+    expect(view.container.querySelector('[data-name="formulaLeaf"][data-tree-path="0.0.0"]')).not.toBeNull()
+    expect(view.container.querySelector('[role="alert"]')).toBeNull()
   })
 
   it.each([

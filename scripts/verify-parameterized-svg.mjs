@@ -82,12 +82,19 @@ try {
     addEventListener('unhandledrejection', event => window.__fixtureErrors.push('unhandledrejection: ' + String(event.reason)));
   ` })
   const results = []
-  for (const width of [390, 1000]) {
+  const cases = [
+    { name: '390', viewportWidth: 390, path: '/' },
+    { name: '1000-wide', viewportWidth: 1000, path: '/' },
+    { name: '1000-narrow-sidebar', viewportWidth: 1000, path: '/?narrow-sidebar=1', narrowSidebar: true },
+  ]
+  for (const testCase of cases) {
+    const width = testCase.viewportWidth
+    const caseLabel = testCase.name
     await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: 760, deviceScaleFactor: 1, mobile: false })
-    await cdp.send('Page.navigate', { url: 'http://127.0.0.1:43190/' })
-    await waitFor(() => evaluate(cdp, 'Boolean(window.__svgFixture?.ready())'), `${width}px positioned fixture`)
+    await cdp.send('Page.navigate', { url: `http://127.0.0.1:43190${testCase.path}` })
+    await waitFor(() => evaluate(cdp, 'Boolean(window.__svgFixture?.ready())'), `${caseLabel} (viewport ${width}px) positioned fixture`)
     await evaluate(cdp, 'document.fonts.ready.then(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))')
-    await waitFor(() => evaluate(cdp, 'Boolean(window.__svgFixture?.ready())'), `${width}px settled positioned fixture`)
+    await waitFor(() => evaluate(cdp, 'Boolean(window.__svgFixture?.ready())'), `${caseLabel} (viewport ${width}px) settled positioned fixture`)
     const before = await evaluate(cdp, `(async () => {
       const svg = document.querySelector('.fixture-frame svg.snl-svg-template-artwork');
       const frame = document.querySelector('.fixture-frame');
@@ -255,45 +262,53 @@ try {
         errors: window.__fixtureErrors || []
       };
     })()`)
-    assert(before.markerCount === 4, `${width}px has four real g markers`)
-    assert(JSON.stringify(before.transforms) === JSON.stringify(['translate(155 70)', 'translate(500 70)', 'translate(130 310)', 'translate(480 310)']), `${width}px preserves transformed marker geometry`)
-    assert(before.edgePaint.length === 4, `${width}px has four directed edge paths`)
+    assert(before.markerCount === 4, `${caseLabel} (viewport ${width}px) has four real g markers`)
+    assert(JSON.stringify(before.transforms) === JSON.stringify(['translate(155 70)', 'translate(500 70)', 'translate(130 310)', 'translate(480 310)']), `${caseLabel} (viewport ${width}px) preserves transformed marker geometry`)
+    assert(before.edgePaint.length === 4, `${caseLabel} (viewport ${width}px) has four directed edge paths`)
     before.edgePaint.forEach((edge, index) => {
-      assert(edge.directStroke && edge.directStroke !== 'none' && !edge.directStroke.startsWith('url('), `${width}px edge ${index} has a direct non-URL stroke`)
-      assert(edge.stroke && edge.stroke !== 'none' && edge.stroke !== 'transparent', `${width}px edge ${index} has computed paint`)
-      assert(edge.width > 0 && edge.opacity > 0 && edge.length > 0, `${width}px edge ${index} has positive width, opacity, and length`)
+      assert(edge.directStroke && edge.directStroke !== 'none' && !edge.directStroke.startsWith('url('), `${caseLabel} (viewport ${width}px) edge ${index} has a direct non-URL stroke`)
+      assert(edge.stroke && edge.stroke !== 'none' && edge.stroke !== 'transparent', `${caseLabel} (viewport ${width}px) edge ${index} has computed paint`)
+      assert(edge.width > 0 && edge.opacity > 0 && edge.length > 0, `${caseLabel} (viewport ${width}px) edge ${index} has positive width, opacity, and length`)
     })
-    assert(before.arrowPaint.length === 4, `${width}px has four explicit arrowhead paths`)
+    assert(before.arrowPaint.length === 4, `${caseLabel} (viewport ${width}px) has four explicit arrowhead paths`)
     before.arrowPaint.forEach((arrow, index) => {
-      assert(arrow.fill && arrow.fill !== 'none' && arrow.fill !== 'transparent', `${width}px arrowhead ${index} has computed fill`)
-      assert(arrow.opacity > 0 && arrow.length > 0, `${width}px arrowhead ${index} has positive opacity and geometry`)
+      assert(arrow.fill && arrow.fill !== 'none' && arrow.fill !== 'transparent', `${caseLabel} (viewport ${width}px) arrowhead ${index} has computed fill`)
+      assert(arrow.opacity > 0 && arrow.length > 0, `${caseLabel} (viewport ${width}px) arrowhead ${index} has positive opacity and geometry`)
     })
-    assert(before.rasterCorridors.every(pixels => pixels > 180), `${width}px edge corridors contain rasterized artwork: ${before.rasterCorridors.join(',')}`)
-    assert(before.positioned === 4, `${width}px positions every foreign label`)
-    assert(before.accessibleArtwork === 1, `${width}px exposes exactly one labelled SVG artwork`)
-    assert(before.accessibleForeign === 4, `${width}px exposes exactly four positioned foreign labels`)
-    assert(before.geometry.frame.scrollWidth <= before.geometry.frame.clientWidth + 1, `${width}px fixture frame has no internal horizontal overflow`)
-    assert(before.geometry.host.scrollWidth <= before.geometry.host.clientWidth + 1, `${width}px SVG host has no internal horizontal overflow`)
-    assert(before.geometry.labelsContainedInFrame && before.geometry.labelsContainedInHost, `${width}px every positioned label is contained in frame and SVG host: ${JSON.stringify(before.geometry)}`)
-    assert(before.geometry.maxPairOverlap <= 1, `${width}px positioned labels do not intersect: ${JSON.stringify(before.geometry)}`)
-    assert(before.geometry.labelEdgeCrossings.length === 0, `${width}px labels do not cross painted edge corridors: ${JSON.stringify(before.geometry.labelEdgeCrossings)}`)
-    assert(before.geometry.clippedLabels === 0, `${width}px positioned labels are not clipped: ${JSON.stringify(before.geometry)}`)
-    assert(before.foreignFallbacks.length === 4, `${width}px retains four stable main-fixture fallback boundaries`)
+    assert(before.rasterCorridors.every(pixels => pixels > 180), `${caseLabel} (viewport ${width}px) edge corridors contain rasterized artwork: ${before.rasterCorridors.join(',')}`)
+    assert(before.positioned === 4, `${caseLabel} (viewport ${width}px) positions every foreign label`)
+    assert(before.accessibleArtwork === 1, `${caseLabel} (viewport ${width}px) exposes exactly one labelled SVG artwork`)
+    assert(before.accessibleForeign === 4, `${caseLabel} (viewport ${width}px) exposes exactly four positioned foreign labels`)
+    assert(before.geometry.frame.scrollWidth <= before.geometry.frame.clientWidth + 1, `${caseLabel} (viewport ${width}px) fixture frame has no internal horizontal overflow`)
+    assert(before.geometry.host.scrollWidth <= before.geometry.host.clientWidth + 1, `${caseLabel} (viewport ${width}px) SVG host has no internal horizontal overflow`)
+    if (testCase.narrowSidebar) {
+      assert(before.geometry.host.clientWidth >= 275 && before.geometry.host.clientWidth <= 305,
+        `${caseLabel} uses an approximately 300px sidebar host (received ${before.geometry.host.clientWidth}px)`)
+      const rightLabel = before.geometry.labelRects[1]
+      assert(rightLabel.height >= 40, `${caseLabel} right-side long label wraps to multiple lines`)
+      assert(rightLabel.width <= before.geometry.host.clientWidth * 0.205,
+        `${caseLabel} right-side slot stays within 20% of its host (received ${rightLabel.width}px)`)
+    }
+    assert(before.geometry.labelsContainedInFrame && before.geometry.labelsContainedInHost, `${caseLabel} (viewport ${width}px) every positioned label is contained in frame and SVG host: ${JSON.stringify(before.geometry)}`)
+    assert(before.geometry.maxPairOverlap <= 1, `${caseLabel} (viewport ${width}px) positioned labels do not intersect: ${JSON.stringify(before.geometry)}`)
+    assert(before.geometry.labelEdgeCrossings.length === 0, `${caseLabel} (viewport ${width}px) labels do not cross painted edge corridors: ${JSON.stringify(before.geometry.labelEdgeCrossings)}`)
+    assert(before.geometry.clippedLabels === 0, `${caseLabel} (viewport ${width}px) positioned labels are not clipped: ${JSON.stringify(before.geometry)}`)
+    assert(before.foreignFallbacks.length === 4, `${caseLabel} (viewport ${width}px) retains four stable main-fixture fallback boundaries`)
     before.foreignFallbacks.forEach((fallback, index) => {
-      assert(fallback.hidden, `${width}px fallback ${index} has the hidden gate after positioning`)
-      assert(fallback.display === 'none', `${width}px fallback ${index} computes display:none (received ${fallback.display})`)
-      assert(fallback.clientRects === 0, `${width}px fallback ${index} has no boundary client rects`)
-      assert(fallback.textRects === 0, `${width}px fallback ${index} text has no visible normal-flow geometry`)
-      assert(fallback.text && fallback.text === fallback.liveText, `${width}px fallback ${index} is associated with its positioned wrapper`)
-      assert(fallback.liveTextRects > 0, `${width}px positioned wrapper ${index} remains visibly rendered`)
+      assert(fallback.hidden, `${caseLabel} (viewport ${width}px) fallback ${index} has the hidden gate after positioning`)
+      assert(fallback.display === 'none', `${caseLabel} (viewport ${width}px) fallback ${index} computes display:none (received ${fallback.display})`)
+      assert(fallback.clientRects === 0, `${caseLabel} (viewport ${width}px) fallback ${index} has no boundary client rects`)
+      assert(fallback.textRects === 0, `${caseLabel} (viewport ${width}px) fallback ${index} text has no visible normal-flow geometry`)
+      assert(fallback.text && fallback.text === fallback.liveText, `${caseLabel} (viewport ${width}px) fallback ${index} is associated with its positioned wrapper`)
+      assert(fallback.liveTextRects > 0, `${caseLabel} (viewport ${width}px) positioned wrapper ${index} remains visibly rendered`)
     })
-    assert(before.fallbackProbe.text.includes('fixed arity'), `${width}px exposes deterministic fixed-arity fallback`)
-    assert(before.fallbackProbe.display !== 'none' && before.fallbackProbe.visibleRects > 0 && !before.fallbackProbe.hidden, `${width}px keeps the intentional dynamic-arity fallback visibly rendered`)
-    assert(before.errors.length === 0, `${width}px has no console/runtime errors: ${before.errors.join(' | ')}`)
-    assert(!before.alert, `${width}px has no visible fallback: ${before.alert}`)
-    assert(before.pageWidth <= before.viewport, `${width}px fixture has no page overflow`)
+    assert(before.fallbackProbe.text.includes('fixed arity'), `${caseLabel} (viewport ${width}px) exposes deterministic fixed-arity fallback`)
+    assert(before.fallbackProbe.display !== 'none' && before.fallbackProbe.visibleRects > 0 && !before.fallbackProbe.hidden, `${caseLabel} (viewport ${width}px) keeps the intentional dynamic-arity fallback visibly rendered`)
+    assert(before.errors.length === 0, `${caseLabel} (viewport ${width}px) has no console/runtime errors: ${before.errors.join(' | ')}`)
+    assert(!before.alert, `${caseLabel} (viewport ${width}px) has no visible fallback: ${before.alert}`)
+    assert(before.pageWidth <= before.viewport, `${caseLabel} (viewport ${width}px) fixture has no page overflow`)
     await evaluate(cdp, 'window.__svgFixture.toggle()')
-    await waitFor(() => evaluate(cdp, 'document.querySelector(".fixture-frame svg")?.getAttribute("aria-label") === "Updated commutative square projection"'), `${width}px projection update`)
+    await waitFor(() => evaluate(cdp, 'document.querySelector(".fixture-frame svg")?.getAttribute("aria-label") === "Updated commutative square projection"'), `${caseLabel} (viewport ${width}px) projection update`)
     const identity = await evaluate(cdp, `(() => {
       const afterChildren = [...document.querySelectorAll('.fixture-frame .snl-foreign-box-measure > *')];
       return {
@@ -303,14 +318,15 @@ try {
         errors: window.__fixtureErrors || []
       };
     })()` )
-    assert(identity.svg, `${width}px projection update preserves SVG DOM identity`)
-    assert(identity.children, `${width}px projection update preserves every child DOM identity`)
-    assert(identity.ready, `${width}px projection update keeps all children positioned`)
-    assert(identity.errors.length === 0, `${width}px update has no console/runtime errors: ${identity.errors.join(' | ')}`)
-    const screenshot = join(artifactDir, `parameterized-svg-${width}.png`)
+    assert(identity.svg, `${caseLabel} (viewport ${width}px) projection update preserves SVG DOM identity`)
+    assert(identity.children, `${caseLabel} (viewport ${width}px) projection update preserves every child DOM identity`)
+    assert(identity.ready, `${caseLabel} (viewport ${width}px) projection update keeps all children positioned`)
+    assert(identity.errors.length === 0, `${caseLabel} (viewport ${width}px) update has no console/runtime errors: ${identity.errors.join(' | ')}`)
+    const screenshot = join(artifactDir, `parameterized-svg-${caseLabel}.png`)
     const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
     writeFileSync(screenshot, Buffer.from(capture.data, 'base64'))
     results.push({
+      case: caseLabel,
       width,
       markers: before.markerCount,
       positioned: before.positioned,

@@ -12,6 +12,10 @@ import { SvgTemplateAssetRegistry } from '../../src/snl-react-view/svg-template-
 import { createSvgTemplateRenderer } from '../../src/snl-react-view/svg-template-renderer'
 import squareSource from './commutative-square.svg?raw'
 
+if (new URLSearchParams(location.search).has('narrow-sidebar')) {
+  document.body.classList.add('narrow-sidebar-fixture')
+}
+
 const projection = {
   mode: 'block' as const,
   body: '#0#1#2#3',
@@ -40,15 +44,15 @@ const db: SnlMacroRecord = {
   },
   labelA: {
     name: 'labelA', description: '', source: { entries: [], urls: [] }, kind: 'const',
-    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'A — responsive-label-needs-wrapping' } }],
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'A left label wraps' } }],
   },
   labelB: {
     name: 'labelB', description: '', source: { entries: [], urls: [] }, kind: 'const',
-    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'formula_inline', body: 'B \\times_A C' } }],
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'B right label wraps' } }],
   },
   labelC: {
     name: 'labelC', description: '', source: { entries: [], urls: [] }, kind: 'const',
-    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'C target' } }],
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'C' } }],
   },
   labelD: {
     name: 'labelD', description: '', source: { entries: [], urls: [] }, kind: 'const',

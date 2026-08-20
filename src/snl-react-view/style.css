@@ -279,6 +279,7 @@
   min-width: 0;
   max-width: 100%;
   overflow: visible;
+  container-type: inline-size;
 }
 .snl-svg-template-canvas,
 .snl-svg-template-artwork {
@@ -297,7 +298,7 @@
   box-sizing: border-box;
   width: fit-content;
   min-width: 0;
-  max-width: clamp(5rem, 22vw, 11rem);
+  max-width: min(11rem, 20cqw);
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;

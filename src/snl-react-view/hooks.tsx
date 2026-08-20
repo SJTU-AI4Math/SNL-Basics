@@ -96,6 +96,12 @@ export interface SnlBlockRendererProps {
   treePath: string
   /** Resolve a child mode without bypassing the view's existing Macro projection. */
   childMode: (child: SnlSyntaxTree) => 'formula_inline' | 'formula_display' | 'text' | 'block'
+  /**
+   * Report whether the selected complete TemplateSpec modes anywhere in this
+   * child's subtree include block content. Optional for custom renderers;
+   * specialized foreign-content renderers may require it to fail closed.
+   */
+  childContainsBlock?: (child: SnlSyntaxTree) => boolean
   /** Render a child of any mode through the view, preserving semantic DOM metadata. */
   renderChild: (child: SnlSyntaxTree, index?: number) => ReactElement
 }
