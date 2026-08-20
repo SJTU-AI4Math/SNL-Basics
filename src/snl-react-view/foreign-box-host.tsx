@@ -351,10 +351,15 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
           observerRef.current?.unobserve(previous.measurement)
           elementEntriesRef.current.delete(previous.measurement)
         }
+        if (previous.intrinsicMeasurement) {
+          observerRef.current?.unobserve(previous.intrinsicMeasurement)
+          elementEntriesRef.current.delete(previous.intrinsicMeasurement)
+        }
         previous.marker = null
         previous.metrics = null
         clearFocusRestore(previous)
         previous.measurement = null
+        previous.intrinsicMeasurement = null
         previous.wrapper = null
         previous.positioned = false
       }

@@ -462,6 +462,26 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(oldUnregister).toHaveBeenCalledTimes(1)
   })
 
+  it('unobserves a retired intrinsic witness during same-slot replacement', () => {
+    let registry!: ReturnType<typeof useForeignBoxRegistry>
+    const view = render(<ForeignBoxHost><RegistryCapture setRegistry={value => { registry = value }} /></ForeignBoxHost>)
+    act(() => {
+      registry.register({
+        identity: identity('replace-intrinsic', 1, 'old@1'),
+        child: <div data-testid="retired-intrinsic" data-snl-foreign-intrinsic="true">old</div>,
+      })
+    })
+    const intrinsic = view.getByTestId('retired-intrinsic')
+    const observer = TrackingResizeObserver.instances[0]
+    expect(observer.targets.has(intrinsic)).toBe(true)
+
+    act(() => {
+      registry.register({ identity: identity('replace-intrinsic', 2, 'new@2'), child: <span>new</span> })
+    })
+    expect(observer.targets.has(intrinsic)).toBe(false)
+    expect(observer.unobserved).toContain(intrinsic)
+  })
+
   it('stages a positioned wrapper before an explicit unregister callback observes it', () => {
     let registry!: ReturnType<typeof useForeignBoxRegistry>
     const view = render(<ForeignBoxHost><RegistryCapture setRegistry={value => { registry = value }} /></ForeignBoxHost>)
