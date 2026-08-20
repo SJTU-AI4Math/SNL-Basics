@@ -70,6 +70,22 @@ describe('basic demo mathematical SVG presets', () => {
     expect(DEMO_SVG_SOURCES['higher-category.svg']).toBe(template.trim())
   })
 
+  it('fails closed before publishing an incomplete or duplicate TikZ formula set', async () => {
+    // @ts-expect-error The build helper is an executable ESM script without a declaration file.
+    const { extractTemplate } = await import('../../examples/basic-demo/scripts/build-tikz-assets.mjs') as {
+      extractTemplate: (full: string) => string
+    }
+    const full = readFileSync(resolve(process.cwd(), 'examples/basic-demo/tikz/generated/higher-category.full.svg'), 'utf8')
+    expect(extractTemplate(full).trim()).toBe(DEMO_SVG_SOURCES['higher-category.svg'])
+    expect(() => extractTemplate(full.replace("<g data-snl-formula='8'>", ''))).toThrow(/exactly 0, 1, 2, 3, 4, 5, 6, 7, 8/)
+    expect(() => extractTemplate(full.replace(/<g data-snl-anchor='8'[^>]*\/>/, ''))).toThrow(/exactly 0, 1, 2, 3, 4, 5, 6, 7, 8/)
+    const duplicateAnchor = full.replace(
+      /(<g data-snl-anchor='8'[^>]*\/>)/,
+      '$1$1',
+    )
+    expect(() => extractTemplate(duplicateAnchor)).toThrow(/exactly 0, 1, 2, 3, 4, 5, 6, 7, 8/)
+  })
+
   it('keeps mathematical objects in contiguous SNL slots rather than SVG text', () => {
     for (const preset of DEMO_PRESETS) {
       const macro = DEMO_MACROS[preset.diagramMacro]

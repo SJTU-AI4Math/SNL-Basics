@@ -1,39 +1,44 @@
 import { execFileSync } from 'node:child_process'
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 const demoRoot = resolve(scriptDir, '..')
 const tikzRoot = join(demoRoot, 'tikz')
 const sourcePath = join(tikzRoot, 'higher-category.tex')
 const outputDir = join(tikzRoot, 'generated')
-const scratch = mkdtempSync(join(tmpdir(), 'snl-tikz-demo-'))
 const useShell = process.platform === 'win32'
+export const EXPECTED_FORMULA_IDS = Object.freeze(Array.from({ length: 9 }, (_, index) => index))
 
 function run(command, args, cwd) {
   execFileSync(command, args, { cwd, stdio: 'inherit', shell: useShell })
 }
 
-function extractTemplate(full) {
+function requireExactFormulaIds(actual, label) {
+  if (actual.length !== EXPECTED_FORMULA_IDS.length || actual.some((id, index) => id !== EXPECTED_FORMULA_IDS[index])) {
+    throw new Error(`${label} must be exactly ${EXPECTED_FORMULA_IDS.join(', ')}; received ${actual.join(', ')}`)
+  }
+}
+
+export function extractTemplate(full) {
   const anchors = new Map()
+  const anchorIndices = []
   for (const match of full.matchAll(/<g data-snl-anchor='(\d+)' data-snl-bbox='([^']+)'\/>/g)) {
     const values = match[2].trim().split(/\s+/).map(Number)
     if (values.length !== 4 || values.some((value) => !Number.isFinite(value))) {
       throw new Error(`invalid TikZ formula bbox for slot ${match[1]}: ${match[2]}`)
     }
-    anchors.set(Number(match[1]), values)
+    const index = Number(match[1])
+    anchorIndices.push(index)
+    anchors.set(index, values)
   }
-  const indices = [...anchors.keys()].sort((left, right) => left - right)
-  if (indices.some((index, position) => index !== position)) {
-    throw new Error(`TikZ formula anchors must be contiguous from zero: ${indices.join(', ')}`)
-  }
+  requireExactFormulaIds(anchorIndices, 'TikZ formula anchors')
+  const indices = EXPECTED_FORMULA_IDS
 
   const formulaIndices = [...full.matchAll(/<g data-snl-formula='(\d+)'>/g)].map((match) => Number(match[1]))
-  if (formulaIndices.length !== indices.length || formulaIndices.some((index, position) => index !== indices[position])) {
-    throw new Error(`TikZ formula groups do not match anchors: ${formulaIndices.join(', ')}`)
-  }
+  requireExactFormulaIds(formulaIndices, 'TikZ formula groups')
 
   const viewBox = full.match(/\bviewBox='([^']+)'/)?.[1]
   const page = full.match(/<g id='page1'>([\s\S]*)<\/g>\s*<\/svg>/)?.[1]
@@ -83,22 +88,33 @@ function extractTemplate(full) {
   ].join('\n')
 }
 
-try {
-  mkdirSync(outputDir, { recursive: true })
-  copyFileSync(sourcePath, join(scratch, basename(sourcePath)))
-  run('latex', ['-interaction=nonstopmode', '-halt-on-error', basename(sourcePath)], scratch)
-  run('dvisvgm', ['--no-fonts', '--exact', '--bbox=min', '-o', 'higher-category.full.svg', 'higher-category.dvi'], scratch)
+export function buildTikzAssets() {
+  const scratch = mkdtempSync(join(tmpdir(), 'snl-tikz-demo-'))
+  const stagedFull = join(outputDir, '.higher-category.full.svg.next')
+  const stagedTemplate = join(outputDir, '.higher-category.template.svg.next')
+  try {
+    mkdirSync(outputDir, { recursive: true })
+    copyFileSync(sourcePath, join(scratch, basename(sourcePath)))
+    run('latex', ['-interaction=nonstopmode', '-halt-on-error', basename(sourcePath)], scratch)
+    run('dvisvgm', ['--no-fonts', '--exact', '--bbox=min', '-o', 'higher-category.full.svg', 'higher-category.dvi'], scratch)
 
-  const full = readFileSync(join(scratch, 'higher-category.full.svg'), 'utf8')
-  const template = extractTemplate(full)
-  writeFileSync(join(outputDir, 'higher-category.full.svg'), full)
-  writeFileSync(join(outputDir, 'higher-category.template.svg'), template)
-  console.log(JSON.stringify({
-    source: sourcePath,
-    full: join(outputDir, 'higher-category.full.svg'),
-    template: join(outputDir, 'higher-category.template.svg'),
-    slots: [...template.matchAll(/data-snl-slot="(\d+)"/g)].length,
-  }))
-} finally {
-  rmSync(scratch, { recursive: true, force: true })
+    const full = readFileSync(join(scratch, 'higher-category.full.svg'), 'utf8')
+    const template = extractTemplate(full)
+    writeFileSync(stagedFull, full)
+    writeFileSync(stagedTemplate, template)
+    renameSync(stagedFull, join(outputDir, 'higher-category.full.svg'))
+    renameSync(stagedTemplate, join(outputDir, 'higher-category.template.svg'))
+    console.log(JSON.stringify({
+      source: sourcePath,
+      full: join(outputDir, 'higher-category.full.svg'),
+      template: join(outputDir, 'higher-category.template.svg'),
+      slots: [...template.matchAll(/data-snl-slot="(\d+)"/g)].length,
+    }))
+  } finally {
+    rmSync(stagedFull, { force: true })
+    rmSync(stagedTemplate, { force: true })
+    rmSync(scratch, { recursive: true, force: true })
+  }
 }
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) buildTikzAssets()
