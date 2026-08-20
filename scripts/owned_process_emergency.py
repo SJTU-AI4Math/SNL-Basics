@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed invalid-anchor cleanup using retained Linux pidfds."""
+"""Fail-closed owned-tree cleanup using retained Linux pidfds."""
 
 from __future__ import annotations
 
@@ -61,8 +61,10 @@ class LinuxKernel:
     def read_identity(self, pid: int) -> Identity | None:
         try:
             text = Path(f'/proc/{pid}/stat').read_text()
-        except FileNotFoundError:
-            return None
+        except OSError as error:
+            if error.errno in (2, 3):
+                return None
+            raise
         end = text.rfind(')')
         if end < 0:
             raise EmergencyError(f'malformed /proc identity for PID {pid}')
@@ -113,13 +115,24 @@ def _snapshot(kernel: Kernel) -> dict[int, Identity]:
     return result
 
 
-def _descendant_depths(root: Capability, snapshot: dict[int, Identity]) -> dict[int, int]:
+def _descendant_depths(
+    root: Capability,
+    snapshot: dict[int, Identity],
+    excluded_roots: set[int] | None = None,
+) -> dict[int, int]:
     depths = {root.pid: 0}
+    blocked = set(excluded_roots or ())
     changed = True
     while changed:
         changed = False
         for identity in snapshot.values():
-            if identity.pid in depths or identity.ppid not in depths:
+            if identity.pid in depths or identity.pid in blocked:
+                continue
+            if identity.ppid in blocked:
+                blocked.add(identity.pid)
+                changed = True
+                continue
+            if identity.ppid not in depths:
                 continue
             depths[identity.pid] = depths[identity.ppid] + 1
             changed = True
@@ -149,8 +162,7 @@ def _send_best_effort(capability: Capability, sig: int, kernel: Kernel) -> None:
 def _wait_all_ready(capabilities: list[Capability], timeout: float, kernel: Kernel) -> bool:
     deadline = time.monotonic() + timeout
     for capability in capabilities:
-        remaining = max(0.0, deadline - time.monotonic())
-        if not kernel.ready(capability.fd, remaining):
+        if not kernel.ready(capability.fd, max(0.0, deadline - time.monotonic())):
             return False
     return True
 
@@ -163,35 +175,50 @@ def emergency_shutdown(
     kernel: Kernel | None = None,
     max_freeze_iterations: int = 32,
     exit_timeout: float = 3.0,
+    descendants_only: bool = False,
 ) -> dict[str, object]:
-    """Freeze and kill one owned tree; every signal uses a retained pidfd."""
+    """Freeze and kill an owned closure using only retained pidfds.
+
+    ``descendants_only`` leaves the verified subreaper root alive and excludes
+    this helper's branch, allowing the root to acknowledge completion over IPC.
+    """
     kernel = kernel or LinuxKernel()
     kernel.require_capabilities()
     if root_pid <= 0 or not expected_starttime:
-        raise EmergencyError('invalid owned direct-child identity')
+        raise EmergencyError('invalid owned root identity')
 
     capabilities: dict[int, Capability] = {}
+    root: Capability | None = None
+    excluded = {os.getpid()} if descendants_only and isinstance(kernel, LinuxKernel) else set()
     try:
         root_fd, root_identity = _open_verified(root_pid, expected_starttime, kernel)
         if expected_ppid is not None and root_identity.ppid != expected_ppid:
             kernel.close(root_fd)
-            raise EmergencyError(f'owned direct-child ancestry mismatch for PID {root_pid}')
+            raise EmergencyError(f'owned root ancestry mismatch for PID {root_pid}')
         root = Capability(root_pid, root_identity.ppid, root_identity.starttime, 0, root_fd)
         capabilities[root_pid] = root
-        kernel.send(root.fd, signal.SIGSTOP)
-        _wait_stopped(root, 0.5, kernel)
+        if not descendants_only:
+            kernel.send(root.fd, signal.SIGSTOP)
+            _wait_stopped(root, 0.5, kernel)
 
         converged = False
+        iteration = -1
         for iteration in range(max_freeze_iterations):
             snapshot = _snapshot(kernel)
-            depths = _descendant_depths(root, snapshot)
+            current_root = snapshot.get(root_pid)
+            if current_root is None or current_root.starttime != root.starttime:
+                raise EmergencyError(f'owned root identity changed while scanning PID {root_pid}')
+            depths = _descendant_depths(root, snapshot, excluded)
             new_capabilities: list[Capability] = []
             for pid, depth in sorted(depths.items(), key=lambda item: item[1]):
                 if pid == root_pid or pid in capabilities:
                     continue
                 observed = snapshot[pid]
                 parent = capabilities.get(observed.ppid)
-                if parent is None or snapshot.get(parent.pid, root_identity).starttime != parent.starttime:
+                if parent is None:
+                    continue
+                parent_now = snapshot.get(parent.pid)
+                if parent_now is None or parent_now.starttime != parent.starttime:
                     continue
                 try:
                     fd, verified = _open_verified(pid, observed.starttime, kernel)
@@ -199,12 +226,13 @@ def emergency_shutdown(
                     continue
                 capability = Capability(pid, verified.ppid, verified.starttime, depth, fd)
                 try:
-                    kernel.send(fd, signal.SIGSTOP)
+                    if verified.state not in ('Z', 'X', 'x'):
+                        kernel.send(fd, signal.SIGSTOP)
+                        _wait_stopped(capability, 0.5, kernel)
                 except BaseException:
                     kernel.close(fd)
                     raise
                 capabilities[pid] = capability
-                _wait_stopped(capability, 0.5, kernel)
                 new_capabilities.append(capability)
             if not new_capabilities:
                 converged = True
@@ -213,14 +241,16 @@ def emergency_shutdown(
         if not converged:
             raise EmergencyError(f'owned process tree did not converge after {max_freeze_iterations} freeze iterations')
 
-        ordered = sorted(capabilities.values(), key=lambda item: item.depth, reverse=True)
+        targets = [capability for pid, capability in capabilities.items() if not descendants_only or pid != root_pid]
+        ordered = sorted(targets, key=lambda item: item.depth, reverse=True)
         for capability in ordered:
             _send_best_effort(capability, signal.SIGKILL, kernel)
         if not _wait_all_ready(ordered, exit_timeout, kernel):
             raise EmergencyError('retained owned process capabilities did not become ready after SIGKILL')
         return {'ok': True, 'retainedCapabilities': len(ordered), 'freezeIterations': iteration + 1}
     except BaseException:
-        ordered = sorted(capabilities.values(), key=lambda item: item.depth, reverse=True)
+        targets = [capability for pid, capability in capabilities.items() if not descendants_only or pid != root_pid]
+        ordered = sorted(targets, key=lambda item: item.depth, reverse=True)
         for capability in ordered:
             _send_best_effort(capability, signal.SIGKILL, kernel)
         _wait_all_ready(ordered, min(exit_timeout, 0.5), kernel)
@@ -235,9 +265,16 @@ def emergency_shutdown(
 
 def main(argv: list[str]) -> int:
     try:
+        descendants_only = False
+        if argv[-1:] == ['--descendants-only']:
+            descendants_only = True
+            argv = argv[:-1]
         if len(argv) not in (3, 4):
-            raise EmergencyError('usage: owned_process_emergency.py PID STARTTIME [EXPECTED_PPID]')
-        result = emergency_shutdown(int(argv[1]), argv[2], int(argv[3]) if len(argv) == 4 else None)
+            raise EmergencyError('usage: owned_process_emergency.py PID STARTTIME [EXPECTED_PPID] [--descendants-only]')
+        result = emergency_shutdown(
+            int(argv[1]), argv[2], int(argv[3]) if len(argv) == 4 else None,
+            descendants_only=descendants_only,
+        )
         print(FRAME + json.dumps(result, separators=(',', ':')), flush=True)
         return 0
     except BaseException as error:

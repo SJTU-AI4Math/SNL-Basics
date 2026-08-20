@@ -14,14 +14,17 @@ describe('retained pidfd emergency process-tree shutdown', () => {
     expect(result.stdout + result.stderr).toMatch(/Ran 3 tests/)
   })
 
-  it('uses only retained pidfd capabilities in the emergency implementation', () => {
+  it('uses retained pidfds and reserves numeric group signals for supervisor self-signaling', () => {
     const helper = read('owned_process_emergency.py')
     const supervisor = read('owned-process-supervisor.mjs')
+    const parent = read('process-group-cleanup.mjs')
     expect(helper).toContain('os.pidfd_open')
     expect(helper).toContain('signal.pidfd_send_signal')
     expect(helper).not.toMatch(/\bos\.kill\s*\(/)
     expect(helper).not.toContain('SIGTERM')
-    expect(supervisor).not.toMatch(/(?:child|process)\.kill\s*\(/)
+    expect(parent).not.toMatch(/process\.kill\s*\(\s*-/)
+    expect(supervisor).toContain("process.kill(0, 'SIGTERM')")
+    expect(supervisor).toContain("process.kill(0, 'SIGKILL')")
     expect(supervisor).toContain('owned_process_emergency.py')
     expect(supervisor).toMatch(/setTimeout[\s\S]*helper\.kill\('SIGKILL'\)/)
   })
@@ -32,6 +35,6 @@ describe('retained pidfd emergency process-tree shutdown', () => {
     expect(helper).toMatch(/signal\.SIGSTOP[\s\S]*for iteration in range\(max_freeze_iterations\)/)
     expect(helper).toMatch(/new_capabilities[\s\S]*if not new_capabilities:[\s\S]*converged = True/)
     expect(helper).toContain("FRAME = 'SNL_OWNED_PROCESS_EMERGENCY_RESULT\\t'")
-    expect(supervisor).toMatch(/frames\.length !== 1[\s\S]*expected exactly one/)
+    expect(supervisor).toMatch(/frames\.length !== 1[\s\S]*framed results/)
   })
 })

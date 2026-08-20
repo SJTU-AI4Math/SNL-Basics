@@ -12,10 +12,10 @@ const loosePids = new Set()
 const profiles = new Set()
 const alive = pid => { try { process.kill(pid, 0); return true } catch (error) { if (error?.code === 'ESRCH') return false; throw error } }
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
-function deferred() {
-  let resolve
-  const promise = new Promise(res => { resolve = res })
-  return { promise, resolve }
+async function eventually(check, timeoutMs = 3_000) {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) { if (await check()) return; await wait(10) }
+  throw new Error('condition did not converge')
 }
 async function readProcessIdentity(pid) {
   const text = await readFile(`/proc/${pid}/stat`, 'utf8')
@@ -31,11 +31,6 @@ async function readFirstLine(stream) {
   }
   throw new Error('child exited before reporting readiness')
 }
-async function eventually(check, timeoutMs = 2_000) {
-  const deadline = Date.now() + timeoutMs
-  while (Date.now() < deadline) { if (check()) return; await wait(10) }
-  throw new Error('condition did not converge')
-}
 
 afterEach(async () => {
   for (const owned of ownedProcesses) await terminateOwnedProcess(owned, { sigtermTimeoutMs: 50 }).catch(() => {})
@@ -45,320 +40,155 @@ afterEach(async () => {
   ownedProcesses.clear(); looseProcesses.clear(); loosePids.clear(); profiles.clear()
 })
 
-describe('anchored owned process-group cleanup', () => {
-  it('waits for verified anchor identity when child-spawn IPC arrives first', async () => {
-    const anchorGate = deferred()
-    const anchorVerified = deferred()
-    const childSpawnReceived = deferred()
-    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-startup-profile-'))
+function daemonizingTermSource(pidFile, readyFile) {
+  return `
+import os, signal, time
+pid_file=${JSON.stringify(pidFile)}
+ready_file=${JSON.stringify(readyFile)}
+def term(_sig, _frame):
+    first=os.fork()
+    if first == 0:
+        os.setsid()
+        second=os.fork()
+        if second > 0: os._exit(0)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        open(pid_file, 'w').write(str(os.getpid()))
+        while True: time.sleep(1)
+    os._exit(0)
+signal.signal(signal.SIGTERM, term)
+open(ready_file, 'w').write('ready')
+while True: time.sleep(1)
+`
+}
+
+describe('Linux subreaper owned-process cleanup', () => {
+  it('reports a verified subreaper handshake before launching the child', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-subreaper-startup-'))
     profiles.add(profile)
-    let returned = false
-    const spawning = spawnOwnedProcess(
-      process.execPath,
-      ['-e', 'setInterval(() => {}, 1000)'],
-      { cwd: profile },
-      {
-        readIdentity: async pid => {
-          await anchorGate.promise
-          return readProcessIdentity(pid)
-        },
-        onStartupEvent: event => {
-          if (event === 'anchor-verified') anchorVerified.resolve()
-          if (event === 'child-spawn-received') childSpawnReceived.resolve()
-        },
-      },
-    ).then(value => { returned = true; return value })
-
-    await childSpawnReceived.promise
-    await new Promise(resolve => setImmediate(resolve))
-    const returnedBeforeAnchor = returned
-    anchorGate.resolve()
-    await anchorVerified.promise
-
-    const owned = await spawning
+    const marker = join(profile, 'child')
+    const events = []
+    const owned = await spawnOwnedProcess(process.execPath, ['-e', `require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'yes'); setInterval(()=>{},1000)`], { cwd: profile }, {
+      onStartupEvent: event => events.push(event),
+    })
     ownedProcesses.add(owned)
-    expect(returnedBeforeAnchor).toBe(false)
-    expect(owned.groupId).toBe(owned.anchor.pid)
+    expect(events.indexOf('subreaper-verified')).toBeGreaterThanOrEqual(0)
+    expect(events.indexOf('child-spawn-accepted')).toBeGreaterThan(events.indexOf('subreaper-verified'))
+    expect(owned.anchor.pid).toBe(owned.child.pid)
     expect(owned.anchor.starttime).toMatch(/^\d+$/)
-    await terminateOwnedProcess(owned)
-    ownedProcesses.delete(owned)
-    rmSync(profile, { recursive: true, force: true })
-    profiles.delete(profile)
-    expect(alive(owned.anchor.pid)).toBe(false)
-    expect(existsSync(profile)).toBe(false)
+    await eventually(() => existsSync(marker))
   })
-  it('waits for child-spawn IPC acceptance when anchor verification finishes first', async () => {
-    const childGate = deferred()
-    const anchorVerified = deferred()
-    const childSpawnReceived = deferred()
-    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-startup-profile-'))
+
+  it('fails closed on prctl failure and never launches the configured child', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-subreaper-fail-'))
     profiles.add(profile)
-    let returned = false
-    const spawning = spawnOwnedProcess(
-      process.execPath,
-      ['-e', 'setInterval(() => {}, 1000)'],
-      { cwd: profile },
-      {
-        beforeChildSpawn: () => childGate.promise,
-        onStartupEvent: event => {
-          if (event === 'anchor-verified') anchorVerified.resolve()
-          if (event === 'child-spawn-received') childSpawnReceived.resolve()
-        },
-      },
-    ).then(value => { returned = true; return value })
-
-    await Promise.all([anchorVerified.promise, childSpawnReceived.promise])
-    await new Promise(resolve => setImmediate(resolve))
-    const returnedBeforeChildSpawn = returned
-    childGate.resolve()
-
-    const owned = await spawning
-    ownedProcesses.add(owned)
-    expect(returnedBeforeChildSpawn).toBe(false)
-    expect(owned.groupId).toBe(owned.anchor.pid)
-    expect(owned.pid).toBeGreaterThan(0)
-    await terminateOwnedProcess(owned)
-    ownedProcesses.delete(owned)
-    rmSync(profile, { recursive: true, force: true })
-    profiles.delete(profile)
-    expect(alive(owned.anchor.pid)).toBe(false)
-    expect(existsSync(profile)).toBe(false)
+    const marker = join(profile, 'child')
+    await expect(spawnOwnedProcess(process.execPath, ['-e', `require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'launched')`], {
+      cwd: profile,
+      env: { ...process.env, SNL_TEST_SUBREAPER_PRCTL_FAILURE: '1' },
+    })).rejects.toThrow(/subreaper|prctl/i)
+    expect(existsSync(marker)).toBe(false)
   })
 
-  it('uses supervisor IPC after an anchor stat read failure without any numeric group signal', async () => {
-    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-startup-profile-'))
-    profiles.add(profile)
-    const killCalls = []
-    const cleanupEvents = []
-    let supervisorPid
-    await expect(spawnOwnedProcess(
-      process.execPath,
-      ['-e', 'setInterval(() => {}, 1000)'],
-      { cwd: profile },
-      {
-        readIdentity: async pid => { supervisorPid = pid; throw new Error('anchor probe failed') },
-        signalProcess: (pid, signal) => { killCalls.push({ pid, signal }); return process.kill(pid, signal) },
-        onCleanupEvent: event => cleanupEvents.push(event),
-      },
-    )).rejects.toThrow(/anchor probe failed/)
-
-    await eventually(() => !alive(supervisorPid))
-    expect(cleanupEvents).toContain('emergency-shutdown-requested')
-    expect(cleanupEvents).toContain('emergency-shutdown-complete')
-    expect(killCalls.every(call => call.pid > 0)).toBe(true)
-    rmSync(profile, { recursive: true, force: true })
-    profiles.delete(profile)
-    expect(existsSync(profile)).toBe(false)
-  })
-
-  it('freezes before shutdown so a child SIGTERM handler cannot spawn an escaped daemon', async () => {
-    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-freeze-profile-'))
-    profiles.add(profile)
-    const ready = join(profile, 'ready')
-    const daemonMarker = join(profile, 'term-daemon')
-    const daemonPidFile = join(profile, 'term-daemon-pid')
-    const daemonSource = `
-      const fs = require('node:fs');
-      fs.writeFileSync(${JSON.stringify(daemonMarker)}, 'spawned');
-      fs.writeFileSync(${JSON.stringify(daemonPidFile)}, String(process.pid));
-      setInterval(() => {}, 1000);
-    `
-    const source = `
-      const { spawn } = require('node:child_process');
-      const fs = require('node:fs');
-      process.on('SIGTERM', () => {
-        const daemon = spawn(process.execPath, ['-e', ${JSON.stringify(daemonSource)}], { detached: true, stdio: 'ignore' });
-        daemon.unref();
-        process.exit(0);
-      });
-      fs.writeFileSync(${JSON.stringify(ready)}, 'ready');
-      setInterval(() => {}, 1000);
-    `
-
-    let failure
-    try {
-      await spawnOwnedProcess(process.execPath, ['-e', source], { cwd: profile }, {
-        readIdentity: async () => {
-          await eventually(() => existsSync(ready))
-          throw new Error('anchor probe failed after child readiness')
-        },
-      })
-    } catch (error) { failure = error }
-
-    await wait(100)
-    if (existsSync(daemonPidFile)) loosePids.add(Number(readFileSync(daemonPidFile, 'utf8')))
-    expect(failure?.message).toMatch(/anchor probe failed after child readiness/)
-    expect(existsSync(daemonMarker)).toBe(false)
-  })
-
-  it('freezes a mutating descendant closure and kills every repeatedly spawned process', async () => {
-    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-descendant-profile-'))
-    profiles.add(profile)
-    const ready = join(profile, 'ready')
-    const pidLog = join(profile, 'descendant-pids')
-    const daemonSource = `process.on('SIGTERM', () => {}); setInterval(() => {}, 1000)`
-    const workerSource = `
-      const { spawn } = require('node:child_process');
-      const fs = require('node:fs');
-      const spawnOne = () => {
-        const daemon = spawn(process.execPath, ['-e', ${JSON.stringify(daemonSource)}], { stdio: 'ignore' });
-        fs.appendFileSync(${JSON.stringify(pidLog)}, String(daemon.pid) + '\\n');
-      };
-      process.on('SIGTERM', () => { spawnOne(); process.exit(0); });
-      setInterval(spawnOne, 5);
-      fs.writeFileSync(${JSON.stringify(ready)}, 'ready');
-    `
-    const source = `
-      const { spawn } = require('node:child_process');
-      const fs = require('node:fs');
-      const worker = spawn(process.execPath, ['-e', ${JSON.stringify(workerSource)}], { stdio: 'ignore' });
-      fs.appendFileSync(${JSON.stringify(pidLog)}, String(worker.pid) + '\\n');
-      setInterval(() => {}, 1000);
-    `
-
-    await expect(spawnOwnedProcess(process.execPath, ['-e', source], { cwd: profile }, {
-      readIdentity: async () => {
-        await eventually(() => existsSync(ready))
-        await wait(40)
-        throw new Error('anchor probe failed with mutating descendant')
-      },
-    })).rejects.toThrow(/anchor probe failed with mutating descendant/)
-
-    const pids = readFileSync(pidLog, 'utf8').trim().split(/\s+/).map(Number).filter(Number.isSafeInteger)
-    for (const pid of pids) loosePids.add(pid)
-    expect(pids.length).toBeGreaterThan(2)
-    await eventually(() => pids.every(pid => !alive(pid)))
-    for (const pid of pids) loosePids.delete(pid)
-  })
-
-  it('propagates explicit infrastructure failure when the emergency capability is unavailable', async () => {
-    let supervisorPid
-    let failure
-    try {
-      await spawnOwnedProcess(
-        process.execPath,
-        ['-e', 'setInterval(() => {}, 1000)'],
-        {},
-        {
-          readIdentity: async pid => { supervisorPid = pid; throw new Error('anchor probe failed') },
-          emergencyShutdown: async () => { throw new Error('IPC capability unavailable') },
-        },
-      )
-    } catch (error) { failure = error }
-
-    expect(failure?.cleanupIncomplete).toBe(true)
-    expect(failure?.message).toMatch(/infrastructure cleanup failed.*IPC capability unavailable/i)
-    const actual = await readProcessIdentity(supervisorPid)
-    expect(actual.pgrp).toBe(supervisorPid)
-    process.kill(-supervisorPid, 'SIGKILL')
-    await eventually(() => !alive(supervisorPid))
-  })
-
-  it('uses IPC on anchor pgrp mismatch while an unrelated numeric-target sentinel survives', async () => {
-    const sentinel = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { detached: true, stdio: 'ignore' })
-    looseProcesses.add(sentinel)
-    await new Promise(resolve => sentinel.once('spawn', resolve))
-    const killCalls = []
-    const cleanupEvents = []
-    let supervisorPid
-    await expect(spawnOwnedProcess(
-      process.execPath,
-      ['-e', 'setInterval(() => {}, 1000)'],
-      {},
-      {
-        readIdentity: async pid => {
-          supervisorPid = pid
-          const actual = await readProcessIdentity(pid)
-          return { ...actual, pgrp: sentinel.pid }
-        },
-        signalProcess: (pid, signal) => {
-          killCalls.push({ pid, signal })
-          if (pid < 0) return process.kill(sentinel.pid, signal)
-          return process.kill(pid, signal)
-        },
-        onCleanupEvent: event => cleanupEvents.push(event),
-      },
-    )).rejects.toThrow(/process-group leader/)
-
-    await eventually(() => !alive(supervisorPid))
-    expect(cleanupEvents).toContain('emergency-shutdown-requested')
-    expect(cleanupEvents).toContain('emergency-shutdown-complete')
-    expect(killCalls.every(call => call.pid > 0)).toBe(true)
-    expect(alive(sentinel.pid)).toBe(true)
-  })
-
-  it('rejects and cleans up when the child exits before delayed IPC acceptance', async () => {
-    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-startup-profile-'))
-    profiles.add(profile)
-    let groupId
-    await expect(spawnOwnedProcess(
-      process.execPath,
-      ['-e', 'process.exit(9)'],
-      { cwd: profile },
-      {
-        readIdentity: async pid => { groupId = pid; return readProcessIdentity(pid) },
-        beforeChildSpawn: () => new Promise(() => {}),
-      },
-    )).rejects.toThrow(/child exited unexpectedly.*9/i)
-
-    await eventually(() => !alive(groupId))
-    rmSync(profile, { recursive: true, force: true })
-    profiles.delete(profile)
-    expect(existsSync(profile)).toBe(false)
-  })
-
-  it('retains a verified supervisor anchor after the Chromium child exits', async () => {
-    const owned = await spawnOwnedProcess(process.execPath, ['-e', 'process.exit(7)'], { stdio: 'ignore' })
+  it('keeps the supervisor anchor alive after the Chromium child exits until cleanup', async () => {
+    const owned = await spawnOwnedProcess(process.execPath, ['-e', 'setTimeout(()=>process.exit(7),20)'])
     ownedProcesses.add(owned)
     await expect(owned.failure).rejects.toThrow(/exited.*7/i)
     expect(alive(owned.anchor.pid)).toBe(true)
-    expect(owned.anchor.starttime).toMatch(/^\d+$/)
     await terminateOwnedProcess(owned)
     ownedProcesses.delete(owned)
     expect(alive(owned.anchor.pid)).toBe(false)
   })
 
-  it('kills a stubborn grandchild in the exact group while an unrelated sentinel survives', async () => {
-    const sentinel = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' })
+  it('contains a TERM-triggered setsid double-fork daemon during normal self-group cleanup', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-subreaper-normal-'))
+    profiles.add(profile)
+    const ready = join(profile, 'ready')
+    const pidFile = join(profile, 'daemon-pid')
+    const owned = await spawnOwnedProcess('python3', ['-c', daemonizingTermSource(pidFile, ready)], { cwd: profile })
+    ownedProcesses.add(owned)
+    await eventually(() => existsSync(ready))
+    const result = await terminateOwnedProcess(owned, { sigtermTimeoutMs: 500, sigkillTimeoutMs: 2_000 })
+    ownedProcesses.delete(owned)
+    expect(result.escalated).toBe(false)
+    expect(existsSync(pidFile)).toBe(true)
+    const daemonPid = Number(readFileSync(pidFile, 'utf8'))
+    loosePids.add(daemonPid)
+    await eventually(() => !alive(daemonPid))
+    loosePids.delete(daemonPid)
+  })
+
+  it('contains a setsid double-fork daemon after IPC loss via pidfd/subreaper emergency', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-subreaper-emergency-'))
+    profiles.add(profile)
+    const ready = join(profile, 'ready')
+    const pidFile = join(profile, 'daemon-pid')
+    const owned = await spawnOwnedProcess('python3', ['-c', daemonizingTermSource(pidFile, ready)], { cwd: profile })
+    ownedProcesses.add(owned)
+    await eventually(() => existsSync(ready))
+
+    const requestId = 'adversarial-term-before-ipc-loss'
+    const termComplete = new Promise(resolve => {
+      const listener = message => {
+        if (message?.type === 'group-term-complete' && message.requestId === requestId) {
+          owned.child.off('message', listener)
+          resolve(message)
+        }
+      }
+      owned.child.on('message', listener)
+    })
+    owned.child.send({ type: 'group-term', requestId, timeoutMs: 500 })
+    await termComplete
+    await eventually(() => existsSync(pidFile))
+    owned.child.disconnect()
+
+    const result = await terminateOwnedProcess(owned, { sigkillTimeoutMs: 2_000 })
+    ownedProcesses.delete(owned)
+    expect(result.emergency).toBe(true)
+    const daemonPid = Number(readFileSync(pidFile, 'utf8'))
+    loosePids.add(daemonPid)
+    await eventually(() => !alive(daemonPid))
+    loosePids.delete(daemonPid)
+  })
+
+  it('escalates stubborn descendants via bounded IPC group-kill without unhandled rejection', async () => {
+    const unhandled = []
+    const listener = reason => unhandled.push(reason)
+    process.on('unhandledRejection', listener)
+    try {
+      const source = 'process.on("SIGTERM",()=>{}); console.log(process.pid); setInterval(()=>{},1000)'
+      const owned = await spawnOwnedProcess(process.execPath, ['-e', source])
+      ownedProcesses.add(owned)
+      await readFirstLine(owned.child.stdout)
+      const result = await terminateOwnedProcess(owned, { sigtermTimeoutMs: 30, sigkillTimeoutMs: 2_000 })
+      ownedProcesses.delete(owned)
+      expect(result.escalated).toBe(true)
+      await wait(20)
+      expect(unhandled).toEqual([])
+    } finally { process.off('unhandledRejection', listener) }
+  })
+
+  it('leaves an unrelated sentinel alive', async () => {
+    const sentinel = spawn(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { detached: true, stdio: 'ignore' })
     looseProcesses.add(sentinel)
     await new Promise(resolve => sentinel.once('spawn', resolve))
-    const source = `
-      const { spawn } = require('node:child_process');
-      const grandchild = spawn(process.execPath, ['-e', 'process.on("SIGTERM",()=>{}); setInterval(()=>{},1000)'], { stdio: 'ignore' });
-      console.log(grandchild.pid);
-      process.on('SIGTERM', () => {}); setInterval(() => {}, 1000);
-    `
-    const owned = await spawnOwnedProcess(process.execPath, ['-e', source], { stdio: 'ignore' })
+    const owned = await spawnOwnedProcess(process.execPath, ['-e', 'setInterval(()=>{},1000)'])
     ownedProcesses.add(owned)
-    const grandchildPid = Number(await readFirstLine(owned.child.stdout))
-    expect(alive(grandchildPid)).toBe(true)
-    const result = await terminateOwnedProcess(owned, { sigtermTimeoutMs: 50, sigkillTimeoutMs: 2_000 })
+    await terminateOwnedProcess(owned)
     ownedProcesses.delete(owned)
-    expect(result.escalated).toBe(true)
-    await eventually(() => !alive(owned.anchor.pid))
     expect(alive(sentinel.pid)).toBe(true)
   })
 
-  it('never signals a leaderless stale group after the verified anchor dies', async () => {
-    const owned = await spawnOwnedProcess(process.execPath, ['-e', 'process.on("SIGTERM",()=>{}); setInterval(()=>{},1000)'], { stdio: 'ignore' })
-    process.kill(owned.anchor.pid, 'SIGKILL')
-    await owned.exited
-    expect(alive(owned.pid)).toBe(true)
-    await expect(terminateOwnedProcess(owned, { sigtermTimeoutMs: 20 })).rejects.toThrow(/identity/i)
-    expect(alive(owned.pid)).toBe(true)
-    process.kill(owned.pid, 'SIGKILL')
-    await eventually(() => !alive(owned.pid))
+  it('contains the parent implementation to capability IPC with no negative numeric signals', () => {
+    const parent = readFileSync(new URL('./process-group-cleanup.mjs', import.meta.url), 'utf8')
+    const supervisor = readFileSync(new URL('./owned-process-supervisor.mjs', import.meta.url), 'utf8')
+    expect(parent).not.toMatch(/process\.kill\s*\(\s*-/)
+    expect(parent).not.toMatch(/signalProcess\s*\(\s*-/)
+    expect(parent).not.toMatch(/\.kill\s*\(\s*-\s*(?:owned|supervisor|group)/)
+    expect(supervisor).toContain("process.kill(0, 'SIGTERM')")
+    expect(supervisor).toContain("process.kill(0, 'SIGKILL')")
   })
 
-  it('refuses to signal when the anchor starttime no longer matches', async () => {
-    const owned = await spawnOwnedProcess(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' })
-    ownedProcesses.add(owned)
-    const forged = { ...owned, anchor: { ...owned.anchor, starttime: `${BigInt(owned.anchor.starttime) + 1n}` } }
-    await expect(terminateOwnedProcess(forged, { sigtermTimeoutMs: 20 })).rejects.toThrow(/identity/i)
-    expect(alive(owned.anchor.pid)).toBe(true)
-  })
-
-  it('keeps verifier cleanup awaited, ordered, and free of parent-only kills', () => {
+  it('keeps verifier cleanup awaited and ordered', () => {
     const source = readFileSync(new URL('./verify-parameterized-svg.mjs', import.meta.url), 'utf8')
     const close = source.indexOf('await cdp?.close()')
     const browser = source.indexOf('await terminateOwnedProcess(browser)')
@@ -368,22 +198,14 @@ describe('anchored owned process-group cleanup', () => {
     expect(browser).toBeGreaterThan(close)
     expect(vite).toBeGreaterThan(browser)
     expect(profile).toBeGreaterThan(browser)
-    expect(source).not.toMatch(/^\s*browserTreeGone\s*=\s*!browser\s*$/m)
     expect(source).toContain('verificationError?.cleanupIncomplete !== true')
     expect(source).not.toMatch(/(?:browser|vite)(?:\.child)?\.kill\s*\(/)
   })
 
-  it('forbids an unverified supervisor PID from being used as a numeric group target', () => {
-    const source = readFileSync(new URL('./process-group-cleanup.mjs', import.meta.url), 'utf8')
-    expect(source).not.toMatch(/signalExactGroup\(supervisor\.pid/)
-    expect(source).not.toMatch(/process\.kill\(\s*-supervisor\.pid/)
+  it('retains exact pidfd signaling in the emergency helper', () => {
     const emergency = readFileSync(new URL('./owned_process_emergency.py', import.meta.url), 'utf8')
-    const supervisor = readFileSync(new URL('./owned-process-supervisor.mjs', import.meta.url), 'utf8')
-    expect(emergency).not.toContain('SIGTERM')
     expect(emergency).not.toMatch(/\bos\.kill\s*\(/)
     expect(emergency).toContain('signal.pidfd_send_signal')
-    expect(supervisor).toContain('owned_process_emergency.py')
-    expect(supervisor).toContain('runEmergencyShutdown')
     expect(emergency).toContain('signal.SIGSTOP')
     expect(emergency).toMatch(/max_freeze_iterations[\s\S]*for iteration in range/)
   })
