@@ -13,3 +13,8 @@ main { max-width: 900px; margin: 0 auto; }
   body { padding: 8px; }
   .fixture-frame { width: 350px; max-width: calc(100vw - 34px); padding: 8px; }
 }
+
+.depth-center-probe { width: 320px; height: 100px; margin-top: 16px; transform: scale(0.9); transform-origin: top left; }
+.depth-center-host { position: relative; width: 320px; height: 100px; overflow: visible; }
+.depth-center-host [data-depth-center-marker] { position: absolute; left: 160px; top: 50px; width: 0; height: 0; }
+.depth-center-host [data-depth-center-child] { box-sizing: border-box; width: 96px; height: 32px; border: 1px solid #667085; }

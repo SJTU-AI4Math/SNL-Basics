@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useLayoutEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import 'katex/dist/katex.min.css'
 import './style.css'
@@ -10,6 +10,8 @@ import { createSnlSyntaxTreeNode } from '../../src/snl-syntax-tree/types'
 import { defaultRenderers, type SnlBlockRenderer } from '../../src/snl-react-view/hooks'
 import { SvgTemplateAssetRegistry } from '../../src/snl-react-view/svg-template-asset-registry'
 import { createSvgTemplateRenderer } from '../../src/snl-react-view/svg-template-renderer'
+import { ForeignBoxHost } from '../../src/snl-react-view/foreign-box-host'
+import { useForeignBox } from '../../src/snl-react-view/use-foreign-box'
 import squareSource from './commutative-square.svg?raw'
 
 if (new URLSearchParams(location.search).has('narrow-sidebar')) {
@@ -76,6 +78,20 @@ const labelChildren = ['labelA', 'labelB', 'labelC', 'labelD'].map((name) => cre
 const tree = createSnlSyntaxTreeNode('square', { children: labelChildren })
 const invalidTree = createSnlSyntaxTreeNode('invalidSquare', { children: labelChildren })
 
+function DepthCenterProbe() {
+  const child = <div data-depth-center-child="true">depth</div>
+  const foreign = useForeignBox({
+    identity: { treePath: 'depth-center-probe', generation: 1, producer: 'browser-depth-probe' },
+    child,
+    alignment: 'center',
+    ssrFallback: child,
+  })
+  useLayoutEffect(() => {
+    foreign.reportMetrics({ width: 96, height: 20, depth: 12, baseline: 'alphabetic' })
+  }, [foreign.reportMetrics])
+  return <div data-depth-center-marker="true" ref={foreign.markerRef}>{foreign.ssrFallback}</div>
+}
+
 declare global {
   interface Window {
     __svgFixture?: { toggle(): void; ready(): boolean; snapshot(): unknown }
@@ -119,6 +135,11 @@ function App() {
         macro_data_driver={driver}
         hooks={{ renderers: { ...defaultRenderers, 'fixture-svg': SvgRenderer } }}
       />
+    </section>
+    <section className="depth-center-probe" aria-label="nonzero-depth center alignment probe">
+      <ForeignBoxHost className="depth-center-host">
+        <DepthCenterProbe />
+      </ForeignBoxHost>
     </section>
   </main>
 }

@@ -357,6 +357,22 @@ try {
     assert(before.errors.length === 0, `${caseLabel} (viewport ${width}px) has no console/runtime errors: ${before.errors.join(' | ')}`)
     assert(!before.alert, `${caseLabel} (viewport ${width}px) has no visible fallback: ${before.alert}`)
     assert(before.pageWidth <= before.viewport, `${caseLabel} (viewport ${width}px) fixture has no page overflow`)
+    const depthProbe = await evaluate(cdp, `(() => {
+      const marker = document.querySelector('[data-depth-center-marker]');
+      const label = document.querySelector('.depth-center-probe .snl-foreign-box[data-state="positioned"]');
+      if (!marker || !label) return { found: false };
+      const markerRect = marker.getBoundingClientRect();
+      const labelRect = label.getBoundingClientRect();
+      return {
+        found: true,
+        depth: Number.parseFloat(label.style.getPropertyValue('--snl-foreign-box-depth')),
+        x: labelRect.left + labelRect.width / 2 - markerRect.left - markerRect.width / 2,
+        y: labelRect.top + labelRect.height / 2 - markerRect.top - markerRect.height / 2,
+      };
+    })()`)
+    assert(depthProbe.found && depthProbe.depth > 0, `${caseLabel} (viewport ${width}px) exercises a center-aligned browser surface with nonzero depth: ${JSON.stringify(depthProbe)}`)
+    assert(Math.abs(depthProbe.x) <= 0.75 && Math.abs(depthProbe.y) <= 0.75,
+      `${caseLabel} (viewport ${width}px) centers the total height including nonzero depth: ${JSON.stringify(depthProbe)}`)
     await evaluate(cdp, 'window.__svgFixture.toggle()')
     await waitFor(() => evaluate(cdp, 'document.querySelector(".fixture-frame svg")?.getAttribute("aria-label") === "Updated commutative square projection"'), `${caseLabel} (viewport ${width}px) projection update`)
     await waitFor(() => evaluate(cdp, `(() => {
@@ -402,6 +418,8 @@ try {
       width,
       markers: before.markerCount,
       positioned: before.positioned,
+      nonzeroDepth: depthProbe.depth,
+      depthCenterDelta: { x: depthProbe.x, y: depthProbe.y },
       hiddenFallbacks: before.foreignFallbacks.filter(fallback => fallback.hidden && fallback.display === 'none' && fallback.textRects === 0).length,
       dynamicFallbackVisible: before.fallbackProbe.visibleRects > 0,
       pageOverflow: Math.max(0, before.pageWidth - before.viewport),
