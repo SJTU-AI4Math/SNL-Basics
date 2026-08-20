@@ -831,6 +831,10 @@ export function SnlSyntaxTreeView({
     renderLanguage,
     formulaForeignResolver,
   )
+  const formulaHostAuthority = useMemo(
+    () => ({ renderTree, html: result?.html ?? null }),
+    [renderTree, result?.html],
+  )
   const [formulaMarkers, setFormulaMarkers] = useState<readonly FormulaMarkerBinding[]>([])
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
@@ -1702,7 +1706,7 @@ export function SnlSyntaxTreeView({
        * per mode; containerRef binds to whichever branch is mounted.
        */}
       {isKatexRoot ? (
-        <ForeignBoxHost className="snl-formula-foreign-host" authorityKey={result?.html}>
+        <ForeignBoxHost className="snl-formula-foreign-host" authorityKey={formulaHostAuthority}>
           <StableKatexContainer
             key="katex"
             ref={containerRef}

@@ -126,7 +126,7 @@ export interface ForeignBoxHostProps {
   readonly children?: ReactNode
   readonly className?: string
   /** Correlates serialized host markup with every live sidecar registration. */
-  readonly authorityKey?: string
+  readonly authorityKey?: unknown
 }
 
 /**
