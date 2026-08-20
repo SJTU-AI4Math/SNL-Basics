@@ -1,4 +1,4 @@
-import { createElement, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react'
+import { createElement, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { ForeignBoxIdentity, ForeignBoxMetrics } from './foreign-box'
 import { foreignBoxIdentityKey, snapshotForeignBoxIdentity } from './foreign-box'
 import { useForeignBoxRegistry, type ForeignBoxRegistration } from './foreign-box-host'
@@ -78,10 +78,16 @@ export function useForeignBox(options: UseForeignBoxOptions): UseForeignBoxResul
     fallback: null as HTMLElement | null,
     positioned: false,
     reactMounted: false,
+    acceptsFallbackRefs: true,
   }), [identityKey])
+  const currentFallbackOwner = useRef(holder)
+  // Retire the previous identity during render, before its layout cleanup can run.
+  // The holder-local gate remains open initially so commit-time refs and StrictMode replay can attach.
+  currentFallbackOwner.current = holder
 
   useSsrSafeLayoutEffect(() => {
     holder.reactMounted = true
+    holder.acceptsFallbackRefs = true
     const registration = registry.register({
       ...options,
       identity,
@@ -99,6 +105,7 @@ export function useForeignBox(options: UseForeignBoxOptions): UseForeignBoxResul
     registration.setMarker(holder.marker)
     return () => {
       holder.reactMounted = false
+      holder.acceptsFallbackRefs = false
       if (holder.registration === registration) holder.registration = null
       registration.unregister()
     }
@@ -110,6 +117,7 @@ export function useForeignBox(options: UseForeignBoxOptions): UseForeignBoxResul
 
   const controls = useMemo(() => ({
     fallbackRef(boundary: HTMLElement | null) {
+      if (!holder.acceptsFallbackRefs || currentFallbackOwner.current !== holder) return
       holder.fallback = boundary
       setFallbackHidden(boundary, holder.positioned)
     },

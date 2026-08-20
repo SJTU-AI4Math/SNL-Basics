@@ -802,6 +802,118 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(view.getAllByTestId('strict-passive')).toHaveLength(1)
   })
 
+  it('keeps the current fallback ref attached through StrictMode replay', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<StrictMode><ForeignBoxHost><Slot
+      id={identity('strict-fallback', 1, 'owner@1')}
+      apiRef={apiRef}
+      ssrFallback={<span>fallback</span>}
+    /></ForeignBoxHost></StrictMode>)
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    const marker = view.getByTestId('marker')
+    const fallback = view.container.querySelector('[data-snl-foreign-box-fallback]') as HTMLElement
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 20, width: 10, height: 10 }))
+
+    expect(fallback.hidden).toBe(false)
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
+    expect(fallback.hidden).toBe(true)
+    expect(fallback.hasAttribute('inert')).toBe(true)
+    expect(fallback.getAttribute('aria-hidden')).toBe('true')
+  })
+
+  it('rejects a stale fallback ref as soon as a new identity renders', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const arbitrary = document.createElement('div')
+    arbitrary.hidden = true
+    arbitrary.setAttribute('inert', 'custom')
+    arbitrary.setAttribute('aria-hidden', 'mixed')
+    const before = arbitrary.outerHTML
+    let staleFallbackRef: UseForeignBoxResult['fallbackRef'] | null = null
+    let invokeStaleDuringRender = false
+
+    function RetargetableSlot({ id }: { id: ForeignBoxIdentity }) {
+      const api = useForeignBox({ identity: id, child: <span>live</span> })
+      apiRef.current = api
+      // Exercise the gap after the new render owns the identity but before old layout cleanup.
+      if (invokeStaleDuringRender) staleFallbackRef!(arbitrary)
+      return <>{api.ssrFallback}</>
+    }
+
+    const view = render(<ForeignBoxHost><RetargetableSlot id={identity('fallback-owner', 1, 'owner@1')} /></ForeignBoxHost>)
+    staleFallbackRef = apiRef.current!.fallbackRef
+    invokeStaleDuringRender = true
+    view.rerender(<ForeignBoxHost><RetargetableSlot id={identity('fallback-owner', 2, 'owner@2')} /></ForeignBoxHost>)
+
+    expect(arbitrary.outerHTML).toBe(before)
+    const currentFallback = view.container.querySelector('[data-snl-foreign-box-fallback]') as HTMLElement
+    const currentFallbackBefore = currentFallback.outerHTML
+    act(() => staleFallbackRef!(currentFallback))
+    expect(currentFallback.outerHTML).toBe(currentFallbackBefore)
+    expect(arbitrary.outerHTML).toBe(before)
+
+    currentFallback.hidden = true
+    currentFallback.setAttribute('inert', '')
+    currentFallback.setAttribute('aria-hidden', 'true')
+    act(() => apiRef.current!.fallbackRef(currentFallback))
+    expect(currentFallback.hidden).toBe(false)
+    expect(currentFallback.hasAttribute('inert')).toBe(false)
+    expect(currentFallback.getAttribute('aria-hidden')).toBeNull()
+  })
+
+  it('does not let a stale null ref clear the current fallback or disable its next handoff', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot
+      id={identity('fallback-null', 1, 'owner@1')}
+      apiRef={apiRef}
+      ssrFallback={<span>fallback</span>}
+    /></ForeignBoxHost>)
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    let marker = view.getByTestId('marker')
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 20, width: 10, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
+    const staleFallbackRef = apiRef.current!.fallbackRef
+
+    view.rerender(<ForeignBoxHost><Slot
+      id={identity('fallback-null', 2, 'owner@2')}
+      apiRef={apiRef}
+      ssrFallback={<span>fallback</span>}
+    /></ForeignBoxHost>)
+    const currentFallback = view.container.querySelector('[data-snl-foreign-box-fallback]') as HTMLElement
+    expect(currentFallback.hidden).toBe(false)
+    act(() => {
+      staleFallbackRef(currentFallback)
+      staleFallbackRef(null)
+    })
+    expect(currentFallback.hidden).toBe(false)
+    expect(currentFallback.hasAttribute('inert')).toBe(false)
+    expect(currentFallback.getAttribute('aria-hidden')).toBeNull()
+
+    marker = view.getByTestId('marker')
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 12, top: 22, width: 10, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 11, height: 9, depth: 0, baseline: 'bottom' }); flushRaf() })
+    expect(currentFallback.hidden).toBe(true)
+    expect(currentFallback.hasAttribute('inert')).toBe(true)
+    expect(currentFallback.getAttribute('aria-hidden')).toBe('true')
+  })
+
+  it('leaves arbitrary fallback nodes untouched through a retained ref after real unmount', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} ssrFallback={<span>fallback</span>} /></ForeignBoxHost>)
+    const retainedFallbackRef = apiRef.current!.fallbackRef
+    const arbitrary = document.createElement('div')
+    arbitrary.hidden = true
+    arbitrary.setAttribute('inert', 'custom')
+    arbitrary.setAttribute('aria-hidden', 'mixed')
+    const before = arbitrary.outerHTML
+
+    view.unmount()
+    act(() => retainedFallbackRef(arbitrary))
+
+    expect(arbitrary.outerHTML).toBe(before)
+  })
+
   it('fails closed for retained APIs and observer/RAF callbacks after real unmount', async () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const unregister = vi.fn()
