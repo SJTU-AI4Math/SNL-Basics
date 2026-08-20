@@ -97,10 +97,12 @@ describe('MarkdownBody', () => {
   })
 
   it('distinguishes Lean character literals from apostrophes in identifiers', () => {
-    const { container } = render(<MarkdownBody source={"```lean4\ndef keepPrime (n' : Nat) := ('a', n')\n```"} />)
+    const source = "```lean4\ndef keepPrime (n' : Nat) := ('a', n')\ndef pairedPrime (x'y' : Nat) := x'y'\n```"
+    const { container } = render(<MarkdownBody source={source} />)
     const strings = [...container.querySelectorAll('.hljs-string')].map((node) => node.textContent)
     expect(strings).toEqual(["'a'"])
     expect(container.querySelector('code')?.textContent).toContain("n'")
+    expect(container.querySelector('code')?.textContent).toContain("x'y'")
   })
 
   it('does not guess a language or fail on plaintext and unknown fences', () => {

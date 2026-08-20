@@ -45,7 +45,7 @@ export const leanLanguage: LanguageFn = (hljs) => ({
     hljs.QUOTE_STRING_MODE,
     {
       scope: 'string',
-      match: /'(?:\\(?:u\{[0-9A-Fa-f]+\}|.)|[^\\'])'/u,
+      match: /(?<![\p{L}\p{N}_'])'(?:\\(?:u\{[0-9A-Fa-f]+\}|.)|[^\\'])'(?![\p{L}\p{N}_'])/u,
     },
     hljs.C_NUMBER_MODE,
   ],

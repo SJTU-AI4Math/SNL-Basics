@@ -31,7 +31,7 @@
 }
 .snl-markdown-body[data-color-scheme="dark"] {
   color-scheme: dark;
-  --snl-md-muted: #8b949e;
+  --snl-md-muted: #9ca3af;
   --snl-md-border: rgba(240, 246, 252, 0.2);
   --snl-md-soft-bg: rgba(110, 118, 129, 0.2);
   --snl-md-code-bg: rgba(110, 118, 129, 0.24);
