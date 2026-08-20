@@ -92,31 +92,10 @@
       }
     },
     {
-      "id": "field-mac-iface-snl-macro-style-mode",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.iface.snl-macro-style.mode"
-      }
-    },
-    {
       "id": "field-mac-iface-snl-macro-style-template",
       "label": "Entry",
       "props": {
         "entryId": "mac.iface.snl-macro-style.template"
-      }
-    },
-    {
-      "id": "field-mac-iface-snl-macro-style-variadic-join",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.iface.snl-macro-style.separator"
-      }
-    },
-    {
-      "id": "field-mac-iface-snl-macro-style-react-renderer-key",
-      "label": "Entry",
-      "props": {
-        "entryId": "mac.iface.snl-macro-style.block_template_name"
       }
     },
     {
@@ -225,22 +204,7 @@
     },
     {
       "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "field-mac-iface-snl-macro-style-mode",
-      "label": "branch"
-    },
-    {
-      "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
       "to": "field-mac-iface-snl-macro-style-template",
-      "label": "branch"
-    },
-    {
-      "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "field-mac-iface-snl-macro-style-variadic-join",
-      "label": "branch"
-    },
-    {
-      "from": "93803eb7-86a3-4f4e-9bc3-b215342c08c7",
-      "to": "field-mac-iface-snl-macro-style-react-renderer-key",
       "label": "branch"
     },
     {

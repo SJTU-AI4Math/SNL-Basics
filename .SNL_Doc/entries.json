@@ -125,7 +125,7 @@
     "title": "Block SNL Syntax Tree Node",
     "content": {
       "snl": "interface(SnlSyntaxTreeBlockNode,enumerate(Type.judge(SnlSyntaxTreeBlockNode.mode,Type.literal(block)),Type.judge(SnlSyntaxTreeBlockNode.block_kind,Type.union(Type.literal(list),Type.literal(table),Type.literal(centered),Type.literal(custom)))))",
-      "markdown": "The branch whose `env_mode` is `block`. It dispatches through `block_template_name` to a specific block renderer, such as `list`, `enumerate`, `matrix`, or `table`."
+      "markdown": "The branch whose `env_mode` is `block`. Its resolved complete `SnlBlockMacroTemplate` may select a renderer through `block_template_name`, such as `list`, `enumerate`, `matrix`, or `table`."
     },
     "contribution_info": null,
     "pointer": {
@@ -302,7 +302,7 @@
     "kind": "interface",
     "title": "SNL Macro",
     "content": {
-      "snl": "interface(SnlMacro,enumerate(Type.judge(SnlMacro.name,string),Type.judge(SnlMacro.description,string),Type.judge(SnlMacro.source,SnlMacroSource),Type.judge(SnlMacro.kind,Type.opt(string)),Type.judge(SnlMacro.dynamic_arity,boolean),Type.judge(SnlMacro.styles,Type.array(SnlMacroStyle)),Type.judge(SnlMacro.tags,Type.opt(Type.array(string)))))",
+      "snl": "interface(SnlMacro,enumerate(Type.judge(SnlMacro.name,string),Type.judge(SnlMacro.description,string),Type.judge(SnlMacro.source,SnlMacroSource),Type.judge(SnlMacro.kind,Type.opt(string)),Type.judge(SnlMacro.dynamic_arity,boolean),Type.judge(SnlMacro.styles,Type.array(SnlMacroStyle)),Type.judge(SnlMacro.tags,Type.array(string))))",
       "markdown": "The complete definition of one macro. The globally unique `name` is its primary ID; `styles[]` contains every rendering variant; `source` binds semantic source entries or URLs; `kind` drives the palette; and `dynamic_arity` determines whether `#*` may be used."
     },
     "contribution_info": null,
@@ -342,7 +342,6 @@
       "pattern": "export\\s+interface\\s+SnlMacroSource\\b"
     }
   },
-
   {
     "id": "rv.comp.snl-syntax-tree-view",
     "kind": "component",
@@ -499,7 +498,7 @@
     "title": "SNL Renderer Registry",
     "content": {
       "snl": "Type.judge(SnlRendererRegistry,Type.record(string,SnlBlockRenderer))",
-      "markdown": "The block-renderer registry type, `Record<string, SnlBlockRenderer>`. It uses `block_template_name` (`list`, `enumerate`, `matrix`, and so on) as the key for dispatching a block-mode macro to a React renderer."
+      "markdown": "The block-renderer registry type, `Record<string, SnlBlockRenderer>`. A resolved complete `SnlBlockMacroTemplate` uses its `block_template_name` (`list`, `enumerate`, `matrix`, and so on) as the dispatch key."
     },
     "contribution_info": null,
     "pointer": {
@@ -894,7 +893,7 @@
     "kind": "field",
     "title": "$\\texttt{tags}$",
     "content": {
-      "markdown": "Free-text labels attached to the macro itself — used by downstream search indices. Backslashes are forbidden. Optional."
+      "markdown": "Required free-text `string[]` labels attached to the macro and used by downstream search indices. Backslashes are forbidden."
     },
     "contribution_info": null,
     "pointer": {
@@ -910,7 +909,7 @@
     "kind": "field",
     "title": "$\\texttt{style\\_name}$",
     "content": {
-      "markdown": "Style identifier — the token used in `foo[style_name](…)`. Must be unique within a macro's `styles` array. Renamed from `tag` in v0.10.0."
+      "markdown": "Required semantic style identifier — the token used in `foo[style_name](…)`. It must be unique within a macro's `styles` array; schema v7 renamed the historical flat `tag` field."
     },
     "contribution_info": null,
     "pointer": {
@@ -922,26 +921,11 @@
     "body": "Unique style identifier within the macro. Renamed from `tag` in v0.10.0."
   },
   {
-    "id": "mac.iface.snl-macro-style.mode",
-    "kind": "field",
-    "title": "$\\texttt{mode}$",
-    "content": {
-      "markdown": "Semantic render mode. Four flat parallel values (v3): - `formula_inline` — KaTeX inline math ($...$) - `formula_display` — KaTeX display math ($$...$$) - `text` — KaTeX `\\text{...}`; may host formulas via `$...$` - `block` — React-rendered block (list / table / centered / …)"
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-macro/types.ts",
-      "mode": "regex",
-      "pattern": "^\\s*mode\\??\\s*(?::|\\()",
-      "flags": "m"
-    }
-  },
-  {
     "id": "mac.iface.snl-macro-style.template",
     "kind": "field",
     "title": "$\\texttt{template}$",
     "content": {
-      "markdown": "LaTeX-native template. See fillLatexTemplate for placeholders: #0, #1, #* (variadic), \\# (literal)."
+      "markdown": "Required complete render template: `SnlMacroTemplate | I18n<string, SnlMacroTemplate>`. Localization selects the whole template projection atomically."
     },
     "contribution_info": null,
     "pointer": {
@@ -952,27 +936,11 @@
     }
   },
   {
-    "id": "mac.iface.snl-macro-style.block_template_name",
-    "kind": "field",
-    "title": "$\\texttt{block\\_template\\_name}$",
-    "content": {
-      "markdown": "Block/text mode dispatch key — see hooks.tsx / block-renderers.tsx. Only applies when mode is 'block' or 'text'."
-    },
-    "contribution_info": null,
-    "pointer": {
-      "file": "src/snl-macro/types.ts",
-      "mode": "regex",
-      "pattern": "^\\s*block_template_name\\??\\s*(?::|\\()",
-      "flags": "m"
-    },
-    "body": "Key for a custom React block renderer; valid only for block mode."
-  },
-  {
     "id": "mac.iface.snl-macro-style.tags",
     "kind": "field",
     "title": "$\\texttt{tags}$",
     "content": {
-      "markdown": "Free-text labels attached to this style — used by downstream search indices. Backslashes are forbidden. Optional."
+      "markdown": "Required free-text `string[]` labels attached to this style and used by downstream search indices. Backslashes are forbidden."
     },
     "contribution_info": null,
     "pointer": {
@@ -1257,7 +1225,7 @@
     "kind": "function",
     "title": "Classify Render Mode",
     "content": {
-      "snl": "ts.function(fn.modeBucket,ts.function-type(ts.parameters(Type.judge(api.code(%mode%),api.code(%SnlMacroStyle[\"mode\"]%))),ts.union(api.code(%\"formula\"%),api.code(%\"text\"%),api.code(%\"block\"%))),ts.ellipsis@remark.rv.fn.mode-bucket)",
+      "snl": "ts.function(fn.modeBucket,ts.function-type(ts.parameters(Type.judge(api.code(%mode%),api.code(%SnlMacroTemplate[\"mode\"]%))),ts.union(api.code(%\"formula\"%),api.code(%\"text\"%),api.code(%\"block\"%))),ts.ellipsis@remark.rv.fn.mode-bucket)",
       "markdown": "`modeBucket`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
@@ -1287,7 +1255,7 @@
     "kind": "function",
     "title": "Resolve Node Mode",
     "content": {
-      "snl": "ts.function(fn.nodeMode,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%macro%),ts.union(SnlMacro,ts.null))),api.code(%SnlMacroStyle[\"mode\"]%)),ts.ellipsis@remark.rv.fn.node-mode)",
+      "snl": "ts.function(fn.nodeMode,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%macro%),ts.union(SnlMacro,ts.null))),api.code(%SnlMacroTemplate[\"mode\"]%)),ts.ellipsis@remark.rv.fn.node-mode)",
       "markdown": "`nodeMode`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
@@ -1362,7 +1330,7 @@
     "kind": "function",
     "title": "Wrap Child for Parent",
     "content": {
-      "snl": "ts.function(fn.wrapForParent,ts.function-type(ts.parameters(Type.judge(api.code(%childLatex%),string),Type.judge(api.code(%childMode%),api.code(%SnlMacroStyle[\"mode\"]%)),Type.judge(api.code(%parentMode%),api.code(%SnlMacroStyle[\"mode\"]%))),string),ts.ellipsis@remark.rv.fn.wrap-for-parent)",
+      "snl": "ts.function(fn.wrapForParent,ts.function-type(ts.parameters(Type.judge(api.code(%childLatex%),string),Type.judge(api.code(%childMode%),api.code(%SnlMacroTemplate[\"mode\"]%)),Type.judge(api.code(%parentMode%),api.code(%SnlMacroTemplate[\"mode\"]%))),string),ts.ellipsis@remark.rv.fn.wrap-for-parent)",
       "markdown": "`wrapForParent`’s formal TypeScript signature; see the linked Remark for implementation details."
     },
     "contribution_info": null,
@@ -1788,7 +1756,6 @@
     "contribution_info": null,
     "pointer": null
   },
-
   {
     "id": "sec.syntax.interfaces",
     "kind": "section",
@@ -2053,7 +2020,6 @@
     "contribution_info": null,
     "pointer": null
   },
-
   {
     "id": "sub.public.macro-db.loading",
     "kind": "subsection",
@@ -2367,7 +2333,7 @@
     "kind": "field",
     "title": "$\\texttt{block\\_kind}$",
     "content": {
-      "markdown": "Which block renderer to invoke — matches the resolved style's `block_template_name`."
+      "markdown": "The syntax-tree block classification. Renderer dispatch is selected separately by the resolved complete `SnlBlockMacroTemplate`'s `block_template_name`."
     },
     "contribution_info": null,
     "pointer": {
@@ -3565,19 +3531,6 @@
       "file": "src/snl-syntax-tree/parser.ts",
       "mode": "regex",
       "pattern": "^\\s*activeBinderIds\\??\\s*(?::|\\()",
-      "flags": "m"
-    }
-  },
-  {
-    "id": "mac.iface.snl-macro-style.separator",
-    "kind": "field",
-    "title": "$\\texttt{separator}$",
-    "body": "Optional string used to join children in dynamic_arity macros when expanding `#*`. Replaces the v6 variadic_left/variadic_join/variadic_right triple. Added in v0.10.0.",
-    "parent": "mac.iface.snl-macro-style",
-    "pointer": {
-      "file": "src/snl-macro/types.ts",
-      "mode": "regex",
-      "pattern": "^\\s*separator\\??\\s*(?::|\\()",
       "flags": "m"
     }
   },

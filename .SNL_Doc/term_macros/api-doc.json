@@ -1286,42 +1286,6 @@
       ],
       "tags": []
     },
-    "SnlMacroStyle.mode": {
-      "description": "The `mode` field of `SnlMacroStyle`.",
-      "source": {
-        "entries": [
-          "mac.iface.snl-macro-style.mode"
-        ],
-        "urls": []
-      },
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "mode": "formula_inline",
-          "template": "\\texttt{mode}",
-          "typst": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "latex": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "markdown": "",
-          "text": "",
-          "style_name": "default",
-          "tags": []
-        }
-      ],
-      "kind": "const",
-      "tags": []
-    },
     "SnlMacroStyle.template": {
       "description": "The `template` field of `SnlMacroStyle`.",
       "source": {
@@ -1356,78 +1320,6 @@
         }
       ],
       "kind": "const",
-      "tags": []
-    },
-    "SnlMacroStyle.separator": {
-      "description": "The `separator` field of `SnlMacroStyle`.",
-      "source": {
-        "entries": [
-          "mac.iface.snl-macro-style.separator"
-        ],
-        "urls": []
-      },
-      "kind": "const",
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "style_name": "default",
-          "tags": [],
-          "typst": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "latex": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "markdown": "",
-          "text": "",
-          "mode": "formula_inline",
-          "template": "\\texttt{separator}"
-        }
-      ],
-      "tags": []
-    },
-    "SnlMacroStyle.block_template_name": {
-      "description": "The `block_template_name` field of `SnlMacroStyle`.",
-      "source": {
-        "entries": [
-          "mac.iface.snl-macro-style.block_template_name"
-        ],
-        "urls": []
-      },
-      "kind": "const",
-      "dynamic_arity": false,
-      "styles": [
-        {
-          "style_name": "default",
-          "tags": [],
-          "typst": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "latex": {
-            "built_in": "",
-            "synthesis": {
-              "mode": "formula",
-              "macro": ""
-            }
-          },
-          "markdown": "",
-          "text": "",
-          "mode": "formula_inline",
-          "template": "\\texttt{block\\_template\\_name}"
-        }
-      ],
       "tags": []
     },
     "SnlMacroStyle.tags": {
