@@ -242,6 +242,16 @@
   transform-origin: top left;
 }
 
+/* Keep intrinsic layout on a child surface so the positioned shell's fixed
+ * geometry never feeds back into ResizeObserver measurements. */
+.snl-foreign-box-measure {
+  display: flow-root;
+  box-sizing: border-box;
+  width: max-content;
+  height: max-content;
+  max-width: none;
+}
+
 .snl-foreign-box[data-state='staging'],
 .snl-foreign-box[data-state='unsupported-transform'] {
   width: max-content;

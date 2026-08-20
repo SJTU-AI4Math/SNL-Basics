@@ -30,6 +30,13 @@ class TrackingResizeObserver {
   fire(target: Element, width = 30, height = 12) {
     this.callback([{ target, contentRect: rect({ left: 0, top: 0, width, height }) } as ResizeObserverEntry], this as unknown as ResizeObserver)
   }
+  deliverIntrinsic(target: Element) {
+    if (!this.targets.has(target)) return
+    const child = target.firstElementChild as HTMLElement | null
+    const width = Number.parseFloat(child?.style.width ?? '')
+    const height = Number.parseFloat(child?.style.height ?? '')
+    if (Number.isFinite(width) && Number.isFinite(height)) this.fire(target, width, height)
+  }
 }
 
 let rafCallbacks: Map<number, FrameRequestCallback>
@@ -65,6 +72,16 @@ function flushRaf(): void {
   for (const [, callback] of pending) callback(0)
 }
 
+function cssRule(css: string, selector: string): Map<string, string> {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const match = css.replace(/\/\*[\s\S]*?\*\//g, '').match(new RegExp(`${escaped}\\s*\\{([^}]*)\\}`))
+  expect(match, `missing CSS rule ${selector}`).not.toBeNull()
+  return new Map(match![1].split(';').map(value => value.trim()).filter(Boolean).map(value => {
+    const colon = value.indexOf(':')
+    return [value.slice(0, colon).trim(), value.slice(colon + 1).trim()]
+  }))
+}
+
 const identity = (treePath = '0.1', generation = 1, producer = 'renderer:block@r1'): ForeignBoxIdentity => ({
   treePath, generation, producer,
 })
@@ -81,6 +98,20 @@ function Slot({ id = identity(), label = 'foreign', apiRef, markerKey = 'a', onM
   const api = useForeignBox({ identity: id, child: <button data-testid="foreign-child">{label}</button>, onMetrics, onUnregister, ssrFallback })
   if (apiRef) apiRef.current = api
   return <><span key={markerKey} ref={api.markerRef} data-testid="marker" />{ssrFallback === undefined ? null : api.ssrFallback}</>
+}
+
+function IntrinsicSlot({ width, apiRef, onMetrics }: {
+  width: number
+  apiRef: { current: UseForeignBoxResult | null }
+  onMetrics: (metrics: { width: number; height: number; depth: number; baseline: 'alphabetic' | 'axis-center' | 'bottom' }) => void
+}) {
+  const api = useForeignBox({
+    identity: identity('intrinsic-slot'),
+    child: <button data-testid="intrinsic-child" style={{ width: `${width}px`, height: '12px' }}>foreign</button>,
+    onMetrics,
+  })
+  apiRef.current = api
+  return <span ref={api.markerRef} data-testid="intrinsic-marker" />
 }
 
 function EffectSlot({ kind, calls }: { kind: 'layout' | 'passive'; calls: boolean[] }) {
@@ -125,6 +156,19 @@ describe('ForeignBox contracts', () => {
     expect(Object.isFrozen(metrics)).toBe(true)
     expect(reads).toMatchObject({ width: 1, height: 1, depth: 1, baseline: 1 })
   })
+
+  it('ships intrinsic measurement-surface CSS through the public stylesheet without debug hooks', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/snl-react-view/style.css'), 'utf8')
+    const measure = cssRule(css, '.snl-foreign-box-measure')
+    expect(measure.get('display')).toBe('flow-root')
+    expect(measure.get('box-sizing')).toBe('border-box')
+    expect(measure.get('width')).toBe('max-content')
+    expect(measure.get('height')).toBe('max-content')
+    expect(measure.get('max-width')).toBe('none')
+    expect(readFileSync(resolve(process.cwd(), 'scripts/copy-lib-assets.mjs'), 'utf8')).toContain("copyFileSync(join(root, 'src/snl-react-view/style.css'), join(root, 'dist-lib/style.css'))")
+    expect(JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8')).exports['./style.css'].default).toBe('./dist-lib/style.css')
+    expect(css).not.toMatch(/data-(?:test|debug)-foreign-box|__SNL_FOREIGN_BOX/)
+  })
 })
 
 describe('ForeignBoxHost lifecycle', () => {
@@ -132,14 +176,14 @@ describe('ForeignBoxHost lifecycle', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot id={identity('', 0, 'root@1')} apiRef={apiRef} /></ForeignBoxHost>)
     expect(apiRef.current!.isAlive()).toBe(true)
-    expect(view.getByTestId('foreign-child').parentElement?.getAttribute('data-tree-path')).toBe('')
+    expect(view.getByTestId('foreign-child').parentElement?.parentElement?.getAttribute('data-tree-path')).toBe('')
   })
 
   it('keeps one child DOM node while staging, measuring, and positioning', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
     const child = view.getByTestId('foreign-child')
-    const wrapper = child.parentElement as HTMLElement
+    const wrapper = child.parentElement!.parentElement as HTMLElement
     const marker = view.getByTestId('marker')
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 20, width: 300, height: 200 }))
@@ -157,6 +201,37 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(wrapper.style.width).toBe('30px')
     expect(wrapper.style.height).toBe('14px')
     expect(TrackingResizeObserver.instances).toHaveLength(1)
+  })
+
+  it('measures same-identity intrinsic growth from an inner surface without observing the fixed shell', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const metrics = vi.fn()
+    const view = render(<ForeignBoxHost><IntrinsicSlot width={20} apiRef={apiRef} onMetrics={metrics} /></ForeignBoxHost>)
+    const child = view.getByTestId('intrinsic-child') as HTMLButtonElement
+    const measurement = child.parentElement as HTMLElement
+    const shell = measurement.parentElement as HTMLElement
+    const marker = view.getByTestId('intrinsic-marker')
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    const observer = TrackingResizeObserver.instances[0]
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 20, width: 10, height: 10 }))
+
+    expect(measurement.classList.contains('snl-foreign-box-measure')).toBe(true)
+    expect(shell.classList.contains('snl-foreign-box')).toBe(true)
+    expect(observer.targets.has(measurement)).toBe(true)
+    expect(observer.targets.has(shell)).toBe(false)
+    act(() => { observer.deliverIntrinsic(measurement); flushRaf() })
+    expect(shell.style.width).toBe('20px')
+    child.focus()
+    expect(document.activeElement).toBe(child)
+
+    view.rerender(<ForeignBoxHost><IntrinsicSlot width={50} apiRef={apiRef} onMetrics={metrics} /></ForeignBoxHost>)
+    expect(view.getByTestId('intrinsic-child')).toBe(child)
+    expect(document.activeElement).toBe(child)
+    act(() => { observer.deliverIntrinsic(measurement); flushRaf() })
+    expect(metrics.mock.calls.at(-1)?.[0]).toEqual({ width: 50, height: 12, depth: 0, baseline: 'bottom' })
+    expect(shell.style.width).toBe('50px')
+    expect(observer.targets.has(shell)).toBe(false)
   })
 
   it('rejects stale generation and producer callbacks', () => {
@@ -224,7 +299,7 @@ describe('ForeignBoxHost lifecycle', () => {
         },
       })
     })
-    wrapper = view.getByTestId('direct-old').parentElement as HTMLElement
+    wrapper = view.getByTestId('direct-old').parentElement!.parentElement as HTMLElement
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     const marker = document.createElement('span')
     host.append(marker)
@@ -249,14 +324,16 @@ describe('ForeignBoxHost lifecycle', () => {
     })
     expect(old.isAlive()).toBe(false)
     expect(next.isAlive()).toBe(true)
-    const nextWrapper = view.getByTestId('direct-new').parentElement as HTMLElement
+    const nextWrapper = view.getByTestId('direct-new').parentElement!.parentElement as HTMLElement
     expect(nextWrapper).not.toBe(wrapper)
     expect(nextWrapper.dataset.state).toBe('staging')
     expect(nextWrapper.style.visibility).toBe('hidden')
     expect(nextWrapper.style.transform).toBe('')
     expect(nextWrapper.style.width).toBe('')
     expect(TrackingResizeObserver.instances[0].targets.has(marker)).toBe(false)
-    expect(TrackingResizeObserver.instances[0].unobserved).toContain(wrapper)
+    const oldMeasurement = wrapper.querySelector('.snl-foreign-box-measure')!
+    expect(TrackingResizeObserver.instances[0].unobserved).toContain(oldMeasurement)
+    expect(TrackingResizeObserver.instances[0].unobserved).not.toContain(wrapper)
 
     const nextMarker = document.createElement('span')
     host.append(nextMarker)
@@ -293,7 +370,7 @@ describe('ForeignBoxHost lifecycle', () => {
         },
       })
     })
-    wrapper = view.getByTestId('explicit-child').parentElement as HTMLElement
+    wrapper = view.getByTestId('explicit-child').parentElement!.parentElement as HTMLElement
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     const marker = document.createElement('span')
     host.append(marker)
@@ -313,7 +390,9 @@ describe('ForeignBoxHost lifecycle', () => {
       state: 'staging', visibility: 'hidden', ariaHidden: 'true', inert: true, connected: true,
       transform: '', width: '', height: '', depth: '',
     })
-    expect(TrackingResizeObserver.instances[0].unobserved).toEqual(expect.arrayContaining([marker, wrapper]))
+    const measurement = wrapper.querySelector('.snl-foreign-box-measure')!
+    expect(TrackingResizeObserver.instances[0].unobserved).toEqual(expect.arrayContaining([marker, measurement]))
+    expect(TrackingResizeObserver.instances[0].unobserved).not.toContain(wrapper)
   })
 
   it('does not let an outer replacement overwrite authority registered reentrantly by the old callback', () => {
@@ -345,7 +424,8 @@ describe('ForeignBoxHost lifecycle', () => {
     const unregister = vi.fn(); const firstMetrics = vi.fn(); const nextMetrics = vi.fn()
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} label="first" onMetrics={firstMetrics} onUnregister={unregister} /></ForeignBoxHost>)
     const child = view.getByTestId('foreign-child') as HTMLButtonElement
-    const wrapper = child.parentElement as HTMLElement
+    const measurement = child.parentElement as HTMLElement
+    const wrapper = measurement.parentElement as HTMLElement
     const marker = view.getByTestId('marker')
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 300, height: 200 }))
@@ -358,7 +438,8 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(wrapper.dataset.state).toBe('positioned')
     expect(wrapper.style.height).toBe('14px')
     expect(unregister).not.toHaveBeenCalled()
-    act(() => TrackingResizeObserver.instances[0].fire(wrapper, 31, 14))
+    expect(TrackingResizeObserver.instances[0].targets.has(wrapper)).toBe(false)
+    act(() => TrackingResizeObserver.instances[0].fire(measurement, 31, 14))
     expect(nextMetrics).toHaveBeenCalled()
     expect(firstMetrics).toHaveBeenCalledTimes(1)
   })
@@ -374,13 +455,13 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(TrackingResizeObserver.instances).toHaveLength(1)
     expect(rafCallbacks.size).toBe(1)
     act(flushRaf)
-    expect(view.getAllByTestId('foreign-child').map(node => node.parentElement?.style.width)).toEqual(['10px', '20px'])
+    expect(view.getAllByTestId('foreign-child').map(node => node.parentElement?.parentElement?.style.width)).toEqual(['10px', '20px'])
   })
 
   it('keeps staging foreign controls inert and hidden until positioning, preserving the child node', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
-    const child = view.getByTestId('foreign-child'); const wrapper = child.parentElement as HTMLElement
+    const child = view.getByTestId('foreign-child'); const wrapper = child.parentElement!.parentElement as HTMLElement
     const marker = view.getByTestId('marker'); const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     const overlay = view.container.querySelector('.snl-foreign-box-overlay') as HTMLElement
     expect(overlay.hasAttribute('aria-hidden')).toBe(false)
@@ -403,7 +484,7 @@ describe('ForeignBoxHost lifecycle', () => {
   it('maps scaled viewport rectangles into untransformed host-local coordinates', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
-    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement!.parentElement as HTMLElement
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
       transform: element === host ? 'matrix(2, 0, 0, 2, 10, 20)' : 'none',
@@ -421,7 +502,7 @@ describe('ForeignBoxHost lifecycle', () => {
   it('subtracts the scaled host border before mapping viewport coordinates to the scrolled padding edge', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
-    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement!.parentElement as HTMLElement
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
       transform: element === host ? 'matrix(2, 0, 0, 2, 10, 20)' : 'none',
@@ -440,7 +521,7 @@ describe('ForeignBoxHost lifecycle', () => {
   it('atomically hides and clears a positioned wrapper when the host becomes rotated', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
-    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement!.parentElement as HTMLElement
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     let hostTransform = 'none'
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
@@ -482,7 +563,8 @@ describe('ForeignBoxHost lifecycle', () => {
           onMetrics: metrics,
         })
       })
-      const wrapper = view.getByTestId('wide-intrinsic-child').parentElement as HTMLElement
+      const measurement = view.getByTestId('wide-intrinsic-child').parentElement as HTMLElement
+      const wrapper = measurement.parentElement as HTMLElement
       const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
       const marker = document.createElement('span')
       host.append(marker)
@@ -506,8 +588,10 @@ describe('ForeignBoxHost lifecycle', () => {
       hostTransform = 'rotate(4deg)'
       act(flushRaf)
       const unsupportedStyle = actualGetComputedStyle(wrapper)
+      const measurementStyle = actualGetComputedStyle(measurement)
       expect(wrapper.dataset.state).toBe('unsupported-transform')
-      expect(unsupportedStyle.width).toBe('max-content')
+      expect(measurementStyle.width).toBe('max-content')
+      expect(measurementStyle.maxWidth).toBe('none')
       expect(unsupportedStyle.opacity).toBe('0')
       expect(unsupportedStyle.pointerEvents).toBe('none')
       expect(unsupportedStyle.transform).toBe('translate(-100000px, -100000px)')
@@ -516,7 +600,8 @@ describe('ForeignBoxHost lifecycle', () => {
       expect(wrapper.getAttribute('aria-hidden')).toBe('true')
 
       const retainedWidth = unsupportedStyle.width === 'max-content' ? 240 : 80
-      act(() => TrackingResizeObserver.instances[0].fire(wrapper, retainedWidth, 12))
+      expect(TrackingResizeObserver.instances[0].targets.has(wrapper)).toBe(false)
+      act(() => TrackingResizeObserver.instances[0].fire(measurement, retainedWidth, 12))
       expect(metrics).toHaveBeenCalledWith({ width: 240, height: 12, depth: 0, baseline: 'bottom' })
       expect(metrics.mock.calls.some(([value]) => value.width === 80)).toBe(false)
 
@@ -537,7 +622,7 @@ describe('ForeignBoxHost lifecycle', () => {
   ])('fails closed after a positioned host changes to %s', (_label: string, unsupportedTransform: string) => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
-    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement!.parentElement as HTMLElement
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     let hostTransform = 'none'
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
@@ -559,7 +644,7 @@ describe('ForeignBoxHost lifecycle', () => {
   it('fails closed when an ancestor affecting the host becomes rotated', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
-    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement!.parentElement as HTMLElement
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     let ancestorTransform = 'none'
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
@@ -586,7 +671,7 @@ describe('ForeignBoxHost lifecycle', () => {
     const ancestor = view.getByTestId('ancestor')
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     const markers = view.getAllByTestId('marker')
-    const wrappers = view.getAllByTestId('foreign-child').map(node => node.parentElement as HTMLElement)
+    const wrappers = view.getAllByTestId('foreign-child').map(node => node.parentElement!.parentElement as HTMLElement)
     let unsupported: Element | null = null
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
       transform: element === unsupported ? 'rotate(10deg)' : 'none',
@@ -613,14 +698,16 @@ describe('ForeignBoxHost lifecycle', () => {
     const view = render(<ForeignBoxHost><RegistryCapture setRegistry={value => { registry = value }} /></ForeignBoxHost>)
     const oldMetrics = vi.fn(); const nextMetrics = vi.fn()
     act(() => { registry.register({ identity: identity('record-slot', 1, 'old@1'), child: <span data-testid="record-old">old</span>, onMetrics: oldMetrics }) })
-    const oldWrapper = view.getByTestId('record-old').parentElement as HTMLElement
+    const oldMeasurement = view.getByTestId('record-old').parentElement as HTMLElement
+    const oldWrapper = oldMeasurement.parentElement as HTMLElement
     const observer = TrackingResizeObserver.instances[0]
     let next!: ReturnType<typeof registry.register>
     act(() => { next = registry.register({ identity: identity('record-slot', 2, 'new@2'), child: <span data-testid="record-new">new</span>, onMetrics: nextMetrics }) })
-    const nextWrapper = view.getByTestId('record-new').parentElement as HTMLElement
+    const nextWrapper = view.getByTestId('record-new').parentElement!.parentElement as HTMLElement
     expect(nextWrapper).not.toBe(oldWrapper)
 
-    act(() => observer.fire(oldWrapper, 99, 77))
+    expect(observer.targets.has(oldWrapper)).toBe(false)
+    act(() => observer.fire(oldMeasurement, 99, 77))
     expect(oldMetrics).not.toHaveBeenCalled()
     expect(nextMetrics).not.toHaveBeenCalled()
     expect(nextWrapper.dataset.state).toBe('staging')
@@ -643,10 +730,11 @@ describe('ForeignBoxHost lifecycle', () => {
         onUnregister: oldUnregister,
       })
     })
-    const oldWrapper = view.getByTestId('exact-record-old').parentElement as HTMLElement
+    const oldMeasurement = view.getByTestId('exact-record-old').parentElement as HTMLElement
+    const oldWrapper = oldMeasurement.parentElement as HTMLElement
     const observer = TrackingResizeObserver.instances[0]
     const oldRecord = {
-      target: oldWrapper,
+      target: oldMeasurement,
       contentRect: rect({ left: 0, top: 0, width: 99, height: 77 }),
     } as unknown as ResizeObserverEntry
 
@@ -658,11 +746,15 @@ describe('ForeignBoxHost lifecycle', () => {
         onMetrics: nextMetrics,
       })
     })
-    const nextWrapper = view.getByTestId('exact-record-new').parentElement as HTMLElement
+    const nextMeasurement = view.getByTestId('exact-record-new').parentElement as HTMLElement
+    const nextWrapper = nextMeasurement.parentElement as HTMLElement
     expect(oldUnregister).toHaveBeenCalledTimes(1)
     expect(old.isAlive()).toBe(false)
     expect(next.isAlive()).toBe(true)
     expect(nextWrapper).not.toBe(oldWrapper)
+    expect(nextMeasurement).not.toBe(oldMeasurement)
+    expect(observer.unobserved).toContain(oldMeasurement)
+    expect(observer.unobserved).not.toContain(oldWrapper)
     expect(nextWrapper.dataset.state).toBe('staging')
 
     act(() => observer.callback([oldRecord], observer as unknown as ResizeObserver))
@@ -677,7 +769,7 @@ describe('ForeignBoxHost lifecycle', () => {
     vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 12, top: 18, width: 10, height: 10 }))
     act(() => {
       next.setMarker(marker)
-      observer.fire(nextWrapper, 42, 12)
+      observer.fire(nextMeasurement, 42, 12)
       flushRaf()
     })
     expect(nextMetrics).toHaveBeenCalledWith({ width: 42, height: 12, depth: 0, baseline: 'bottom' })
@@ -691,7 +783,7 @@ describe('ForeignBoxHost lifecycle', () => {
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} ssrFallback={<span data-testid="fallback">fallback</span>} /></ForeignBoxHost>)
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     const marker = view.getByTestId('marker')
-    const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const wrapper = view.getByTestId('foreign-child').parentElement!.parentElement as HTMLElement
     const fallbackBoundary = view.container.querySelector('[data-snl-foreign-box-fallback]') as HTMLElement
     const fallbackChild = view.getByTestId('fallback')
     let hostTransform = 'none'
@@ -720,9 +812,11 @@ describe('ForeignBoxHost lifecycle', () => {
   it('observes targets registered before host layout observer creation and reacts to marker geometry', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
-    const marker = view.getByTestId('marker'); const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const marker = view.getByTestId('marker'); const measurement = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const wrapper = measurement.parentElement as HTMLElement
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
-    expect(TrackingResizeObserver.instances[0].targets).toEqual(new Set([host, marker, wrapper]))
+    expect(TrackingResizeObserver.instances[0].targets).toEqual(new Set([host, marker, measurement]))
+    expect(TrackingResizeObserver.instances[0].targets.has(wrapper)).toBe(false)
     vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 10, width: 100, height: 100 }))
     vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 35, top: 45, width: 10, height: 10 }))
     act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
@@ -734,11 +828,13 @@ describe('ForeignBoxHost lifecycle', () => {
   it('keeps positive-depth wrapper measurement at a stable fixed point', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }; const metrics = vi.fn()
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} onMetrics={metrics} /></ForeignBoxHost>)
-    const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const measurement = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const wrapper = measurement.parentElement as HTMLElement
     act(() => { apiRef.current!.reportMetrics({ width: 30, height: 12, depth: 2, baseline: 'alphabetic' }); flushRaf() })
     expect(wrapper.style.height).toBe('14px')
-    act(() => { TrackingResizeObserver.instances[0].fire(wrapper, 30, 14); flushRaf() })
-    act(() => { TrackingResizeObserver.instances[0].fire(wrapper, 30, 14); flushRaf() })
+    expect(TrackingResizeObserver.instances[0].targets.has(wrapper)).toBe(false)
+    act(() => { TrackingResizeObserver.instances[0].fire(measurement, 30, 14); flushRaf() })
+    act(() => { TrackingResizeObserver.instances[0].fire(measurement, 30, 14); flushRaf() })
     expect(metrics.mock.calls.at(-1)?.[0]).toEqual({ width: 30, height: 12, depth: 2, baseline: 'alphabetic' })
     expect(wrapper.style.height).toBe('14px')
     expect(rafCallbacks.size).toBe(1)
@@ -754,7 +850,7 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(TrackingResizeObserver.instances[0].unobserved).toContain(oldMarker)
     expect(TrackingResizeObserver.instances[0].targets.has(oldMarker)).toBe(false)
     expect(TrackingResizeObserver.instances[0].targets.has(newMarker)).toBe(true)
-    const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const wrapper = view.getByTestId('foreign-child').parentElement!.parentElement as HTMLElement
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 10, width: 100, height: 100 }))
     vi.spyOn(newMarker, 'getBoundingClientRect').mockReturnValue(rect({ left: 60, top: 70, width: 10, height: 10 }))
@@ -775,18 +871,43 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(TrackingResizeObserver.instances[0].targets.has(marker)).toBe(false)
   })
 
+  it('fails closed and releases a detached intrinsic measurement target', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
+    const measurement = view.getByTestId('foreign-child').parentElement as HTMLElement
+    const wrapper = measurement.parentElement as HTMLElement
+    act(() => { apiRef.current!.reportMetrics({ width: 20, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
+    expect(wrapper.dataset.state).toBe('positioned')
+
+    act(() => {
+      measurement.remove()
+      window.dispatchEvent(new Event('scroll'))
+      flushRaf()
+    })
+
+    expect(TrackingResizeObserver.instances[0].unobserved).toContain(measurement)
+    expect(TrackingResizeObserver.instances[0].targets.has(measurement)).toBe(false)
+    expect(TrackingResizeObserver.instances[0].targets.has(wrapper)).toBe(false)
+    expect(wrapper.dataset.state).toBe('staging')
+    expect(wrapper.style.visibility).toBe('hidden')
+    expect(wrapper.hasAttribute('inert')).toBe(true)
+  })
+
   it('unregisters a removed slot and releases its observed targets', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const unregister = vi.fn()
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} onUnregister={unregister} /></ForeignBoxHost>)
     const marker = view.getByTestId('marker')
-    const wrapper = view.getByTestId('foreign-child').parentElement!
-    expect(TrackingResizeObserver.instances[0].targets.has(wrapper)).toBe(true)
+    const measurement = view.getByTestId('foreign-child').parentElement!
+    const wrapper = measurement.parentElement!
+    expect(TrackingResizeObserver.instances[0].targets.has(measurement)).toBe(true)
+    expect(TrackingResizeObserver.instances[0].targets.has(wrapper)).toBe(false)
     view.rerender(<ForeignBoxHost />)
     expect(unregister).toHaveBeenCalledTimes(1)
     expect(apiRef.current!.isAlive()).toBe(false)
     expect(view.queryByTestId('foreign-child')).toBeNull()
-    expect(TrackingResizeObserver.instances[0].unobserved).toEqual(expect.arrayContaining([marker, wrapper]))
+    expect(TrackingResizeObserver.instances[0].unobserved).toEqual(expect.arrayContaining([marker, measurement]))
+    expect(TrackingResizeObserver.instances[0].unobserved).not.toContain(wrapper)
     expect(rafCallbacks.size).toBe(0)
     expect(cancelledRafs).toHaveLength(1)
   })
@@ -982,7 +1103,8 @@ describe('ForeignBoxHost lifecycle', () => {
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} onUnregister={unregister} /></ForeignBoxHost>)
     const retainedApi = apiRef.current!
     const observer = TrackingResizeObserver.instances[0]
-    const wrapper = view.getByTestId('foreign-child').parentElement!
+    const measurement = view.getByTestId('foreign-child').parentElement!
+    const wrapper = measurement.parentElement!
     act(() => retainedApi.reportMetrics({ width: 4, height: 5, depth: 0, baseline: 'bottom' }))
     const retainedRaf = [...rafCallbacks.values()][0]
     view.unmount()
@@ -995,7 +1117,7 @@ describe('ForeignBoxHost lifecycle', () => {
     act(() => {
       retainedApi.reportMetrics({ width: 90, height: 90, depth: 0, baseline: 'bottom' })
       retainedApi.markerRef(document.createElement('span'))
-      observer.fire(wrapper, 90, 90)
+      observer.fire(measurement, 90, 90)
       retainedRaf(0)
     })
     expect(retainedApi.isAlive()).toBe(false)

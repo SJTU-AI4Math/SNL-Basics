@@ -92,6 +92,8 @@ interface Entry {
   marker: MarkerElement | null
   wrapper: HTMLDivElement | null
   wrapperRef: (wrapper: HTMLDivElement | null) => void
+  measurement: HTMLDivElement | null
+  measurementRef: (measurement: HTMLDivElement | null) => void
   metrics: ForeignBoxMetrics | null
 }
 
@@ -162,14 +164,18 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
               marker = null
               stageEntry(entry)
             }
+            if (entry.measurement && !entry.measurement.isConnected) {
+              observerRef.current?.unobserve(entry.measurement)
+              elementEntriesRef.current.delete(entry.measurement)
+              entry.measurement = null
+              stageEntry(entry)
+            }
             if (wrapper && !wrapper.isConnected) {
-              observerRef.current?.unobserve(wrapper)
-              elementEntriesRef.current.delete(wrapper)
               entry.wrapper = null
               wrapper = null
               setEntryPositioned(entry, false)
             }
-            if (!marker || !wrapper || !metrics) continue
+            if (!marker || !wrapper || !entry.measurement || !metrics) continue
             const markerRect = marker.getBoundingClientRect()
             const local = viewportDeltaToHostLocal(host, hostRect, markerRect.left - hostRect.left, markerRect.top - hostRect.top)
             if (!local) {
@@ -206,22 +212,30 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
       const entry: Entry = {
         identity, child: options.child, onMetrics: options.onMetrics, onUnregister: options.onUnregister,
         onPositionedChange: options.onPositionedChange, positioned: false,
-        key, slot, token, marker: null, wrapper: null, wrapperRef: () => {}, metrics: null,
+        key, slot, token, marker: null, wrapper: null, wrapperRef: () => {},
+        measurement: null, measurementRef: () => {}, metrics: null,
       }
       entry.wrapperRef = (wrapper) => {
         if (!activeRef.current || entriesRef.current.get(slot)?.token !== token) return
-        if (entry.wrapper && entry.wrapper !== wrapper) {
-          observerRef.current?.unobserve(entry.wrapper)
-          elementEntriesRef.current.delete(entry.wrapper)
-        }
         entry.wrapper = wrapper
         if (wrapper) {
           stageEntry(entry)
-          elementEntriesRef.current.set(wrapper, entry)
-          observerRef.current?.observe(wrapper)
           scheduleGeometry()
         } else {
           setEntryPositioned(entry, false)
+        }
+      }
+      entry.measurementRef = (measurement) => {
+        if (!activeRef.current || entriesRef.current.get(slot)?.token !== token) return
+        if (entry.measurement && entry.measurement !== measurement) {
+          observerRef.current?.unobserve(entry.measurement)
+          elementEntriesRef.current.delete(entry.measurement)
+        }
+        entry.measurement = measurement
+        if (measurement) {
+          elementEntriesRef.current.set(measurement, entry)
+          observerRef.current?.observe(measurement)
+          scheduleGeometry()
         }
       }
       if (!activeRef.current) return inertRegistration
@@ -236,12 +250,13 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
           observerRef.current?.unobserve(previous.marker)
           elementEntriesRef.current.delete(previous.marker)
         }
-        if (previous.wrapper) {
-          observerRef.current?.unobserve(previous.wrapper)
-          elementEntriesRef.current.delete(previous.wrapper)
+        if (previous.measurement) {
+          observerRef.current?.unobserve(previous.measurement)
+          elementEntriesRef.current.delete(previous.measurement)
         }
         previous.marker = null
         previous.metrics = null
+        previous.measurement = null
         previous.wrapper = null
         previous.positioned = false
       }
@@ -289,11 +304,12 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
           observerRef.current?.unobserve(entry.marker)
           elementEntriesRef.current.delete(entry.marker)
         }
-        if (entry.wrapper) {
-          observerRef.current?.unobserve(entry.wrapper)
-          elementEntriesRef.current.delete(entry.wrapper)
+        if (entry.measurement) {
+          observerRef.current?.unobserve(entry.measurement)
+          elementEntriesRef.current.delete(entry.measurement)
         }
         entry.marker = null
+        entry.measurement = null
         entry.wrapper = null
         setEntryPositioned(entry, false)
         if (entriesRef.current.size === 0 && rafRef.current !== null && typeof cancelAnimationFrame !== 'undefined') {
@@ -337,12 +353,12 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
           if (record.target === host) continue
           const entry = elementEntriesRef.current.get(record.target)
           if (!entry || entriesRef.current.get(entry.slot)?.token !== entry.token) continue
-          if (record.target === entry.wrapper) {
+          if (record.target === entry.measurement) {
             const width = record.contentRect.width
             const totalHeight = record.contentRect.height
             const depth = entry.metrics?.depth ?? 0
-            const height = totalHeight - depth
-            if (Number.isFinite(width) && width >= 0 && Number.isFinite(height) && height >= 0) {
+            const height = Math.max(0, totalHeight - depth)
+            if (Number.isFinite(width) && width >= 0 && Number.isFinite(height)) {
               const metrics = Object.freeze({ width, height, depth, baseline: entry.metrics?.baseline ?? 'bottom' })
               entry.metrics = metrics
               entry.onMetrics?.(metrics)
@@ -355,7 +371,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
       if (host) observer.observe(host)
       for (const entry of entriesRef.current.values()) {
         if (entry.marker) observer.observe(entry.marker)
-        if (entry.wrapper) observer.observe(entry.wrapper)
+        if (entry.measurement) observer.observe(entry.measurement)
       }
     }
 
@@ -402,7 +418,9 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
               data-tree-path={entry.identity.treePath}
               ref={entry.wrapperRef}
             >
-              {entry.child}
+              <div className="snl-foreign-box-measure" ref={entry.measurementRef}>
+                {entry.child}
+              </div>
             </div>
           ))}
         </div>

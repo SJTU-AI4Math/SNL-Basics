@@ -49,7 +49,8 @@ describe('ForeignBoxHost hydration', () => {
     expect(apiRef.current?.isAlive()).toBe(true)
     const host = container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     const marker = container.querySelector('[data-testid="marker"]') as HTMLElement
-    const wrapper = container.querySelector('[data-testid="foreign-child"]')!.parentElement as HTMLElement
+    const measurement = container.querySelector('[data-testid="foreign-child"]')!.parentElement as HTMLElement
+    const wrapper = measurement.parentElement as HTMLElement
     vi.spyOn(host, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 100, height: 100, right: 100, bottom: 100, x: 0, y: 0, toJSON() {} } as DOMRect)
     vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue({ left: 10, top: 20, width: 10, height: 10, right: 20, bottom: 30, x: 10, y: 20, toJSON() {} } as DOMRect)
     await act(async () => {
@@ -125,7 +126,8 @@ describe('ForeignBoxHost hydration', () => {
     const fallback = container.querySelector('[data-snl-foreign-box-fallback]') as HTMLElement
     const fallbackChild = container.querySelector('[data-testid="fallback-child"]') as HTMLElement
     const liveChild = container.querySelector('[data-testid="foreign-child"]') as HTMLElement
-    const wrapper = liveChild.parentElement as HTMLElement
+    const measurement = liveChild.parentElement as HTMLElement
+    const wrapper = measurement.parentElement as HTMLElement
     const handoffOrder: Array<{ fallbackHidden: boolean; liveVisibility: string; liveInert: boolean }> = []
     const hiddenDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'hidden')!
     Object.defineProperty(fallback, 'hidden', {
