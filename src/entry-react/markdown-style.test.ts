@@ -18,6 +18,7 @@ describe('public Markdown stylesheet', () => {
   it('defines host-aware prose and code font stacks', () => {
     expect(declarations('.snl-markdown-body').get('font-family')).toContain('--vscode-font-family')
     expect(declarations('.snl-markdown-body').get('line-height')).toBe('1.6')
+    expect(declarations('.snl-markdown-body').get('overflow-x')).toBe('auto')
     const code = declarations('.snl-markdown-body code')
     expect(code.get('font-family')).toContain('--vscode-editor-font-family')
     expect(code.get('font-variant-ligatures')).toBe('none')
