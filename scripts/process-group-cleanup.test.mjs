@@ -123,21 +123,86 @@ describe('anchored owned process-group cleanup', () => {
     expect(existsSync(profile)).toBe(false)
   })
 
-  it('rejects an anchor read failure and removes the unreturned process group', async () => {
+  it('uses supervisor IPC after an anchor stat read failure without any numeric group signal', async () => {
     const profile = mkdtempSync(join(tmpdir(), 'snl-owned-startup-profile-'))
     profiles.add(profile)
-    let groupId
+    const killCalls = []
+    const cleanupEvents = []
+    let supervisorPid
     await expect(spawnOwnedProcess(
       process.execPath,
       ['-e', 'setInterval(() => {}, 1000)'],
       { cwd: profile },
-      { readIdentity: async pid => { groupId = pid; throw new Error('anchor probe failed') } },
+      {
+        readIdentity: async pid => { supervisorPid = pid; throw new Error('anchor probe failed') },
+        signalProcess: (pid, signal) => { killCalls.push({ pid, signal }); return process.kill(pid, signal) },
+        onCleanupEvent: event => cleanupEvents.push(event),
+      },
     )).rejects.toThrow(/anchor probe failed/)
 
-    await eventually(() => !alive(groupId))
+    await eventually(() => !alive(supervisorPid))
+    expect(cleanupEvents).toContain('emergency-shutdown-requested')
+    expect(cleanupEvents).toContain('emergency-shutdown-complete')
+    expect(killCalls.every(call => call.pid > 0)).toBe(true)
     rmSync(profile, { recursive: true, force: true })
     profiles.delete(profile)
     expect(existsSync(profile)).toBe(false)
+  })
+
+  it('propagates explicit infrastructure failure when the emergency capability is unavailable', async () => {
+    let supervisorPid
+    let failure
+    try {
+      await spawnOwnedProcess(
+        process.execPath,
+        ['-e', 'setInterval(() => {}, 1000)'],
+        {},
+        {
+          readIdentity: async pid => { supervisorPid = pid; throw new Error('anchor probe failed') },
+          emergencyShutdown: async () => { throw new Error('IPC capability unavailable') },
+        },
+      )
+    } catch (error) { failure = error }
+
+    expect(failure?.cleanupIncomplete).toBe(true)
+    expect(failure?.message).toMatch(/infrastructure cleanup failed.*IPC capability unavailable/i)
+    const actual = await readProcessIdentity(supervisorPid)
+    expect(actual.pgrp).toBe(supervisorPid)
+    process.kill(-supervisorPid, 'SIGKILL')
+    await eventually(() => !alive(supervisorPid))
+  })
+
+  it('uses IPC on anchor pgrp mismatch while an unrelated numeric-target sentinel survives', async () => {
+    const sentinel = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { detached: true, stdio: 'ignore' })
+    looseProcesses.add(sentinel)
+    await new Promise(resolve => sentinel.once('spawn', resolve))
+    const killCalls = []
+    const cleanupEvents = []
+    let supervisorPid
+    await expect(spawnOwnedProcess(
+      process.execPath,
+      ['-e', 'setInterval(() => {}, 1000)'],
+      {},
+      {
+        readIdentity: async pid => {
+          supervisorPid = pid
+          const actual = await readProcessIdentity(pid)
+          return { ...actual, pgrp: sentinel.pid }
+        },
+        signalProcess: (pid, signal) => {
+          killCalls.push({ pid, signal })
+          if (pid < 0) return process.kill(sentinel.pid, signal)
+          return process.kill(pid, signal)
+        },
+        onCleanupEvent: event => cleanupEvents.push(event),
+      },
+    )).rejects.toThrow(/process-group leader/)
+
+    await eventually(() => !alive(supervisorPid))
+    expect(cleanupEvents).toContain('emergency-shutdown-requested')
+    expect(cleanupEvents).toContain('emergency-shutdown-complete')
+    expect(killCalls.every(call => call.pid > 0)).toBe(true)
+    expect(alive(sentinel.pid)).toBe(true)
   })
 
   it('rejects and cleans up when the child exits before delayed IPC acceptance', async () => {
@@ -221,6 +286,14 @@ describe('anchored owned process-group cleanup', () => {
     expect(browser).toBeGreaterThan(close)
     expect(vite).toBeGreaterThan(browser)
     expect(profile).toBeGreaterThan(browser)
+    expect(source).not.toMatch(/^\s*browserTreeGone\s*=\s*!browser\s*$/m)
+    expect(source).toContain('verificationError?.cleanupIncomplete !== true')
     expect(source).not.toMatch(/(?:browser|vite)(?:\.child)?\.kill\s*\(/)
+  })
+
+  it('forbids an unverified supervisor PID from being used as a numeric group target', () => {
+    const source = readFileSync(new URL('./process-group-cleanup.mjs', import.meta.url), 'utf8')
+    expect(source).not.toMatch(/signalExactGroup\(supervisor\.pid/)
+    expect(source).not.toMatch(/process\.kill\(\s*-supervisor\.pid/)
   })
 })

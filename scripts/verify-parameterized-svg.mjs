@@ -341,7 +341,10 @@ try {
     cleanupErrors.push(new Error('CDP cleanup failed', { cause: error }))
   }
 
-  browserTreeGone = !browser
+  browserTreeGone = !browser && verificationError?.cleanupIncomplete !== true
+  if (!browser && verificationError?.cleanupIncomplete === true) {
+    cleanupErrors.push(new Error('Chromium profile retained because startup cleanup could not be verified'))
+  }
   if (browser) {
     try {
       await terminateOwnedProcess(browser)

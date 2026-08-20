@@ -3636,34 +3636,34 @@
     "id": "mod.schema",
     "kind": "module",
     "title": "Schema Migration Module",
-    "body": "Centralized schema migration chain (src/schema/). Provides lossless v6→v7 macro migration and v1→v2 tree migration with version constants, validation, and CLI tooling."
+    "body": "Centralized schema migration chains (src/schema/) from supported legacy documents to current macro v11 and tree v3, with retained stepwise migrations, version constants, validation, and CLI tooling."
   },
   {
     "id": "schema.fn.migrate-macro-document",
     "kind": "function",
     "title": "migrateMacroDocument",
-    "body": "Migrates an entire macro DB from v6 to v7. Maps tag→style_name, variadic triple→separator+template, react_renderer_key→block_template_name, adds tags:[].",
+    "body": "Migrates an entire macro DB through the retained v6→v7→v9→v10→v11 chain to current v11. The first step maps tag→style_name, the variadic triple→separator+template, and react_renderer_key→block_template_name, and adds tags:[].",
     "parent": "mod.schema"
   },
   {
     "id": "schema.fn.migrate-syntax-tree-document",
     "kind": "function",
     "title": "migrateSyntaxTreeDocument",
-    "body": "Migrates a syntax tree from v1 to v2 recursively. Maps name→macro_name, style→style_name, envMode→env_mode.",
+    "body": "Migrates a syntax tree recursively through the retained v1→v2→v3 chain to current v3. The first step maps name→macro_name, style→style_name, and envMode→env_mode.",
     "parent": "mod.schema"
   },
   {
     "id": "schema.const.macro-schema-version",
     "kind": "constant",
     "title": "MACRO_SCHEMA_VERSION",
-    "body": "Current macro schema version (7). Used for version detection in migrations.",
+    "body": "Current macro schema version (11). Used for version detection in migrations.",
     "parent": "mod.schema"
   },
   {
     "id": "schema.const.tree-schema-version",
     "kind": "constant",
     "title": "TREE_SCHEMA_VERSION",
-    "body": "Current syntax tree schema version (2). Used for version detection in migrations.",
+    "body": "Current syntax tree schema version (3). Used for version detection in migrations.",
     "parent": "mod.schema"
   },
   {

@@ -31,8 +31,8 @@ async function groupMembers(groupId) {
   }
   return members
 }
-function signalExactGroup(groupId, signal) {
-  try { process.kill(-groupId, signal) }
+function signalExactGroup(groupId, signal, signalProcess = process.kill.bind(process)) {
+  try { signalProcess(-groupId, signal) }
   catch (error) { if (error?.code !== 'ESRCH') throw error }
 }
 function deferred() {
@@ -41,11 +41,52 @@ function deferred() {
   return { promise, resolve, reject }
 }
 
+async function requestEmergencyShutdown(supervisor, supervisorExit, onCleanupEvent, timeoutMs = 6_000) {
+  if (!supervisor.connected || typeof supervisor.send !== 'function') {
+    throw new Error('owned supervisor IPC capability is unavailable')
+  }
+  const completion = deferred()
+  const onMessage = message => {
+    if (message?.type !== 'emergency-shutdown-complete') return
+    completion.resolve(message)
+  }
+  supervisor.on('message', onMessage)
+  onCleanupEvent('emergency-shutdown-requested')
+  try {
+    supervisor.send({ type: 'emergency-shutdown' }, error => { if (error) completion.reject(error) })
+    const result = await Promise.race([
+      completion.promise,
+      delay(timeoutMs).then(() => { throw new Error(`owned supervisor ${supervisor.pid} timed out during emergency shutdown`) }),
+    ])
+    if (!result.ok) throw new Error(`owned supervisor emergency shutdown failed: ${result.message}`)
+    const exited = await Promise.race([
+      supervisorExit.then(() => true),
+      delay(timeoutMs).then(() => false),
+    ])
+    if (!exited) throw new Error(`owned supervisor ${supervisor.pid} did not exit after emergency shutdown`)
+    onCleanupEvent('emergency-shutdown-complete')
+  } finally {
+    supervisor.off('message', onMessage)
+  }
+}
+
+function cleanupFailure(startupError, cleanupError) {
+  const combined = new AggregateError(
+    [startupError, cleanupError],
+    `${startupError.message}; infrastructure cleanup failed: ${cleanupError.message}`,
+  )
+  combined.cleanupIncomplete = true
+  return combined
+}
+
 export async function spawnOwnedProcess(command, args, options = {}, dependencies = {}) {
   if (process.platform !== 'linux') throw new Error('anchored process cleanup requires Linux /proc')
   const readAnchorIdentity = dependencies.readIdentity ?? readIdentity
   const beforeChildSpawn = dependencies.beforeChildSpawn ?? (() => {})
   const onStartupEvent = dependencies.onStartupEvent ?? (() => {})
+  const onCleanupEvent = dependencies.onCleanupEvent ?? (() => {})
+  const signalProcess = dependencies.signalProcess ?? process.kill.bind(process)
+  const emergencyShutdown = dependencies.emergencyShutdown ?? requestEmergencyShutdown
   const config = Buffer.from(JSON.stringify({ command, args, cwd: options.cwd, env: options.env })).toString('base64url')
   const supervisor = spawn(process.execPath, [supervisorPath, config], {
     detached: true,
@@ -65,6 +106,7 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
     anchor: undefined,
     failure: failed.promise,
     cleaning: false,
+    signalProcess,
   }
   const startupState = { anchorReady: false, childReady: false, settled: false }
   const resolveStartupIfReady = () => {
@@ -141,14 +183,32 @@ export async function spawnOwnedProcess(command, args, options = {}, dependencie
   } catch (error) {
     owned.cleaning = true
     await anchorCheck?.catch(() => {})
+    let cleanupError
     if (owned.anchor) {
-      await terminateOwnedProcess(owned).catch(() => {})
+      try { await terminateOwnedProcess(owned) }
+      catch (anchorCleanupError) {
+        try { await emergencyShutdown(supervisor, supervisorExit, onCleanupEvent) }
+        catch (emergencyError) {
+          cleanupError = new AggregateError(
+            [anchorCleanupError, emergencyError],
+            'verified-group cleanup and capability-scoped emergency shutdown both failed',
+          )
+        }
+      }
     } else if (supervisorSpawned) {
-      signalExactGroup(supervisor.pid, 'SIGKILL')
-      await supervisorExit
+      try { await emergencyShutdown(supervisor, supervisorExit, onCleanupEvent) }
+      catch (emergencyError) { cleanupError = emergencyError }
     } else {
-      try { supervisor.kill('SIGKILL') } catch {}
+      try {
+        supervisor.kill('SIGKILL')
+        const exited = await Promise.race([
+          supervisorExit.then(() => true),
+          delay(2_000).then(() => false),
+        ])
+        if (!exited) throw new Error('unspawned owned supervisor did not exit after direct ChildProcess kill')
+      } catch (directError) { cleanupError = directError }
     }
+    if (cleanupError) throw cleanupFailure(error, cleanupError)
     throw error
   }
 }
@@ -177,7 +237,7 @@ export async function terminateOwnedProcess(owned, {
   }
   owned.cleaning = true
   await assertAnchorIdentity(owned)
-  signalExactGroup(owned.groupId, 'SIGTERM')
+  signalExactGroup(owned.groupId, 'SIGTERM', owned.signalProcess)
   const onlyAnchor = await waitUntil(async () => {
     const members = await groupMembers(owned.groupId)
     return members.every(member => member.pid === owned.anchor.pid)
@@ -197,7 +257,7 @@ export async function terminateOwnedProcess(owned, {
   // Identity is checked immediately before the destructive exact-group signal;
   // a dead/reused anchor therefore fails closed instead of touching a stale PGID.
   await assertAnchorIdentity(owned)
-  signalExactGroup(owned.groupId, 'SIGKILL')
+  signalExactGroup(owned.groupId, 'SIGKILL', owned.signalProcess)
   const gone = await waitUntil(async () => (await groupMembers(owned.groupId)).length === 0, sigkillTimeoutMs, pollIntervalMs)
   if (!gone) throw new Error(`process group ${owned.groupId} survived SIGKILL cleanup`)
   await owned.exited
