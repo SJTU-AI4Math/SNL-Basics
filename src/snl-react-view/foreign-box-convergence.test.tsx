@@ -98,6 +98,26 @@ describe('bounded foreign-box convergence', () => {
     expect(commits).toHaveLength(2)
   })
 
+  it('caps an identity introduced after epoch seeding at four commits', () => {
+    const frames: Array<() => void> = []
+    const fallbacks: string[] = []
+    const controller = createForeignBoxConvergenceController({
+      scheduleFrame: callback => { frames.push(callback); return frames.length },
+      cancelFrame: vi.fn(),
+      onCommit: vi.fn(),
+      onFallback: (_authority, reason) => fallbacks.push(reason),
+      maxIterations: 4,
+    })
+    controller.beginEpoch(9, [])
+    for (const width of [10, 20, 30, 40]) {
+      controller.report(report('late', 9, width))
+      frames.shift()!()
+    }
+    controller.report(report('late', 9, 50))
+    expect(fallbacks).toEqual(['iteration-cap'])
+    expect(frames).toEqual([])
+  })
+
   it('rejects stale observation revisions inside the same semantic metric epoch', () => {
     const frames: Array<() => void> = []
     const commits = vi.fn()

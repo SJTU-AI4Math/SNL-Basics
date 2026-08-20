@@ -154,6 +154,8 @@ export {
   foreignBoxIdentityKey,
   type ForeignBoxBaseline,
   type ForeignBoxIdentity,
+  type ForeignBoxMetricAuthority,
+  type ForeignBoxMetricReport,
   type ForeignBoxMetrics,
 } from './foreign-box'
 

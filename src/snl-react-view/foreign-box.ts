@@ -116,6 +116,7 @@ export function createForeignBoxConvergenceController(options: ForeignBoxConverg
   const pending = new Map<string, ForeignBoxMetricReport>()
   const committed = new Map<string, ForeignBoxMetricReport>()
   const history = new Map<string, ForeignBoxMetrics[]>()
+  const iterations = new Map<string, number>()
   const unstable = new Set<string>()
   const latestObservationEpoch = new Map<string, number>()
   const thresholdPx = options.thresholdPx ?? 0.5
@@ -146,6 +147,7 @@ export function createForeignBoxConvergenceController(options: ForeignBoxConverg
       const samples = history.get(key) ?? []
       samples.push(convergenceSample(report))
       history.set(key, samples)
+      iterations.set(key, (iterations.get(key) ?? 0) + 1)
     }
     options.onCommit(batch)
   }
@@ -170,6 +172,7 @@ export function createForeignBoxConvergenceController(options: ForeignBoxConverg
       pending.clear()
       committed.clear()
       history.clear()
+      iterations.clear()
       unstable.clear()
       latestObservationEpoch.clear()
     },
@@ -182,6 +185,7 @@ export function createForeignBoxConvergenceController(options: ForeignBoxConverg
       pending.clear()
       committed.clear()
       history.clear()
+      iterations.clear()
       unstable.clear()
       latestObservationEpoch.clear()
       epoch = metricEpoch
@@ -192,6 +196,7 @@ export function createForeignBoxConvergenceController(options: ForeignBoxConverg
           committed.set(key, report)
           latestObservationEpoch.set(key, report.observationEpoch ?? 0)
           history.set(key, [report.metrics])
+          iterations.set(key, 0)
         }
       }
     },
@@ -227,7 +232,7 @@ export function createForeignBoxConvergenceController(options: ForeignBoxConverg
         options.onFallback(report.authority, 'oscillation', [...samples, sample])
         return
       }
-      if (samples.length > maxIterations) {
+      if ((iterations.get(key) ?? 0) >= maxIterations) {
         pending.delete(key)
         unstable.add(key)
         options.onFallback(report.authority, 'iteration-cap', [...(history.get(key) ?? []), report.metrics])
@@ -241,6 +246,7 @@ export function createForeignBoxConvergenceController(options: ForeignBoxConverg
       pending.delete(key)
       committed.delete(key)
       history.delete(key)
+      iterations.delete(key)
       unstable.delete(key)
       latestObservationEpoch.delete(key)
     },
@@ -253,6 +259,7 @@ export function createForeignBoxConvergenceController(options: ForeignBoxConverg
       pending.clear()
       committed.clear()
       history.clear()
+      iterations.clear()
       unstable.clear()
       latestObservationEpoch.clear()
     },
