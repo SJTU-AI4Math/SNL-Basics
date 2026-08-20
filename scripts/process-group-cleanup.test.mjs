@@ -8,6 +8,7 @@ import { spawnOwnedProcess, terminateOwnedProcess } from './process-group-cleanu
 
 const ownedProcesses = new Set()
 const looseProcesses = new Set()
+const loosePids = new Set()
 const profiles = new Set()
 const alive = pid => { try { process.kill(pid, 0); return true } catch (error) { if (error?.code === 'ESRCH') return false; throw error } }
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -39,8 +40,9 @@ async function eventually(check, timeoutMs = 2_000) {
 afterEach(async () => {
   for (const owned of ownedProcesses) await terminateOwnedProcess(owned, { sigtermTimeoutMs: 50 }).catch(() => {})
   for (const child of looseProcesses) { try { child.kill('SIGKILL') } catch {} }
+  for (const pid of loosePids) { try { process.kill(pid, 'SIGKILL') } catch {} }
   for (const profile of profiles) rmSync(profile, { recursive: true, force: true })
-  ownedProcesses.clear(); looseProcesses.clear(); profiles.clear()
+  ownedProcesses.clear(); looseProcesses.clear(); loosePids.clear(); profiles.clear()
 })
 
 describe('anchored owned process-group cleanup', () => {
@@ -147,6 +149,86 @@ describe('anchored owned process-group cleanup', () => {
     rmSync(profile, { recursive: true, force: true })
     profiles.delete(profile)
     expect(existsSync(profile)).toBe(false)
+  })
+
+  it('freezes before shutdown so a child SIGTERM handler cannot spawn an escaped daemon', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-freeze-profile-'))
+    profiles.add(profile)
+    const ready = join(profile, 'ready')
+    const daemonMarker = join(profile, 'term-daemon')
+    const daemonPidFile = join(profile, 'term-daemon-pid')
+    const daemonSource = `
+      const fs = require('node:fs');
+      fs.writeFileSync(${JSON.stringify(daemonMarker)}, 'spawned');
+      fs.writeFileSync(${JSON.stringify(daemonPidFile)}, String(process.pid));
+      setInterval(() => {}, 1000);
+    `
+    const source = `
+      const { spawn } = require('node:child_process');
+      const fs = require('node:fs');
+      process.on('SIGTERM', () => {
+        const daemon = spawn(process.execPath, ['-e', ${JSON.stringify(daemonSource)}], { detached: true, stdio: 'ignore' });
+        daemon.unref();
+        process.exit(0);
+      });
+      fs.writeFileSync(${JSON.stringify(ready)}, 'ready');
+      setInterval(() => {}, 1000);
+    `
+
+    let failure
+    try {
+      await spawnOwnedProcess(process.execPath, ['-e', source], { cwd: profile }, {
+        readIdentity: async () => {
+          await eventually(() => existsSync(ready))
+          throw new Error('anchor probe failed after child readiness')
+        },
+      })
+    } catch (error) { failure = error }
+
+    await wait(100)
+    if (existsSync(daemonPidFile)) loosePids.add(Number(readFileSync(daemonPidFile, 'utf8')))
+    expect(failure?.message).toMatch(/anchor probe failed after child readiness/)
+    expect(existsSync(daemonMarker)).toBe(false)
+  })
+
+  it('freezes a mutating descendant closure and kills every repeatedly spawned process', async () => {
+    const profile = mkdtempSync(join(tmpdir(), 'snl-owned-descendant-profile-'))
+    profiles.add(profile)
+    const ready = join(profile, 'ready')
+    const pidLog = join(profile, 'descendant-pids')
+    const daemonSource = `process.on('SIGTERM', () => {}); setInterval(() => {}, 1000)`
+    const workerSource = `
+      const { spawn } = require('node:child_process');
+      const fs = require('node:fs');
+      const spawnOne = () => {
+        const daemon = spawn(process.execPath, ['-e', ${JSON.stringify(daemonSource)}], { stdio: 'ignore' });
+        fs.appendFileSync(${JSON.stringify(pidLog)}, String(daemon.pid) + '\\n');
+      };
+      process.on('SIGTERM', () => { spawnOne(); process.exit(0); });
+      setInterval(spawnOne, 5);
+      fs.writeFileSync(${JSON.stringify(ready)}, 'ready');
+    `
+    const source = `
+      const { spawn } = require('node:child_process');
+      const fs = require('node:fs');
+      const worker = spawn(process.execPath, ['-e', ${JSON.stringify(workerSource)}], { stdio: 'ignore' });
+      fs.appendFileSync(${JSON.stringify(pidLog)}, String(worker.pid) + '\\n');
+      setInterval(() => {}, 1000);
+    `
+
+    await expect(spawnOwnedProcess(process.execPath, ['-e', source], { cwd: profile }, {
+      readIdentity: async () => {
+        await eventually(() => existsSync(ready))
+        await wait(40)
+        throw new Error('anchor probe failed with mutating descendant')
+      },
+    })).rejects.toThrow(/anchor probe failed with mutating descendant/)
+
+    const pids = readFileSync(pidLog, 'utf8').trim().split(/\s+/).map(Number).filter(Number.isSafeInteger)
+    for (const pid of pids) loosePids.add(pid)
+    expect(pids.length).toBeGreaterThan(2)
+    await eventually(() => pids.every(pid => !alive(pid)))
+    for (const pid of pids) loosePids.delete(pid)
   })
 
   it('propagates explicit infrastructure failure when the emergency capability is unavailable', async () => {
@@ -295,5 +377,11 @@ describe('anchored owned process-group cleanup', () => {
     const source = readFileSync(new URL('./process-group-cleanup.mjs', import.meta.url), 'utf8')
     expect(source).not.toMatch(/signalExactGroup\(supervisor\.pid/)
     expect(source).not.toMatch(/process\.kill\(\s*-supervisor\.pid/)
+    const emergency = readFileSync(new URL('./owned-process-emergency.mjs', import.meta.url), 'utf8')
+    const supervisor = readFileSync(new URL('./owned-process-supervisor.mjs', import.meta.url), 'utf8')
+    expect(emergency).not.toContain("'SIGTERM'")
+    expect(supervisor).toMatch(/runEmergencyShutdown[\s\S]*freezeKillProcessTree\(child, childExit\)/)
+    expect(emergency).toContain("child.kill('SIGSTOP')")
+    expect(emergency).toMatch(/maxFreezeIterations[\s\S]*for \(let iteration/)
   })
 })

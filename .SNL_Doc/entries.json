@@ -317,8 +317,8 @@
     "kind": "interface",
     "title": "SNL Macro Style",
     "content": {
-      "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.style_name,string),Type.judge(SnlMacroStyle.mode,Type.union(Type.literal($\\texttt{formula\\_inline}$),Type.literal($\\texttt{formula\\_display}$),Type.literal($\\texttt{text}$),Type.literal($\\texttt{block}$))),Type.judge(SnlMacroStyle.template,string),Type.judge(SnlMacroStyle.separator,Type.opt(string)),Type.judge(SnlMacroStyle.block_template_name,Type.opt(string)),Type.judge(SnlMacroStyle.tags,Type.array(string))))",
-      "markdown": "One rendering style of a macro. All styles share the macro-level arity and change only the **rendered output**. `styles[0]` is the implicit default."
+      "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.style_name,string),Type.judge(SnlMacroStyle.tags,Type.array(string)),Type.judge(SnlMacroStyle.template,Type.union(SnlMacroTemplate,api.code(%I18n<string, SnlMacroTemplate>%)))))",
+      "markdown": "One semantic rendering style of a macro. `template` is the complete render template, either invariant (`SnlMacroTemplate`) or localized as `I18n<string, SnlMacroTemplate>`; localization selects the complete `TemplateSpec` projection as one unit. `style_name` and `tags` remain language-invariant, and `styles[0]` is the implicit default."
     },
     "contribution_info": null,
     "pointer": {
@@ -514,7 +514,7 @@
     "title": "SNL Block Renderer",
     "content": {
       "snl": "Type.judge(SnlBlockRenderer,api.code(%FC<SnlBlockRendererProps>%))",
-      "markdown": "The function-component type for one block renderer: `FC<SnlBlockRendererProps>`. It receives `node` and `renderChild` and determines the HTML output structure of that block macro."
+      "markdown": "The function-component type for one block renderer: `FC<SnlBlockRendererProps>`. It receives the complete `SnlBlockRendererProps` projection and determines the HTML output structure of that block macro."
     },
     "contribution_info": null,
     "pointer": {
@@ -528,8 +528,8 @@
     "kind": "interface",
     "title": "SNL Block Renderer Properties",
     "content": {
-      "snl": "interface(SnlBlockRendererProps,enumerate(Type.judge(SnlBlockRendererProps.node,SnlSyntaxTree),Type.judge(SnlBlockRendererProps.macro_data_driver,MacroDataDriver),Type.judge(SnlBlockRendererProps.renderChild,api.code(%(child: SnlSyntaxTree) => ReactElement%))))",
-      "markdown": "The props for a block renderer. They include `node` (the current block node) and `renderChild` (the callback that recursively renders child nodes)."
+      "snl": "interface(SnlBlockRendererProps,enumerate(Type.judge(SnlBlockRendererProps.node,SnlSyntaxTree),Type.judge(SnlBlockRendererProps.macro_data_driver,MacroDataDriver),Type.judge(SnlBlockRendererProps.template,SnlBlockMacroTemplate),Type.judge(SnlBlockRendererProps.dynamicArity,boolean),Type.judge(SnlBlockRendererProps.treePath,string),Type.judge(SnlBlockRendererProps.childMode,api.code(%(child: SnlSyntaxTree) => 'formula_inline' | 'formula_display' | 'text' | 'block'%)),Type.judge(SnlBlockRendererProps.childContainsBlock,Type.opt(api.code(%(child: SnlSyntaxTree) => boolean%))),Type.judge(SnlBlockRendererProps.renderChild,api.code(%(child: SnlSyntaxTree, index?: number) => ReactElement%))))",
+      "markdown": "The complete block-renderer projection: `node` and `macro_data_driver`; the complete, localized consumer-owned `TemplateSpec` projection in `template`; the macro-level `dynamicArity` contract; exact semantic `treePath`; mode resolution through `childMode`; the optional `childContainsBlock` recursive block capability; and mode-aware `renderChild`. `childContainsBlock` reports whether the selected complete templates anywhere in a child's subtree include block content, allowing specialized foreign-content renderers such as the SVG renderer to fail closed before unsupported recursive block content crosses the SVG boundary."
     },
     "contribution_info": null,
     "pointer": {
