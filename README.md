@@ -627,7 +627,8 @@ The selected, complete `TemplateSpec` remains consumer-owned and must have
     },
     "generation": 3,
     "producer_revision": "diagram-projector-v2",
-    "accessibility": { "label": "Commutative square" }
+    "accessibility": { "label": "Commutative square" },
+    "formula_embed": { "total_height_em": 2.4, "baseline_ratio": 0.72 }
   }
 }
 ```
@@ -650,9 +651,16 @@ supported as SVG labels only when every recursively selected complete
 `TemplateSpec` descendant is non-block. Any block descendant triggers a visible
 fallback before `renderChild`. If the `childContainsBlock` capability/resolver is
 unavailable, the built-in SVG renderer fails closed with a visible fallback.
-Recursive foreign boxes are not supported in Task5, and formula embedding is
-still not supported. Missing/excess children and malformed or active SVG also
-fail closed visibly.
+Recursive SVG-in-SVG foreign boxes remain unsupported. An SVG block may be
+embedded inside a KaTeX formula only when the complete selected projection has
+the optional trusted `formula_embed` policy shown above. `total_height_em` must
+be positive and finite, while `baseline_ratio` must be strictly between zero
+and one. Width is derived from the sanitized SVG `viewBox`; height/depth come
+from this baseline policy. KaTeX reserves a fixed TeX rule before rendering,
+and the persistent React/SVG subtree is attached to that committed rule without
+remounting. This fixed-metric path does not measure content or infer policy from
+Macro names. Missing/invalid policy, marker, metrics, children, or active SVG
+fails closed visibly; dynamic measurement is not part of this contract.
 
 `data-snl-slot` and `svg_template` are renderer/projection metadata, not new SNL
 author syntax. Macro calls remain ordinary SNL calls, and Basics introduces no

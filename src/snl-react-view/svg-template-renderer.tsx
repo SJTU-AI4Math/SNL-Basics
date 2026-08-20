@@ -8,6 +8,13 @@ import {
   type ReactElement,
 } from 'react'
 import type { SnlBlockMacroTemplate } from '../snl-macro/types'
+import {
+  FORMULA_FOREIGN_RENDERER_CAPABILITY,
+  deriveFixedFormulaMetrics,
+  readFixedFormulaEmbedPolicy,
+  type FormulaForeignCandidate,
+  type FormulaForeignCapableRenderer,
+} from './formula-foreign-box'
 import type { SnlBlockRendererProps } from './hooks'
 import { ForeignBoxHost } from './foreign-box-host'
 import { ForeignBoxFallback, useForeignBox } from './use-foreign-box'
@@ -271,7 +278,7 @@ function LiveRenderer(
 
 /** Build an opt-in consumer renderer. The default renderer registry is unchanged. */
 export function createSvgTemplateRenderer(options: SvgTemplateRendererOptions): FC<SvgTemplateRendererProps> {
-  return function SvgTemplateRenderer(props): ReactElement {
+  const SvgTemplateRenderer: FC<SvgTemplateRendererProps> & FormulaForeignCapableRenderer = (props): ReactElement => {
     let projection: SvgTemplateProjection
     try {
       projection = readSvgTemplateProjection(props.template)
@@ -281,4 +288,40 @@ export function createSvgTemplateRenderer(options: SvgTemplateRendererOptions): 
     }
     return <LiveRenderer {...props} projection={projection} registry={options.assetRegistry} />
   }
+  Object.defineProperty(SvgTemplateRenderer, FORMULA_FOREIGN_RENDERER_CAPABILITY, {
+    enumerable: false,
+    configurable: false,
+    value: Object.freeze({
+      async prepare(candidate: FormulaForeignCandidate) {
+        if (candidate.dynamicArity) throw new Error('SVG formula embedding supports fixed arity only')
+        const projection = readSvgTemplateProjection(candidate.template)
+        const policy = readFixedFormulaEmbedPolicy(candidate.template)
+        const handle = options.assetRegistry.acquire(projection.asset, projection.asset.requestEpoch)
+        try {
+          const result = await handle.promise
+          if (candidate.signal?.aborted) throw new DOMException('SVG formula embedding aborted', 'AbortError')
+          const parsed = parseSanitizedSvgTemplate(result.value)
+          const metrics = deriveFixedFormulaMetrics(parsed.viewBox, policy)
+          const producer = JSON.stringify([
+            projection.asset.baseIdentity,
+            projection.asset.source,
+            projection.asset.revision,
+            projection.asset.requestEpoch,
+            projection.producerRevision,
+          ])
+          return Object.freeze({
+            identity: JSON.stringify([candidate.treePath, projection.generation, producer]),
+            metrics,
+            rendererKey: candidate.template.block_template_name ?? '',
+            producer,
+            generation: projection.generation,
+            accessibilityLabel: projection.accessibilityLabel,
+          })
+        } finally {
+          handle.release()
+        }
+      },
+    }),
+  })
+  return SvgTemplateRenderer
 }

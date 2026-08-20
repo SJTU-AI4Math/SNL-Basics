@@ -237,6 +237,10 @@ The already-selected complete block `TemplateSpec` carries a consumer-owned
   generation: number           // non-negative safe integer
   producer_revision: string    // non-empty projector/template revision
   accessibility: { label: string } // non-empty trusted label
+  formula_embed?: {              // explicit fixed-metric KaTeX opt-in
+    total_height_em: number      // positive finite TeX em height+depth
+    baseline_ratio: number       // finite, strictly between zero and one
+  }
 }
 ```
 
@@ -255,9 +259,13 @@ supported as labels only when every recursively selected complete `TemplateSpec`
 descendant is non-block. Any block descendant triggers a visible fallback before
 `renderChild`. If the `childContainsBlock` capability/resolver is unavailable,
 the built-in SVG renderer fails closed with a visible fallback. Recursive
-foreign boxes are not supported in Task5, and formula embedding is still not
-supported. Every other validation/load failure also renders a visible
-deterministic fallback.
+SVG-in-SVG foreign boxes are not supported. Formula embedding is supported only
+through the optional trusted fixed-metric `formula_embed` policy: width is
+computed from the sanitized SVG `viewBox`, height/depth from the declared
+baseline, and a persistent React/SVG surface attaches to a committed KaTeX rule
+without remounting. Missing or invalid policy/metrics/marker and every other
+validation/load failure render a visible deterministic fallback. This path does
+not perform dynamic content measurement.
 
 This API adds no authored SNL syntax and no persisted call shape. `svg_template`
 and `data-snl-slot` are consumer projection/backend metadata; `#N` inside SVG is

@@ -36,13 +36,19 @@ import {
   modeBucket,
   nodeDisplay,
   nodeMode,
+  resolveRootFormulaRender,
   resolveRootLatex,
   resolveStyle,
+  type FormulaForeignPlan,
+  type FormulaForeignResolverOptions,
   resolve_style_template,
 } from '../snl-react-view/render-source'
 import { findMinimalHoverRoot } from '../snl-react-view/hover-dom'
 import { applySnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
+import { formulaForeignCapability, formulaForeignMarkerId } from '../snl-react-view/formula-foreign-box'
+import { FormulaForeignSurface } from '../snl-react-view/formula-foreign-surface'
+import { ForeignBoxHost } from '../snl-react-view/foreign-box-host'
 import { resolveRenderedKind } from '../snl-react-view/kind-behavior'
 import {
   DEFAULT_SNL_ACTIVATION_CONTROLLER,
@@ -73,6 +79,15 @@ interface RenderResult {
   latex: string
   html: string
   reqId: number
+  foreignBoxes: readonly FormulaForeignPlan[]
+}
+
+interface FormulaMarkerBinding {
+  readonly plan: FormulaForeignPlan
+  readonly marker: HTMLElement | null
+  readonly widthPx: number
+  readonly heightPx: number
+  readonly error?: string
 }
 
 const ARIA_WIDGET_ROLES = [
@@ -543,6 +558,7 @@ function useSnlSyntaxTreeRender(
   katexOptions: KatexOptions | undefined,
   enabled: boolean,
   language: string,
+  formulaForeign?: FormulaForeignResolverOptions,
 ) {
   const [result, setResult] = useState<RenderResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -564,14 +580,17 @@ function useSnlSyntaxTreeRender(
       setLoading(true)
       setError(null)
       try {
-        const latex = await resolveRootLatex(
-          tree,
-          driver,
-          controller.signal,
-          [],
-          reader_runtime,
-          language,
-        )
+        const formulaRender = formulaForeign
+          ? await resolveRootFormulaRender(
+              tree, driver, formulaForeign, controller.signal, [], reader_runtime, language,
+            )
+          : {
+              latex: await resolveRootLatex(
+                tree, driver, controller.signal, [], reader_runtime, language,
+              ),
+              foreignBoxes: [] as readonly FormulaForeignPlan[],
+            }
+        const { latex, foreignBoxes } = formulaRender
         const rootMacro = tree.env_mode ? null : await driver.query_macro({ macro_name: tree.macro_name, signal: controller.signal })
         const html = katex.renderToString(latex, {
           throwOnError: false,
@@ -584,7 +603,7 @@ function useSnlSyntaxTreeRender(
           ...katexOptions,
         })
         if (!cancelled && reqIdRef.current === reqId) {
-          setResult({ latex, html, reqId })
+          setResult({ latex, html, reqId, foreignBoxes })
         }
       } catch (err) {
         if (!cancelled && reqIdRef.current === reqId) {
@@ -604,7 +623,7 @@ function useSnlSyntaxTreeRender(
       cancelled = true
       controller.abort()
     }
-  }, [enabled, katexOptions, driver, reader_runtime, tree, language])
+  }, [enabled, katexOptions, driver, reader_runtime, tree, language, formulaForeign])
 
   return { loading, error, result, reqIdRef }
 }
@@ -725,6 +744,46 @@ export function SnlSyntaxTreeView({
     return paths
   }, [renderTree])
 
+  const subtreeContainsSelectedBlock = (node: SnlSyntaxTree): boolean => {
+    const visit = (descendant: SnlSyntaxTree): boolean => {
+      try {
+        const descendantMacro = resolvedMacros[descendant.macro_name] ?? null
+        const mode = descendant.env_mode
+          ? descendant.env_mode
+          : descendantMacro
+            ? resolve_style_template(
+                resolveStyle(descendant, descendantMacro, renderLanguage),
+                reader_runtime,
+                renderLanguage,
+                descendantMacro.dynamic_arity,
+              ).mode
+            : nodeMode(descendant, null, renderLanguage)
+        if (mode === 'block') return true
+      } catch {
+        return true
+      }
+      return descendant.children.some(visit)
+    }
+    return node.children.some(visit)
+  }
+
+  const formulaForeignResolver = useMemo<FormulaForeignResolverOptions>(() => ({
+    async resolveBlock(candidate) {
+      const key = candidate.template.block_template_name
+      if (!key || candidate.dynamicArity || subtreeContainsSelectedBlock(candidate.node)) return null
+      const Renderer = mergedHooks.renderers?.[key]
+      const capability = formulaForeignCapability(Renderer)
+      if (!capability) return null
+      try {
+        return await capability.prepare(candidate)
+      } catch {
+        return null
+      }
+    },
+  // The complete macro/template cache and selected language define capability.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [mergedHooks.renderers, resolvedMacros, reader_runtime, renderLanguage])
+
   // Determine root mode from the cache
   const rootMacro = macroCache[renderTree.macro_name] ?? null
   const rootBucket = macroStatus === 'ready'
@@ -738,7 +797,9 @@ export function SnlSyntaxTreeView({
     katexOptions,
     isKatexRoot,
     renderLanguage,
+    formulaForeignResolver,
   )
+  const [formulaMarkers, setFormulaMarkers] = useState<readonly FormulaMarkerBinding[]>([])
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
   const [hasHoverTarget, setHasHoverTarget] = useState(false)
@@ -798,6 +859,7 @@ export function SnlSyntaxTreeView({
     if (!el) return
     lastHtmlRef.current = null
     el.innerHTML = ''
+    setFormulaMarkers([])
   }, [isKatexRoot, renderTree])
 
   useEffect(() => {
@@ -808,6 +870,28 @@ export function SnlSyntaxTreeView({
     el.innerHTML = result.html
     tightenHoverBoxes(el)
     bvarScopeIndexRef.current = buildBvarScopeIndex(el)
+    const candidates = [...el.querySelectorAll<HTMLElement>('[data-snl-formula-foreign-marker]')]
+    const bindings = result.foreignBoxes.map((plan): FormulaMarkerBinding => {
+      const id = formulaForeignMarkerId(plan.identity)
+      const matches = candidates.filter(candidate => candidate.dataset.snlFormulaForeignMarker === id)
+      if (matches.length !== 1) return {
+        plan, marker: null, widthPx: 0, heightPx: 0,
+        error: `formula foreign marker ${id} resolved ${matches.length} times`,
+      }
+      const marker = matches[0]
+      const geometry = marker.querySelector<HTMLElement>('.snlFormulaForeignMarker .rule')
+      if (!geometry) return {
+        plan, marker: null, widthPx: 0, heightPx: 0,
+        error: `formula foreign marker ${id} has no calibrated KaTeX rule geometry`,
+      }
+      const rect = geometry.getBoundingClientRect()
+      if (!(rect.width > 0) || !(rect.height > 0)) return {
+        plan, marker: null, widthPx: 0, heightPx: 0,
+        error: `formula foreign marker ${id} has unavailable geometry`,
+      }
+      return { plan, marker: geometry, widthPx: rect.width, heightPx: rect.height }
+    })
+    setFormulaMarkers(bindings)
   }, [result])
 
   // Non-KaTeX roots (block only) render as a React tree; rebuild the
@@ -1491,6 +1575,48 @@ export function SnlSyntaxTreeView({
     )
   }
 
+  const renderFormulaForeignBinding = (binding: FormulaMarkerBinding): ReactElement => {
+    if (binding.error || !binding.marker) {
+      return <span key={binding.plan.identity} className="snl-formula-foreign-error" role="alert">Formula foreign box unavailable: {binding.error ?? 'marker missing'}</span>
+    }
+    const Renderer = mergedHooks.renderers?.[binding.plan.rendererKey]
+    if (!Renderer || !formulaForeignCapability(Renderer)) {
+      return <span key={binding.plan.identity} className="snl-formula-foreign-error" role="alert">Formula foreign box unavailable: renderer capability missing</span>
+    }
+    const node = binding.plan.node
+    const macro = resolvedMacros[node.macro_name] ?? null
+    const pathStr = binding.plan.treePath.join('.')
+    return (
+      <FormulaForeignSurface
+        key={binding.plan.identity}
+        plan={binding.plan}
+        marker={binding.marker}
+        widthPx={binding.widthPx}
+        heightPx={binding.heightPx}
+        child={(
+          <Renderer
+            node={node}
+            macro_data_driver={macro_data_driver}
+            template={binding.plan.template}
+            dynamicArity={macro?.dynamic_arity ?? false}
+            treePath={pathStr}
+            childMode={(child: SnlSyntaxTree) => nodeMode(child, resolvedMacros[child.macro_name] ?? null, renderLanguage)}
+            childContainsBlock={(child: SnlSyntaxTree) => {
+              try {
+                if (nodeMode(child, resolvedMacros[child.macro_name] ?? null, renderLanguage) === 'block') return true
+                return subtreeContainsSelectedBlock(child)
+              } catch { return true }
+            }}
+            renderChild={(child: SnlSyntaxTree, index?: number) => renderNode(
+              child,
+              pathStr ? `${pathStr}.${index ?? node.children.indexOf(child)}` : `${index ?? node.children.indexOf(child)}`,
+            )}
+          />
+        )}
+      />
+    )
+  }
+
   if (macroStatus === 'pending') {
     return <div className="katex-panel">Loading macro data ...</div>
   }
@@ -1511,7 +1637,7 @@ export function SnlSyntaxTreeView({
   }
 
   return (
-    <div className="katex-panel">
+    <div className={formulaMarkers.length > 0 ? 'katex-panel snl-has-formula-foreign' : 'katex-panel'}>
       <style dangerouslySetInnerHTML={{ __html: paletteCss }} />
       {/*
        * Cat 2026-07-13: use `isKatexRoot` as a KEY so React unmounts the
@@ -1523,18 +1649,34 @@ export function SnlSyntaxTreeView({
        * "text + macro" display. Distinct keys guarantee a fresh DOM node
        * per mode; containerRef binds to whichever branch is mounted.
        */}
-      <div
-        key={isKatexRoot ? 'katex' : 'react'}
-        ref={containerRef}
-        className={`katex-html${rootBucket === 'text' ? ' snl-text' : ''}`}
-        style={{ cursor: hasHoverTarget ? 'pointer' : undefined }}
-        onMouseMove={handleKaTeXMouseMove}
-        onMouseLeave={handleKaTeXMouseLeave}
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-      >
-        {isKatexRoot ? null : renderNode(renderTree)}
-      </div>
+      {isKatexRoot ? (
+        <ForeignBoxHost className="snl-formula-foreign-host">
+          <div
+            key="katex"
+            ref={containerRef}
+            className="katex-html"
+            style={{ cursor: hasHoverTarget ? 'pointer' : undefined }}
+            onMouseMove={handleKaTeXMouseMove}
+            onMouseLeave={handleKaTeXMouseLeave}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+          />
+          {formulaMarkers.map(renderFormulaForeignBinding)}
+        </ForeignBoxHost>
+      ) : (
+        <div
+          key="react"
+          ref={containerRef}
+          className={`katex-html${rootBucket === 'text' ? ' snl-text' : ''}`}
+          style={{ cursor: hasHoverTarget ? 'pointer' : undefined }}
+          onMouseMove={handleKaTeXMouseMove}
+          onMouseLeave={handleKaTeXMouseLeave}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+        >
+          {renderNode(renderTree)}
+        </div>
+      )}
       {tooltip ? mergedHooks.renderTooltip?.(tooltip) ?? null : null}
     </div>
   )

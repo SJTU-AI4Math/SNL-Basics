@@ -94,7 +94,8 @@
     "prepublishOnly": "npm run build:lib",
     "test:root-text-typography": "node scripts/verify-root-text-typography.mjs",
     "test:popover-origin": "node scripts/verify-popover-origin.mjs",
-    "test:parameterized-svg": "node scripts/verify-parameterized-svg.mjs"
+    "test:parameterized-svg": "node scripts/verify-parameterized-svg.mjs",
+    "test:formula-foreign-box": "node scripts/verify-formula-foreign-box.mjs"
   },
   "peerDependencies": {
     "katex": "^0.16.0",

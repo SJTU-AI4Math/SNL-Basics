@@ -19,7 +19,8 @@
  * regardless.
  */
 
-import type { SnlMacro, SnlMacroStyle, SnlMacroTemplate } from '../snl-macro/types'
+import type { SnlBlockMacroTemplate, SnlMacro, SnlMacroStyle, SnlMacroTemplate } from '../snl-macro/types'
+import { formulaForeignMarkerLatex, type FormulaForeignCandidate, type FormulaForeignResolution } from './formula-foreign-box'
 import {
   type I18n,
   type LanguageEnvironment,
@@ -464,6 +465,21 @@ export function nodeDisplay(
   return nodeMode(node, macro, language) === 'formula_display' ? 'block' : 'inline'
 }
 
+export interface FormulaForeignPlan extends FormulaForeignResolution {
+  readonly node: SnlSyntaxTree
+  readonly template: SnlBlockMacroTemplate
+  readonly treePath: TreePath
+}
+
+export interface FormulaForeignResolverOptions {
+  readonly resolveBlock: (candidate: FormulaForeignCandidate) => Promise<FormulaForeignResolution | null>
+}
+
+export interface FormulaRenderPlan {
+  readonly latex: string
+  readonly foreignBoxes: readonly FormulaForeignPlan[]
+}
+
 /**
  * Recursively resolve a node into its KaTeX source. Templates get filled;
  * children get wrapped with `wrapForParent` so text/formula splicing is
@@ -480,6 +496,8 @@ export async function resolveNodeLatex(
   signal?: AbortSignal,
   reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
   language?: string,
+  formulaForeign?: FormulaForeignResolverOptions,
+  foreignCollector?: FormulaForeignPlan[],
 ): Promise<string> {
   const sampled_language = language ?? current_language(reader_runtime)
   // An unfilled argument slot renders as the same numbered placeholder the
@@ -506,6 +524,7 @@ export async function resolveNodeLatex(
     node.env_mode ?? resolvedTemplate?.mode ?? 'formula_inline'
   const selfBucket = modeBucket(selfMode)
 
+  const foreignCheckpoint = foreignCollector?.length ?? 0
   const childRawList = await Promise.all(
     node.children.map((child, i) => resolveNodeLatex(
       child,
@@ -514,6 +533,8 @@ export async function resolveNodeLatex(
       signal,
       reader_runtime,
       sampled_language,
+      formulaForeign,
+      foreignCollector,
     )),
   )
 
@@ -540,8 +561,26 @@ export async function resolveNodeLatex(
     return wrapForParent(latex, cMode, selfMode)
   }))
 
-  // Block descendant inside a formula ancestor: emit a visible warning
+  // A block descendant may enter formula layout only through an explicit,
+  // consumer-owned capability resolved from its complete selected projection.
   if (selfBucket === 'block') {
+    // Child marker plans are not part of a block node's final marker/warning.
+    // Roll them back transactionally before deciding whether this block itself
+    // has an explicit embedding capability.
+    foreignCollector?.splice(foreignCheckpoint)
+    if (formulaForeign && foreignCollector && resolvedTemplate?.mode === 'block') {
+      const resolution = await formulaForeign.resolveBlock({
+        node,
+        template: resolvedTemplate,
+        treePath,
+        dynamicArity: macro?.dynamic_arity ?? false,
+        signal,
+      })
+      if (resolution) {
+        foreignCollector.push({ ...resolution, node, template: resolvedTemplate, treePath: [...treePath] })
+        return wrapHtmlData(node, formulaForeignMarkerLatex(resolution.identity, resolution.metrics), macro, treePath)
+      }
+    }
     const body =
       '\\text{\\color{red}\\{block macro `' +
       escapeLatexText(node.macro_name) +
@@ -632,6 +671,24 @@ export async function resolveNodeLatex(
       (segment) => wrapHtmlData(node, segment, macro, treePath),
     )
     : wrapHtmlData(node, filled, macro, treePath)
+}
+
+export async function resolveRootFormulaRender(
+  root: SnlSyntaxTree,
+  driver: MacroDataDriver,
+  formulaForeign: FormulaForeignResolverOptions,
+  signal?: AbortSignal,
+  treePath: TreePath = [],
+  reader_runtime?: ReaderRuntime<LanguageEnvironment<string>>,
+  language?: string,
+): Promise<FormulaRenderPlan> {
+  const foreignBoxes: FormulaForeignPlan[] = []
+  const sampled_language = language ?? current_language(reader_runtime)
+  const latex = await resolveNodeLatex(
+    root, driver, treePath, signal, reader_runtime, sampled_language,
+    formulaForeign, foreignBoxes,
+  )
+  return Object.freeze({ latex, foreignBoxes: Object.freeze(foreignBoxes) })
 }
 
 /**

@@ -317,3 +317,33 @@
   padding: 0.5em;
   color: var(--vscode-descriptionForeground, #475467);
 }
+
+
+/* Fixed-metric SVG surfaces embedded over KaTeX rule markers. KaTeX owns the
+ * reserved inline/vlist geometry; React owns the persistent interactive DOM. */
+.snl-formula-foreign-host {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: baseline;
+}
+.snl-formula-foreign-surface {
+  box-sizing: border-box;
+  overflow: visible;
+}
+.snl-formula-foreign-surface > .snl-svg-template,
+.snl-formula-foreign-surface .snl-svg-template-canvas,
+.snl-formula-foreign-surface .snl-svg-template-artwork {
+  width: 100%;
+  height: 100%;
+}
+[data-snl-foreign-box-fallback][hidden].snl-formula-foreign-fallback {
+  display: none !important;
+}
+.snl-formula-foreign-error {
+  color: #b42318;
+}
+
+.katex-panel.snl-has-formula-foreign,
+.katex-panel.snl-has-formula-foreign > .snl-formula-foreign-host {
+  overflow: visible;
+}

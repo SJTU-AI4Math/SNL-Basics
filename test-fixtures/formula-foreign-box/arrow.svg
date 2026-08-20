@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" role="presentation">
+  <rect x="2" y="2" width="156" height="96" rx="10" fill="#eef4ff" stroke="#175cd3" stroke-width="4" />
+  <path d="M42 50H118" stroke="#344054" stroke-width="4" />
+  <path d="M106 40L122 50L106 60Z" fill="#344054" />
+  <g data-snl-slot="0" transform="translate(18 20)" />
+  <g data-snl-slot="1" transform="translate(126 20)" />
+</svg>
