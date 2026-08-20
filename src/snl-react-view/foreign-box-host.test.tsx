@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { StrictMode, useEffect, useLayoutEffect } from 'react'
+import { Component, StrictMode, Suspense, startTransition, useEffect, useLayoutEffect, useState, type ReactNode } from 'react'
 import { act, cleanup, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ForeignBoxHost, useForeignBoxRegistry } from './foreign-box-host'
@@ -822,43 +822,105 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(fallback.getAttribute('aria-hidden')).toBe('true')
   })
 
-  it('rejects a stale fallback ref as soon as a new identity renders', () => {
-    const apiRef = { current: null as UseForeignBoxResult | null }
+  it('leaves a fallback ref from an error-abandoned render fully inert', () => {
     const arbitrary = document.createElement('div')
     arbitrary.hidden = true
     arbitrary.setAttribute('inert', 'custom')
     arbitrary.setAttribute('aria-hidden', 'mixed')
     const before = arbitrary.outerHTML
-    let staleFallbackRef: UseForeignBoxResult['fallbackRef'] | null = null
-    let invokeStaleDuringRender = false
+    let abandonedFallbackRef: UseForeignBoxResult['fallbackRef'] | null = null
 
-    function RetargetableSlot({ id }: { id: ForeignBoxIdentity }) {
-      const api = useForeignBox({ identity: id, child: <span>live</span> })
-      apiRef.current = api
-      // Exercise the gap after the new render owns the identity but before old layout cleanup.
-      if (invokeStaleDuringRender) staleFallbackRef!(arbitrary)
-      return <>{api.ssrFallback}</>
+    class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+      state = { failed: false }
+      static getDerivedStateFromError() { return { failed: true } }
+      render() { return this.state.failed ? <span data-testid="caught">caught</span> : this.props.children }
+    }
+    function ThrowingSlot(): ReactNode {
+      abandonedFallbackRef = useForeignBox({ identity: identity('error-owner', 1, 'error@1'), child: <span>never committed</span> }).fallbackRef
+      throw new Error('abandon this render')
     }
 
-    const view = render(<ForeignBoxHost><RetargetableSlot id={identity('fallback-owner', 1, 'owner@1')} /></ForeignBoxHost>)
-    staleFallbackRef = apiRef.current!.fallbackRef
-    invokeStaleDuringRender = true
-    view.rerender(<ForeignBoxHost><RetargetableSlot id={identity('fallback-owner', 2, 'owner@2')} /></ForeignBoxHost>)
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const view = render(<ForeignBoxHost><ErrorBoundary><ThrowingSlot /></ErrorBoundary></ForeignBoxHost>)
+    expect(view.getByTestId('caught')).not.toBeNull()
+    expect(abandonedFallbackRef).not.toBeNull()
 
+    act(() => abandonedFallbackRef!(arbitrary))
     expect(arbitrary.outerHTML).toBe(before)
-    const currentFallback = view.container.querySelector('[data-snl-foreign-box-fallback]') as HTMLElement
-    const currentFallbackBefore = currentFallback.outerHTML
-    act(() => staleFallbackRef!(currentFallback))
-    expect(currentFallback.outerHTML).toBe(currentFallbackBefore)
-    expect(arbitrary.outerHTML).toBe(before)
+    expect(error).toHaveBeenCalled()
+  })
 
-    currentFallback.hidden = true
-    currentFallback.setAttribute('inert', '')
-    currentFallback.setAttribute('aria-hidden', 'true')
-    act(() => apiRef.current!.fallbackRef(currentFallback))
-    expect(currentFallback.hidden).toBe(false)
-    expect(currentFallback.hasAttribute('inert')).toBe(false)
-    expect(currentFallback.getAttribute('aria-hidden')).toBeNull()
+  it('keeps the committed fallback owner through suspended replacement, then hands ownership to its commit', async () => {
+    const apis = new Map<number, UseForeignBoxResult>()
+    let setGeneration!: (generation: number) => void
+    let release!: () => void
+    let replacementReady = false
+    const replacementWait = new Promise<void>(resolve => { release = resolve })
+
+    function RetargetableSlot({ generation }: { generation: number }) {
+      const api = useForeignBox({
+        identity: identity('suspense-owner', generation, `owner@${generation}`),
+        child: <span data-testid={`live-${generation}`}>live {generation}</span>,
+        ssrFallback: <span data-testid={`fallback-${generation}`}>fallback {generation}</span>,
+      })
+      apis.set(generation, api)
+      if (generation === 2 && !replacementReady) throw replacementWait
+      return <>{api.ssrFallback}</>
+    }
+    function Harness() {
+      const [generation, updateGeneration] = useState(1)
+      setGeneration = updateGeneration
+      return <Suspense fallback={<span data-testid="suspended">suspended</span>}><RetargetableSlot generation={generation} /></Suspense>
+    }
+
+    const view = render(<ForeignBoxHost><Harness /></ForeignBoxHost>)
+    const committedA = apis.get(1)!
+    expect(committedA.isAlive()).toBe(true)
+
+    act(() => startTransition(() => setGeneration(2)))
+    const speculativeB = apis.get(2)!
+    expect(speculativeB.isAlive()).toBe(false)
+    expect(view.getByTestId('fallback-1')).not.toBeNull()
+
+    const acceptedByA = view.container.querySelector('[data-snl-foreign-box-fallback]') as HTMLElement
+    acceptedByA.hidden = true
+    acceptedByA.setAttribute('inert', 'custom')
+    acceptedByA.setAttribute('aria-hidden', 'mixed')
+    act(() => committedA.fallbackRef(acceptedByA))
+    expect(acceptedByA.hidden).toBe(false)
+    expect(acceptedByA.hasAttribute('inert')).toBe(false)
+    expect(acceptedByA.getAttribute('aria-hidden')).toBeNull()
+
+    const rejectedByB = document.createElement('div')
+    rejectedByB.hidden = true
+    rejectedByB.setAttribute('inert', 'custom')
+    rejectedByB.setAttribute('aria-hidden', 'mixed')
+    const rejectedByBBefore = rejectedByB.outerHTML
+    act(() => speculativeB.fallbackRef(rejectedByB))
+    expect(rejectedByB.outerHTML).toBe(rejectedByBBefore)
+
+    await act(async () => {
+      replacementReady = true
+      release()
+      await replacementWait
+    })
+    const committedB = apis.get(2)!
+    expect(committedA.isAlive()).toBe(false)
+    expect(committedB.isAlive()).toBe(true)
+    expect(view.getByTestId('fallback-2')).not.toBeNull()
+
+    const staleTarget = document.createElement('div')
+    staleTarget.hidden = true
+    staleTarget.setAttribute('inert', 'custom')
+    staleTarget.setAttribute('aria-hidden', 'mixed')
+    const staleBefore = staleTarget.outerHTML
+    act(() => committedA.fallbackRef(staleTarget))
+    expect(staleTarget.outerHTML).toBe(staleBefore)
+
+    act(() => committedB.fallbackRef(staleTarget))
+    expect(staleTarget.hidden).toBe(false)
+    expect(staleTarget.hasAttribute('inert')).toBe(false)
+    expect(staleTarget.getAttribute('aria-hidden')).toBeNull()
   })
 
   it('does not let a stale null ref clear the current fallback or disable its next handoff', () => {
