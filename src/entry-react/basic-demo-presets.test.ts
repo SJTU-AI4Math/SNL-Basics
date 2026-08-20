@@ -41,8 +41,8 @@ describe('basic demo mathematical SVG presets', () => {
     const template = readFileSync(resolve(tikzRoot, 'generated/higher-category.template.svg'), 'utf8')
 
     expect(source).toContain('\\begin{tikzpicture}')
-    expect(source).toContain('\\SNLFormula{0}{$\\mathcal{C}$}')
-    expect(source).toContain('\\SNLFormula{8}{$\\alpha$}')
+    const formulaTex = ['\\mathcal{C}', '\\mathcal{D}', '\\mathcal{E}', 'F', 'G', 'H', '\\eta', '\\theta', '\\alpha']
+    formulaTex.forEach((formula, index) => expect(source).toContain(`\\SNLFormula{${index}}{$${formula}$}`))
     expect([...source.matchAll(/\\SNLFormula\{(\d+)\}/g)].map((match) => Number(match[1]))).toEqual(
       Array.from({ length: 9 }, (_, index) => index),
     )
