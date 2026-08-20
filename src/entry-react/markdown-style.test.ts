@@ -42,8 +42,12 @@ describe('public Markdown stylesheet', () => {
 
   it('keeps dark muted code text above WCAG AA contrast in the built-in dark surface', () => {
     const dark = declarations('.snl-markdown-body[data-color-scheme="dark"]')
-    const colors = [dark.get('--snl-md-muted'), dark.get('--snl-md-comment')]
-      .map((value) => value?.match(/#[0-9a-f]{6}/i)?.[0])
+    const colors = [
+      dark.get('--snl-md-muted'),
+      dark.get('--snl-md-comment'),
+      dark.get('--snl-md-addition'),
+      dark.get('--snl-md-deletion'),
+    ].map((value) => value?.match(/#[0-9a-f]{6}/i)?.[0])
     for (const color of colors) expect(color).toMatch(/^#[0-9a-f]{6}$/i)
     const luminance = (hex: string): number => {
       const channels = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255)

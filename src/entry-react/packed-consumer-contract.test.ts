@@ -19,7 +19,10 @@ describe('0.3 packed-consumer release contract', () => {
     expect(lock.version).toBe('0.3.0')
     expect(lock.packages[''].version).toBe('0.3.0')
     expect(pkg.scripts['verify:packed-consumer']).toBe('node scripts/verify-packed-consumer.mjs')
-    expect(pkg.scripts['verify:release']).toBe('npm run verify:packed-consumer')
+    expect(pkg.scripts['verify:release']).toBe('npm run verify:packed-consumer && npm run verify:packed-entry-i18n')
+    const entryVerifier = read('scripts/verify-packed-entry-i18n.mjs')
+    expect(entryVerifier).toContain("execFileSync('npm', ['run', 'build:lib']")
+    expect(entryVerifier.indexOf("['run', 'build:lib']")).toBeLessThan(entryVerifier.indexOf("'pack', '--json'"))
     expect(pkg.scripts.prepublishOnly).not.toContain('verify:release')
   })
 

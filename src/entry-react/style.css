@@ -25,6 +25,8 @@
   --snl-md-attr: var(--vscode-symbolIcon-propertyForeground, #0550ae);
   --snl-md-variable: var(--vscode-symbolIcon-variableForeground, #953800);
   --snl-md-symbol: var(--vscode-symbolIcon-operatorForeground, #cf222e);
+  --snl-md-addition: var(--vscode-gitDecoration-addedResourceForeground, #1a7f37);
+  --snl-md-deletion: var(--vscode-gitDecoration-deletedResourceForeground, #cf222e);
 }
 .snl-markdown-body[data-color-scheme="light"] {
   color-scheme: light;
@@ -47,6 +49,8 @@
   --snl-md-attr: var(--vscode-symbolIcon-propertyForeground, #79c0ff);
   --snl-md-variable: var(--vscode-symbolIcon-variableForeground, #ffa657);
   --snl-md-symbol: var(--vscode-symbolIcon-operatorForeground, #ff7b72);
+  --snl-md-addition: var(--vscode-gitDecoration-addedResourceForeground, #3fb950);
+  --snl-md-deletion: var(--vscode-gitDecoration-deletedResourceForeground, #ff7b72);
 }
 .snl-markdown-body > *:first-child { margin-top: 0; }
 .snl-markdown-body > *:last-child { margin-bottom: 0; }
@@ -204,8 +208,8 @@
 .snl-markdown-body .hljs-selector-id { color: var(--snl-md-keyword); }
 .snl-markdown-body .hljs-emphasis { font-style: italic; }
 .snl-markdown-body .hljs-strong { font-weight: 700; }
-.snl-markdown-body .hljs-addition { color: var(--vscode-gitDecoration-addedResourceForeground, #1a7f37); }
-.snl-markdown-body .hljs-deletion { color: var(--vscode-gitDecoration-deletedResourceForeground, #cf222e); }
+.snl-markdown-body .hljs-addition { color: var(--snl-md-addition); }
+.snl-markdown-body .hljs-deletion { color: var(--snl-md-deletion); }
 
 .snl-latex-body {
   box-sizing: border-box;

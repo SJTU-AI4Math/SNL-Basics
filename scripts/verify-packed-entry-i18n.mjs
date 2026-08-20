@@ -8,6 +8,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const expectedVersion = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version;
 const scratch = mkdtempSync(join(tmpdir(), 'snl-basics-packed-entry-i18n-'));
 try {
+  execFileSync('npm', ['run', 'build:lib'], { cwd: root, stdio: 'inherit' });
   const artifacts = join(scratch, 'artifacts');
   const consumer = join(scratch, 'consumer');
   mkdirSync(artifacts);

@@ -97,7 +97,7 @@
     "test:parameterized-svg": "node scripts/verify-parameterized-svg.mjs",
     "test:formula-foreign-box": "node scripts/verify-formula-foreign-box.mjs",
     "verify:packed-consumer": "node scripts/verify-packed-consumer.mjs",
-    "verify:release": "npm run verify:packed-consumer"
+    "verify:release": "npm run verify:packed-consumer && npm run verify:packed-entry-i18n"
   },
   "peerDependencies": {
     "katex": "^0.16.0",
