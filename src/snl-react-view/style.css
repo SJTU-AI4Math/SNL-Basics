@@ -218,3 +218,37 @@
   color: #344054;
   white-space: pre-wrap;
 }
+
+
+/* Persistent foreign subtrees are measured off-canvas, then positioned over
+ * renderer-owned markers without changing React ownership or DOM identity. */
+.snl-foreign-box-host {
+  position: relative;
+}
+
+.snl-foreign-box-overlay {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.snl-foreign-box {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  pointer-events: auto;
+  transform-origin: top left;
+}
+
+.snl-foreign-box[data-state='staging'] {
+  width: max-content;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-100000px, -100000px);
+}
+
+.snl-foreign-box[data-state='positioned'] {
+  opacity: 1;
+}

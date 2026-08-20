@@ -139,6 +139,17 @@ export {
 // === Rendering ===
 export { SnlSyntaxTreeView, type SnlSyntaxTreeViewProps } from '../components/SnlSyntaxTreeView'
 
+// === Persistent foreign React subtree host ===
+export { ForeignBoxHost, type ForeignBoxHostProps } from './foreign-box-host'
+export { useForeignBox, type UseForeignBoxOptions, type UseForeignBoxResult } from './use-foreign-box'
+export {
+  assertForeignBoxMetrics,
+  foreignBoxIdentityKey,
+  type ForeignBoxBaseline,
+  type ForeignBoxIdentity,
+  type ForeignBoxMetrics,
+} from './foreign-box'
+
 // === Hooks & customization ===
 export { defaultRenderHooks, defaultHighlightStrategy, defaultRenderers } from './hooks'
 export {
