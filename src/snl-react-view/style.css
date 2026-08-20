@@ -328,9 +328,11 @@
 }
 .snl-formula-foreign-surface {
   box-sizing: border-box;
+  width: max-content;
+  height: max-content;
   overflow: visible;
 }
-.snl-formula-foreign-surface > .snl-svg-template,
+.snl-formula-foreign-surface .snl-svg-template,
 .snl-formula-foreign-surface .snl-svg-template-canvas,
 .snl-formula-foreign-surface .snl-svg-template-artwork {
   width: 100%;

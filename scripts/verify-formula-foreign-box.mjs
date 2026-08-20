@@ -29,7 +29,7 @@ async function waitFor(check, label) {
 function assert(value, message) { if (!value) throw new Error(message) }
 async function evaluate(cdp, expression) {
   const result = await cdp.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })
-  if (result.exceptionDetails) throw new Error(result.exceptionDetails.text)
+  if (result.exceptionDetails) throw new Error(`${result.exceptionDetails.text}: ${result.exceptionDetails.exception?.description ?? 'no description'}`)
   return result.result.value
 }
 
@@ -94,7 +94,21 @@ try {
   for (const testCase of [{ name: '390', width: 390, height: 1500 }, { name: '1000', width: 1000, height: 760 }]) {
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: testCase.width, height: testCase.height, deviceScaleFactor: 1, mobile: false })
     await cdp.send('Page.navigate', { url: vite.url })
-    await waitFor(() => evaluate(cdp, 'Boolean(window.__formulaForeignFixture?.ready())'), `${testCase.name} positioned formula boxes`)
+    await waitFor(() => evaluate(cdp, `Boolean(window.__formulaForeignFixture?.ready())
+      && document.querySelectorAll('.interactive-formula-svg').length === 9
+      && document.querySelectorAll('[data-snl-formula-foreign-marker] .snlFormulaForeignMarker .rule').length === 9`), `${testCase.name} positioned formula boxes`)
+    await lifecycleRace(delay(150))
+    try {
+      await waitFor(() => evaluate(cdp, `document.querySelectorAll('.interactive-formula-svg').length === 9`), `${testCase.name} settled formula convergence`)
+    } catch (error) {
+      const diagnostics = await evaluate(cdp, `({
+        surfaces: document.querySelectorAll('.interactive-formula-svg').length,
+        formulaErrors: [...document.querySelectorAll('.snl-formula-foreign-error')].map(node => node.textContent),
+        wrappers: [...document.querySelectorAll('.snl-formula-foreign-host > .snl-foreign-box-overlay > .snl-foreign-box')].map(node => ({ state: node.dataset.state, path: node.dataset.treePath, width: node.style.width, height: node.style.height })),
+        fixtureErrors: window.__fixtureErrors || [],
+      })`)
+      throw new Error(`${error.message}: ${JSON.stringify(diagnostics)}`)
+    }
     await evaluate(cdp, 'document.fonts.ready.then(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))')
     const before = await evaluate(cdp, `(() => {
       const rv = rect => ({ x: rect.x, y: rect.y, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height });
@@ -208,10 +222,69 @@ try {
     assert(changedMarkup.contexts.length === 9 && changedMarkup.contexts.every(context => context.errors === 0 && context.fallbackCount === 0 && context.marker && context.surface),
       `${testCase.name} changed-markup adoption was not fully live: ${JSON.stringify(changedMarkup.contexts)}`)
     assert(changedMarkup.errors.length === 0, `${testCase.name} changed-markup errors: ${changedMarkup.errors.join(' | ')}`)
+    await evaluate(cdp, `(() => {
+      window.__beforeDynamicSurfaces = [...document.querySelectorAll('.interactive-formula-svg')];
+      window.__dynamicMarkerMutations = Array.from({ length: 9 }, () => 0);
+      [...document.querySelectorAll('.context')].forEach((section, index) => {
+        new MutationObserver(records => {
+          for (const record of records) {
+            if ([...record.addedNodes, ...record.removedNodes].some(node => node.nodeType === 1 && (node.matches?.('[data-snl-formula-foreign-marker]') || node.querySelector?.('[data-snl-formula-foreign-marker]')))) {
+              window.__dynamicMarkerMutations[index] += 1;
+            }
+          }
+        }).observe(section.querySelector('.katex-panel'), { childList: true, subtree: true });
+      });
+      window.__formulaForeignFixture.switchDynamic();
+    })()`)
+    await waitFor(() => evaluate(cdp, `[...document.querySelectorAll('.context svg[role="img"]')].length === 9
+      && [...document.querySelectorAll('.context svg[role="img"]')].every(svg => svg.getAttribute('aria-label') === 'Dynamically measured long arrow from A to B')
+      && window.__formulaForeignFixture.ready()`), `${testCase.name} dynamic metric adoption`)
+    await lifecycleRace(delay(200))
+    const dynamic = await evaluate(cdp, `(() => {
+      const after = [...document.querySelectorAll('.interactive-formula-svg')];
+      const contexts = [...document.querySelectorAll('.context')].map(section => {
+        const rule = section.querySelector('[data-snl-formula-foreign-marker] .snlFormulaForeignMarker .rule')?.getBoundingClientRect();
+        const surface = section.querySelector('.interactive-formula-svg')?.getBoundingClientRect();
+        return { rule: rule && { x: rule.x, y: rule.y, width: rule.width, height: rule.height }, surface: surface && { x: surface.x, y: surface.y, width: surface.width, height: surface.height }, errors: section.querySelectorAll('.snl-formula-foreign-error,[role="alert"]').length };
+      });
+      return {
+        preserved: after.length === window.__beforeDynamicSurfaces.length && after.every((node, index) => node === window.__beforeDynamicSurfaces[index]),
+        sameNodes: after.map((node, index) => node === window.__beforeDynamicSurfaces[index]),
+        fallbacks: [...document.querySelectorAll('.snl-formula-foreign-error')].map(node => ({ text: node.textContent, reason: node.dataset.convergenceFallback })),
+        focused: document.activeElement === after[0],
+        interactions: after[0]?.dataset.interactions,
+        contexts,
+        markerMutations: window.__dynamicMarkerMutations,
+        errors: window.__fixtureErrors || [],
+      };
+    })()`)
+    assert(dynamic.preserved, `${testCase.name} metric convergence remounted persistent formula children: ${JSON.stringify({ sameNodes: dynamic.sameNodes, fallbacks: dynamic.fallbacks, markerMutations: dynamic.markerMutations, errors: dynamic.errors })}`)
+    assert(dynamic.focused && dynamic.interactions === '1', `${testCase.name} metric convergence lost focus or interaction state: ${JSON.stringify(dynamic)}`)
+    assert(dynamic.contexts.every(context => context.rule && context.surface && context.errors === 0
+      && Math.max(Math.abs(context.rule.x - context.surface.x), Math.abs(context.rule.y - context.surface.y), Math.abs(context.rule.width - context.surface.width), Math.abs(context.rule.height - context.surface.height)) <= 0.75
+      && context.surface.width >= 89 && context.surface.height >= 44), `${testCase.name} dynamic geometry did not converge: ${JSON.stringify(dynamic.contexts)}`)
+    assert(dynamic.markerMutations.every(count => count <= 4), `${testCase.name} exceeded the four-iteration convergence cap: ${JSON.stringify(dynamic.markerMutations)}`)
+    assert(dynamic.errors.length === 0, `${testCase.name} dynamic convergence errors: ${dynamic.errors.join(' | ')}`)
     const screenshot = join(artifactDir, `formula-foreign-box-${testCase.name}.png`)
     const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
     writeFileSync(screenshot, Buffer.from(capture.data, 'base64'))
-    results.push({ case: testCase.name, contexts: before.contexts.map(({ name, rule, surface }) => ({ name, rule, surface })), identity, localized, retired, changedMarkup, font: before.font, screenshot })
+    await evaluate(cdp, 'window.__formulaForeignFixture.switchUnstable()')
+    await waitFor(() => evaluate(cdp, `document.querySelectorAll('.snl-formula-foreign-error[data-convergence-fallback]').length === 9`), `${testCase.name} visible iteration-cap fallback`)
+    const unstable = await evaluate(cdp, `(() => {
+      const fallbacks = [...document.querySelectorAll('.snl-formula-foreign-error[data-convergence-fallback]')];
+      return {
+        count: fallbacks.length,
+        visible: fallbacks.every(node => getComputedStyle(node).display !== 'none' && node.getClientRects().length > 0),
+        labels: fallbacks.map(node => node.querySelector('[role="img"]')?.getAttribute('aria-label')),
+        reasons: fallbacks.map(node => node.dataset.convergenceFallback),
+        liveSurfaces: document.querySelectorAll('.interactive-formula-svg').length,
+        errors: window.__fixtureErrors || [],
+      };
+    })()`)
+    assert(unstable.count === 9 && unstable.visible && unstable.liveSurfaces === 0 && unstable.reasons.every(reason => reason === 'iteration-cap')
+      && unstable.labels.every(label => label === 'Unstable arrow fallback'), `${testCase.name} iteration cap did not fail closed visibly: ${JSON.stringify(unstable)}`)
+    assert(unstable.errors.length === 0, `${testCase.name} iteration-cap fallback errors: ${unstable.errors.join(' | ')}`)
+    results.push({ case: testCase.name, contexts: before.contexts.map(({ name, rule, surface }) => ({ name, rule, surface })), identity, localized, retired, changedMarkup, dynamic, unstable, font: before.font, screenshot })
   }
   assert(vite.viteMessages.length === 0, `Vite diagnostics: ${JSON.stringify(vite.viteMessages)}`)
   assert(networkFailures.length === 0, `network failures: ${networkFailures.join(' | ')}`)

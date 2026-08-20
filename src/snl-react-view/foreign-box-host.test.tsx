@@ -100,15 +100,19 @@ function Slot({ id = identity(), label = 'foreign', apiRef, markerKey = 'a', onM
   return <><span key={markerKey} ref={api.markerRef} data-testid="marker" />{ssrFallback === undefined ? null : api.ssrFallback}</>
 }
 
-function IntrinsicSlot({ width, apiRef, onMetrics }: {
+function IntrinsicSlot({ width, apiRef, onMetrics, metricEpoch = 0, onMetricReport }: {
   width: number
   apiRef: { current: UseForeignBoxResult | null }
   onMetrics: (metrics: { width: number; height: number; depth: number; baseline: 'alphabetic' | 'axis-center' | 'bottom' }) => void
+  metricEpoch?: number
+  onMetricReport?: (report: import('./foreign-box').ForeignBoxMetricReport) => void
 }) {
   const api = useForeignBox({
     identity: identity('intrinsic-slot'),
-    child: <button data-testid="intrinsic-child" style={{ width: `${width}px`, height: '12px' }}>foreign</button>,
+    child: <div data-snl-foreign-intrinsic="true"><button data-testid="intrinsic-child" style={{ width: `${width}px`, height: '12px' }}>foreign</button></div>,
     onMetrics,
+    metricEpoch,
+    onMetricReport,
   })
   apiRef.current = api
   return <span ref={api.markerRef} data-testid="intrinsic-marker" />
@@ -254,32 +258,57 @@ describe('ForeignBoxHost lifecycle', () => {
   it('measures same-identity intrinsic growth from an inner surface without observing the fixed shell', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const metrics = vi.fn()
-    const view = render(<ForeignBoxHost><IntrinsicSlot width={20} apiRef={apiRef} onMetrics={metrics} /></ForeignBoxHost>)
+    const metricReports = vi.fn()
+    const view = render(<ForeignBoxHost><IntrinsicSlot width={20} apiRef={apiRef} onMetrics={metrics} metricEpoch={7} onMetricReport={metricReports} /></ForeignBoxHost>)
     const child = view.getByTestId('intrinsic-child') as HTMLButtonElement
-    const measurement = child.parentElement as HTMLElement
+    const intrinsic = child.parentElement as HTMLElement
+    const measurement = intrinsic.parentElement as HTMLElement
     const shell = measurement.parentElement as HTMLElement
     const marker = view.getByTestId('intrinsic-marker')
     const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
     const observer = TrackingResizeObserver.instances[0]
     vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
     vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 20, width: 10, height: 10 }))
+    act(flushRaf)
 
     expect(measurement.classList.contains('snl-foreign-box-measure')).toBe(true)
     expect(shell.classList.contains('snl-foreign-box')).toBe(true)
-    expect(observer.targets.has(measurement)).toBe(true)
+    expect(observer.targets.has(intrinsic)).toBe(true)
+    expect(observer.targets.has(measurement)).toBe(false)
     expect(observer.targets.has(shell)).toBe(false)
-    act(() => { observer.deliverIntrinsic(measurement); flushRaf() })
+    act(() => { observer.deliverIntrinsic(intrinsic); flushRaf() })
     expect(shell.style.width).toBe('20px')
     child.focus()
     expect(document.activeElement).toBe(child)
 
-    view.rerender(<ForeignBoxHost><IntrinsicSlot width={50} apiRef={apiRef} onMetrics={metrics} /></ForeignBoxHost>)
+    view.rerender(<ForeignBoxHost><IntrinsicSlot width={50} apiRef={apiRef} onMetrics={metrics} metricEpoch={8} onMetricReport={metricReports} /></ForeignBoxHost>)
     expect(view.getByTestId('intrinsic-child')).toBe(child)
     expect(document.activeElement).toBe(child)
-    act(() => { observer.deliverIntrinsic(measurement); flushRaf() })
+    act(() => { TrackingResizeObserver.instances.at(-1)!.deliverIntrinsic(intrinsic); flushRaf() })
     expect(metrics.mock.calls.at(-1)?.[0]).toEqual({ width: 50, height: 12, depth: 0, baseline: 'bottom' })
+    expect(metricReports.mock.calls.at(-1)?.[0]).toEqual({
+      authority: { treePath: 'intrinsic-slot', generation: 1, producer: 'renderer:block@r1', metricEpoch: 8 },
+      metrics: { width: 50, height: 12, depth: 0, baseline: 'bottom' },
+    })
     expect(shell.style.width).toBe('50px')
     expect(observer.targets.has(shell)).toBe(false)
+  })
+
+  it('rotates observer authority so a queued prior-epoch record cannot publish as current', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const metricReports = vi.fn()
+    const view = render(<ForeignBoxHost><IntrinsicSlot width={20} apiRef={apiRef} onMetrics={vi.fn()} metricEpoch={7} onMetricReport={metricReports} /></ForeignBoxHost>)
+    const child = view.getByTestId('intrinsic-child')
+    const measurement = child.parentElement as HTMLElement
+    const staleObserver = TrackingResizeObserver.instances[0]
+
+    view.rerender(<ForeignBoxHost><IntrinsicSlot width={50} apiRef={apiRef} onMetrics={vi.fn()} metricEpoch={8} onMetricReport={metricReports} /></ForeignBoxHost>)
+    expect(view.getByTestId('intrinsic-child')).toBe(child)
+    expect(TrackingResizeObserver.instances).toHaveLength(2)
+    act(() => staleObserver.fire(measurement, 99, 12))
+    expect(metricReports).not.toHaveBeenCalled()
+    expect(staleObserver.disconnected).toBe(true)
+    expect(TrackingResizeObserver.instances[1].targets.has(measurement)).toBe(true)
   })
 
   it('rejects stale generation and producer callbacks', () => {

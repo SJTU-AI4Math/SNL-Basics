@@ -658,9 +658,14 @@ be positive and finite, while `baseline_ratio` must be strictly between zero
 and one. Width is derived from the sanitized SVG `viewBox`; height/depth come
 from this baseline policy. KaTeX reserves a fixed TeX rule before rendering,
 and the persistent React/SVG subtree is attached to that committed rule without
-remounting. This fixed-metric path does not measure content or infer policy from
-Macro names. Missing/invalid policy, marker, metrics, children, or active SVG
-fails closed visibly; dynamic measurement is not part of this contract.
+remounting. The default fixed-metric path does not measure content or infer policy from
+Macro names. A trusted projection may additionally set `measurement: "bounded"`
+to opt into intrinsic measurement: sibling reports are committed once per frame
+in source order, stale observation/semantic epochs and changes at or below 0.5px
+are ignored, and A→B→A oscillation or four unsuccessful iterations fail closed
+to a visible fallback. Metric-only rerenders preserve the persistent child DOM,
+focus, and interaction state. Missing/invalid policy, marker, metrics, children,
+or active SVG fails closed visibly.
 
 `data-snl-slot` and `svg_template` are renderer/projection metadata, not new SNL
 author syntax. Macro calls remain ordinary SNL calls, and Basics introduces no

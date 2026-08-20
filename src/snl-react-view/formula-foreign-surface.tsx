@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, type ReactElement, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, type ReactElement, type ReactNode } from 'react'
+import type { ForeignBoxMetricReport, ForeignBoxMetrics } from './foreign-box'
 import type { FormulaForeignPlan } from './render-source'
 import { ForeignBoxFallback, useForeignBox } from './use-foreign-box'
 
@@ -10,6 +11,9 @@ export interface FormulaForeignSurfaceProps {
   readonly widthPx: number
   readonly heightPx: number
   readonly child: ReactNode
+  readonly metricEpoch?: number
+  readonly observationEpoch?: number
+  readonly onMetricReport?: (report: ForeignBoxMetricReport) => void
 }
 
 /**
@@ -17,14 +21,27 @@ export interface FormulaForeignSurfaceProps {
  * committed viewport size is authoritative for script/numerator/limit scaling;
  * authored values never become CSS pixels directly.
  */
-export function FormulaForeignSurface({ plan, marker, widthPx, heightPx, child }: FormulaForeignSurfaceProps): ReactElement {
+export function FormulaForeignSurface({ plan, marker, widthPx, heightPx, child, metricEpoch = 0, observationEpoch = 0, onMetricReport }: FormulaForeignSurfaceProps): ReactElement {
+  const latestIntrinsicRef = useRef<ForeignBoxMetrics | null>(null)
+  useSsrSafeLayoutEffect(() => { latestIntrinsicRef.current = null }, [metricEpoch])
+  const publishMetricReport = onMetricReport
+    ? (report: ForeignBoxMetricReport) => {
+        latestIntrinsicRef.current = report.metrics
+        onMetricReport({ ...report, observationEpoch, reserved: { width: widthPx, totalHeight: heightPx } })
+      }
+    : undefined
   const surface = (
     <div
       className="snl-formula-foreign-surface"
-      style={{ width: `${widthPx}px`, height: `${heightPx}px` }}
+      style={{ minWidth: `${widthPx}px`, minHeight: `${heightPx}px` }}
       data-snl-formula-foreign-surface={plan.identity}
     >
-      {child}
+      <div
+        data-snl-foreign-intrinsic={onMetricReport ? 'true' : undefined}
+        style={onMetricReport ? { width: 'max-content', height: 'max-content' } : { display: 'contents' }}
+      >
+        {child}
+      </div>
     </div>
   )
   const foreign = useForeignBox({
@@ -35,7 +52,19 @@ export function FormulaForeignSurface({ plan, marker, widthPx, heightPx, child }
     },
     child: surface,
     ssrFallback: <span role="img" aria-label={plan.accessibilityLabel}>{plan.accessibilityLabel}</span>,
+    metricEpoch,
+    onMetricReport: publishMetricReport,
   })
+  useSsrSafeLayoutEffect(() => {
+    const metrics = latestIntrinsicRef.current
+    if (!onMetricReport || !metrics) return
+    onMetricReport({
+      authority: { treePath: plan.treePath.join('.'), generation: plan.generation, producer: plan.producer, metricEpoch },
+      metrics,
+      observationEpoch,
+      reserved: { width: widthPx, totalHeight: heightPx },
+    })
+  }, [heightPx, metricEpoch, observationEpoch, onMetricReport, plan.generation, plan.producer, plan.treePath, widthPx])
   useSsrSafeLayoutEffect(() => {
     marker.setAttribute('aria-hidden', 'true')
     marker.setAttribute('role', 'presentation')

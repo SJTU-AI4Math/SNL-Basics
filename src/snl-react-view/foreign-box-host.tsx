@@ -9,7 +9,7 @@ import {
   useRef,
   type ReactNode,
 } from 'react'
-import { assertForeignBoxMetrics, foreignBoxIdentityKey, snapshotForeignBoxIdentity, type ForeignBoxIdentity, type ForeignBoxMetrics } from './foreign-box'
+import { assertForeignBoxMetrics, foreignBoxIdentityKey, snapshotForeignBoxIdentity, type ForeignBoxIdentity, type ForeignBoxMetricReport, type ForeignBoxMetrics } from './foreign-box'
 
 const useSsrSafeLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
@@ -44,12 +44,14 @@ interface RegistrationOptions {
   readonly identity: ForeignBoxIdentity
   readonly child: ReactNode
   readonly onMetrics?: (metrics: ForeignBoxMetrics) => void
+  readonly metricEpoch?: number
+  readonly onMetricReport?: (report: ForeignBoxMetricReport) => void
   readonly onUnregister?: () => void
   readonly onPositionedChange?: (positioned: boolean) => void
 }
 
 export interface ForeignBoxRegistration {
-  update(options: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'onUnregister'>): void
+  update(options: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'metricEpoch' | 'onMetricReport' | 'onUnregister'>): void
   setMarker(marker: MarkerElement | null): void
   reportMetrics(metrics: ForeignBoxMetrics): void
   unregister(): void
@@ -84,6 +86,8 @@ interface Entry {
   readonly identity: ForeignBoxIdentity
   child: ReactNode
   onMetrics?: (metrics: ForeignBoxMetrics) => void
+  metricEpoch: number
+  onMetricReport?: (report: ForeignBoxMetricReport) => void
   onUnregister?: () => void
   onPositionedChange?: (positioned: boolean) => void
   positioned: boolean
@@ -94,8 +98,10 @@ interface Entry {
   wrapper: HTMLDivElement | null
   wrapperRef: (wrapper: HTMLDivElement | null) => void
   measurement: HTMLDivElement | null
+  intrinsicMeasurement: HTMLElement | null
   measurementRef: (measurement: HTMLDivElement | null) => void
   metrics: ForeignBoxMetrics | null
+  focusRestore: HTMLElement | null
 }
 
 function setEntryPositioned(entry: Entry, positioned: boolean): void {
@@ -105,6 +111,10 @@ function setEntryPositioned(entry: Entry, positioned: boolean): void {
 }
 
 function stageEntry(entry: Entry): void {
+  const active = entry.wrapper?.ownerDocument.activeElement
+  if (active && entry.wrapper?.contains(active) && typeof (active as HTMLElement).focus === 'function') {
+    entry.focusRestore = active as HTMLElement
+  }
   stageWrapper(entry.wrapper)
   setEntryPositioned(entry, false)
 }
@@ -145,6 +155,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
   const lifecycleEpochRef = useRef(0)
   const committedAuthorityRef = useRef(authorityKey)
   const observerRef = useRef<ResizeObserver | null>(null)
+  const rotateObserverRef = useRef<(() => void) | null>(null)
   const rafRef = useRef<number | null>(null)
   const [, renderEntries] = useReducer((value: number) => value + 1, 0)
 
@@ -174,6 +185,18 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
               entry.measurement = null
               stageEntry(entry)
             }
+            if (entry.measurement) {
+              const intrinsic = entry.measurement.querySelector<HTMLElement>('[data-snl-foreign-intrinsic="true"]')
+              if (intrinsic !== entry.intrinsicMeasurement) {
+                const previousTarget = entry.intrinsicMeasurement ?? entry.measurement
+                observerRef.current?.unobserve(previousTarget)
+                elementEntriesRef.current.delete(previousTarget)
+                entry.intrinsicMeasurement = intrinsic
+                const nextTarget = intrinsic ?? entry.measurement
+                elementEntriesRef.current.set(nextTarget, entry)
+                observerRef.current?.observe(nextTarget)
+              }
+            }
             if (wrapper && !wrapper.isConnected) {
               entry.wrapper = null
               wrapper = null
@@ -194,6 +217,11 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
             wrapper.style.visibility = 'visible'
             wrapper.setAttribute('aria-hidden', 'false')
             wrapper.removeAttribute('inert')
+            const focusRestore = entry.focusRestore
+            if (focusRestore?.isConnected) {
+              entry.focusRestore = null
+              focusRestore.focus({ preventScroll: true })
+            }
             wrapper.style.transform = `translate(${local.left}px, ${local.top}px)`
             wrapper.style.width = `${metrics.width}px`
             wrapper.style.height = `${metrics.height + metrics.depth}px`
@@ -231,10 +259,11 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
       const token = {}
       const previous = entriesRef.current.get(slot)
       const entry: Entry = {
-        identity, child: options.child, onMetrics: options.onMetrics, onUnregister: options.onUnregister,
+        identity, child: options.child, onMetrics: options.onMetrics,
+        metricEpoch: options.metricEpoch ?? 0, onMetricReport: options.onMetricReport, onUnregister: options.onUnregister,
         onPositionedChange: options.onPositionedChange, positioned: false,
         key, slot, token, marker: null, wrapper: null, wrapperRef: () => {},
-        measurement: null, measurementRef: () => {}, metrics: null,
+        measurement: null, intrinsicMeasurement: null, measurementRef: () => {}, metrics: null, focusRestore: null,
       }
       entry.wrapperRef = (wrapper) => {
         if (!activeRef.current || entriesRef.current.get(slot)?.token !== token) return
@@ -252,10 +281,16 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
           observerRef.current?.unobserve(entry.measurement)
           elementEntriesRef.current.delete(entry.measurement)
         }
+        if (entry.intrinsicMeasurement) {
+          observerRef.current?.unobserve(entry.intrinsicMeasurement)
+          elementEntriesRef.current.delete(entry.intrinsicMeasurement)
+        }
         entry.measurement = measurement
-        if (measurement) {
-          elementEntriesRef.current.set(measurement, entry)
-          observerRef.current?.observe(measurement)
+        entry.intrinsicMeasurement = measurement?.querySelector<HTMLElement>('[data-snl-foreign-intrinsic="true"]') ?? null
+        const target = entry.intrinsicMeasurement ?? measurement
+        if (target) {
+          elementEntriesRef.current.set(target, entry)
+          observerRef.current?.observe(target)
           scheduleGeometry()
         }
       }
@@ -288,11 +323,16 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
       previousUnregister?.()
 
       const isAlive = () => activeRef.current && entriesRef.current.get(slot)?.token === token
-      const update = (next: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'onUnregister'>) => {
+      const update = (next: Pick<RegistrationOptions, 'child' | 'onMetrics' | 'metricEpoch' | 'onMetricReport' | 'onUnregister'>) => {
         if (!isAlive()) return
         entry.child = next.child
         entry.onMetrics = next.onMetrics
+        const nextMetricEpoch = next.metricEpoch ?? 0
+        const rotateObserver = entry.metricEpoch !== nextMetricEpoch
+        entry.metricEpoch = nextMetricEpoch
+        entry.onMetricReport = next.onMetricReport
         entry.onUnregister = next.onUnregister
+        if (rotateObserver) rotateObserverRef.current?.()
         renderEntries()
       }
       const setMarker = (marker: MarkerElement | null) => {
@@ -316,6 +356,10 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
         entry.metrics = metrics
         scheduleGeometry()
         entry.onMetrics?.(metrics)
+        if (isAlive()) entry.onMetricReport?.({
+          authority: { ...entry.identity, metricEpoch: entry.metricEpoch },
+          metrics,
+        })
       }
       const unregister = () => {
         if (!isAlive()) return
@@ -329,8 +373,14 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
           observerRef.current?.unobserve(entry.measurement)
           elementEntriesRef.current.delete(entry.measurement)
         }
+        if (entry.intrinsicMeasurement) {
+          observerRef.current?.unobserve(entry.intrinsicMeasurement)
+          elementEntriesRef.current.delete(entry.intrinsicMeasurement)
+        }
         entry.marker = null
         entry.measurement = null
+        entry.intrinsicMeasurement = null
+        entry.focusRestore = null
         entry.wrapper = null
         setEntryPositioned(entry, false)
         if (entriesRef.current.size === 0 && rafRef.current !== null && typeof cancelAnimationFrame !== 'undefined') {
@@ -373,14 +423,18 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
     const epoch = lifecycleEpochRef.current
     const host = hostRef.current
     const ResizeObserverConstructor = typeof ResizeObserver === 'undefined' ? null : ResizeObserver
-    if (ResizeObserverConstructor) {
+    const installObserver = () => {
+      const previous = observerRef.current
+      observerRef.current = null
+      previous?.disconnect()
+      if (!ResizeObserverConstructor || !activeRef.current || lifecycleEpochRef.current !== epoch) return
       const observer = new ResizeObserverConstructor((records) => {
         if (!activeRef.current || lifecycleEpochRef.current !== epoch || observerRef.current !== observer) return
         for (const record of records) {
           if (record.target === host) continue
           const entry = elementEntriesRef.current.get(record.target)
           if (!entry || entriesRef.current.get(entry.slot)?.token !== entry.token) continue
-          if (record.target === entry.measurement) {
+          if (record.target === (entry.intrinsicMeasurement ?? entry.measurement)) {
             const width = record.contentRect.width
             const totalHeight = record.contentRect.height
             const depth = entry.metrics?.depth ?? 0
@@ -389,6 +443,12 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
               const metrics = Object.freeze({ width, height, depth, baseline: entry.metrics?.baseline ?? 'bottom' })
               entry.metrics = metrics
               entry.onMetrics?.(metrics)
+              if (activeRef.current && entriesRef.current.get(entry.slot)?.token === entry.token) {
+                entry.onMetricReport?.({
+                  authority: { ...entry.identity, metricEpoch: entry.metricEpoch },
+                  metrics,
+                })
+              }
             }
           }
         }
@@ -398,9 +458,12 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
       if (host) observer.observe(host)
       for (const entry of entriesRef.current.values()) {
         if (entry.marker) observer.observe(entry.marker)
-        if (entry.measurement) observer.observe(entry.measurement)
+        const target = entry.intrinsicMeasurement ?? entry.measurement
+        if (target) observer.observe(target)
       }
     }
+    rotateObserverRef.current = installObserver
+    installObserver()
 
     const update = () => scheduleGeometry()
     if (typeof window !== 'undefined') {
@@ -412,6 +475,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
 
     return () => {
       ++lifecycleEpochRef.current
+      if (rotateObserverRef.current === installObserver) rotateObserverRef.current = null
       const observer = observerRef.current
       observerRef.current = null
       observer?.disconnect()

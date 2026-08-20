@@ -4,6 +4,7 @@ import {
   memo,
   useEffect,
   useLayoutEffect,
+  useInsertionEffect,
   useMemo,
   useRef,
   useState,
@@ -50,9 +51,10 @@ import {
 import { findMinimalHoverRoot } from '../snl-react-view/hover-dom'
 import { applySnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
-import { formulaForeignCapability, formulaForeignMarkerId } from '../snl-react-view/formula-foreign-box'
+import { deriveConvergedFormulaMetrics, formulaForeignCapability, formulaForeignMarkerId, type FixedFormulaMetrics } from '../snl-react-view/formula-foreign-box'
 import { FormulaForeignSurface } from '../snl-react-view/formula-foreign-surface'
 import { ForeignBoxHost } from '../snl-react-view/foreign-box-host'
+import { createForeignBoxConvergenceController, foreignBoxIdentityKey, type ForeignBoxMetricReport } from '../snl-react-view/foreign-box'
 import { resolveRenderedKind } from '../snl-react-view/kind-behavior'
 import {
   DEFAULT_SNL_ACTIVATION_CONTROLLER,
@@ -91,6 +93,8 @@ interface FormulaMarkerBinding {
   readonly marker: HTMLElement | null
   readonly widthPx: number
   readonly heightPx: number
+  readonly metricEpoch: number
+  readonly observationEpoch: number
   readonly error?: string
 }
 
@@ -799,6 +803,71 @@ export function SnlSyntaxTreeView({
     return node.children.some(visit)
   }
 
+  const [formulaMetricOverrides, setFormulaMetricOverrides] = useState<ReadonlyMap<string, FixedFormulaMetrics>>(() => new Map())
+  const [formulaFallbacks, setFormulaFallbacks] = useState<ReadonlyMap<string, string>>(() => new Map())
+  const formulaMetricEpochRef = useRef(0)
+  const formulaControllerSeededEpochRef = useRef(-1)
+  const formulaBindingsByForeignKeyRef = useRef(new Map<string, FormulaMarkerBinding>())
+  const formulaConvergenceController = useMemo(() => createForeignBoxConvergenceController({
+    scheduleFrame(callback) {
+      if (typeof requestAnimationFrame === 'function') return requestAnimationFrame(callback)
+      return setTimeout(callback, 0) as unknown as number
+    },
+    cancelFrame(handle) {
+      if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(handle)
+      else clearTimeout(handle)
+    },
+    onCommit(batch) {
+      setFormulaMetricOverrides(current => {
+        let next: Map<string, FixedFormulaMetrics> | null = null
+        for (const report of batch) {
+          if (report.authority.metricEpoch !== formulaMetricEpochRef.current) continue
+          const key = foreignBoxIdentityKey(report.authority)
+          const binding = formulaBindingsByForeignKeyRef.current.get(key)
+          if (!binding || binding.error || !binding.marker) continue
+          const metrics = deriveConvergedFormulaMetrics(
+            binding.plan.metrics,
+            { width: binding.widthPx, totalHeight: binding.heightPx },
+            report.metrics,
+          )
+          if (!next) next = new Map(current)
+          next.set(binding.plan.identity, metrics)
+        }
+        return next ?? current
+      })
+    },
+    onFallback(authority, reason) {
+      if (authority.metricEpoch !== formulaMetricEpochRef.current) return
+      const binding = formulaBindingsByForeignKeyRef.current.get(foreignBoxIdentityKey(authority))
+      if (!binding) return
+      setFormulaFallbacks(current => {
+        if (current.has(binding.plan.identity)) return current
+        const next = new Map(current)
+        next.set(binding.plan.identity, reason)
+        return next
+      })
+    },
+  }), [])
+  useInsertionEffect(() => {
+    formulaConvergenceController.activate()
+    return () => formulaConvergenceController.dispose()
+  }, [formulaConvergenceController])
+
+  const formulaSemanticAuthority = useMemo(() => ({
+    renderTree, renderLanguage, resolvedMacros, reader_runtime, renderers: mergedHooks.renderers,
+  }), [renderTree, renderLanguage, resolvedMacros, reader_runtime, mergedHooks.renderers])
+  const committedFormulaSemanticAuthorityRef = useRef(formulaSemanticAuthority)
+  useSsrSafeLayoutEffect(() => {
+    if (Object.is(committedFormulaSemanticAuthorityRef.current, formulaSemanticAuthority)) return
+    committedFormulaSemanticAuthorityRef.current = formulaSemanticAuthority
+    formulaMetricEpochRef.current += 1
+    formulaControllerSeededEpochRef.current = -1
+    formulaBindingsByForeignKeyRef.current.clear()
+    formulaConvergenceController.beginEpoch(formulaMetricEpochRef.current, [])
+    setFormulaMetricOverrides(current => current.size === 0 ? current : new Map())
+    setFormulaFallbacks(current => current.size === 0 ? current : new Map())
+  }, [formulaSemanticAuthority, formulaConvergenceController])
+
   const formulaForeignResolver = useMemo<FormulaForeignResolverOptions>(() => ({
     async resolveBlock(candidate) {
       const key = candidate.template.block_template_name
@@ -807,14 +876,16 @@ export function SnlSyntaxTreeView({
       const capability = formulaForeignCapability(Renderer)
       if (!capability) return null
       try {
-        return await capability.prepare(candidate)
+        const prepared = await capability.prepare(candidate)
+        const metrics = formulaMetricOverrides.get(prepared.identity)
+        return metrics ? { ...prepared, metrics } : prepared
       } catch {
         return null
       }
     },
   // The complete macro/template cache and selected language define capability.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [mergedHooks.renderers, resolvedMacros, reader_runtime, renderLanguage])
+  }), [mergedHooks.renderers, resolvedMacros, reader_runtime, renderLanguage, formulaMetricOverrides])
 
   // Determine root mode from the cache
   const rootMacro = macroCache[renderTree.macro_name] ?? null
@@ -918,24 +989,50 @@ export function SnlSyntaxTreeView({
       const id = formulaForeignMarkerId(plan.identity)
       const matches = candidates.filter(candidate => candidate.dataset.snlFormulaForeignMarker === id)
       if (matches.length !== 1) return {
-        plan, marker: null, widthPx: 0, heightPx: 0,
+        plan, marker: null, widthPx: 0, heightPx: 0, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId,
         error: `formula foreign marker ${id} resolved ${matches.length} times`,
       }
       const marker = matches[0]
       const geometry = marker.querySelector<HTMLElement>('.snlFormulaForeignMarker .rule')
       if (!geometry) return {
-        plan, marker: null, widthPx: 0, heightPx: 0,
+        plan, marker: null, widthPx: 0, heightPx: 0, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId,
         error: `formula foreign marker ${id} has no calibrated KaTeX rule geometry`,
       }
       const rect = geometry.getBoundingClientRect()
       if (!(rect.width > 0) || !(rect.height > 0)) return {
-        plan, marker: null, widthPx: 0, heightPx: 0,
+        plan, marker: null, widthPx: 0, heightPx: 0, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId,
         error: `formula foreign marker ${id} has unavailable geometry`,
       }
-      return { plan, marker: geometry, widthPx: rect.width, heightPx: rect.height }
+      return { plan, marker: geometry, widthPx: rect.width, heightPx: rect.height, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId }
     })
+    const bindingMap = new Map<string, FormulaMarkerBinding>()
+    for (const binding of bindings) {
+      bindingMap.set(foreignBoxIdentityKey({
+        treePath: binding.plan.treePath.join('.'),
+        generation: binding.plan.generation,
+        producer: binding.plan.producer,
+      }), binding)
+    }
+    formulaBindingsByForeignKeyRef.current = bindingMap
+    const epoch = formulaMetricEpochRef.current
+    if (formulaControllerSeededEpochRef.current !== epoch) {
+      const initial: ForeignBoxMetricReport[] = []
+      for (const binding of bindingMap.values()) {
+        if (!binding.error && binding.marker && binding.widthPx > 0 && binding.heightPx > 0) {
+          initial.push({
+            authority: {
+              treePath: binding.plan.treePath.join('.'), generation: binding.plan.generation,
+              producer: binding.plan.producer, metricEpoch: epoch,
+            },
+            metrics: { width: binding.widthPx, height: binding.heightPx, depth: 0, baseline: 'bottom' },
+          })
+        }
+      }
+      formulaConvergenceController.beginEpoch(epoch, initial)
+      formulaControllerSeededEpochRef.current = epoch
+    }
     setFormulaMarkers(bindings)
-  }, [result])
+  }, [result, formulaConvergenceController])
 
   // Non-KaTeX roots (block only) render as a React tree; rebuild the
   // bvar-scope index from the mounted DOM (best-effort — MathSpan leaves
@@ -1632,6 +1729,10 @@ export function SnlSyntaxTreeView({
   }, [hasHoverTarget, isKatexRoot])
 
   const renderFormulaForeignBinding = (binding: FormulaMarkerBinding): ReactElement => {
+    if (formulaFallbacks.has(binding.plan.identity)) {
+      const reason = formulaFallbacks.get(binding.plan.identity)
+      return <span key={binding.plan.identity} className="snl-formula-foreign-error" data-convergence-fallback={reason} role="alert"><span role="img" aria-label={binding.plan.accessibilityLabel}>{binding.plan.accessibilityLabel}</span><span className="snl-formula-foreign-error-reason"> ({reason})</span></span>
+    }
     if (binding.error || !binding.marker) {
       return <span key={binding.plan.identity} className="snl-formula-foreign-error" role="alert">Formula foreign box unavailable: {binding.error ?? 'marker missing'}</span>
     }
@@ -1649,6 +1750,9 @@ export function SnlSyntaxTreeView({
         marker={binding.marker}
         widthPx={binding.widthPx}
         heightPx={binding.heightPx}
+        metricEpoch={binding.metricEpoch}
+        observationEpoch={binding.observationEpoch}
+        onMetricReport={binding.plan.dynamicMetrics ? formulaConvergenceController.report : undefined}
         child={(
           <Renderer
             node={node}

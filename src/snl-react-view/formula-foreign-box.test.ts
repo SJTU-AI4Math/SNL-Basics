@@ -36,6 +36,18 @@ describe('fixed formula foreign boxes', () => {
     expect(() => readFixedFormulaEmbedPolicy({ ...template, svg_template: { formula_embed } })).toThrow()
   })
 
+  it('requires an explicit trusted bounded-measurement opt-in', () => {
+    expect(readFixedFormulaEmbedPolicy(template).dynamicMeasurement).toBe(false)
+    expect(readFixedFormulaEmbedPolicy({
+      ...template,
+      svg_template: { formula_embed: { total_height_em: 2, baseline_ratio: 0.75, measurement: 'bounded' } },
+    }).dynamicMeasurement).toBe(true)
+    expect(() => readFixedFormulaEmbedPolicy({
+      ...template,
+      svg_template: { formula_embed: { total_height_em: 2, baseline_ratio: 0.75, measurement: 'unbounded' } },
+    })).toThrow(/measurement/)
+  })
+
   it('emits a separate deterministic formula marker with TeX height and depth', () => {
     const latex = formulaForeignMarkerLatex('0.2/slot:7', {
       widthEm: 2,

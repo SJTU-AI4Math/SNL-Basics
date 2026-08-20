@@ -1,10 +1,12 @@
 import type { SnlBlockMacroTemplate } from '../snl-macro/types'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import type { TreePath } from './interaction-driver'
+import type { ForeignBoxMetrics } from './foreign-box'
 
 export interface FixedFormulaEmbedPolicy {
   readonly totalHeightEm: number
   readonly baselineRatio: number
+  readonly dynamicMeasurement: boolean
 }
 
 export interface FixedFormulaMetrics {
@@ -29,6 +31,7 @@ export interface FormulaForeignResolution {
   readonly producer: string
   readonly generation: number
   readonly accessibilityLabel: string
+  readonly dynamicMetrics?: boolean
 }
 
 export interface FormulaForeignRendererCapability {
@@ -50,6 +53,7 @@ export function formulaForeignCapability(renderer: unknown): FormulaForeignRende
 interface FormulaEmbedRecord {
   readonly total_height_em?: unknown
   readonly baseline_ratio?: unknown
+  readonly measurement?: unknown
 }
 
 function finitePositive(value: unknown, label: string): number {
@@ -72,7 +76,10 @@ export function readFixedFormulaEmbedPolicy(template: SnlBlockMacroTemplate): Fi
   const totalHeightEm = finitePositive(record.total_height_em, 'total_height_em')
   const baselineRatio = finitePositive(record.baseline_ratio, 'baseline_ratio')
   if (baselineRatio >= 1) throw new TypeError('SVG formula baseline_ratio must be strictly between zero and one')
-  return Object.freeze({ totalHeightEm, baselineRatio })
+  if (record.measurement !== undefined && record.measurement !== 'fixed' && record.measurement !== 'bounded') {
+    throw new TypeError('SVG formula measurement must be fixed or bounded')
+  }
+  return Object.freeze({ totalHeightEm, baselineRatio, dynamicMeasurement: record.measurement === 'bounded' })
 }
 
 function parseViewBox(viewBox: string): readonly [number, number, number, number] {
@@ -117,4 +124,28 @@ export function formulaForeignMarkerLatex(identity: string, metrics: FixedFormul
     throw new TypeError('formula foreign height and depth must compose the total height')
   }
   return `\\htmlData{snl-formula-foreign-marker=${id}}{\\htmlClass{snlFormulaForeignMarker}{\\color{transparent}{\\rule[-${depth}em]{${width}em}{${total}em}}}}`
+}
+
+export interface FormulaReservedPixels {
+  readonly width: number
+  readonly totalHeight: number
+}
+
+export function deriveConvergedFormulaMetrics(
+  current: FixedFormulaMetrics,
+  reservedPx: FormulaReservedPixels,
+  intrinsicPx: ForeignBoxMetrics,
+): FixedFormulaMetrics {
+  const reservedWidth = finitePositive(reservedPx.width, 'reserved pixel width')
+  const reservedHeight = finitePositive(reservedPx.totalHeight, 'reserved pixel height')
+  const intrinsicWidth = finitePositive(intrinsicPx.width, 'intrinsic pixel width')
+  const intrinsicHeight = finitePositive(intrinsicPx.height + intrinsicPx.depth, 'intrinsic pixel height')
+  const seedWidth = finitePositive(current.widthEm, 'current width')
+  const seedTotal = finitePositive(current.totalHeightEm, 'current total height')
+  const baselineRatio = finitePositive(current.heightEm / seedTotal, 'current baseline ratio')
+  if (baselineRatio >= 1) throw new TypeError('formula convergence baseline ratio must be strictly between zero and one')
+  const widthEm = seedWidth * intrinsicWidth / reservedWidth
+  const totalHeightEm = seedTotal * intrinsicHeight / reservedHeight
+  const heightEm = totalHeightEm * baselineRatio
+  return Object.freeze({ widthEm, heightEm, depthEm: totalHeightEm - heightEm, totalHeightEm })
 }

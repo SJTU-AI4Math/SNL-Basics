@@ -1,5 +1,5 @@
 import { createElement, useEffect, useInsertionEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import type { ForeignBoxIdentity, ForeignBoxMetrics } from './foreign-box'
+import type { ForeignBoxIdentity, ForeignBoxMetricReport, ForeignBoxMetrics } from './foreign-box'
 import { foreignBoxIdentityKey, snapshotForeignBoxIdentity } from './foreign-box'
 import { useForeignBoxRegistry, type ForeignBoxRegistration } from './foreign-box-host'
 
@@ -9,6 +9,8 @@ export interface UseForeignBoxOptions {
   /** Accessible content rendered until the live wrapper is measured and positioned. */
   readonly ssrFallback?: ReactNode
   readonly onMetrics?: (metrics: ForeignBoxMetrics) => void
+  readonly metricEpoch?: number
+  readonly onMetricReport?: (report: ForeignBoxMetricReport) => void
   readonly onUnregister?: () => void
 }
 

@@ -41,6 +41,22 @@ describe('FormulaForeignSurface lifecycle', () => {
     expect(html).not.toContain('data-snl-formula-foreign-surface')
   })
 
+  it('keeps marker dimensions as minima while leaving the live child intrinsically measurable', () => {
+    const marker = document.createElement('span')
+    document.body.append(marker)
+    const view = render(
+      <ForeignBoxHost>
+        <FormulaForeignSurface plan={plan('intrinsic', 1)} marker={marker} widthPx={40} heightPx={20} child={<button style={{ width: '80px', height: '30px' }}>long</button>} />
+      </ForeignBoxHost>,
+    )
+    const surface = view.container.querySelector<HTMLElement>('.snl-formula-foreign-surface')!
+    expect(surface.style.minWidth).toBe('40px')
+    expect(surface.style.minHeight).toBe('20px')
+    expect(surface.style.width).toBe('')
+    expect(surface.style.height).toBe('')
+    view.unmount(); marker.remove()
+  })
+
   it('revokes stale marker authority on replacement and unmount', () => {
     const first = document.createElement('span')
     const second = document.createElement('span')

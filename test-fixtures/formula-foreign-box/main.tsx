@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import 'katex/dist/katex.min.css'
 import '../../src/snl-react-view/style.css'
@@ -48,6 +48,8 @@ const localizedProjection = {
     en: projection,
     'zh-CN': { ...projection, svg_template: { ...projection.svg_template, accessibility: { label: 'Updated arrow from A to B' } } },
     fr: { ...projection, svg_template: { ...projection.svg_template, accessibility: { label: 'Changed-height arrow from A to B' }, formula_embed: { total_height_em: 2.0, baseline_ratio: 0.72 } } },
+    de: { ...projection, svg_template: { ...projection.svg_template, accessibility: { label: 'Dynamically measured long arrow from A to B' }, formula_embed: { total_height_em: 2.0, baseline_ratio: 0.72, measurement: 'bounded' } } },
+    es: { ...projection, svg_template: { ...projection.svg_template, accessibility: { label: 'Unstable arrow fallback' }, formula_embed: { total_height_em: 2.0, baseline_ratio: 0.72, measurement: 'bounded' } } },
   },
 }
 
@@ -78,10 +80,24 @@ const driver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name
 const registry = new SvgTemplateAssetRegistry({ loader: async () => arrowSource, maxSettled: 4 })
 const BaseSvgRenderer = createSvgTemplateRenderer({ assetRegistry: registry })
 let interactionCount = 0
-const SvgRenderer: SnlBlockRenderer = (props) => (
+const SvgRenderer: SnlBlockRenderer = (props) => {
+  const label = (props.template as typeof projection).svg_template?.accessibility.label
+  const dynamic = label === 'Dynamically measured long arrow from A to B'
+  const oscillating = label === 'Unstable arrow fallback'
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const [oscillatingWidth, setOscillatingWidth] = useState(90)
+  useLayoutEffect(() => {
+    if (!oscillating || !rootRef.current) return
+    const surface = rootRef.current.closest<HTMLElement>('.snl-formula-foreign-surface')
+    const reservedWidth = Number.parseFloat(surface?.style.minWidth ?? '')
+    if (Number.isFinite(reservedWidth)) setOscillatingWidth(reservedWidth < 80 ? 90 : 60)
+  })
+  return (
   <div
+    ref={rootRef}
     className="interactive-formula-svg"
     tabIndex={0}
+    style={dynamic || oscillating ? { width: `${oscillating ? oscillatingWidth : 90}px`, height: '45px' } : undefined}
     data-interactions={interactionCount}
     onClick={(event) => {
       interactionCount += 1
@@ -90,7 +106,8 @@ const SvgRenderer: SnlBlockRenderer = (props) => (
   >
     <BaseSvgRenderer {...props} />
   </div>
-)
+  )
+}
 const capability = formulaForeignCapability(BaseSvgRenderer)
 if (!capability) throw new Error('fixture SVG renderer lost its formula capability')
 Object.defineProperty(SvgRenderer, FORMULA_FOREIGN_RENDERER_CAPABILITY, {
@@ -135,6 +152,8 @@ declare global {
       rerender(): void
       switchLanguage(): void
       switchMarkup(): void
+      switchDynamic(): void
+      switchUnstable(): void
       changedMarkupProbe(): unknown
       snapshot(): unknown
     }
@@ -172,6 +191,8 @@ function App() {
       currentLanguage = 'fr'
       setLanguageRevision(value => value + 1)
     },
+    switchDynamic: () => { currentLanguage = 'de'; setLanguageRevision(value => value + 1) },
+    switchUnstable: () => { currentLanguage = 'es'; setLanguageRevision(value => value + 1) },
     changedMarkupProbe: () => (window as typeof window & { __changedMarkupProbe?: unknown }).__changedMarkupProbe ?? null,
     snapshot: () => ({
       revision, languageRevision, currentLanguage,

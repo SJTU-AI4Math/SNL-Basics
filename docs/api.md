@@ -240,6 +240,7 @@ The already-selected complete block `TemplateSpec` carries a consumer-owned
   formula_embed?: {              // explicit fixed-metric KaTeX opt-in
     total_height_em: number      // positive finite TeX em height+depth
     baseline_ratio: number       // finite, strictly between zero and one
+    measurement?: 'fixed' | 'bounded' // default fixed; explicit dynamic opt-in
   }
 }
 ```
@@ -263,9 +264,14 @@ SVG-in-SVG foreign boxes are not supported. Formula embedding is supported only
 through the optional trusted fixed-metric `formula_embed` policy: width is
 computed from the sanitized SVG `viewBox`, height/depth from the declared
 baseline, and a persistent React/SVG surface attaches to a committed KaTeX rule
-without remounting. Missing or invalid policy/metrics/marker and every other
-validation/load failure render a visible deterministic fallback. This path does
-not perform dynamic content measurement.
+without remounting. `measurement: 'bounded'` explicitly enables intrinsic
+content measurement. The formula-root coordinator batches siblings once per
+animation frame in source order, rejects stale semantic and observation epochs,
+uses a 0.5px stability threshold, and fails closed visibly on A→B→A oscillation
+or a four-iteration cap. Persistent child identity, focus, and interaction state
+survive metric-only KaTeX reservation updates. Missing or invalid
+policy/metrics/marker and every other validation/load failure render a visible
+deterministic fallback.
 
 This API adds no authored SNL syntax and no persisted call shape. `svg_template`
 and `data-snl-slot` are consumer projection/backend metadata; `#N` inside SVG is

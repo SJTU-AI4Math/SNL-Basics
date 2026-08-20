@@ -326,6 +326,7 @@ export function createSvgTemplateRenderer(options: SvgTemplateRendererOptions): 
             producer,
             generation: projection.generation,
             accessibilityLabel: projection.accessibilityLabel,
+            dynamicMetrics: policy.dynamicMeasurement,
           })
         } finally {
           removeAbortListener()
