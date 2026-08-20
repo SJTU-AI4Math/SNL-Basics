@@ -7,9 +7,13 @@ import { ForeignBoxHost } from './foreign-box-host'
 import { useForeignBox, type UseForeignBoxResult } from './use-foreign-box'
 
 describe('ForeignBoxHost hydration', () => {
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
-  it('hydrates the server fallback before activating one live overlay registration', async () => {
+  it('keeps the hydrated fallback until the live overlay is measured and positioned', async () => {
+    const callbacks = new Map<number, FrameRequestCallback>()
+    let nextRaf = 1
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { const id = nextRaf++; callbacks.set(id, callback); return id })
+    vi.stubGlobal('cancelAnimationFrame', (id: number) => { callbacks.delete(id) })
     const apiRef = { current: null as UseForeignBoxResult | null }
     const unregister = vi.fn()
     function Consumer() {
@@ -40,9 +44,23 @@ describe('ForeignBoxHost hydration', () => {
 
     expect(recoverable).toEqual([])
     expect(error.mock.calls.flat().join(' ')).not.toMatch(/hydration|did not match/i)
-    expect(container.querySelector('[data-testid="fallback"]')).toBeNull()
+    expect(container.querySelectorAll('[data-testid="fallback"]')).toHaveLength(1)
     expect(container.querySelectorAll('[data-testid="foreign-child"]')).toHaveLength(1)
     expect(apiRef.current?.isAlive()).toBe(true)
+    const host = container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    const marker = container.querySelector('[data-testid="marker"]') as HTMLElement
+    const wrapper = container.querySelector('[data-testid="foreign-child"]')!.parentElement as HTMLElement
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 100, height: 100, right: 100, bottom: 100, x: 0, y: 0, toJSON() {} } as DOMRect)
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue({ left: 10, top: 20, width: 10, height: 10, right: 20, bottom: 30, x: 10, y: 20, toJSON() {} } as DOMRect)
+    await act(async () => {
+      apiRef.current!.reportMetrics({ width: 12, height: 8, depth: 2, baseline: 'alphabetic' })
+      const pending = [...callbacks.values()]; callbacks.clear(); pending.forEach(callback => callback(0))
+      await Promise.resolve()
+    })
+    expect(container.querySelector('[data-testid="fallback"]')).toBeNull()
+    expect(wrapper.dataset.state).toBe('positioned')
+    expect(wrapper.style.visibility).toBe('visible')
+    expect(wrapper.hasAttribute('inert')).toBe(false)
 
     await act(async () => root.unmount())
     expect(unregister).toHaveBeenCalledTimes(1)

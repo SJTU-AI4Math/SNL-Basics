@@ -67,17 +67,18 @@ const identity = (treePath = '0.1', generation = 1, producer = 'renderer:block@r
   treePath, generation, producer,
 })
 
-function Slot({ id = identity(), label = 'foreign', apiRef, markerKey = 'a', onMetrics, onUnregister }: {
+function Slot({ id = identity(), label = 'foreign', apiRef, markerKey = 'a', onMetrics, onUnregister, ssrFallback }: {
   id?: ForeignBoxIdentity
   label?: string
   apiRef?: { current: UseForeignBoxResult | null }
   markerKey?: string
   onMetrics?: (metrics: { width: number; height: number; depth: number; baseline: 'alphabetic' | 'axis-center' | 'bottom' }) => void
   onUnregister?: () => void
+  ssrFallback?: React.ReactNode
 }) {
-  const api = useForeignBox({ identity: id, child: <button data-testid="foreign-child">{label}</button>, onMetrics, onUnregister })
+  const api = useForeignBox({ identity: id, child: <button data-testid="foreign-child">{label}</button>, onMetrics, onUnregister, ssrFallback })
   if (apiRef) apiRef.current = api
-  return <span key={markerKey} ref={api.markerRef} data-testid="marker" />
+  return <><span key={markerKey} ref={api.markerRef} data-testid="marker" />{ssrFallback === undefined ? null : api.ssrFallback}</>
 }
 
 function EffectSlot({ kind, calls }: { kind: 'layout' | 'passive'; calls: boolean[] }) {
@@ -182,7 +183,7 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(nextMetrics).not.toHaveBeenCalled()
   })
 
-  it('resets marker and geometry before notifying a replaced authority while preserving its wrapper', () => {
+  it('resets marker and geometry before notifying a replaced authority with a fresh wrapper', () => {
     let registry!: ReturnType<typeof useForeignBoxRegistry>
     const view = render(<ForeignBoxHost><RegistryCapture setRegistry={value => { registry = value }} /></ForeignBoxHost>)
     const oldUnregister = vi.fn()
@@ -216,18 +217,19 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(oldAliveDuringCallback).toBe(false)
     expect(old.isAlive()).toBe(false)
     expect(next.isAlive()).toBe(true)
-    expect(view.getByTestId('direct-new').parentElement).toBe(wrapper)
-    expect(wrapper.dataset.state).toBe('staging')
-    expect(wrapper.style.visibility).toBe('hidden')
-    expect(wrapper.style.transform).toBe('')
-    expect(wrapper.style.width).toBe('')
+    const nextWrapper = view.getByTestId('direct-new').parentElement as HTMLElement
+    expect(nextWrapper).not.toBe(wrapper)
+    expect(nextWrapper.dataset.state).toBe('staging')
+    expect(nextWrapper.style.visibility).toBe('hidden')
+    expect(nextWrapper.style.transform).toBe('')
+    expect(nextWrapper.style.width).toBe('')
     expect(TrackingResizeObserver.instances[0].targets.has(marker)).toBe(false)
     expect(TrackingResizeObserver.instances[0].unobserved).toContain(wrapper)
 
     const nextMarker = document.createElement('span')
     host.append(nextMarker)
     act(() => { next.setMarker(nextMarker); flushRaf() })
-    expect(wrapper.dataset.state).toBe('staging')
+    expect(nextWrapper.dataset.state).toBe('staging')
     old.unregister()
     expect(oldUnregister).toHaveBeenCalledTimes(1)
   })
@@ -411,6 +413,83 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(wrapper.style.transform).toBe('')
   })
 
+  it('fails closed on the next shared frame when a host or ancestor transform changes without events', () => {
+    const a = { current: null as UseForeignBoxResult | null }
+    const b = { current: null as UseForeignBoxResult | null }
+    const view = render(<div data-testid="ancestor"><ForeignBoxHost>
+      <Slot id={identity('a')} apiRef={a} /><Slot id={identity('b')} apiRef={b} />
+    </ForeignBoxHost></div>)
+    const ancestor = view.getByTestId('ancestor')
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    const markers = view.getAllByTestId('marker')
+    const wrappers = view.getAllByTestId('foreign-child').map(node => node.parentElement as HTMLElement)
+    let unsupported: Element | null = null
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({
+      transform: element === unsupported ? 'rotate(10deg)' : 'none',
+    }) as CSSStyleDeclaration)
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    markers.forEach((marker, index) => vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 10 + index * 20, top: 20, width: 10, height: 10 })))
+    act(() => {
+      a.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' })
+      b.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' })
+      flushRaf()
+    })
+    expect(wrappers.every(wrapper => wrapper.dataset.state === 'positioned')).toBe(true)
+    expect(rafCallbacks.size).toBe(1)
+
+    unsupported = ancestor
+    act(flushRaf)
+    expect(wrappers.every(wrapper => wrapper.dataset.state === 'unsupported-transform')).toBe(true)
+    expect(wrappers.every(wrapper => wrapper.style.visibility === 'hidden')).toBe(true)
+    expect(rafCallbacks.size).toBe(1)
+  })
+
+  it('retires queued observer records with the replaced wrapper authority', () => {
+    let registry!: ReturnType<typeof useForeignBoxRegistry>
+    const view = render(<ForeignBoxHost><RegistryCapture setRegistry={value => { registry = value }} /></ForeignBoxHost>)
+    const oldMetrics = vi.fn(); const nextMetrics = vi.fn()
+    act(() => { registry.register({ identity: identity('record-slot', 1, 'old@1'), child: <span data-testid="record-old">old</span>, onMetrics: oldMetrics }) })
+    const oldWrapper = view.getByTestId('record-old').parentElement as HTMLElement
+    const observer = TrackingResizeObserver.instances[0]
+    let next!: ReturnType<typeof registry.register>
+    act(() => { next = registry.register({ identity: identity('record-slot', 2, 'new@2'), child: <span data-testid="record-new">new</span>, onMetrics: nextMetrics }) })
+    const nextWrapper = view.getByTestId('record-new').parentElement as HTMLElement
+    expect(nextWrapper).not.toBe(oldWrapper)
+
+    act(() => observer.fire(oldWrapper, 99, 77))
+    expect(oldMetrics).not.toHaveBeenCalled()
+    expect(nextMetrics).not.toHaveBeenCalled()
+    expect(nextWrapper.dataset.state).toBe('staging')
+
+    act(() => next.reportMetrics({ width: 12, height: 8, depth: 0, baseline: 'bottom' }))
+    expect(nextMetrics).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps fallback until positioned and restores it after transform support is lost', () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} ssrFallback={<span data-testid="fallback">fallback</span>} /></ForeignBoxHost>)
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    const marker = view.getByTestId('marker')
+    const wrapper = view.getByTestId('foreign-child').parentElement as HTMLElement
+    let hostTransform = 'none'
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element: Element) => ({ transform: element === host ? hostTransform : 'none' }) as CSSStyleDeclaration)
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 10, top: 20, width: 10, height: 10 }))
+    expect(view.getByTestId('fallback')).toBeTruthy()
+    expect(wrapper.hasAttribute('inert')).toBe(true)
+
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
+    expect(view.queryByTestId('fallback')).toBeNull()
+    expect(wrapper.dataset.state).toBe('positioned')
+    expect(wrapper.hasAttribute('inert')).toBe(false)
+
+    hostTransform = 'rotate(4deg)'
+    act(flushRaf)
+    expect(view.getByTestId('fallback')).toBeTruthy()
+    expect(wrapper.dataset.state).toBe('unsupported-transform')
+    expect(wrapper.hasAttribute('inert')).toBe(true)
+  })
+
   it('observes targets registered before host layout observer creation and reacts to marker geometry', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
@@ -435,7 +514,7 @@ describe('ForeignBoxHost lifecycle', () => {
     act(() => { TrackingResizeObserver.instances[0].fire(wrapper, 30, 14); flushRaf() })
     expect(metrics.mock.calls.at(-1)?.[0]).toEqual({ width: 30, height: 12, depth: 2, baseline: 'alphabetic' })
     expect(wrapper.style.height).toBe('14px')
-    expect(rafCallbacks.size).toBe(0)
+    expect(rafCallbacks.size).toBe(1)
   })
 
   it('unobserves a replaced marker and positions from only the live marker', () => {
@@ -481,6 +560,8 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(apiRef.current!.isAlive()).toBe(false)
     expect(view.queryByTestId('foreign-child')).toBeNull()
     expect(TrackingResizeObserver.instances[0].unobserved).toEqual(expect.arrayContaining([marker, wrapper]))
+    expect(rafCallbacks.size).toBe(0)
+    expect(cancelledRafs).toHaveLength(1)
   })
 
   it('rearms descendant layout and passive registrations through StrictMode replay', () => {

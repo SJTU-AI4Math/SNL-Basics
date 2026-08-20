@@ -45,6 +45,7 @@ interface RegistrationOptions {
   readonly child: ReactNode
   readonly onMetrics?: (metrics: ForeignBoxMetrics) => void
   readonly onUnregister?: () => void
+  readonly onPositionedChange?: (positioned: boolean) => void
 }
 
 export interface ForeignBoxRegistration {
@@ -83,12 +84,31 @@ interface Entry {
   child: ReactNode
   onMetrics?: (metrics: ForeignBoxMetrics) => void
   onUnregister?: () => void
+  onPositionedChange?: (positioned: boolean) => void
+  positioned: boolean
   readonly key: string
   readonly slot: string
   readonly token: object
   marker: MarkerElement | null
   wrapper: HTMLDivElement | null
+  wrapperRef: (wrapper: HTMLDivElement | null) => void
   metrics: ForeignBoxMetrics | null
+}
+
+function setEntryPositioned(entry: Entry, positioned: boolean): void {
+  if (entry.positioned === positioned) return
+  entry.positioned = positioned
+  entry.onPositionedChange?.(positioned)
+}
+
+function stageEntry(entry: Entry): void {
+  stageWrapper(entry.wrapper)
+  setEntryPositioned(entry, false)
+}
+
+function failClosedEntry(entry: Entry, wrapper: HTMLDivElement): void {
+  failClosedWrapper(wrapper)
+  setEntryPositioned(entry, false)
 }
 
 const ForeignBoxContext = createContext<ForeignBoxRegistry | null>(null)
@@ -121,49 +141,56 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
   const rafRef = useRef<number | null>(null)
   const [, renderEntries] = useReducer((value: number) => value + 1, 0)
 
-  const scheduleGeometry = useMemo(() => () => {
-    if (!activeRef.current || rafRef.current !== null || typeof requestAnimationFrame === 'undefined') return
-    const epoch = lifecycleEpochRef.current
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = null
-      if (!activeRef.current || lifecycleEpochRef.current !== epoch) return
-      const host = hostRef.current
-      if (!host) return
-      const hostRect = host.getBoundingClientRect()
-      for (const entry of entriesRef.current.values()) {
-        let { marker, wrapper } = entry
-        const { metrics } = entry
-        if (marker && !marker.isConnected) {
-          observerRef.current?.unobserve(marker)
-          elementEntriesRef.current.delete(marker)
-          entry.marker = null
-          marker = null
-          stageWrapper(wrapper)
+  const scheduleGeometry = useMemo(() => {
+    const schedule = () => {
+      if (!activeRef.current || entriesRef.current.size === 0 || rafRef.current !== null || typeof requestAnimationFrame === 'undefined') return
+      const epoch = lifecycleEpochRef.current
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null
+        if (!activeRef.current || lifecycleEpochRef.current !== epoch) return
+        const host = hostRef.current
+        if (host) {
+          const hostRect = host.getBoundingClientRect()
+          for (const entry of entriesRef.current.values()) {
+            let { marker, wrapper } = entry
+            const { metrics } = entry
+            if (marker && !marker.isConnected) {
+              observerRef.current?.unobserve(marker)
+              elementEntriesRef.current.delete(marker)
+              entry.marker = null
+              marker = null
+              stageEntry(entry)
+            }
+            if (wrapper && !wrapper.isConnected) {
+              observerRef.current?.unobserve(wrapper)
+              elementEntriesRef.current.delete(wrapper)
+              entry.wrapper = null
+              wrapper = null
+              setEntryPositioned(entry, false)
+            }
+            if (!marker || !wrapper || !metrics) continue
+            const markerRect = marker.getBoundingClientRect()
+            const local = viewportDeltaToHostLocal(host, hostRect, markerRect.left - hostRect.left, markerRect.top - hostRect.top)
+            if (!local) {
+              failClosedEntry(entry, wrapper)
+              continue
+            }
+            delete wrapper.dataset.geometryError
+            wrapper.dataset.state = 'positioned'
+            wrapper.style.visibility = 'visible'
+            wrapper.setAttribute('aria-hidden', 'false')
+            wrapper.removeAttribute('inert')
+            wrapper.style.transform = `translate(${local.left}px, ${local.top}px)`
+            wrapper.style.width = `${metrics.width}px`
+            wrapper.style.height = `${metrics.height + metrics.depth}px`
+            wrapper.style.setProperty('--snl-foreign-box-depth', `${metrics.depth}px`)
+            setEntryPositioned(entry, true)
+          }
         }
-        if (wrapper && !wrapper.isConnected) {
-          observerRef.current?.unobserve(wrapper)
-          elementEntriesRef.current.delete(wrapper)
-          entry.wrapper = null
-          wrapper = null
-        }
-        if (!marker || !wrapper || !metrics) continue
-        const markerRect = marker.getBoundingClientRect()
-        const local = viewportDeltaToHostLocal(host, hostRect, markerRect.left - hostRect.left, markerRect.top - hostRect.top)
-        if (!local) {
-          failClosedWrapper(wrapper)
-          continue
-        }
-        delete wrapper.dataset.geometryError
-        wrapper.dataset.state = 'positioned'
-        wrapper.style.visibility = 'visible'
-        wrapper.setAttribute('aria-hidden', 'false')
-        wrapper.removeAttribute('inert')
-        wrapper.style.transform = `translate(${local.left}px, ${local.top}px)`
-        wrapper.style.width = `${metrics.width}px`
-        wrapper.style.height = `${metrics.height + metrics.depth}px`
-        wrapper.style.setProperty('--snl-foreign-box-depth', `${metrics.depth}px`)
-      }
-    })
+        schedule()
+      })
+    }
+    return schedule
   }, [])
 
   const registry = useMemo<ForeignBoxRegistry>(() => ({
@@ -175,13 +202,32 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
       const previous = entriesRef.current.get(slot)
       const entry: Entry = {
         identity, child: options.child, onMetrics: options.onMetrics, onUnregister: options.onUnregister,
-        key, slot, token, marker: null, wrapper: previous?.wrapper ?? null, metrics: null,
+        onPositionedChange: options.onPositionedChange, positioned: false,
+        key, slot, token, marker: null, wrapper: null, wrapperRef: () => {}, metrics: null,
+      }
+      entry.wrapperRef = (wrapper) => {
+        if (!activeRef.current || entriesRef.current.get(slot)?.token !== token) return
+        if (entry.wrapper && entry.wrapper !== wrapper) {
+          observerRef.current?.unobserve(entry.wrapper)
+          elementEntriesRef.current.delete(entry.wrapper)
+        }
+        entry.wrapper = wrapper
+        if (wrapper) {
+          stageEntry(entry)
+          elementEntriesRef.current.set(wrapper, entry)
+          observerRef.current?.observe(wrapper)
+          scheduleGeometry()
+        } else {
+          setEntryPositioned(entry, false)
+        }
       }
       if (!activeRef.current) return inertRegistration
 
       const previousUnregister = previous?.onUnregister
+      const previousPositionedChange = previous?.positioned ? previous.onPositionedChange : undefined
       if (previous) {
         previous.onUnregister = undefined
+        previous.onPositionedChange = undefined
         if (previous.marker) {
           observerRef.current?.unobserve(previous.marker)
           elementEntriesRef.current.delete(previous.marker)
@@ -193,14 +239,12 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
         previous.marker = null
         previous.metrics = null
         previous.wrapper = null
+        previous.positioned = false
       }
       entriesRef.current.set(slot, entry)
-      if (entry.wrapper) {
-        stageWrapper(entry.wrapper)
-        elementEntriesRef.current.set(entry.wrapper, entry)
-        observerRef.current?.observe(entry.wrapper)
-      }
       renderEntries()
+      scheduleGeometry()
+      previousPositionedChange?.(false)
       previousUnregister?.()
 
       const isAlive = () => activeRef.current && entriesRef.current.get(slot)?.token === token
@@ -218,7 +262,7 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
           elementEntriesRef.current.delete(entry.marker)
         }
         entry.marker = marker
-        if (!marker) stageWrapper(entry.wrapper)
+        if (!marker) stageEntry(entry)
         if (marker) {
           elementEntriesRef.current.set(marker, entry)
           observerRef.current?.observe(marker)
@@ -246,6 +290,11 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
         }
         entry.marker = null
         entry.wrapper = null
+        setEntryPositioned(entry, false)
+        if (entriesRef.current.size === 0 && rafRef.current !== null && typeof cancelAnimationFrame !== 'undefined') {
+          cancelAnimationFrame(rafRef.current)
+          rafRef.current = null
+        }
         renderEntries()
         entry.onUnregister?.()
       }
@@ -339,26 +388,14 @@ export function ForeignBoxHost({ children, className }: ForeignBoxHostProps) {
         <div className="snl-foreign-box-overlay">
           {records.map((entry) => (
             <div
-              key={entry.slot}
+              key={entry.key}
               className="snl-foreign-box"
               data-state="staging"
               style={{ visibility: 'hidden' }}
               aria-hidden="true"
               inert={true}
               data-tree-path={entry.identity.treePath}
-              ref={(wrapper) => {
-                if (!activeRef.current) return
-                if (entry.wrapper && entry.wrapper !== wrapper) {
-                  observerRef.current?.unobserve(entry.wrapper)
-                  elementEntriesRef.current.delete(entry.wrapper)
-                }
-                entry.wrapper = wrapper
-                if (wrapper) {
-                  elementEntriesRef.current.set(wrapper, entry)
-                  observerRef.current?.observe(wrapper)
-                  scheduleGeometry()
-                }
-              }}
+              ref={entry.wrapperRef}
             >
               {entry.child}
             </div>

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import type { ForeignBoxIdentity, ForeignBoxMetrics } from './foreign-box'
 import { foreignBoxIdentityKey, snapshotForeignBoxIdentity } from './foreign-box'
 import { useForeignBoxRegistry, type ForeignBoxRegistration } from './foreign-box-host'
@@ -6,14 +6,14 @@ import { useForeignBoxRegistry, type ForeignBoxRegistration } from './foreign-bo
 export interface UseForeignBoxOptions {
   readonly identity: ForeignBoxIdentity
   readonly child: ReactNode
-  /** Accessible content rendered until a hydrated client measurement lifecycle exists. */
+  /** Accessible content rendered until the live wrapper is measured and positioned. */
   readonly ssrFallback?: ReactNode
   readonly onMetrics?: (metrics: ForeignBoxMetrics) => void
   readonly onUnregister?: () => void
 }
 
 export interface UseForeignBoxResult {
-  /** Render this in the consumer tree; hydration removes it after the first client commit. */
+  /** Render this in the consumer tree; it remains until the live wrapper is non-inert and positioned. */
   readonly ssrFallback: ReactNode | null
   readonly markerRef: (marker: HTMLElement | SVGElement | null) => void
   readonly reportMetrics: (metrics: ForeignBoxMetrics) => void
@@ -30,13 +30,23 @@ export function useForeignBox(options: UseForeignBoxOptions): UseForeignBoxResul
   const clientMounted = useSyncExternalStore(subscribeToHydration, getClientSnapshot, getServerSnapshot)
   const identity = snapshotForeignBoxIdentity(options.identity)
   const identityKey = foreignBoxIdentityKey(identity)
+  const [positionedState, setPositionedState] = useState(() => ({ key: identityKey, positioned: false }))
+  const positioned = positionedState.key === identityKey && positionedState.positioned
   const holder = useMemo(() => ({
     registration: null as ForeignBoxRegistration | null,
     marker: null as HTMLElement | SVGElement | null,
   }), [identityKey])
 
   useSsrSafeLayoutEffect(() => {
-    const registration = registry.register({ ...options, identity })
+    const registration = registry.register({
+      ...options,
+      identity,
+      onPositionedChange(nextPositioned) {
+        setPositionedState(current => current.key === identityKey && current.positioned === nextPositioned
+          ? current
+          : { key: identityKey, positioned: nextPositioned })
+      },
+    })
     holder.registration = registration
     registration.setMarker(holder.marker)
     return () => {
@@ -64,6 +74,6 @@ export function useForeignBox(options: UseForeignBoxOptions): UseForeignBoxResul
 
   return useMemo(() => ({
     ...controls,
-    ssrFallback: clientMounted ? null : (options.ssrFallback ?? options.child),
-  }), [controls, clientMounted, options.ssrFallback, options.child])
+    ssrFallback: clientMounted && positioned ? null : (options.ssrFallback ?? options.child),
+  }), [controls, clientMounted, positioned, options.ssrFallback, options.child])
 }
