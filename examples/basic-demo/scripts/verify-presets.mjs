@@ -104,8 +104,9 @@ try {
           }
           return 1;
         };
-        const visibleStroke = style => paintAlpha(style.stroke) * Number(style.strokeOpacity) * Number(style.opacity) > 0;
-        const visibleFill = style => paintAlpha(style.fill) * Number(style.fillOpacity) * Number(style.opacity) > 0;
+        const rendered = style => style.display !== 'none' && style.visibility === 'visible' && Number(style.opacity) > 0;
+        const visibleStroke = style => rendered(style) && Number.parseFloat(style.strokeWidth) > 0 && paintAlpha(style.stroke) * Number(style.strokeOpacity) > 0;
+        const visibleFill = style => rendered(style) && paintAlpha(style.fill) * Number(style.fillOpacity) > 0;
         const painted = paths.filter(path => {
           const style = getComputedStyle(path);
           return path.getTotalLength() > 0 && (visibleStroke(style) || visibleFill(style));
