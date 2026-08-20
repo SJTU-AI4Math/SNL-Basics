@@ -1,0 +1,54 @@
+\documentclass{article}
+\usepackage[paperwidth=16cm,paperheight=9cm,margin=0cm]{geometry}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc}
+\pagestyle{empty}
+
+% The full SVG is deliberately a normal, formula-bearing TikZ figure.
+% dvisvgm specials only mark formula glyph groups and record their exact
+% rendered bounding boxes for the deterministic extraction pass.
+\newcommand{\SNLFormula}[2]{%
+  \special{dvisvgm:bbox new snl#1}%
+  \special{dvisvgm:raw <g data-snl-formula="#1">}%
+  #2%
+  \special{dvisvgm:raw </g>}%
+  \special{dvisvgm:raw <g data-snl-anchor="#1" data-snl-bbox="{?bbox snl#1}"/>}%
+}
+
+\begin{document}
+\noindent
+\begin{tikzpicture}[
+  >=Stealth,
+  morphism/.style={->, line width=0.55pt},
+  composite/.style={->, line width=0.5pt, densely dashed},
+  twocell/.style={double, double distance=1.2pt, ->, line width=0.45pt},
+  formula/.style={fill=white, inner sep=1.4pt, outer sep=0pt},
+  object/.style={formula, inner sep=2pt}
+]
+  % Traditional black TikZ artwork: three objects, parallel morphisms,
+  % whiskered composites, and comparison 2-cells.
+  \coordinate (C) at (0,0);
+  \coordinate (D) at (5,0);
+  \coordinate (E) at (11,0);
+  \draw[morphism, bend left=25] (C) to (D);
+  \draw[morphism, bend right=25] (C) to (D);
+  \draw[morphism] (D) -- (E);
+  \draw[composite, bend left=40] (C) to (E);
+  \draw[composite, bend right=40] (C) to (E);
+  \draw[twocell] (2.5,0.72) -- (2.5,-0.72);
+  \draw[twocell] (7.0,1.62) -- (7.0,-1.62);
+  \draw[twocell, densely dotted] (9.0,0.72) -- (9.0,-0.72);
+
+  % Formula order is the public SNL child order. The unmodified full SVG
+  % displays these Computer Modern formulas before extraction.
+  \node[object] at (C) {\SNLFormula{0}{$\mathcal{C}$}};
+  \node[object] at (D) {\SNLFormula{1}{$\mathcal{D}$}};
+  \node[object] at (E) {\SNLFormula{2}{$\mathcal{E}$}};
+  \node[formula] at (2.5,1.03) {\SNLFormula{3}{$F$}};
+  \node[formula] at (2.5,-1.03) {\SNLFormula{4}{$G$}};
+  \node[formula] at (8,0.30) {\SNLFormula{5}{$H$}};
+  \node[formula] at (3.65,0) {\SNLFormula{6}{$\eta$}};
+  \node[formula] at (7.35,0) {\SNLFormula{7}{$\theta$}};
+  \node[formula] at (9.35,0) {\SNLFormula{8}{$\alpha$}};
+\end{tikzpicture}
+\end{document}

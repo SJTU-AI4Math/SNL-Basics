@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
 import { parseSanitizedSvgTemplate } from '../snl-react-view/svg-template'
@@ -30,6 +32,42 @@ describe('basic demo mathematical SVG presets', () => {
         expect(childMacro.styles[0]?.template.mode).toMatch(/^(formula_inline|text)$/)
       }
     }
+  })
+
+  it('derives the higher-category template by extracting formulas from a pure TikZ SVG', () => {
+    const tikzRoot = resolve(process.cwd(), 'examples/basic-demo/tikz')
+    const source = readFileSync(resolve(tikzRoot, 'higher-category.tex'), 'utf8')
+    const full = readFileSync(resolve(tikzRoot, 'generated/higher-category.full.svg'), 'utf8')
+    const template = readFileSync(resolve(tikzRoot, 'generated/higher-category.template.svg'), 'utf8')
+
+    expect(source).toContain('\\begin{tikzpicture}')
+    expect(source).toContain('\\SNLFormula{0}{$\\mathcal{C}$}')
+    expect(source).toContain('\\SNLFormula{8}{$\\alpha$}')
+    expect([...source.matchAll(/\\SNLFormula\{(\d+)\}/g)].map((match) => Number(match[1]))).toEqual(
+      Array.from({ length: 9 }, (_, index) => index),
+    )
+    expect([...full.matchAll(/data-snl-formula=['"](\d+)['"]/g)].map((match) => Number(match[1]))).toEqual(
+      Array.from({ length: 9 }, (_, index) => index),
+    )
+    expect(full).toContain('<use ')
+    expect(template).not.toMatch(/data-snl-(?:formula|anchor)/)
+    expect(template).not.toMatch(/<text\b|<use\b/)
+    expect([...template.matchAll(/data-snl-slot=["'](\d+)["']/g)].map((match) => Number(match[1]))).toEqual(
+      Array.from({ length: 9 }, (_, index) => index),
+    )
+    const anchorCenters = [...full.matchAll(/data-snl-anchor=['"](\d+)['"] data-snl-bbox=['"]([^'"]+)['"]/g)].map((match) => {
+      const [x, y, width, height] = match[2].trim().split(/\s+/).map(Number)
+      return [Number(match[1]), Number((x + width / 2).toFixed(6)), Number((y + height / 2).toFixed(6))]
+    })
+    const slotCenters = [...template.matchAll(/data-snl-slot=["](\d+)["] transform=["]translate\(([-\d.]+) ([-\d.]+)\)["]/g)]
+      .map((match) => [Number(match[1]), Number(match[2]), Number(match[3])])
+    expect(slotCenters).toEqual(anchorCenters)
+    const higherChildren = DEMO_PRESETS[0].source.match(/\((.*)\)/)?.[1].split(',') ?? []
+    expect(higherChildren.map((name) => {
+      const selected = DEMO_MACROS[name]?.styles[0]?.template
+      return selected && 'body' in selected ? selected.body : undefined
+    })).toEqual(['\\mathcal{C}', '\\mathcal{D}', '\\mathcal{E}', 'F', 'G', 'H', '\\eta', '\\theta', '\\alpha'])
+    expect(DEMO_SVG_SOURCES['higher-category.svg']).toBe(template.trim())
   })
 
   it('keeps mathematical objects in contiguous SNL slots rather than SVG text', () => {

@@ -137,7 +137,7 @@ export default function App() {
 
     <section className="section">
       <h2>2 · Mathematical SVG presets</h2>
-      <p className="hint">Every label is a formula/text Macro child. The SVG owns only curves, arrows, axes, and geometric artwork.</p>
+      <p className="hint">The first preset starts as a formula-bearing pure TikZ figure; its generated SVG formulas are extracted into slots and reconstructed from ordinary SNL child trees. The remaining SVG owns only curves, arrows, axes, and geometric artwork.</p>
       <div className="preset-grid" role="list" aria-label="Mathematical diagram presets">
         {DEMO_PRESETS.map((preset) => <div key={preset.id} role="listitem">
           <button

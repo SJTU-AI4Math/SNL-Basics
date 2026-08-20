@@ -1,3 +1,5 @@
+import higherCategorySvg from '../tikz/generated/higher-category.template.svg?raw'
+
 type DemoTemplate =
   | { mode: 'formula_inline' | 'text'; body: string }
   | {
@@ -37,22 +39,7 @@ const svg = (viewBox: string, body: string): string =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${body}</svg>`
 
 export const DEMO_SVG_SOURCES: Record<string, string> = {
-  'higher-category.svg': svg('0 0 720 360',
-    '<rect x="8" y="8" width="704" height="344" rx="24" fill="none" stroke="#3b82f6" stroke-width="3"/>' +
-    '<path d="M135 72 C210 8 285 8 330 72" fill="none" stroke="currentColor" stroke-width="3"/>' +
-    '<path d="M135 92 C210 154 285 154 330 92" fill="none" stroke="currentColor" stroke-width="3"/>' +
-    '<path d="M390 72 C465 8 540 8 585 72" fill="none" stroke="currentColor" stroke-width="3"/>' +
-    '<path d="M390 92 C465 154 540 154 585 92" fill="none" stroke="currentColor" stroke-width="3"/>' +
-    '<path d="M330 74 l-15 -5 l7 14 z M330 90 l-15 -7 l5 15 z M585 74 l-15 -5 l7 14 z M585 90 l-15 -7 l5 15 z" fill="currentColor"/>' +
-    '<path d="M222 62 C240 42 265 42 282 62 M282 62 l-11 -3 l5 10 z" fill="none" stroke="#a855f7" stroke-width="3"/>' +
-    '<path d="M477 102 C495 122 520 122 537 102 M537 102 l-11 3 l5 -10 z" fill="none" stroke="#a855f7" stroke-width="3"/>' +
-    '<path d="M110 130 C165 340 555 340 610 130" fill="none" stroke="#0ea5e9" stroke-width="3" stroke-dasharray="10 8"/>' +
-    '<path d="M610 130 l-14 2 l10 10 z" fill="#0ea5e9"/>' +
-    '<path d="M275 230 C305 185 415 185 445 230 C415 278 305 278 275 230Z" fill="none" stroke="#f59e0b" stroke-width="3"/>' +
-    '<path d="M360 270 l-7 -13 l14 0 z" fill="#f59e0b"/>' +
-    '<g data-snl-slot="0" transform="translate(92 82)"/><g data-snl-slot="1" transform="translate(360 82)"/><g data-snl-slot="2" transform="translate(628 82)"/>' +
-    '<g data-snl-slot="3" transform="translate(220 35)"/><g data-snl-slot="4" transform="translate(220 195)"/><g data-snl-slot="5" transform="translate(500 35)"/>' +
-    '<g data-snl-slot="6" transform="translate(252 115)"/><g data-snl-slot="7" transform="translate(508 115)"/><g data-snl-slot="8" transform="translate(360 232)"/>'),
+  'higher-category.svg': higherCategorySvg.trim(),
 
   'derived-cube.svg': svg('0 0 720 420',
     '<rect x="8" y="8" width="704" height="404" rx="24" fill="none" stroke="#2563eb" stroke-width="3"/>' +

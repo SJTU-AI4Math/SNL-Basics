@@ -30,6 +30,8 @@ describe('basic demo Entry integration route', () => {
     expect(pkg.scripts.postinstall).toBe('node scripts/prepare-local-package.mjs')
     expect(pkg.scripts.predev).toBe('node scripts/prepare-local-package.mjs')
     expect(pkg.scripts.prebuild).toBe('node scripts/prepare-local-package.mjs')
+    expect(pkg.scripts['build:tikz']).toBe('node scripts/build-tikz-assets.mjs')
+    expect(app).toContain('formula-bearing pure TikZ')
     expect(prepareScript).toContain("process.platform === 'win32'")
     expect(prepareScript).toContain("['run', 'build:lib']")
     expect(readme).toContain('links the repository root through `file:../..`')

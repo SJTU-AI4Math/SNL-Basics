@@ -7,6 +7,7 @@
     "postinstall": "node scripts/prepare-local-package.mjs",
     "predev": "node scripts/prepare-local-package.mjs",
     "dev": "vite",
+    "build:tikz": "node scripts/build-tikz-assets.mjs",
     "prebuild": "node scripts/prepare-local-package.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
