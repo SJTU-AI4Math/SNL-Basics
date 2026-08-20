@@ -220,6 +220,8 @@ try {
     await waitFor(() => evaluate(cdp, `[...document.querySelectorAll('.context svg[role="img"]')].length === 10
       && [...document.querySelectorAll('.context svg[role="img"]')].every(svg => svg.getAttribute('aria-label') === 'Changed-height arrow from A to B')
       && window.__formulaForeignFixture.ready()`), `${testCase.name} changed-markup plan adoption`)
+    await lifecycleRace(delay(150))
+    await waitFor(() => evaluate(cdp, 'window.__formulaForeignFixture.ready()'), `${testCase.name} settled changed-markup authority cascade`)
     const changedMarkup = await evaluate(cdp, `(() => {
       const after = [...document.querySelectorAll('.interactive-formula-svg')];
       const snapshot = window.__formulaForeignFixture.snapshot();

@@ -74,6 +74,37 @@ describe('generic block renderers inside formulas', () => {
     expect(prepare).toHaveBeenCalledWith(expect.objectContaining({ template, treePath: [0], dynamicArity: false }))
   })
 
+  it('never renders a stale prepared plan through a replacement renderer authority', async () => {
+    const tree = formulaTree(createSnlSyntaxTreeNode('consumer.swap'))
+    const template = blockTemplate('swappable')
+    const db: SnlMacroRecord = {
+      'formula.root': rootMacro,
+      'consumer.swap': macro('consumer.swap', template, true),
+    }
+    const preparation = (producer: string) => ({
+      seed: { widthEm: 2, totalHeightEm: 1, baselineRatio: 0.7 },
+      producer, generation: 1, accessibilityText: producer,
+      layout: { width: 'intrinsic' as const, overflow: 'visible' as const },
+    })
+    const A: SnlBlockRenderer = () => <span data-testid="renderer-a">A</span>
+    const B: SnlBlockRenderer = () => <span data-testid="renderer-b">B</span>
+    const rendererA = createFormulaBlockRenderer(A, { prepare: async () => preparation('authority-a') })
+    let releaseB!: () => void
+    const blockedB = new Promise<void>(resolve => { releaseB = resolve })
+    const rendererB = createFormulaBlockRenderer(B, { prepare: async () => {
+      await blockedB
+      return preparation('authority-b')
+    } })
+    const driver = testDriver(db)
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} hooks={{ renderers: { swappable: rendererA } }} />)
+    await waitFor(() => expect(view.getByTestId('renderer-a')).not.toBeNull())
+
+    view.rerender(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} hooks={{ renderers: { swappable: rendererB } }} />)
+    expect(view.queryByTestId('renderer-b')).toBeNull()
+    releaseB()
+    await waitFor(() => expect(view.getByTestId('renderer-b')).not.toBeNull())
+  })
+
   it('renders a fixed-width dynamic table and preserves canonical row/cell paths and formula/text descendants', async () => {
     const tableTemplate = blockTemplate('generic-table', { consumer_policy: { token: 'complete-selected-projection' } })
     const tableMacro = macro('consumer.table', tableTemplate, true)

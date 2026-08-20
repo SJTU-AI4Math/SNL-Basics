@@ -95,6 +95,8 @@ interface FormulaMarkerBinding {
   readonly heightPx: number
   readonly metricEpoch: number
   readonly observationEpoch: number
+  /** Renderer element captured from the same committed semantic authority as the plan. */
+  readonly child: ReactElement | null
   readonly error?: string
 }
 
@@ -596,15 +598,20 @@ function useSnlSyntaxTreeRender(
   language: string,
   formulaForeign?: FormulaForeignResolverOptions,
 ) {
-  const [result, setResult] = useState<RenderResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const renderAuthority = useMemo(() => Object.freeze({}), [
+    enabled, katexOptions, driver, reader_runtime, tree, language, formulaForeign,
+  ])
+  const [resultState, setResultState] = useState<{ readonly authority: object; readonly value: RenderResult } | null>(null)
+  const [errorState, setErrorState] = useState<{ readonly authority: object; readonly value: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const reqIdRef = useRef(0)
+  const result = resultState?.authority === renderAuthority ? resultState.value : null
+  const error = errorState?.authority === renderAuthority ? errorState.value : null
 
   useEffect(() => {
     if (!enabled) {
-      setResult(null)
-      setError(null)
+      setResultState(null)
+      setErrorState(null)
       setLoading(false)
       return
     }
@@ -614,7 +621,7 @@ function useSnlSyntaxTreeRender(
 
     const run = async () => {
       setLoading(true)
-      setError(null)
+      setErrorState(null)
       try {
         const formulaRender = formulaForeign
           ? await resolveRootFormulaRender(
@@ -639,13 +646,13 @@ function useSnlSyntaxTreeRender(
           ...katexOptions,
         })
         if (!cancelled && reqIdRef.current === reqId) {
-          setResult({ latex, html, reqId, foreignBoxes })
+          setResultState({ authority: renderAuthority, value: { latex, html, reqId, foreignBoxes } })
         }
       } catch (err) {
         if (!cancelled && reqIdRef.current === reqId) {
           const message = err instanceof Error ? err.message : String(err)
-          setError(`渲染失败: ${message}`)
-          setResult(null)
+          setErrorState({ authority: renderAuthority, value: `渲染失败: ${message}` })
+          setResultState(null)
         }
       } finally {
         if (!cancelled && reqIdRef.current === reqId) {
@@ -659,9 +666,9 @@ function useSnlSyntaxTreeRender(
       cancelled = true
       controller.abort()
     }
-  }, [enabled, katexOptions, driver, reader_runtime, tree, language, formulaForeign])
+  }, [enabled, katexOptions, driver, reader_runtime, tree, language, formulaForeign, renderAuthority])
 
-  return { loading, error, result, reqIdRef }
+  return { loading, error, result, reqIdRef, renderAuthority }
 }
 
 /**
@@ -896,7 +903,7 @@ export function SnlSyntaxTreeView({
     ? modeBucket(nodeMode(renderTree, rootMacro, renderLanguage))
     : 'formula'
   const isKatexRoot = macroStatus === 'ready' && rootBucket === 'formula'
-  const { loading, error, result } = useSnlSyntaxTreeRender(
+  const { loading, error, result, renderAuthority } = useSnlSyntaxTreeRender(
     renderTree,
     macro_data_driver,
     reader_runtime,
@@ -906,8 +913,8 @@ export function SnlSyntaxTreeView({
     formulaForeignResolver,
   )
   const formulaHostAuthority = useMemo(
-    () => ({ renderTree, html: result?.html ?? null }),
-    [renderTree, result?.html],
+    () => ({ renderTree, renderAuthority, html: result?.html ?? null }),
+    [renderTree, renderAuthority, result?.html],
   )
   const [formulaMarkers, setFormulaMarkers] = useState<readonly FormulaMarkerBinding[]>([])
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
@@ -989,24 +996,58 @@ export function SnlSyntaxTreeView({
     // while retaining the already-committed marker DOM.
     const candidates = [...el.querySelectorAll<HTMLElement>('[data-snl-formula-foreign-marker]')]
     const bindings = result.foreignBoxes.map((plan): FormulaMarkerBinding => {
+      const Renderer = mergedHooks.renderers?.[plan.rendererKey]
+      const node = plan.node
+      const macro = resolvedMacros[node.macro_name] ?? null
+      const pathStr = plan.treePath.join('.')
+      const child = Renderer && formulaForeignCapability(Renderer) ? (
+        <Renderer
+          node={node}
+          macro_data_driver={macro_data_driver}
+          template={plan.template}
+          dynamicArity={macro?.dynamic_arity ?? false}
+          treePath={pathStr}
+          childMode={(candidate: SnlSyntaxTree) => nodeMode(candidate, resolvedMacros[candidate.macro_name] ?? null, renderLanguage)}
+          childContainsBlock={(candidate: SnlSyntaxTree) => {
+            try {
+              if (nodeMode(candidate, resolvedMacros[candidate.macro_name] ?? null, renderLanguage) === 'block') return true
+              return subtreeContainsSelectedBlock(candidate)
+            } catch { return true }
+          }}
+          renderChild={(candidate: SnlSyntaxTree) => {
+            const canonicalPath = treePaths.get(candidate)
+            if (canonicalPath === undefined) {
+              return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer rejected an unowned synthetic child</span>
+            }
+            try {
+              if (nodeMode(candidate, resolvedMacros[candidate.macro_name] ?? null, renderLanguage) === 'block' || subtreeContainsSelectedBlock(candidate)) {
+                return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer rejected a recursive block descendant</span>
+              }
+            } catch {
+              return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer could not validate its child mode</span>
+            }
+            return renderNode(candidate, canonicalPath)
+          }}
+        />
+      ) : null
       const id = formulaForeignMarkerId(plan.identity)
       const matches = candidates.filter(candidate => candidate.dataset.snlFormulaForeignMarker === id)
       if (matches.length !== 1) return {
-        plan, marker: null, widthPx: 0, heightPx: 0, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId,
+        plan, marker: null, widthPx: 0, heightPx: 0, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId, child,
         error: `formula foreign marker ${id} resolved ${matches.length} times`,
       }
       const marker = matches[0]
       const geometry = marker.querySelector<HTMLElement>('.snlFormulaForeignMarker .rule')
       if (!geometry) return {
-        plan, marker: null, widthPx: 0, heightPx: 0, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId,
+        plan, marker: null, widthPx: 0, heightPx: 0, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId, child,
         error: `formula foreign marker ${id} has no calibrated KaTeX rule geometry`,
       }
       const rect = geometry.getBoundingClientRect()
       if (!(rect.width > 0) || !(rect.height > 0)) return {
-        plan, marker: null, widthPx: 0, heightPx: 0, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId,
+        plan, marker: null, widthPx: 0, heightPx: 0, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId, child,
         error: `formula foreign marker ${id} has unavailable geometry`,
       }
-      return { plan, marker: geometry, widthPx: rect.width, heightPx: rect.height, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId }
+      return { plan, marker: geometry, widthPx: rect.width, heightPx: rect.height, metricEpoch: formulaMetricEpochRef.current, observationEpoch: result.reqId, child }
     })
     const bindingMap = new Map<string, FormulaMarkerBinding>()
     for (const binding of bindings) {
@@ -1739,13 +1780,9 @@ export function SnlSyntaxTreeView({
     if (binding.error || !binding.marker) {
       return <span key={binding.plan.identity} className="snl-formula-foreign-error" role="alert">Formula foreign box unavailable: {binding.error ?? 'marker missing'}</span>
     }
-    const Renderer = mergedHooks.renderers?.[binding.plan.rendererKey]
-    if (!Renderer || !formulaForeignCapability(Renderer)) {
+    if (!binding.child) {
       return <span key={binding.plan.identity} className="snl-formula-foreign-error" role="alert">Formula foreign box unavailable: renderer capability missing</span>
     }
-    const node = binding.plan.node
-    const macro = resolvedMacros[node.macro_name] ?? null
-    const pathStr = binding.plan.treePath.join('.')
     return (
       <FormulaForeignSurface
         key={binding.plan.identity}
@@ -1756,36 +1793,7 @@ export function SnlSyntaxTreeView({
         metricEpoch={binding.metricEpoch}
         observationEpoch={binding.observationEpoch}
         onMetricReport={binding.plan.dynamicMetrics ? formulaConvergenceController.report : undefined}
-        child={(
-          <Renderer
-            node={node}
-            macro_data_driver={macro_data_driver}
-            template={binding.plan.template}
-            dynamicArity={macro?.dynamic_arity ?? false}
-            treePath={pathStr}
-            childMode={(child: SnlSyntaxTree) => nodeMode(child, resolvedMacros[child.macro_name] ?? null, renderLanguage)}
-            childContainsBlock={(child: SnlSyntaxTree) => {
-              try {
-                if (nodeMode(child, resolvedMacros[child.macro_name] ?? null, renderLanguage) === 'block') return true
-                return subtreeContainsSelectedBlock(child)
-              } catch { return true }
-            }}
-            renderChild={(child: SnlSyntaxTree) => {
-              const canonicalPath = treePaths.get(child)
-              if (canonicalPath === undefined) {
-                return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer rejected an unowned synthetic child</span>
-              }
-              try {
-                if (nodeMode(child, resolvedMacros[child.macro_name] ?? null, renderLanguage) === 'block' || subtreeContainsSelectedBlock(child)) {
-                  return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer rejected a recursive block descendant</span>
-                }
-              } catch {
-                return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer could not validate its child mode</span>
-              }
-              return renderNode(child, canonicalPath)
-            }}
-          />
-        )}
+        child={binding.child}
       />
     )
   }
@@ -1797,18 +1805,20 @@ export function SnlSyntaxTreeView({
     return <div className="katex-panel katex-error">Macro query failed: {macroError}</div>
   }
 
+  const hasRetainedFormulaForeignShell = formulaMarkers.length > 0 && lastHtmlRef.current !== null
   if (isKatexRoot) {
-    if (loading && !result) {
+    if (loading && !result && !hasRetainedFormulaForeignShell) {
       return <div className="katex-panel">Loading KaTeX ...</div>
     }
     if (error) {
       return <div className="katex-panel katex-error">{error}</div>
     }
-    if (!result) {
+    if (!result && !hasRetainedFormulaForeignShell) {
       return <div className="katex-panel">无可渲染结果</div>
     }
   }
 
+  const committedFormulaHtml = result?.html ?? lastHtmlRef.current ?? ''
   return (
     <div className={formulaMarkers.length > 0 ? 'katex-panel snl-has-formula-foreign' : 'katex-panel'}>
       <style dangerouslySetInnerHTML={{ __html: paletteCss }} />
@@ -1827,7 +1837,7 @@ export function SnlSyntaxTreeView({
           <StableKatexContainer
             key="katex"
             ref={containerRef}
-            html={result?.html ?? ''}
+            html={committedFormulaHtml}
             handlersRef={katexHandlersRef}
           />
           {formulaMarkers.map(renderFormulaForeignBinding)}
