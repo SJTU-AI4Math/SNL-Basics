@@ -9,4 +9,35 @@ describe('parameterized SVG public examples', () => {
     expect(examples).toHaveLength(1)
     expect(examples[0]?.[1]).toMatch(/\bmaxSettled\s*:\s*\d+\b/)
   })
+
+  it.each([
+    {
+      file: 'README.md',
+      recursiveNonBlock: /text and formula child subtrees[\s\S]{0,240}every recursively selected complete\s+`TemplateSpec`\s+descendant is non-block/i,
+      recursiveBlockFallback: /any block descendant[\s\S]{0,180}visible\s+fallback[\s\S]{0,120}before\s+`renderChild`/i,
+      unavailableCapability: /`childContainsBlock` capability\/resolver\s+is\s+unavailable[\s\S]{0,180}fails closed[\s\S]{0,100}visible\s+fallback/i,
+      noRecursiveBoxes: /recursive\s+foreign boxes[\s\S]{0,100}not\s+supported/i,
+      noFormulaEmbedding: /formula\s+embedding[\s\S]{0,100}not\s+supported/i,
+    },
+    {
+      file: 'README(ZH).md',
+      recursiveNonBlock: /text 与 formula 子树[\s\S]{0,240}递归选中的每个完整 `TemplateSpec` 后代[\s\S]{0,80}非 block/i,
+      recursiveBlockFallback: /任何 block 后代[\s\S]{0,180}`renderChild` 之前[\s\S]{0,120}可见 fallback/i,
+      unavailableCapability: /`childContainsBlock` capability\/resolver 不可用[\s\S]{0,180}fail closed[\s\S]{0,100}可见 fallback/i,
+      noRecursiveBoxes: /递归 foreign box[\s\S]{0,100}不支持/i,
+      noFormulaEmbedding: /formula 嵌入[\s\S]{0,100}不支持/i,
+    },
+    {
+      file: 'docs/api.md',
+      recursiveNonBlock: /text and formula child subtrees[\s\S]{0,240}every recursively selected complete\s+`TemplateSpec`\s+descendant is non-block/i,
+      recursiveBlockFallback: /any block descendant[\s\S]{0,180}visible\s+fallback[\s\S]{0,120}before\s+`renderChild`/i,
+      unavailableCapability: /`childContainsBlock` capability\/resolver\s+is\s+unavailable[\s\S]{0,180}fails closed[\s\S]{0,100}visible\s+fallback/i,
+      noRecursiveBoxes: /recursive\s+foreign boxes[\s\S]{0,100}not\s+supported/i,
+      noFormulaEmbedding: /formula\s+embedding[\s\S]{0,100}not\s+supported/i,
+    },
+  ])('$file documents recursive support and fail-closed boundaries', ({ file, ...claims }) => {
+    const source = readFileSync(resolve(process.cwd(), file), 'utf8')
+    for (const claim of Object.values(claims)) expect(source).toMatch(claim)
+    expect(source).not.toMatch(/(?:only|仅)\s+(?:a\s+)?direct (?:block-mode )?child/i)
+  })
 })

@@ -573,9 +573,11 @@ SVG DOM。request epoch 变化会淘汰过期异步工作；资产 revision 和 
 目前只支持固定元数。`dynamic_arity` 必须为 `false`；现有 `body` 占位符继续声明 Macro
 原有的元数，而清理后的 SVG 还必须独立包含恰好连续的空
 `<g data-snl-slot="0">` 到 `<g data-snl-slot="N-1">` 锚点。每个子树按验证后的 slot
-索引选取，并通过 `renderChild` 渲染。子项缺失或过多、SVG 非法或含主动内容、以及任何
-block-mode 子项都会 fail closed，并显示可见 fallback。SVG 标签支持 text 与 formula
-子项，但**尚不支持**把整个 SVG 渲染器嵌入 formula。
+索引选取。text 与 formula 子树仅在递归选中的每个完整 `TemplateSpec` 后代都是非 block 时，
+才支持作为 SVG 标签。任何 block 后代都会在 `renderChild` 之前触发可见 fallback。如果
+`childContainsBlock` capability/resolver 不可用，内置 SVG renderer 会 fail closed 并显示
+可见 fallback。Task5 不支持递归 foreign box，formula 嵌入仍不支持。子项缺失或过多，
+以及 SVG 非法或含主动内容时也会以可见 fallback fail closed。
 
 `data-snl-slot` 与 `svg_template` 是渲染器/投影元数据，不是新的 SNL 创作语法。Macro
 调用仍是普通 SNL 调用；Basics 不为此功能引入新的持久化调用表示或迁移。使用方可以在

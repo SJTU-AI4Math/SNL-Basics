@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { spawn } from 'node:child_process'
+import { spawnOwnedProcess, terminateOwnedProcess } from './process-group-cleanup.mjs'
 import { setTimeout as delay } from 'node:timers/promises'
 
 const root = new URL('..', import.meta.url).pathname
@@ -39,7 +39,26 @@ class Cdp {
       this.socket.send(JSON.stringify({ id, method, params }))
     })
   }
-  close() { this.socket.close() }
+  async close() {
+    const closedError = new Error('CDP socket closed')
+    for (const pending of this.pending.values()) pending.reject(closedError)
+    this.pending.clear()
+    if (this.socket.readyState === WebSocket.CLOSED) return
+    await new Promise((resolve, reject) => {
+      let settled = false
+      const finish = (error) => {
+        if (settled) return
+        settled = true
+        clearTimeout(timer)
+        error ? reject(error) : resolve()
+      }
+      const timer = setTimeout(() => finish(new Error('Timed out closing CDP socket')), 1_000)
+      timer.unref?.()
+      this.socket.addEventListener('close', () => finish(), { once: true })
+      this.socket.addEventListener('error', () => finish(new Error('CDP socket close failed')), { once: true })
+      try { this.socket.close() } catch (error) { finish(error) }
+    })
+  }
 }
 
 async function waitFor(check, label) {
@@ -57,16 +76,22 @@ async function evaluate(cdp, expression) {
   return result.result.value
 }
 
-const vite = spawn(process.execPath, [join(root, 'node_modules/vite/bin/vite.js'), fixture, '--host', '127.0.0.1', '--port', '43190', '--strictPort'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] })
-let viteLog = ''
-vite.stdout.on('data', (chunk) => { viteLog += chunk })
-vite.stderr.on('data', (chunk) => { viteLog += chunk })
-const profile = mkdtempSync(join(tmpdir(), 'snl-svg-template-chrome-'))
-const browser = spawn(chrome, ['--headless', '--no-sandbox', '--disable-gpu', `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] })
-let browserLog = ''
-browser.stderr.on('data', (chunk) => { browserLog += chunk })
+let vite
+let browser
+let profile
 let cdp
+let viteLog = ''
+let browserLog = ''
+let verificationResults
+let verificationError
+const cleanupErrors = []
 try {
+  vite = await spawnOwnedProcess(process.execPath, [join(root, 'node_modules/vite/bin/vite.js'), fixture, '--host', '127.0.0.1', '--port', '43190', '--strictPort'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] })
+  vite.child.stdout.on('data', (chunk) => { viteLog += chunk })
+  vite.child.stderr.on('data', (chunk) => { viteLog += chunk })
+  profile = mkdtempSync(join(tmpdir(), 'snl-svg-template-chrome-'))
+  browser = await spawnOwnedProcess(chrome, ['--headless', '--no-sandbox', '--disable-gpu', `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] })
+  browser.child.stderr.on('data', (chunk) => { browserLog += chunk })
   await waitFor(async () => { try { return (await fetch('http://127.0.0.1:43190/')).ok } catch { return false } }, 'Vite fixture')
   const websocketUrl = await waitFor(async () => browserLog.match(/DevTools listening on (ws:\/\/[^\s]+)/)?.[1], 'Chromium endpoint')
   const targets = await (await fetch(`http://${new URL(websocketUrl).host}/json/list`)).json()
@@ -348,15 +373,46 @@ try {
       screenshot,
     })
   }
-  console.log(`parameterized-svg Chromium PASS ${JSON.stringify(results)}`)
+  verificationResults = results
 } catch (error) {
-  console.error(error)
+  verificationError = error
+} finally {
+  try { await cdp?.close() } catch (error) {
+    cleanupErrors.push(new Error('CDP cleanup failed', { cause: error }))
+  }
+
+  let browserTreeGone = !browser
+  if (browser) {
+    try {
+      await terminateOwnedProcess(browser)
+      browserTreeGone = true
+    } catch (error) {
+      cleanupErrors.push(new Error(`Chromium process-group cleanup failed for ${browser.groupId}`, { cause: error }))
+    }
+  }
+  if (vite) {
+    try { await terminateOwnedProcess(vite) } catch (error) {
+      cleanupErrors.push(new Error(`Vite process-group cleanup failed for ${vite.groupId}`, { cause: error }))
+    }
+  }
+
+  if (profile && browserTreeGone) {
+    try { rmSync(profile, { recursive: true, force: true }) } catch (error) {
+      cleanupErrors.push(new Error(`Chromium profile cleanup failed: ${profile}`, { cause: error }))
+    }
+  }
+}
+
+if (verificationError) {
+  console.error(verificationError)
   console.error(viteLog)
   console.error(browserLog)
   process.exitCode = 1
-} finally {
-  cdp?.close()
-  browser.kill('SIGTERM')
-  vite.kill('SIGTERM')
-  rmSync(profile, { recursive: true, force: true })
+}
+if (cleanupErrors.length > 0) {
+  console.error(new AggregateError(cleanupErrors, 'parameterized-svg infrastructure cleanup failed'))
+  process.exitCode = 1
+}
+if (!verificationError && cleanupErrors.length === 0) {
+  console.log(`parameterized-svg Chromium PASS ${JSON.stringify(verificationResults)} owned-process-groups ${JSON.stringify({ vite: vite.groupId, chromium: browser.groupId })}`)
 }

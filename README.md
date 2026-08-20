@@ -645,11 +645,14 @@ Only fixed arity is supported. `dynamic_arity` must be `false`; the existing
 `body` placeholders continue to declare the Macro's ordinary arity, while the
 sanitized SVG must independently contain exactly the contiguous empty
 `<g data-snl-slot="0">` through `<g data-snl-slot="N-1">` anchors. Each child is
-selected by the validated slot index and rendered through `renderChild`.
-Missing/excess children, malformed or active SVG, and any block-mode child fail
-closed with a visible fallback. Text and formula children are supported as SVG
-labels, but embedding the complete SVG renderer inside a formula is **not yet
-supported**.
+selected by the validated slot index. Text and formula child subtrees are
+supported as SVG labels only when every recursively selected complete
+`TemplateSpec` descendant is non-block. Any block descendant triggers a visible
+fallback before `renderChild`. If the `childContainsBlock` capability/resolver is
+unavailable, the built-in SVG renderer fails closed with a visible fallback.
+Recursive foreign boxes are not supported in Task5, and formula embedding is
+still not supported. Missing/excess children and malformed or active SVG also
+fail closed visibly.
 
 `data-snl-slot` and `svg_template` are renderer/projection metadata, not new SNL
 author syntax. Macro calls remain ordinary SNL calls, and Basics introduces no

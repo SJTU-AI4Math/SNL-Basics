@@ -250,11 +250,14 @@ The Macro must have `mode: 'block'` and `dynamic_arity: false`. Its existing
 `body` placeholder contract still declares fixed arity. Independently, sanitized
 SVG accepts only a contiguous `0..N-1` set of empty
 `<g data-snl-slot="N">` anchors and requires exactly N Macro children. Children
-are mapped by validated slot index and rendered through the view's
-`renderChild`; a block-mode child is rejected. Text and formula children may be
-labels, but embedding this complete SVG renderer inside a formula is not yet
-supported. Every validation/load failure renders a visible deterministic
-fallback.
+are mapped by validated slot index. Text and formula child subtrees are
+supported as labels only when every recursively selected complete `TemplateSpec`
+descendant is non-block. Any block descendant triggers a visible fallback before
+`renderChild`. If the `childContainsBlock` capability/resolver is unavailable,
+the built-in SVG renderer fails closed with a visible fallback. Recursive
+foreign boxes are not supported in Task5, and formula embedding is still not
+supported. Every other validation/load failure also renders a visible
+deterministic fallback.
 
 This API adds no authored SNL syntax and no persisted call shape. `svg_template`
 and `data-snl-slot` are consumer projection/backend metadata; `#N` inside SVG is
