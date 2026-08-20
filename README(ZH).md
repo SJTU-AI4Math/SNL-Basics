@@ -490,7 +490,7 @@ const hooks: SnlRenderHooks = {
 ### 自定义块渲染器
 
 以解析出的 style 的 `block_template_name` 为键注册渲染器。展开 `defaultRenderers`
-以保留内置的 `list` / `table` / `centered` 渲染器：
+以保留内置的 `list` / `enumerate` / `table` / `centered` 渲染器：
 
 ```tsx
 import { defaultRenderers, type SnlBlockRenderer } from '@sjtu-ai4math/snl-basics'
@@ -503,7 +503,7 @@ import { defaultRenderers, type SnlBlockRenderer } from '@sjtu-ai4math/snl-basic
 const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
   <aside className="callout">
     {node.children.map((child, i) => (
-      <span key={i}>{renderChild(child)}</span>
+      <span key={i}>{renderChild(child, i)}</span>
     ))}
   </aside>
 )
@@ -514,6 +514,72 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
   hooks={{ renderers: { ...defaultRenderers, callout: Callout } }}
 />
 ```
+
+### 可选的参数化 SVG 块渲染器
+
+`createSvgTemplateRenderer` 用经过清理的 SVG 图形投影现有块 Macro，同时每个标签仍走
+视图已有的 `renderChild` 路径。它不会默认注册。使用方提供
+`SvgTemplateAssetRegistry`，并用自己的 `block_template_name` 注册返回的渲染器：
+
+```tsx
+import {
+  createSvgTemplateRenderer,
+  defaultRenderers,
+  SvgTemplateAssetRegistry,
+} from '@sjtu-ai4math/snl-basics'
+
+const assets = new SvgTemplateAssetRegistry({
+  loader: async (identity, signal) => loadTrustedSvgSource(identity, signal),
+})
+const Diagram = createSvgTemplateRenderer({ assetRegistry: assets })
+
+<SnlSyntaxTreeView
+  tree={tree}
+  macro_data_driver={driver}
+  hooks={{ renderers: { ...defaultRenderers, 'consumer-svg': Diagram } }}
+/>
+```
+
+选中的完整 `TemplateSpec` 仍由使用方拥有，必须包含 `mode: "block"`、使用方自己的
+`block_template_name`，以及下列 opaque 扩展：
+
+```json
+{
+  "mode": "block",
+  "body": "#0#1#2#3",
+  "block_template_name": "consumer-svg",
+  "svg_template": {
+    "asset": {
+      "source": "assets/square.svg",
+      "base_identity": "consumer-package-or-workspace",
+      "revision": "sha256-or-consumer-revision",
+      "request_epoch": 12
+    },
+    "generation": 3,
+    "producer_revision": "diagram-projector-v2",
+    "accessibility": { "label": "交换方块" }
+  }
+}
+```
+
+所有身份字段都必填：`asset.source`、`asset.base_identity`、`asset.revision` 和
+`producer_revision` 必须是非空字符串；`asset.request_epoch` 与 `generation` 必须是
+非负安全整数；`accessibility.label` 必须是非空的可信标签。registry 把资产身份解析为
+不可变的原始 SVG 字符串，每个使用方实例再独立解析、清理、限定 ID 并实例化自己的
+SVG DOM。request epoch 变化会淘汰过期异步工作；资产 revision 和 producer revision
+都会进入 live foreign-box 身份。
+
+目前只支持固定元数。`dynamic_arity` 必须为 `false`；现有 `body` 占位符继续声明 Macro
+原有的元数，而清理后的 SVG 还必须独立包含恰好连续的空
+`<g data-snl-slot="0">` 到 `<g data-snl-slot="N-1">` 锚点。每个子树按验证后的 slot
+索引选取，并通过 `renderChild` 渲染。子项缺失或过多、SVG 非法或含主动内容、以及任何
+block-mode 子项都会 fail closed，并显示可见 fallback。SVG 标签支持 text 与 formula
+子项，但**尚不支持**把整个 SVG 渲染器嵌入 formula。
+
+`data-snl-slot` 与 `svg_template` 是渲染器/投影元数据，不是新的 SNL 创作语法。Macro
+调用仍是普通 SNL 调用；Basics 不为此功能引入新的持久化调用表示或迁移。使用方可以在
+现有 Macro 数据库里保存 opaque 投影字段，但不得从 Macro 名称推导身份，也不得把 SVG
+中的 `#N` 文本当作 slot。
 
 ## 输出后端
 

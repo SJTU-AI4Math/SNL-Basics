@@ -6,7 +6,7 @@ import { act, cleanup, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ForeignBoxHost, useForeignBoxRegistry } from './foreign-box-host'
 import { assertForeignBoxMetrics, foreignBoxIdentityKey, type ForeignBoxIdentity } from './foreign-box'
-import { useForeignBox, type UseForeignBoxResult } from './use-foreign-box'
+import { ForeignBoxFallback, useForeignBox, type UseForeignBoxResult } from './use-foreign-box'
 
 interface RectInit { left: number; top: number; width: number; height: number }
 const rect = ({ left, top, width, height }: RectInit): DOMRect => ({
@@ -155,6 +155,24 @@ describe('ForeignBox contracts', () => {
     expect(metrics).toEqual({ width: 10, height: 4, depth: 1, baseline: 'alphabetic' })
     expect(Object.isFrozen(metrics)).toBe(true)
     expect(reads).toMatchObject({ width: 1, height: 1, depth: 1, baseline: 1 })
+  })
+
+  it('ships a hidden fallback override while leaving visible span/div boundaries in normal display semantics', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/snl-react-view/style.css'), 'utf8')
+    const hidden = cssRule(css, '[data-snl-foreign-box-fallback][hidden]')
+    expect(hidden.get('display')).toBe('none !important')
+
+    function FallbackSurfaces() {
+      const foreign = useForeignBox({ identity: identity('fallback-style'), child: <span>live</span> })
+      return <>
+        <ForeignBoxFallback foreign={foreign}><span>inline fallback</span></ForeignBoxFallback>
+        <ForeignBoxFallback foreign={foreign} as="div"><span>block fallback</span></ForeignBoxFallback>
+      </>
+    }
+    const view = render(<ForeignBoxHost><FallbackSurfaces /></ForeignBoxHost>)
+    const boundaries = [...view.container.querySelectorAll<HTMLElement>('[data-snl-foreign-box-fallback]')]
+    expect(boundaries.map(boundary => boundary.tagName)).toEqual(['SPAN', 'DIV'])
+    expect(boundaries.every(boundary => boundary.style.display === '')).toBe(true)
   })
 
   it('ships intrinsic measurement-surface CSS through the public stylesheet without debug hooks', () => {

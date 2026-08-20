@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="commutative-square" viewBox="0 0 640 360" role="presentation">
+  <defs>
+    <linearGradient id="edge-gradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="currentColor" />
+      <stop offset="100%" stop-color="#475467" />
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#edge-gradient)" stroke-width="2">
+    <path d="M150 80H480" />
+    <path d="M150 280H480" />
+    <path d="M130 105V250" />
+    <path d="M500 105V250" />
+  </g>
+  <g data-snl-slot="0" transform="translate(130 70)" />
+  <g data-snl-slot="1" transform="translate(500 70)" />
+  <g data-snl-slot="2" transform="translate(130 290)" />
+  <g data-snl-slot="3" transform="translate(500 290)" />
+</svg>

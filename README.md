@@ -558,7 +558,7 @@ const hooks: SnlRenderHooks = {
 ### Custom block renderer
 
 Register a renderer keyed by the resolved style's `block_template_name`. Spread
-`defaultRenderers` to keep the built-in `list` / `table` / `centered` renderers:
+`defaultRenderers` to keep the built-in `list` / `enumerate` / `table` / `centered` renderers:
 
 ```tsx
 import { defaultRenderers, type SnlBlockRenderer } from '@sjtu-ai4math/snl-basics'
@@ -571,7 +571,7 @@ import { defaultRenderers, type SnlBlockRenderer } from '@sjtu-ai4math/snl-basic
 const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
   <aside className="callout">
     {node.children.map((child, i) => (
-      <span key={i}>{renderChild(child)}</span>
+      <span key={i}>{renderChild(child, i)}</span>
     ))}
   </aside>
 )
@@ -582,6 +582,79 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
   hooks={{ renderers: { ...defaultRenderers, callout: Callout } }}
 />
 ```
+
+### Opt-in parameterized SVG block renderer
+
+`createSvgTemplateRenderer` projects an existing block Macro through sanitized SVG
+artwork while every label still goes through the view's `renderChild` path. It is
+not registered by default. The consumer supplies a `SvgTemplateAssetRegistry`
+and registers the returned renderer under its own `block_template_name`:
+
+```tsx
+import {
+  createSvgTemplateRenderer,
+  defaultRenderers,
+  SvgTemplateAssetRegistry,
+} from '@sjtu-ai4math/snl-basics'
+
+const assets = new SvgTemplateAssetRegistry({
+  loader: async (identity, signal) => loadTrustedSvgSource(identity, signal),
+})
+const Diagram = createSvgTemplateRenderer({ assetRegistry: assets })
+
+<SnlSyntaxTreeView
+  tree={tree}
+  macro_data_driver={driver}
+  hooks={{ renderers: { ...defaultRenderers, 'consumer-svg': Diagram } }}
+/>
+```
+
+The selected, complete `TemplateSpec` remains consumer-owned and must have
+`mode: "block"`, the consumer's `block_template_name`, and this opaque extension:
+
+```json
+{
+  "mode": "block",
+  "body": "#0#1#2#3",
+  "block_template_name": "consumer-svg",
+  "svg_template": {
+    "asset": {
+      "source": "assets/square.svg",
+      "base_identity": "consumer-package-or-workspace",
+      "revision": "sha256-or-consumer-revision",
+      "request_epoch": 12
+    },
+    "generation": 3,
+    "producer_revision": "diagram-projector-v2",
+    "accessibility": { "label": "Commutative square" }
+  }
+}
+```
+
+All identity fields are required: `asset.source`, `asset.base_identity`,
+`asset.revision`, and `producer_revision` are non-empty strings;
+`asset.request_epoch` and `generation` are non-negative safe integers; and
+`accessibility.label` is a non-empty trusted label. The registry resolves the
+asset identity to immutable raw SVG source, and each consumer instance parses,
+sanitizes, scopes IDs, and instantiates its own SVG DOM. A request epoch change
+retires stale async work; asset and producer revisions participate in live
+foreign-box identity.
+
+Only fixed arity is supported. `dynamic_arity` must be `false`; the existing
+`body` placeholders continue to declare the Macro's ordinary arity, while the
+sanitized SVG must independently contain exactly the contiguous empty
+`<g data-snl-slot="0">` through `<g data-snl-slot="N-1">` anchors. Each child is
+selected by the validated slot index and rendered through `renderChild`.
+Missing/excess children, malformed or active SVG, and any block-mode child fail
+closed with a visible fallback. Text and formula children are supported as SVG
+labels, but embedding the complete SVG renderer inside a formula is **not yet
+supported**.
+
+`data-snl-slot` and `svg_template` are renderer/projection metadata, not new SNL
+author syntax. Macro calls remain ordinary SNL calls, and Basics introduces no
+new persisted call representation or migration for this feature. Consumers may
+store the opaque projection fields in their existing Macro database, but must
+not derive identity from Macro names or treat `#N` text inside SVG as slots.
 
 ## Output backends
 

@@ -1,0 +1,13 @@
+html { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { margin: 0; padding: 24px; background: Canvas; color: CanvasText; }
+main { max-width: 900px; margin: 0 auto; }
+.fixture-frame { width: min(100%, 720px); min-width: 0; border: 1px solid #98a2b3; padding: 12px; overflow-x: auto; }
+.fixture-frame.alternate { color: #175cd3; }
+/* Adversarial consumer rule reproducing the release regression: author styles
+   outrank the UA [hidden] rule unless the library's hidden gate is explicit. */
+.fixture-frame [data-snl-foreign-box-fallback] { display: contents; }
+#result { position: fixed; left: -10000px; }
+@media (max-width: 480px) {
+  body { padding: 8px; }
+  .fixture-frame { width: 350px; max-width: calc(100vw - 34px); padding: 8px; }
+}

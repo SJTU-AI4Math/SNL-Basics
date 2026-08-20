@@ -22,7 +22,7 @@ function keyed(child: ReactElement, index: number): ReactElement {
 export const ListRenderer: SnlBlockRenderer = ({ node, renderChild }) => (
   <ul className="snl-block snl-block-list">
     {node.children.map((child, index) => (
-      <li key={index}>{renderChild(child)}</li>
+      <li key={index}>{renderChild(child, index)}</li>
     ))}
   </ul>
 )
@@ -54,7 +54,7 @@ export const TableRenderer: SnlBlockRenderer = ({ node, renderChild }) => {
         <thead>
           <tr>
             {rowCells(headerRow).map((cell, index) => (
-              <th key={index}>{renderChild(cell)}</th>
+              <th key={index}>{renderChild(cell, index)}</th>
             ))}
           </tr>
         </thead>
@@ -63,7 +63,7 @@ export const TableRenderer: SnlBlockRenderer = ({ node, renderChild }) => {
         {bodyRows.map((row, rowIndex) => (
           <tr key={rowIndex}>
             {rowCells(row).map((cell, cellIndex) => (
-              <td key={cellIndex}>{renderChild(cell)}</td>
+              <td key={cellIndex}>{renderChild(cell, cellIndex)}</td>
             ))}
           </tr>
         ))}
@@ -78,7 +78,7 @@ export const TableRenderer: SnlBlockRenderer = ({ node, renderChild }) => {
  */
 export const CenteredRenderer: SnlBlockRenderer = ({ node, renderChild }) => (
   <div className="snl-block snl-block-centered" style={{ textAlign: 'center' }}>
-    {node.children.map((child, index) => keyed(renderChild(child), index))}
+    {node.children.map((child, index) => keyed(renderChild(child, index), index))}
   </div>
 )
 
@@ -123,7 +123,7 @@ export const EnumerateRenderer: SnlBlockRenderer = ({ node, renderChild }) => {
       style={style}
     >
       {node.children.map((child, index) => (
-        <li key={index}>{renderChild(child)}</li>
+        <li key={index}>{renderChild(child, index)}</li>
       ))}
     </ol>
   )

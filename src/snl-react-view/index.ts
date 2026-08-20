@@ -286,6 +286,13 @@ export {
   type SvgTemplateSlot,
 } from './svg-template'
 export {
+  createSvgTemplateRenderer,
+  readSvgTemplateProjection,
+  type SvgTemplateProjection,
+  type SvgTemplateRendererOptions,
+  type SvgTemplateRendererProps,
+} from './svg-template-renderer'
+export {
   ReleasedSvgTemplateAssetError,
   StaleSvgTemplateAssetError,
   SvgTemplateAssetRegistry,

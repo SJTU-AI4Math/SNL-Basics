@@ -216,6 +216,50 @@ retains the old sibling while the new pin is still created. Native controls and
 `[data-snl-interaction-boundary]` descendants take pointer/keyboard ownership
 before delegated SNL activation.
 
+## Parameterized SVG block projection
+
+The root barrel exports `createSvgTemplateRenderer`,
+`readSvgTemplateProjection`, `SvgTemplateAssetRegistry`, and their public types.
+This is an opt-in block renderer backed by a consumer-supplied asset registry;
+it is not part of `defaultRenderers`.
+
+The already-selected complete block `TemplateSpec` carries a consumer-owned
+`svg_template` extension with exactly these required values:
+
+```ts
+{
+  asset: {
+    source: string             // non-empty
+    base_identity: string      // non-empty package/workspace identity
+    revision: string           // non-empty asset revision/hash
+    request_epoch: number      // non-negative safe integer
+  }
+  generation: number           // non-negative safe integer
+  producer_revision: string    // non-empty projector/template revision
+  accessibility: { label: string } // non-empty trusted label
+}
+```
+
+The registry loader returns immutable raw SVG source for that complete asset
+identity. Parsing/sanitization and SVG DOM instantiation occur separately for
+each consumer instance. Async authority includes `request_epoch`; live
+foreign-box identity includes tree path, `generation`, asset source/base/revision
+(and epoch), plus `producer_revision`.
+
+The Macro must have `mode: 'block'` and `dynamic_arity: false`. Its existing
+`body` placeholder contract still declares fixed arity. Independently, sanitized
+SVG accepts only a contiguous `0..N-1` set of empty
+`<g data-snl-slot="N">` anchors and requires exactly N Macro children. Children
+are mapped by validated slot index and rendered through the view's
+`renderChild`; a block-mode child is rejected. Text and formula children may be
+labels, but embedding this complete SVG renderer inside a formula is not yet
+supported. Every validation/load failure renders a visible deterministic
+fallback.
+
+This API adds no authored SNL syntax and no persisted call shape. `svg_template`
+and `data-snl-slot` are consumer projection/backend metadata; `#N` inside SVG is
+never interpreted as a slot.
+
 ## Customization
 
 The root also exports `defaultRenderHooks`, `defaultHighlightStrategy`,

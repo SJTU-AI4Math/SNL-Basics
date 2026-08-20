@@ -1,5 +1,5 @@
 import type { FC, ReactElement } from 'react'
-import type { SnlMacro, SnlMacroSource } from '../snl-macro/types'
+import type { SnlBlockMacroTemplate, SnlMacro, SnlMacroSource } from '../snl-macro/types'
 import type { MacroDataDriver } from '../snl-macro/macro-data-driver'
 // NOTE: the runtime tree produced by the parser is the flat SnlSyntaxTree from
 // snl-syntax-tree/types (no `mode` discriminant yet). We type hook payloads
@@ -88,8 +88,16 @@ export interface SnlBlockRendererProps {
   node: SnlSyntaxTree
   /** The macro data driver, for looking up child metadata if needed. */
   macro_data_driver: MacroDataDriver
-  /** Render a child of any mode as a React element. */
-  renderChild: (child: SnlSyntaxTree) => ReactElement
+  /** The complete, localized consumer-owned TemplateSpec projection selected by the view. */
+  template: SnlBlockMacroTemplate
+  /** Macro-level arity contract; specialized renderers must fail closed when unsupported. */
+  dynamicArity: boolean
+  /** Exact semantic path of the block node. */
+  treePath: string
+  /** Resolve a child mode without bypassing the view's existing Macro projection. */
+  childMode: (child: SnlSyntaxTree) => 'formula_inline' | 'formula_display' | 'text' | 'block'
+  /** Render a child of any mode through the view, preserving semantic DOM metadata. */
+  renderChild: (child: SnlSyntaxTree, index?: number) => ReactElement
 }
 
 /** A React component that renders a `mode === "block"` macro. */

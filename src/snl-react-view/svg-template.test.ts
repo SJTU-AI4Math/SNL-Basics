@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
-import { instantiateSvgTemplate, parseSanitizedSvgTemplate } from './svg-template'
+import { bindSvgTemplateChildren, instantiateSvgTemplate, parseSanitizedSvgTemplate } from './svg-template'
+import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
 
 describe('svg-template', () => {
   it('parses inert SVG templates and returns ordered positional slots', () => {
@@ -23,6 +24,18 @@ describe('svg-template', () => {
     expect(parsed.root.querySelector('#shape0')?.getAttribute('fill')).toBe('url(#grad0)')
     expect(parsed.root.querySelector('#shape0')?.getAttribute('clip-path')).toBe('url(#clip0)')
     expect(parsed.root.querySelector('use')?.getAttribute('href')).toBe('#shape0')
+  })
+
+  it('binds children by each validated slot index rather than slot array order', () => {
+    const parsed = parseSanitizedSvgTemplate(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">' +
+        '<g data-snl-slot="0"/><g data-snl-slot="1"/>' +
+      '</svg>',
+    )
+    const reordered = { ...parsed, slots: [parsed.slots[1], parsed.slots[0]] }
+    const children = [createSnlSyntaxTreeNode('A'), createSnlSyntaxTreeNode('B')]
+    expect(bindSvgTemplateChildren(reordered, children, (child, index) => `${index}:${child.macro_name}`)
+      .map(({ rendered }) => rendered)).toEqual(['1:B', '0:A'])
   })
 
   it('rejects active or external SVG content fail-closed', () => {

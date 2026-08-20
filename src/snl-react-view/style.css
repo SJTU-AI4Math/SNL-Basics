@@ -220,6 +220,13 @@
 }
 
 
+/* The stable ordinary-tree fallback boundary keeps its native span/div display
+ * while visible. Once geometry is positioned, author CSS must not override the
+ * hidden handoff (the HTML UA rule is otherwise weaker than author styles). */
+[data-snl-foreign-box-fallback][hidden] {
+  display: none !important;
+}
+
 /* Persistent foreign subtrees are measured off-canvas, then positioned over
  * renderer-owned markers without changing React ownership or DOM identity. */
 .snl-foreign-box-host {
@@ -262,4 +269,36 @@
 
 .snl-foreign-box[data-state='positioned'] {
   opacity: 1;
+}
+
+
+/* Opt-in parameterized SVG renderer. Artwork remains ordinary sanitized SVG;
+ * live SNL labels are independently owned foreign boxes positioned at its g markers. */
+.snl-svg-template {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+.snl-svg-template-canvas,
+.snl-svg-template-artwork {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.snl-svg-template-slot-fallback {
+  overflow-wrap: anywhere;
+}
+.snl-svg-template-fallback {
+  margin: 0.5em 0;
+  padding: 0.5em 0.75em;
+  border: 1px solid currentColor;
+  color: #b42318;
+  overflow-wrap: anywhere;
+}
+.snl-svg-template-loading {
+  padding: 0.5em;
+  color: var(--vscode-descriptionForeground, #475467);
 }

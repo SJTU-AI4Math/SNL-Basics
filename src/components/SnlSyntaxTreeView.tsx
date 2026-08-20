@@ -1403,7 +1403,8 @@ export function SnlSyntaxTreeView({
     }
     const mode = nodeMode(node, macro, renderLanguage)
     if (mode === 'block') {
-      const key = selectedTemplate?.block_template_name
+      const blockTemplate = selectedTemplate?.mode === 'block' ? selectedTemplate : undefined
+      const key = blockTemplate?.block_template_name
       const Renderer = key ? mergedHooks.renderers?.[key] : undefined
       const blockKind = resolveNodeKind(node, resolvedMacros, pathStr === '')
       const blockDataAttrs: Record<string, string | undefined> = blockKind === 'sub'
@@ -1424,7 +1425,11 @@ export function SnlSyntaxTreeView({
             <Renderer
               node={node}
               macro_data_driver={macro_data_driver}
-              renderChild={(child) => renderNode(child, treePaths.get(child) ?? '')}
+              template={blockTemplate!}
+              dynamicArity={macro?.dynamic_arity ?? false}
+              treePath={pathStr}
+              childMode={(child: SnlSyntaxTree) => nodeMode(child, resolvedMacros[child.macro_name] ?? null, renderLanguage)}
+              renderChild={(child: SnlSyntaxTree) => renderNode(child, treePaths.get(child) ?? '')}
             />
           </div>
         )

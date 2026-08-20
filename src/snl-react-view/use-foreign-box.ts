@@ -29,15 +29,14 @@ export interface ForeignBoxFallbackProps {
 
 /**
  * Stable SSR-safe boundary for the ordinary-tree representation of a foreign box.
- * It stays mounted with `display: contents`; the live geometry callback toggles its
- * hidden/inert/aria-hidden gate before mirroring the same state through React.
+ * It stays mounted with native span/div display semantics; the live geometry callback
+ * toggles its hidden/inert/aria-hidden gate before mirroring the same state through React.
  */
 export function ForeignBoxFallback({ foreign, as = 'span', children, className }: ForeignBoxFallbackProps) {
   return createElement(as, {
     ref: foreign.fallbackRef,
     className,
     'data-snl-foreign-box-fallback': 'true',
-    style: { display: 'contents' },
     hidden: foreign.fallbackHidden || undefined,
     inert: foreign.fallbackHidden || undefined,
     'aria-hidden': foreign.fallbackHidden ? 'true' : undefined,
