@@ -56,6 +56,165 @@ describe('SvgTemplateAssetRegistry', () => {
     freshHandle.release()
   })
 
+  it('keeps a fresh authority alive across same-epoch abort reentry and immediate release', async () => {
+    const aborts: number[] = []
+    let reentrantHandle: ReturnType<SvgTemplateAssetRegistry['acquire']> | undefined
+    const loader = vi.fn((_asset: SvgTemplateAssetIdentity, signal: AbortSignal) => {
+      const call = loader.mock.calls.length
+      if (call === 3) return Promise.resolve('<svg id="outer-fresh"/>')
+      return new Promise<string>((_resolve, reject) => {
+        signal.addEventListener('abort', () => {
+          aborts.push(call)
+          reject(signal.reason)
+          if (call === 1) {
+            reentrantHandle = registry.acquire(identity('fresh'), 2)
+            void reentrantHandle.promise.catch(() => {})
+            reentrantHandle.release()
+          }
+        }, { once: true })
+      })
+    })
+    const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 1 })
+
+    const oldHandle = registry.acquire(identity('old'), 1)
+    void oldHandle.promise.catch(() => {})
+    const freshHandle = registry.acquire(identity('fresh'), 2)
+    void freshHandle.promise.catch(() => {})
+
+    expect(loader).toHaveBeenCalledTimes(3)
+    expect(aborts).toEqual([1, 2])
+    expect(registry.snapshot()).toEqual({
+      pending: 1, settled: 0, consumers: 1, authorities: 1, authorityHistory: 0,
+    })
+    await Promise.all([
+      expect(oldHandle.promise).rejects.toBeInstanceOf(StaleSvgTemplateAssetError),
+      expect(reentrantHandle!.promise).rejects.toBeInstanceOf(ReleasedSvgTemplateAssetError),
+      expect(freshHandle.promise).resolves.toMatchObject({
+        value: '<svg id="outer-fresh"/>', requestEpoch: 2,
+      }),
+    ])
+    expect(registry.snapshot()).toEqual({
+      pending: 0, settled: 1, consumers: 0, authorities: 1, authorityHistory: 0,
+    })
+
+    oldHandle.release()
+    freshHandle.release()
+    registry.invalidate(identity('fresh'))
+    expect(registry.snapshot()).toEqual({
+      pending: 0, settled: 0, consumers: 0, authorities: 0, authorityHistory: 1,
+    })
+  })
+
+  it('rejects an outer epoch superseded by abort reentry before registering detached work', async () => {
+    const epoch3Load = deferred<string>()
+    const revisions: string[] = []
+    let epoch3Handle: ReturnType<SvgTemplateAssetRegistry['acquire']> | undefined
+    let aborts = 0
+    const loader = vi.fn((asset: SvgTemplateAssetIdentity, signal: AbortSignal) => {
+      revisions.push(asset.revision)
+      if (asset.revision === 'r3') return epoch3Load.promise
+      if (asset.revision === 'r2') return Promise.resolve('detached-epoch-2')
+      return new Promise<string>((_resolve, reject) => {
+        signal.addEventListener('abort', () => {
+          aborts += 1
+          reject(signal.reason)
+          epoch3Handle = registry.acquire(identity('r3'), 3)
+          void epoch3Handle.promise.catch(() => {})
+        }, { once: true })
+      })
+    })
+    const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 1 })
+
+    const epoch1Handle = registry.acquire(identity('r1'), 1)
+    void epoch1Handle.promise.catch(() => {})
+    const epoch2Handle = registry.acquire(identity('r2'), 2)
+    void epoch2Handle.promise.catch(() => {})
+
+    expect(revisions).toEqual(['r1', 'r3'])
+    expect(loader).toHaveBeenCalledTimes(2)
+    expect(aborts).toBe(1)
+    expect(registry.snapshot()).toEqual({
+      pending: 1, settled: 0, consumers: 1, authorities: 1, authorityHistory: 0,
+    })
+
+    epoch3Load.resolve('epoch-3')
+    await Promise.all([
+      expect(epoch1Handle.promise).rejects.toBeInstanceOf(StaleSvgTemplateAssetError),
+      expect(epoch2Handle.promise).rejects.toBeInstanceOf(StaleSvgTemplateAssetError),
+      expect(epoch3Handle!.promise).resolves.toMatchObject({ value: 'epoch-3', requestEpoch: 3 }),
+    ])
+    expect(registry.snapshot()).toEqual({
+      pending: 0, settled: 1, consumers: 0, authorities: 1, authorityHistory: 0,
+    })
+
+    epoch1Handle.release()
+    epoch2Handle.release()
+    epoch3Handle!.release()
+    registry.invalidate(identity('r3'))
+    expect(registry.snapshot()).toEqual({
+      pending: 0, settled: 0, consumers: 0, authorities: 0, authorityHistory: 1,
+    })
+  })
+
+  it('discards a leaked pending entry that belongs to a detached authority before key reuse', async () => {
+    const revisions: string[] = []
+    const aborts: number[] = []
+    const loader = vi.fn((asset: SvgTemplateAssetIdentity, signal: AbortSignal) => {
+      const call = loader.mock.calls.length
+      revisions.push(asset.revision)
+      if (call === 3) return Promise.resolve('epoch-4')
+      return new Promise<string>((_resolve, reject) => {
+        signal.addEventListener('abort', () => {
+          aborts.push(call)
+          reject(signal.reason)
+        }, { once: true })
+      })
+    })
+    const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 1 })
+    type PendingProbe = { authorityState: { references: number } }
+    const internals = registry as unknown as {
+      pending: Map<string, PendingProbe>
+      retainAuthority(state: PendingProbe['authorityState']): void
+    }
+    const epoch2Key = JSON.stringify(['workspace-a', 'diagram.svg', 'r2'])
+
+    const epoch2Handle = registry.acquire(identity('r2'), 2)
+    void epoch2Handle.promise.catch(() => {})
+    const detachedEntry = internals.pending.get(epoch2Key)
+    expect(detachedEntry).toBeDefined()
+
+    const epoch3Handle = registry.acquire(identity('r3'), 3)
+    void epoch3Handle.promise.catch(() => {})
+    internals.retainAuthority(detachedEntry!.authorityState)
+    internals.pending.set(epoch2Key, detachedEntry!)
+
+    const epoch4Handle = registry.acquire(identity('r2'), 4)
+    void epoch4Handle.promise.catch(() => {})
+    expect(revisions).toEqual(['r2', 'r3', 'r2'])
+    expect(loader).toHaveBeenCalledTimes(3)
+    expect(aborts).toEqual([1, 2])
+    expect(registry.snapshot()).toEqual({
+      pending: 1, settled: 0, consumers: 1, authorities: 1, authorityHistory: 0,
+    })
+
+    await Promise.all([
+      expect(epoch2Handle.promise).rejects.toBeInstanceOf(StaleSvgTemplateAssetError),
+      expect(epoch3Handle.promise).rejects.toBeInstanceOf(StaleSvgTemplateAssetError),
+      expect(epoch4Handle.promise).resolves.toMatchObject({ value: 'epoch-4', requestEpoch: 4 }),
+    ])
+    expect(registry.snapshot()).toEqual({
+      pending: 0, settled: 1, consumers: 0, authorities: 1, authorityHistory: 0,
+    })
+
+    epoch2Handle.release()
+    epoch3Handle.release()
+    epoch4Handle.release()
+    registry.invalidate(identity('r2'))
+    expect(registry.snapshot()).toEqual({
+      pending: 0, settled: 0, consumers: 0, authorities: 0, authorityHistory: 1,
+    })
+  })
+
   it('isolates identity from caller and loader mutation through result delivery', async () => {
     const loaded = deferred<string>()
     let loaderIdentity: { source: string; baseIdentity: string; revision: string } | undefined

@@ -44,12 +44,14 @@ interface PendingEntry {
   promise: Promise<string>
   authority: string
   authorityState: AuthorityState
+  generation: number
 }
 
 interface SettledEntry {
   value: string
   authority: string
   authorityState: AuthorityState
+  generation: number
 }
 
 export class StaleSvgTemplateAssetError extends Error {
@@ -135,6 +137,7 @@ export class SvgTemplateAssetRegistry {
     const key = identityKey(identitySnapshot)
     const authority = authorityKey(identitySnapshot)
     let state = this.authorities.get(authority)
+    let holdsAuthority = false
     const remembered = state ? undefined : this.authorityHistory.get(authority)
     if (remembered) {
       this.authorityHistory.delete(authority)
@@ -167,88 +170,138 @@ export class SvgTemplateAssetRegistry {
         references: 0,
       }
       this.authorities.set(authority, state)
+      this.retainAuthority(state)
+      holdsAuthority = true
+      const acquisitionGeneration = state.generation
       this.discardAuthorityEntries(authority, previousState)
+      if (this.authorities.get(authority) !== state || state.generation !== acquisitionGeneration) {
+        this.releaseAuthority(authority, state)
+        holdsAuthority = false
+        return { promise: Promise.reject(new StaleSvgTemplateAssetError()), release() {} }
+      }
+    }
+    if (!holdsAuthority) {
+      this.retainAuthority(state)
+      holdsAuthority = true
     }
     const handleGeneration = state.generation
 
-    const cached = this.settled.get(key)
-    if (cached) {
-      this.settled.delete(key)
-      this.settled.set(key, cached)
+    try {
+      let cached = this.settled.get(key)
+      if (cached && !this.entryOwnsAuthority(cached, authority, state, handleGeneration)) {
+        if (this.settled.get(key) === cached) {
+          this.settled.delete(key)
+          this.releaseAuthority(cached.authority, cached.authorityState)
+        }
+        cached = undefined
+        if (!this.isCurrentAuthority(authority, state, handleGeneration)) {
+          return { promise: Promise.reject(new StaleSvgTemplateAssetError()), release() {} }
+        }
+      }
+      if (cached) {
+        this.settled.delete(key)
+        this.settled.set(key, cached)
+        return this.createHandle(
+          identitySnapshot,
+          requestEpoch,
+          authority,
+          state,
+          handleGeneration,
+          Promise.resolve(cached.value),
+          () => {},
+        )
+      }
+
+      let entry = this.pending.get(key)
+      if (entry && !this.entryOwnsAuthority(entry, authority, state, handleGeneration)) {
+        this.discardPending(
+          key,
+          entry,
+          new DOMException('Detached SVG template asset work cannot be reused', 'AbortError'),
+        )
+        entry = undefined
+        if (!this.isCurrentAuthority(authority, state, handleGeneration)) {
+          return { promise: Promise.reject(new StaleSvgTemplateAssetError()), release() {} }
+        }
+      }
+      if (!entry) {
+        const controller = new AbortController()
+        let resolveLoader!: (value: string | PromiseLike<string>) => void
+        let rejectLoader!: (reason?: unknown) => void
+        const loaderPromise = new Promise<string>((resolve, reject) => {
+          resolveLoader = resolve
+          rejectLoader = reject
+        })
+        entry = {
+          controller,
+          consumers: 1,
+          promise: loaderPromise,
+          authority,
+          authorityState: state,
+          generation: handleGeneration,
+        }
+        this.retainAuthority(state)
+        this.pending.set(key, entry)
+        const ownedEntry = entry
+        entry.promise.then((value) => {
+          if (!this.takePending(key, ownedEntry)) return
+          if (ownedEntry.consumers > 0 && !ownedEntry.controller.signal.aborted && this.maxSettled > 0) {
+            this.settled.set(key, {
+              value,
+              authority: ownedEntry.authority,
+              authorityState: ownedEntry.authorityState,
+              generation: ownedEntry.generation,
+            })
+            this.trimSettled()
+          } else {
+            this.releaseAuthority(ownedEntry.authority, ownedEntry.authorityState)
+          }
+        }, () => {
+          this.discardPending(key, ownedEntry)
+        })
+        try {
+          Promise.resolve(this.loader({ ...identitySnapshot }, controller.signal))
+            .then(assertSvgSourceString)
+            .then(resolveLoader, rejectLoader)
+        } catch (error) {
+          rejectLoader(error)
+        }
+        if (!this.isCurrentAuthority(authority, state, handleGeneration)) {
+          ownedEntry.consumers -= 1
+          if (ownedEntry.consumers === 0) {
+            this.discardPending(
+              key,
+              ownedEntry,
+              new DOMException('SVG template asset authority changed during loader invocation', 'AbortError'),
+            )
+          }
+          return { promise: Promise.reject(new StaleSvgTemplateAssetError()), release() {} }
+        }
+      } else {
+        entry.consumers += 1
+      }
+      const ownedEntry = entry
       return this.createHandle(
         identitySnapshot,
         requestEpoch,
         authority,
         state,
         handleGeneration,
-        Promise.resolve(cached.value),
-        () => {},
+        entry.promise,
+        () => {
+          ownedEntry.consumers -= 1
+          if (ownedEntry.consumers === 0) {
+            this.discardPending(
+              key,
+              ownedEntry,
+              new DOMException('Last SVG template asset consumer detached', 'AbortError'),
+            )
+          }
+        },
       )
+    } finally {
+      if (holdsAuthority) this.releaseAuthority(authority, state)
     }
-
-    let entry = this.pending.get(key)
-    if (!entry) {
-      const controller = new AbortController()
-      let resolveLoader!: (value: string | PromiseLike<string>) => void
-      let rejectLoader!: (reason?: unknown) => void
-      const loaderPromise = new Promise<string>((resolve, reject) => {
-        resolveLoader = resolve
-        rejectLoader = reject
-      })
-      entry = {
-        controller,
-        consumers: 1,
-        promise: loaderPromise,
-        authority,
-        authorityState: state,
-      }
-      this.retainAuthority(state)
-      this.pending.set(key, entry)
-      const ownedEntry = entry
-      entry.promise.then((value) => {
-        if (!this.takePending(key, ownedEntry)) return
-        if (ownedEntry.consumers > 0 && !ownedEntry.controller.signal.aborted && this.maxSettled > 0) {
-          this.settled.set(key, {
-            value,
-            authority: ownedEntry.authority,
-            authorityState: ownedEntry.authorityState,
-          })
-          this.trimSettled()
-        } else {
-          this.releaseAuthority(ownedEntry.authority, ownedEntry.authorityState)
-        }
-      }, () => {
-        this.discardPending(key, ownedEntry)
-      })
-      try {
-        Promise.resolve(this.loader({ ...identitySnapshot }, controller.signal))
-          .then(assertSvgSourceString)
-          .then(resolveLoader, rejectLoader)
-      } catch (error) {
-        rejectLoader(error)
-      }
-    } else {
-      entry.consumers += 1
-    }
-    const ownedEntry = entry
-    return this.createHandle(
-      identitySnapshot,
-      requestEpoch,
-      authority,
-      state,
-      handleGeneration,
-      entry.promise,
-      () => {
-        ownedEntry.consumers -= 1
-        if (ownedEntry.consumers === 0) {
-          this.discardPending(
-            key,
-            ownedEntry,
-            new DOMException('Last SVG template asset consumer detached', 'AbortError'),
-          )
-        }
-      },
-    )
   }
 
   invalidate(identity: SvgTemplateAssetIdentity): void {
@@ -314,6 +367,25 @@ export class SvgTemplateAssetRegistry {
         this.releaseAuthority(authority, state)
       },
     }
+  }
+
+  private isCurrentAuthority(
+    authority: string,
+    state: AuthorityState,
+    generation: number,
+  ): boolean {
+    return this.authorities.get(authority) === state && state.generation === generation
+  }
+
+  private entryOwnsAuthority(
+    entry: PendingEntry | SettledEntry,
+    authority: string,
+    state: AuthorityState,
+    generation: number,
+  ): boolean {
+    return entry.authority === authority
+      && entry.authorityState === state
+      && entry.generation === generation
   }
 
   private takePending(key: string, entry: PendingEntry): boolean {
