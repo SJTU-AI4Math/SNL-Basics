@@ -36,7 +36,7 @@ import { analyzeLatexTemplatePlaceholders, fillLatexTemplate } from '../snl-synt
 import { isEmptySnlSyntaxTreeNode, type SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { encodeTreePath, type TreePath } from './interaction-driver'
 import { resolveRenderedKind } from './kind-behavior'
-import { readSnlTableRenderOptions } from './table-renderer-options'
+import { readSnlTableRenderOptions } from '../snl-macro/table-renderer-options'
 
 /**
  * Sanitize a value for use inside a `\htmlData{key=value,…}` attribute list.
@@ -112,8 +112,8 @@ function assert_valid_template_spec(template: unknown, styleName: string): void 
     throw new Error(`style "${styleName}" has a malformed template projection`)
   }
   if (value.table !== undefined) {
-    if (value.mode !== 'block' || value.block_template_name !== 'table') {
-      throw new Error('template.table is valid only for the built-in table renderer')
+    if (value.mode !== 'block') {
+      throw new Error('template.table is valid only in block mode')
     }
     readSnlTableRenderOptions(value as unknown as SnlBlockMacroTemplate)
   }

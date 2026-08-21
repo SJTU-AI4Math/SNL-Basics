@@ -1,14 +1,14 @@
-import type { SnlBlockMacroTemplate } from '../snl-macro/types'
+import type { SnlBlockMacroTemplate } from './types'
 import type {
   SnlTableCssColors,
   SnlTableRenderOptions,
-} from '../snl-macro/types'
+} from './types'
 export type {
   SnlTableComposition,
   SnlTableCssColors,
   SnlTableCssThemes,
   SnlTableRenderOptions,
-} from '../snl-macro/types'
+} from './types'
 
 const DEFAULT_OPTIONS: SnlTableRenderOptions = Object.freeze({ composition: 'rows' })
 const OPTION_KEYS = new Set(['composition', 'css'])
@@ -24,6 +24,12 @@ function readColors(value: unknown, label: string): SnlTableCssColors {
       typeof value.color !== 'string' || typeof value.background !== 'string' ||
       typeof value.border !== 'string') {
     throw new Error(`table.css.${label} must contain string color, background, and border fields`)
+  }
+  for (const token of [value.color, value.background, value.border]) {
+    if (token.length > 128 || /[;{}]/.test(token) || token.includes('\0') ||
+        token.includes('\n') || token.includes('\r') || /^\s*url\s*\(/i.test(token)) {
+      throw new Error(`table.css.${label} contains an invalid CSS color`)
+    }
   }
   return { color: value.color, background: value.background, border: value.border }
 }

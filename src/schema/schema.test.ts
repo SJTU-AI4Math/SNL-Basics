@@ -449,6 +449,35 @@ describe('schema/migrate-macro', () => {
     expect(isMacroDocumentV11({ X: fixedVariadic })).toBe(false)
   })
 
+  it('validates the public table option contract on every v11 projection', () => {
+    const base = migrateMacroDocument({ X: {
+      ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)), kind: 'const',
+    } } as any).X as any
+    base.dynamic_arity = true
+    base.styles[0].template = {
+      mode: 'block', body: '#*', block_template_name: 'extension-table-compat',
+      table: {
+        composition: 'cells',
+        css: {
+          light: { color: '#111', background: '#fff', border: '#ccc' },
+          dark: { color: '#eee', background: '#222', border: '#555' },
+        },
+      },
+    }
+    expect(isMacroDocumentV11({ X: base })).toBe(true)
+
+    const malformed = structuredClone(base)
+    delete malformed.styles[0].template.table.css.dark
+    expect(isMacroDocumentV11({ X: malformed })).toBe(false)
+
+    const nonBlock = structuredClone(base)
+    nonBlock.dynamic_arity = false
+    nonBlock.styles[0].template = {
+      mode: 'text', body: '#0', table: { composition: 'rows' },
+    }
+    expect(isMacroDocumentV11({ X: nonBlock })).toBe(false)
+  })
+
   it('rejects v11 localized projections with inconsistent or invalid dynamic arity', () => {
     const base = migrateMacroDocument({ X: {
       ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)), kind: 'const',

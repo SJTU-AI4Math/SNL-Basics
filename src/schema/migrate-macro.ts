@@ -6,7 +6,8 @@
  * implicit default and localization stays inside each text style.
  */
 import type { I18n } from '../runtime'
-import type { SnlMacro, SnlMacroTemplate } from '../snl-macro/types'
+import type { SnlBlockMacroTemplate, SnlMacro, SnlMacroTemplate } from '../snl-macro/types'
+import { readSnlTableRenderOptions } from '../snl-macro/table-renderer-options'
 import { isSnlIdentifier } from '../snl-syntax-tree/identifier'
 import { analyzeLatexTemplatePlaceholders } from '../snl-syntax-tree/template'
 
@@ -582,8 +583,17 @@ function isTemplateSpec(value: unknown): value is SnlMacroTemplate {
       !['formula_inline', 'formula_display', 'text', 'block'].includes(String(spec.mode)) ||
       typeof spec.body !== 'string' ||
       (spec.separator !== undefined && typeof spec.separator !== 'string')) return false
-  return spec.block_template_name === undefined ||
-    (spec.mode === 'block' && typeof spec.block_template_name === 'string')
+  if (spec.block_template_name !== undefined &&
+      (spec.mode !== 'block' || typeof spec.block_template_name !== 'string')) return false
+  if (spec.table !== undefined) {
+    if (spec.mode !== 'block') return false
+    try {
+      readSnlTableRenderOptions(spec as unknown as SnlBlockMacroTemplate)
+    } catch {
+      return false
+    }
+  }
+  return true
 }
 
 const LOCALIZED_TEMPLATE_FIELDS = new Set(['type', 'default_language', 'values'])

@@ -165,7 +165,7 @@ export {
   type SnlTableCssColors,
   type SnlTableCssThemes,
   type SnlTableRenderOptions,
-} from './table-renderer-options'
+} from '../snl-macro/table-renderer-options'
 
 // === Hooks & customization ===
 export { defaultRenderHooks, defaultHighlightStrategy, defaultRenderers } from './hooks'

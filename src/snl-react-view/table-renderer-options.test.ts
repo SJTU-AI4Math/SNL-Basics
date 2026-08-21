@@ -24,12 +24,27 @@ describe('table renderer template contract', () => {
         css: { light: { color: '#111111', background: '#ffffff', border: '#cccccc' } },
       },
     }), true)).toThrow(/light and dark/i)
+
+    expect(() => assert_valid_style_template(style({
+      mode: 'block', body: '#*', block_template_name: 'table',
+      table: {
+        composition: 'rows',
+        css: {
+          light: { color: '#111', background: 'url(https://example.test/pixel)', border: '#ccc' },
+          dark: { color: '#eee', background: '#222', border: '#555' },
+        },
+      },
+    }), true)).toThrow(/CSS color/i)
   })
 
-  it('rejects table options attached to a different renderer', () => {
+  it('allows custom block renderer keys but rejects table options outside block mode', () => {
     expect(() => assert_valid_style_template(style({
-      mode: 'block', body: '#*', block_template_name: 'list',
+      mode: 'block', body: '#*', block_template_name: 'extension-table-compat',
       table: { composition: 'rows' },
-    }), true)).toThrow(/built-in table renderer/i)
+    }), true)).not.toThrow()
+    expect(() => assert_valid_style_template(style({
+      mode: 'text', body: '#0',
+      table: { composition: 'rows' },
+    }), false)).toThrow(/block mode/)
   })
 })

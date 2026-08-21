@@ -9,7 +9,7 @@
 import { Fragment, type CSSProperties, type ReactElement } from 'react'
 import type { SnlBlockRenderer } from './hooks'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
-import { readSnlTableRenderOptions } from './table-renderer-options'
+import { readSnlTableRenderOptions } from '../snl-macro/table-renderer-options'
 
 /** Render one child, tagging it with a stable key for React. */
 function keyed(child: ReactElement, index: number): ReactElement {
