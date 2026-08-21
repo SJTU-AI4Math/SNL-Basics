@@ -42,7 +42,15 @@ describe('TikZ white-paper postprocessing', () => {
     const template = extractTemplate(full)
     expect(full.match(/fill='#fff'/g)).toHaveLength(9)
     expect(full.match(/stroke='#fff'/g)).toHaveLength(3)
-    expect(template.match(/<mask id="snl-paper-knockout-\d+"/g)).toHaveLength(12)
+    const maskTags = template.match(/<mask\b[^>]*>/g) ?? []
+    expect(maskTags).toHaveLength(12)
+    for (const mask of maskTags) {
+      expect(mask).toContain('maskUnits="userSpaceOnUse"')
+      expect(mask).toContain('x="-108"')
+      expect(mask).toContain('y="-107.99908"')
+      expect(mask).toContain('width="393.7889"')
+      expect(mask).toContain('height="228.82234"')
+    }
     const ordinaryArtwork = template.replace(/<defs>[\s\S]*?<\/defs>/, '')
     expect(ordinaryArtwork).not.toMatch(/(?:fill|stroke)="(?:#fff(?:fff)?|white|rgb\(255,\s*255,\s*255\))"/i)
     expect(ordinaryArtwork).not.toMatch(/(?:fill|stroke)="#000(?:000)?"/i)

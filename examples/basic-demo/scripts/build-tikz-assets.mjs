@@ -60,7 +60,7 @@ export function postprocessTikzArtwork(source, viewBoxValues) {
       if (EXACT_WHITE.test(authoredPaint)) {
         const id = `snl-paper-knockout-${masks.length}`
         const [x, y, width, height] = viewBoxValues
-        masks.push(`<mask id="${id}" maskUnits="userSpaceOnUse"><rect x="${x}" y="${y}" width="${width}" height="${height}" fill="white"/>${paintOnly(tag, channel, '#000')}</mask>`)
+        masks.push(`<mask id="${id}" maskUnits="userSpaceOnUse" x="${x}" y="${y}" width="${width}" height="${height}"><rect x="${x}" y="${y}" width="${width}" height="${height}" fill="white"/>${paintOnly(tag, channel, '#000')}</mask>`)
         composite = `<g mask="url(#${id})">${composite}</g>`
       } else {
         const paint = EXACT_BLACK.test(authoredPaint) ? 'currentColor' : authoredPaint

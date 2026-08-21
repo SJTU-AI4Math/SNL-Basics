@@ -206,6 +206,17 @@ try {
       if (delta > 2) differingChannels += 1;
       if (delta > 32) largeDeltaChannels += 1;
     }
+    const inkBounds = rendered => {
+      let left = rendered.width, top = rendered.height, right = -1, bottom = -1;
+      for (let y = 0; y < rendered.height; y += 1) for (let x = 0; x < rendered.width; x += 1) {
+        const offset = (y * rendered.width + x) * 4;
+        if (Math.min(rendered.data[offset], rendered.data[offset + 1], rendered.data[offset + 2]) >= 245) continue;
+        left = Math.min(left, x); top = Math.min(top, y); right = Math.max(right, x); bottom = Math.max(bottom, y);
+      }
+      return { left, top, right, bottom };
+    };
+    const literalInkBounds = inkBounds(literal);
+    const transformedInkBounds = inkBounds(transformedWhite);
     const transparent = await render(transformedSource, '#fff');
     const dark = await render(transformedSource, '#f4f4f4', '#313131');
     const point = (rendered, x, y) => {
@@ -220,10 +231,15 @@ try {
     for (let offset = 0; offset < transparent.data.length; offset += 4) {
       if (transparent.data[offset + 3] === 255) { opaqueInk = transparent.data.slice(offset, offset + 4); break; }
     }
-    return { maxChannelDelta, differingChannels, largeDeltaChannels, totalChannelDelta, pixels: literal.data.length / 4, formulaKnockout, doubleArrowKnockout, opaqueInk };
+    return { maxChannelDelta, differingChannels, largeDeltaChannels, totalChannelDelta, pixels: literal.data.length / 4, literalInkBounds, transformedInkBounds, formulaKnockout, doubleArrowKnockout, opaqueInk };
   })()`)
-  const visibleChannels = rasterProof.pixels * 3
-  assert(rasterProof.largeDeltaChannels / visibleChannels <= 0.003 && rasterProof.totalChannelDelta / visibleChannels <= 0.45, `white-paper raster equivalence exceeded the antialias budget: ${JSON.stringify(rasterProof)}`)
+  assert(Math.abs(rasterProof.literalInkBounds.top - rasterProof.transformedInkBounds.top) <= 2
+    && Math.abs(rasterProof.literalInkBounds.bottom - rasterProof.transformedInkBounds.bottom) <= 2
+    && Math.abs(rasterProof.literalInkBounds.left - rasterProof.transformedInkBounds.left) <= 2
+    && Math.abs(rasterProof.literalInkBounds.right - rasterProof.transformedInkBounds.right) <= 2,
+  `knockout masks clipped the TikZ painted bounds: ${JSON.stringify(rasterProof)}`)
+  assert(rasterProof.maxChannelDelta <= 2 && rasterProof.differingChannels === 0,
+    `white-paper raster equivalence exceeded the two-channel antialias budget: ${JSON.stringify(rasterProof)}`)
   assert(rasterProof.formulaKnockout.slice(0, 3).every(channel => channel === 49), `formula plate did not reveal #313131: ${JSON.stringify(rasterProof.formulaKnockout)}`)
   assert(rasterProof.doubleArrowKnockout.slice(0, 3).every(channel => channel === 49), `double-arrow gap did not reveal #313131: ${JSON.stringify(rasterProof.doubleArrowKnockout)}`)
   assert(rasterProof.opaqueInk?.slice(0, 3).every(channel => channel === 255), `currentColor ink did not rasterize with theme foreground: ${JSON.stringify(rasterProof.opaqueInk)}`)
