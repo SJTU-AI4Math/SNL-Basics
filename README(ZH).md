@@ -619,7 +619,8 @@ const Diagram = createSvgTemplateRenderer({ assetRegistry: assets })
 非负安全整数；`accessibility.label` 必须是非空的可信标签。registry 把资产身份解析为
 不可变的原始 SVG 字符串，每个使用方实例再独立解析、清理、限定 ID 并实例化自己的
 SVG DOM。request epoch 变化会淘汰过期异步工作；资产 revision 和 producer revision
-都会进入 live foreign-box 身份。
+都会进入 live foreign-box 身份。重复 slot 保留规范语义 tree path，只在该身份中加入运行时
+视觉 `placement` 区分符。
 
 目前只支持固定 Macro 元数。`dynamic_arity` 必须为 `false`；现有 `body` 占位符继续声明
 Macro 原有的元数。清理后的 SVG 可以按文档顺序包含任意数量的空

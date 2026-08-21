@@ -301,7 +301,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
     register(options) {
       const identity = snapshotForeignBoxIdentity(options.identity)
       const key = `${foreignBoxIdentityKey(identity)}#${++registrationNonceRef.current}`
-      const slot = identity.treePath
+      const slot = JSON.stringify([identity.treePath, identity.placement ?? null])
       const token = {}
       const previous = entriesRef.current.get(slot)
       const entry: Entry = {
@@ -581,6 +581,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
               aria-hidden="true"
               inert={true}
               data-tree-path={entry.identity.treePath}
+              data-snl-foreign-placement={entry.identity.placement}
               ref={entry.wrapperRef}
             >
               <div className="snl-foreign-box-measure" ref={entry.measurementRef}>

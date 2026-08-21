@@ -155,17 +155,21 @@ describe('ForeignBox contracts', () => {
     expect(foreignBoxIdentityKey(identity('', 0, 'root@r1'))).toBe('["",0,"root@r1"]')
     expect(foreignBoxIdentityKey(identity('0/1', 4, 'asset:a@rev7'))).not.toBe(foreignBoxIdentityKey(identity('0/1', 3, 'asset:a@rev7')))
     expect(foreignBoxIdentityKey(identity('0/1', 4, 'asset:a@rev7'))).not.toBe(foreignBoxIdentityKey(identity('0/1', 4, 'asset:a@rev8')))
+    expect(foreignBoxIdentityKey({ ...identity('0/1', 4, 'asset:a@rev7'), placement: 'occurrence:0' }))
+      .not.toBe(foreignBoxIdentityKey({ ...identity('0/1', 4, 'asset:a@rev7'), placement: 'occurrence:1' }))
+    expect(() => foreignBoxIdentityKey({ ...identity(), placement: '' })).toThrow(/placement/i)
   })
 
   it('reads public identity and metrics fields once and returns frozen primitive snapshots', () => {
-    const reads = { treePath: 0, generation: 0, producer: 0, width: 0, height: 0, depth: 0, baseline: 0 }
+    const reads = { treePath: 0, placement: 0, generation: 0, producer: 0, width: 0, height: 0, depth: 0, baseline: 0 }
     const changingIdentity = {
       get treePath() { reads.treePath++; return reads.treePath === 1 ? 'slot' : 'changed' },
+      get placement() { reads.placement++; return reads.placement === 1 ? 'occurrence:0' : 'changed' },
       get generation() { reads.generation++; return reads.generation === 1 ? 1 : 2 },
       get producer() { reads.producer++; return reads.producer === 1 ? 'p@1' : 'p@2' },
     }
-    expect(foreignBoxIdentityKey(changingIdentity)).toBe('["slot",1,"p@1"]')
-    expect(reads).toMatchObject({ treePath: 1, generation: 1, producer: 1 })
+    expect(foreignBoxIdentityKey(changingIdentity)).toBe('["slot","occurrence:0",1,"p@1"]')
+    expect(reads).toMatchObject({ treePath: 1, placement: 1, generation: 1, producer: 1 })
     const metrics = assertForeignBoxMetrics({
       get width() { reads.width++; return reads.width === 1 ? 10 : 99 },
       get height() { reads.height++; return reads.height === 1 ? 4 : 99 },
@@ -362,6 +366,37 @@ describe('ForeignBoxHost lifecycle', () => {
     act(() => retained.reportMetrics({ width: 99, height: 99, depth: 0, baseline: 'bottom' }))
     expect(metrics).not.toHaveBeenCalled()
     expect(rafCallbacks.size).toBeLessThanOrEqual(1)
+  })
+
+  it('keeps repeated visual placements at one semantic tree path independently alive', () => {
+    const firstRef = { current: null as UseForeignBoxResult | null }
+    const secondRef = { current: null as UseForeignBoxResult | null }
+    const firstUnregister = vi.fn()
+    const secondUnregister = vi.fn()
+    const shared = identity('same-semantic-path', 1, 'renderer@1')
+    const Harness = ({ showFirst }: { showFirst: boolean }) => <ForeignBoxHost>
+      {showFirst ? <Slot key="first" id={{ ...shared, placement: 'occurrence:0' }} label="first" apiRef={firstRef} onUnregister={firstUnregister} /> : null}
+      <Slot key="second" id={{ ...shared, placement: 'occurrence:1' }} label="second" apiRef={secondRef} onUnregister={secondUnregister} />
+    </ForeignBoxHost>
+    const view = render(<Harness showFirst={true} />)
+
+    expect(firstRef.current!.isAlive()).toBe(true)
+    expect(secondRef.current!.isAlive()).toBe(true)
+    const secondChild = view.getByText('second')
+    expect([...view.container.querySelectorAll<HTMLElement>('.snl-foreign-box')].map(wrapper => [
+      wrapper.dataset.treePath,
+      wrapper.dataset.snlForeignPlacement,
+    ])).toEqual([
+      ['same-semantic-path', 'occurrence:0'],
+      ['same-semantic-path', 'occurrence:1'],
+    ])
+
+    view.rerender(<Harness showFirst={false} />)
+    expect(firstRef.current!.isAlive()).toBe(false)
+    expect(secondRef.current!.isAlive()).toBe(true)
+    expect(firstUnregister).toHaveBeenCalledTimes(1)
+    expect(view.getByText('second')).toBe(secondChild)
+    expect(view.container.querySelectorAll('.snl-foreign-box')).toHaveLength(1)
   })
 
   it('retires the previous authority when a replacement registers at the same tree path', () => {

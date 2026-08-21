@@ -716,7 +716,8 @@ All identity fields are required: `asset.source`, `asset.base_identity`,
 asset identity to immutable raw SVG source, and each consumer instance parses,
 sanitizes, scopes IDs, and instantiates its own SVG DOM. A request epoch change
 retires stale async work; asset and producer revisions participate in live
-foreign-box identity.
+foreign-box identity. Repeated slots keep the canonical semantic tree path and add
+a runtime-only visual `placement` discriminator to that identity.
 
 Only fixed Macro arity is supported. `dynamic_arity` must be `false`; the existing
 `body` placeholders continue to declare the Macro's ordinary arity. The sanitized

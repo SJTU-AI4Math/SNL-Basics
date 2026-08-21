@@ -132,6 +132,13 @@ describe('SvgTemplateRenderer', () => {
 
     await waitFor(() => expect(view.container.querySelector('svg')).not.toBeNull())
     await waitFor(() => expect(view.container.querySelectorAll('.snl-foreign-box-measure > .snl-svg-template-slot-content')).toHaveLength(3))
+    const wrappers = [...view.container.querySelectorAll<HTMLElement>('.snl-foreign-box')]
+    expect(wrappers.map(wrapper => wrapper.dataset.treePath)).toEqual(['2.4.2', '2.4.0', '2.4.2'])
+    expect(wrappers.map(wrapper => wrapper.dataset.snlForeignPlacement)).toEqual([
+      'svg-slot:0',
+      'svg-slot:1',
+      'svg-slot:2',
+    ])
     expect(seen).toEqual(['2:C', '0:A', '2:C'])
     expect([...view.container.querySelectorAll('.snl-foreign-box-measure [data-child]')].map((element) => element.getAttribute('data-child')))
       .toEqual(['C', 'A', 'C'])

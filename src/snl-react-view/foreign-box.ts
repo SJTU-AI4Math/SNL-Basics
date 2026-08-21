@@ -9,7 +9,10 @@ export interface ForeignBoxMetrics {
 
 /** Complete authority identity for one foreign subtree producer. */
 export interface ForeignBoxIdentity {
+  /** Canonical semantic syntax-tree path shared by every visual occurrence. */
   readonly treePath: string
+  /** Optional visual-placement discriminator for repeated projections of one semantic node. */
+  readonly placement?: string
   readonly generation: number
   /** Renderer/template/asset identity including its revision. */
   readonly producer: string
@@ -19,12 +22,14 @@ const BASELINES: ReadonlySet<string> = new Set(['alphabetic', 'axis-center', 'bo
 
 export function snapshotForeignBoxIdentity(identity: ForeignBoxIdentity): ForeignBoxIdentity {
   const treePath = identity.treePath
+  const placement = identity.placement
   const generation = identity.generation
   const producer = identity.producer
   if (typeof treePath !== 'string') throw new TypeError('ForeignBox treePath must be a string')
+  if (placement !== undefined && (typeof placement !== 'string' || placement.length === 0)) throw new TypeError('ForeignBox placement identity must be a nonempty string')
   if (!Number.isSafeInteger(generation) || generation < 0) throw new TypeError('ForeignBox generation must be a nonnegative safe integer')
   if (typeof producer !== 'string' || producer.length === 0) throw new TypeError('ForeignBox producer identity is required')
-  return Object.freeze({ treePath, generation, producer })
+  return Object.freeze({ treePath, ...(placement === undefined ? {} : { placement }), generation, producer })
 }
 
 export function assertForeignBoxMetrics(metrics: ForeignBoxMetrics): ForeignBoxMetrics {
@@ -41,7 +46,9 @@ export function assertForeignBoxMetrics(metrics: ForeignBoxMetrics): ForeignBoxM
 
 export function foreignBoxIdentityKey(identity: ForeignBoxIdentity): string {
   const snapshot = snapshotForeignBoxIdentity(identity)
-  return JSON.stringify([snapshot.treePath, snapshot.generation, snapshot.producer])
+  return snapshot.placement === undefined
+    ? JSON.stringify([snapshot.treePath, snapshot.generation, snapshot.producer])
+    : JSON.stringify([snapshot.treePath, snapshot.placement, snapshot.generation, snapshot.producer])
 }
 
 export interface ForeignBoxMetricAuthority extends ForeignBoxIdentity {

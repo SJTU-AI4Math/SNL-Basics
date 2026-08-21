@@ -363,6 +363,8 @@ try {
       const markers = [...host.querySelectorAll('g[data-snl-slot]')];
       const boxes = [...host.querySelectorAll('.snl-foreign-box[data-state="positioned"]')];
       const blockCopies = [...host.querySelectorAll('.snl-foreign-box-measure [data-name="blockLabel"]')];
+      const wrapperPaths = boxes.map(box => box.getAttribute('data-tree-path'));
+      const wrapperPlacements = boxes.map(box => box.getAttribute('data-snl-foreign-placement'));
       const markerCenters = markers.map(marker => { const r = marker.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
       const boxCenters = boxes.map(box => { const r = box.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
       return {
@@ -371,6 +373,8 @@ try {
         positioned: boxes.length,
         blockCopies: blockCopies.length,
         blockPaths: blockCopies.map(block => block.getAttribute('data-tree-path')),
+        wrapperPaths,
+        wrapperPlacements,
         missingLabels: host.querySelectorAll('.snl-foreign-box-measure [data-name="labelB"], .snl-foreign-box-measure [data-name="labelD"]').length,
         centerDeltas: markerCenters.map((marker, index) => ({ x: boxCenters[index]?.x - marker.x, y: boxCenters[index]?.y - marker.y })),
       };
@@ -380,7 +384,14 @@ try {
     assert(sparseBlock.positioned === 3 && sparseBlock.blockCopies === 2 && sparseBlock.missingLabels === 0,
       `${caseLabel} renders repeated block children while omitting unreferenced children: ${JSON.stringify(sparseBlock)}`)
     assert(new Set(sparseBlock.blockPaths).size === 1 && sparseBlock.blockPaths[0],
-      `${caseLabel} keeps repeated placements on one semantic child tree path: ${JSON.stringify(sparseBlock)}`)
+      `${caseLabel} keeps repeated children on one semantic child tree path: ${JSON.stringify(sparseBlock)}`)
+    assert(sparseBlock.wrapperPaths.length === 3
+      && sparseBlock.wrapperPaths[0] === sparseBlock.wrapperPaths[2]
+      && sparseBlock.wrapperPaths[0] !== sparseBlock.wrapperPaths[1]
+      && sparseBlock.wrapperPaths.every(path => typeof path === 'string' && !path.includes('@svg-slot-')),
+      `${caseLabel} publishes canonical semantic paths on repeated foreign wrappers: ${JSON.stringify(sparseBlock)}`)
+    assert(JSON.stringify(sparseBlock.wrapperPlacements) === JSON.stringify(['svg-slot:0', 'svg-slot:1', 'svg-slot:2']),
+      `${caseLabel} publishes independent placement identities for repeated wrappers: ${JSON.stringify(sparseBlock)}`)
     assert(sparseBlock.centerDeltas.every(delta => Math.abs(delta.x) <= 0.75 && Math.abs(delta.y) <= 0.75),
       `${caseLabel} centers every sparse/repeated block placement: ${JSON.stringify(sparseBlock)}`)
 

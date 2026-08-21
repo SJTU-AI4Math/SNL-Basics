@@ -306,8 +306,9 @@ The already-selected complete block `TemplateSpec` carries a consumer-owned
 The registry loader returns immutable raw SVG source for that complete asset
 identity. Parsing/sanitization and SVG DOM instantiation occur separately for
 each consumer instance. Async authority includes `request_epoch`; live
-foreign-box identity includes tree path, `generation`, asset source/base/revision
-(and epoch), plus `producer_revision`.
+foreign-box identity includes the canonical semantic tree path, optional runtime
+visual `placement`, `generation`, asset source/base/revision (and epoch), plus
+`producer_revision`.
 
 The Macro must have `mode: 'block'` and `dynamic_arity: false`. Its existing
 `body` placeholder contract still declares fixed arity. Independently, sanitized

@@ -121,13 +121,14 @@ interface SlotSurfaceProps {
   readonly marker: SVGGElement
   readonly child: ReactElement
   readonly treePath: string
+  readonly placement: string
   readonly generation: number
   readonly producer: string
 }
 
-function SlotSurface({ marker, child, treePath, generation, producer }: SlotSurfaceProps): ReactElement {
+function SlotSurface({ marker, child, treePath, placement, generation, producer }: SlotSurfaceProps): ReactElement {
   const foreign = useForeignBox({
-    identity: { treePath, generation, producer },
+    identity: { treePath, placement, generation, producer },
     child,
     alignment: 'center',
     ssrFallback: child,
@@ -224,9 +225,10 @@ function ReadySurface(props: ReadySurfaceProps): ReactElement {
           key={`${index}:${occurrence}`}
           marker={marker}
           child={child}
-          treePath={`${props.treePath ? `${props.treePath}.${index}` : `${index}`}@svg-slot-${occurrence}`}
+          treePath={props.treePath ? `${props.treePath}.${index}` : `${index}`}
+          placement={`svg-slot:${occurrence}`}
           generation={props.projection.generation}
-          producer={JSON.stringify([producer, index, occurrence])}
+          producer={producer}
         />
       ))}
     </ForeignBoxHost>
