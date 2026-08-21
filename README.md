@@ -593,6 +593,36 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 />
 ```
 
+
+### Built-in table composition and theme CSS
+
+The built-in `table` renderer accepts a Basics-owned `template.table` option.
+`composition: "rows"` preserves the original contract: each direct child is a
+row and that row's children are cells; a first row with `kind: "table-header"`
+becomes `<thead>`. `composition: "cells"` instead places the block's direct
+children into one `<tr>`. Cell spanning is intentionally outside this contract.
+
+```json
+{
+  "mode": "block",
+  "body": "#*",
+  "block_template_name": "table",
+  "table": {
+    "composition": "cells",
+    "css": {
+      "light": { "color": "#1f2328", "background": "#ffffff", "border": "#d0d7de" },
+      "dark":  { "color": "#e6edf3", "background": "#0d1117", "border": "#30363d" }
+    }
+  }
+}
+```
+
+`css` is optional. When supplied, both themes and all three string fields are
+required. Empty strings preserve host/CSS defaults. The renderer reads the live
+`MacroDataDriver` color scheme on every render, applies text/background colors
+to the table, and exposes the border through `--snl-table-border-color`.
+Malformed or non-block `table` options fail validation before rendering.
+
 ### Explicit generic block renderers inside formulas
 
 Ordinary block renderers remain ineligible inside KaTeX formulas, even when a

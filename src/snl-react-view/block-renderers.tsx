@@ -9,6 +9,7 @@
 import { Fragment, type CSSProperties, type ReactElement } from 'react'
 import type { SnlBlockRenderer } from './hooks'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
+import { readSnlTableRenderOptions } from './table-renderer-options'
 
 /** Render one child, tagging it with a stable key for React. */
 function keyed(child: ReactElement, index: number): ReactElement {
@@ -42,14 +43,28 @@ function rowCells(row: SnlSyntaxTree): SnlSyntaxTree[] {
  * If `children[0]` has `kind === "table-header"` it becomes the `<thead>`;
  * otherwise every row is rendered as a body row without a header.
  */
-export const TableRenderer: SnlBlockRenderer = ({ node, renderChild }) => {
+export const TableRenderer: SnlBlockRenderer = ({ node, renderChild, template, macro_data_driver }) => {
+  const options = readSnlTableRenderOptions(template)
+  const composition = options.composition
+  const colorScheme = macro_data_driver.read_context().color_scheme
+  const colors = options.css?.[colorScheme]
+  const tableStyle = colors ? {
+    color: colors.color || undefined,
+    background: colors.background || undefined,
+    '--snl-table-border-color': colors.border || undefined,
+  } as CSSProperties : undefined
   const first = node.children[0]
-  const hasHeader = isHeaderRow(first)
+  const hasHeader = composition === 'rows' && isHeaderRow(first)
   const headerRow = hasHeader ? first : undefined
   const bodyRows = hasHeader ? node.children.slice(1) : node.children
 
   return (
-    <table className="snl-block snl-block-table">
+    <table
+      className="snl-block snl-block-table"
+      data-snl-table-composition={composition}
+      data-snl-table-color-scheme={colorScheme}
+      style={tableStyle}
+    >
       {headerRow ? (
         <thead>
           <tr>
@@ -60,7 +75,13 @@ export const TableRenderer: SnlBlockRenderer = ({ node, renderChild }) => {
         </thead>
       ) : null}
       <tbody>
-        {bodyRows.map((row, rowIndex) => (
+        {composition === 'cells' ? (
+          <tr>
+            {node.children.map((cell, cellIndex) => (
+              <td key={cellIndex}>{renderChild(cell, cellIndex)}</td>
+            ))}
+          </tr>
+        ) : bodyRows.map((row, rowIndex) => (
           <tr key={rowIndex}>
             {rowCells(row).map((cell, cellIndex) => (
               <td key={cellIndex}>{renderChild(cell, cellIndex)}</td>

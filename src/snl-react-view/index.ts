@@ -159,6 +159,14 @@ export {
   type ForeignBoxMetrics,
 } from './foreign-box'
 
+export {
+  readSnlTableRenderOptions,
+  type SnlTableComposition,
+  type SnlTableCssColors,
+  type SnlTableCssThemes,
+  type SnlTableRenderOptions,
+} from './table-renderer-options'
+
 // === Hooks & customization ===
 export { defaultRenderHooks, defaultHighlightStrategy, defaultRenderers } from './hooks'
 export {

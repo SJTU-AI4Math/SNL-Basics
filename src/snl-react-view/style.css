@@ -168,7 +168,7 @@
 .snl-block-table th,
 .snl-block-table td {
   padding: 0.2em 0.5em;
-  border: 1px solid var(--vscode-panel-border, #ccc);
+  border: 1px solid var(--snl-table-border-color, var(--vscode-panel-border, #ccc));
 }
 .snl-block-centered {
   text-align: center;

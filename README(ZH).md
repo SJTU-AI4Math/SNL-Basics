@@ -524,6 +524,35 @@ const Callout: SnlBlockRenderer = ({ node, renderChild }) => (
 />
 ```
 
+
+### 内置表格的组合方式与明暗 CSS
+
+内置 `table` renderer 接受 Basics 自己管理的 `template.table` 配置。
+`composition: "rows"` 保持原有语义：直接子节点组成各行，行的子节点组成单元格；
+首行若有 `kind: "table-header"`，则进入 `<thead>`。
+`composition: "cells"` 则把当前块的直接子节点放进同一个 `<tr>`。
+本契约暂不处理单元格合并。
+
+```json
+{
+  "mode": "block",
+  "body": "#*",
+  "block_template_name": "table",
+  "table": {
+    "composition": "cells",
+    "css": {
+      "light": { "color": "#1f2328", "background": "#ffffff", "border": "#d0d7de" },
+      "dark":  { "color": "#e6edf3", "background": "#0d1117", "border": "#30363d" }
+    }
+  }
+}
+```
+
+`css` 可省略；一旦提供，就必须同时提供明暗主题及三个字符串字段。空字符串表示继续
+使用宿主/CSS 默认值。renderer 每次渲染都会读取 `MacroDataDriver` 的实时配色方案，
+将文字与背景色应用到表格，并通过 `--snl-table-border-color` 设置边框色。
+形状错误或挂在非 block 模式下的 `table` 配置会在渲染前被拒绝。
+
 ### 在公式中显式启用通用块渲染器
 
 普通块渲染器即使被选中的块投影以 registry key 指名，也不会自动进入 KaTeX

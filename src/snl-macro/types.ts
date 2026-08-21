@@ -54,16 +54,38 @@ interface SnlMacroTemplateBase {
 export interface SnlFormulaMacroTemplate extends SnlMacroTemplateBase {
   mode: 'formula_inline' | 'formula_display'
   block_template_name?: never
+  table?: never
 }
 
 export interface SnlTextMacroTemplate extends SnlMacroTemplateBase {
   mode: 'text'
   block_template_name?: never
+  table?: never
+}
+
+export type SnlTableComposition = 'rows' | 'cells'
+
+export interface SnlTableCssColors {
+  color: string
+  background: string
+  border: string
+}
+
+export interface SnlTableCssThemes {
+  light: SnlTableCssColors
+  dark: SnlTableCssColors
+}
+
+export interface SnlTableRenderOptions {
+  composition: SnlTableComposition
+  css?: SnlTableCssThemes
 }
 
 export interface SnlBlockMacroTemplate extends SnlMacroTemplateBase {
   mode: 'block'
   block_template_name?: string
+  /** Basics-owned options for the built-in `table` renderer. */
+  table?: SnlTableRenderOptions
 }
 
 export type SnlMacroTemplate =
