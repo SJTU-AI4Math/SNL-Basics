@@ -878,7 +878,7 @@ export function SnlSyntaxTreeView({
   const formulaForeignResolver = useMemo<FormulaForeignResolverOptions>(() => ({
     async resolveBlock(candidate) {
       const key = candidate.template.block_template_name
-      if (!key || subtreeContainsSelectedBlock(candidate.node)) return null
+      if (!key) return null
       const Renderer = mergedHooks.renderers?.[key]
       const capability = formulaForeignCapability(Renderer)
       if (!capability) return null
@@ -1018,13 +1018,6 @@ export function SnlSyntaxTreeView({
             const canonicalPath = treePaths.get(candidate)
             if (canonicalPath === undefined) {
               return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer rejected an unowned synthetic child</span>
-            }
-            try {
-              if (nodeMode(candidate, resolvedMacros[candidate.macro_name] ?? null, renderLanguage) === 'block' || subtreeContainsSelectedBlock(candidate)) {
-                return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer rejected a recursive block descendant</span>
-              }
-            } catch {
-              return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer could not validate its child mode</span>
             }
             return renderNode(candidate, canonicalPath)
           }}

@@ -253,9 +253,10 @@ or serialize the rich live child.
 
 Dynamic arity is decided by the concrete capability: this generic helper may
 accept it, while `createSvgTemplateRenderer` continues to reject it. Formula
-blocks may contain formula/text descendants, but a direct or indirect block
-descendant is rejected before preparation/publication. `renderChild` resolves
-only canonical tree-owned nodes and rejects synthetic nodes visibly.
+blocks may contain formula, text, and block descendants through the ordinary
+recursive `renderChild` path. `renderChild` resolves only canonical tree-owned
+nodes and rejects synthetic nodes visibly; nested layout quality remains the
+selected renderers' responsibility.
 
 The marker carries escaped plain `accessibilityText` at its KaTeX reading-order
 position; it is never interpolated as raw HTML or executable LaTeX. Marker,
@@ -310,14 +311,13 @@ foreign-box identity includes tree path, `generation`, asset source/base/revisio
 
 The Macro must have `mode: 'block'` and `dynamic_arity: false`. Its existing
 `body` placeholder contract still declares fixed arity. Independently, sanitized
-SVG accepts only a contiguous `0..N-1` set of empty
-`<g data-snl-slot="N">` anchors and requires exactly N Macro children. Children
-are mapped by validated slot index. Text and formula child subtrees are
-supported as labels only when every recursively selected complete `TemplateSpec`
-descendant is non-block. Any block descendant triggers a visible fallback before
-`renderChild`. If the `childContainsBlock` capability/resolver is unavailable,
-the built-in SVG renderer fails closed with a visible fallback. Recursive
-SVG-in-SVG foreign boxes are not supported. Formula embedding is supported only
+SVG accepts empty `<g data-snl-slot="N">` anchors in document order. Slot indices
+may be sparse or repeated: each occurrence maps to child `N`, omitted children
+receive no visual placement, and only an index outside the actual child array is
+unbound and rejected. Text, formula, and block child subtrees all use the ordinary
+`renderChild` path. Repeated occurrences retain one semantic child identity while
+each visual placement has independent foreign-box authority; nested block
+renderers retain their own host and lifecycle. Formula embedding is supported only
 through the optional trusted fixed-metric `formula_embed` policy: width is
 computed from the sanitized SVG `viewBox`, height/depth from the declared
 baseline, and a persistent React/SVG surface attaches to a committed KaTeX rule

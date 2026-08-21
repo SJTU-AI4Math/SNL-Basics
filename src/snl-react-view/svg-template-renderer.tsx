@@ -164,18 +164,19 @@ function ReadySurface(props: ReadySurfaceProps): ReactElement {
       root.setAttribute('role', 'img')
       root.setAttribute('focusable', 'false')
       root.classList.add('snl-svg-template-artwork')
-      const markersByIndex = new Map<number, SVGGElement>()
-      for (const marker of Array.from(root.querySelectorAll<SVGGElement>('g[data-snl-slot]'))) {
-        const index = Number(marker.getAttribute('data-snl-slot'))
-        if (markersByIndex.has(index)) throw new Error(`duplicate instantiated slot ${index}`)
-        markersByIndex.set(index, marker)
-      }
-      return { parsed, root, markersByIndex, error: null as string | null }
+      const markers = Array.from(root.querySelectorAll<SVGGElement>('g[data-snl-slot]'))
+      if (markers.length !== parsed.slots.length) throw new Error('instantiated SVG slot occurrence count changed after sanitization')
+      markers.forEach((marker, occurrence) => {
+        if (Number(marker.getAttribute('data-snl-slot')) !== parsed.slots[occurrence]?.index) {
+          throw new Error(`instantiated SVG slot occurrence ${occurrence} changed after sanitization`)
+        }
+      })
+      return { parsed, root, markers, error: null as string | null }
     } catch (reason) {
       return {
         parsed: null,
         root: null,
-        markersByIndex: new Map<number, SVGGElement>(),
+        markers: [] as SVGGElement[],
         error: reason instanceof Error ? reason.message : String(reason),
       }
     }
@@ -188,29 +189,19 @@ function ReadySurface(props: ReadySurfaceProps): ReactElement {
   const prepared = useMemo(() => {
     if (!artwork.parsed || !artwork.root) return { slots: [], error: artwork.error }
     try {
-      const rendered = bindSvgTemplateChildren(artwork.parsed, props.node.children, (child, index) => {
-        if (props.childMode(child) === 'block') {
-          throw new Error(`block-mode child at SVG slot ${index} is not supported`)
-        }
-        if (!props.childContainsBlock) {
-          throw new Error(`recursive block capability at SVG slot ${index} is unavailable`)
-        }
-        if (props.childContainsBlock(child)) {
-          throw new Error(`descendant block content at SVG slot ${index} is not supported`)
-        }
-        return <div className="snl-svg-template-slot-content">{props.renderChild(child, index)}</div>
+      const rendered = bindSvgTemplateChildren(artwork.parsed, props.node.children, (child, index) => (
+        <div className="snl-svg-template-slot-content">{props.renderChild(child, index)}</div>
+      ))
+      const slots = rendered.map(({ slot, rendered: child }, occurrence) => {
+        const marker = artwork.markers[occurrence]
+        if (!marker) throw new Error(`instantiated SVG slot occurrence ${occurrence} is missing`)
+        return { index: slot.index, occurrence, marker, child }
       })
-      const slots = rendered.map(({ slot, rendered: child }) => {
-        const marker = artwork.markersByIndex.get(slot.index)
-        if (!marker) throw new Error(`instantiated SVG slot ${slot.index} is missing`)
-        return { index: slot.index, marker, child }
-      })
-      if (artwork.markersByIndex.size !== slots.length) throw new Error('instantiated SVG slot set changed after sanitization')
       return { slots, error: null as string | null }
     } catch (reason) {
       return { slots: [], error: reason instanceof Error ? reason.message : String(reason) }
     }
-  }, [artwork, props.node.children, props.renderChild, props.childMode, props.childContainsBlock])
+  }, [artwork, props.node.children, props.renderChild])
 
   const mountSvg = (host: HTMLDivElement | null): void => {
     if (!host || !artwork.root) return
@@ -228,14 +219,14 @@ function ReadySurface(props: ReadySurfaceProps): ReactElement {
   return (
     <ForeignBoxHost className="snl-svg-template">
       <div className="snl-svg-template-canvas" ref={mountSvg} />
-      {prepared.slots.map(({ index, marker, child }) => (
+      {prepared.slots.map(({ index, occurrence, marker, child }) => (
         <SlotSurface
-          key={index}
+          key={`${index}:${occurrence}`}
           marker={marker}
           child={child}
-          treePath={props.treePath ? `${props.treePath}.${index}` : `${index}`}
+          treePath={`${props.treePath ? `${props.treePath}.${index}` : `${index}`}@svg-slot-${occurrence}`}
           generation={props.projection.generation}
-          producer={producer}
+          producer={JSON.stringify([producer, index, occurrence])}
         />
       ))}
     </ForeignBoxHost>

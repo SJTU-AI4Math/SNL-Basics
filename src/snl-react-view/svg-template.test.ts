@@ -4,7 +4,7 @@ import { bindSvgTemplateChildren, instantiateSvgTemplate, parseSanitizedSvgTempl
 import { createSnlSyntaxTreeNode } from '../snl-syntax-tree/types'
 
 describe('svg-template', () => {
-  it('parses inert SVG templates and returns ordered positional slots', () => {
+  it('parses inert SVG templates and preserves slot document order', () => {
     const parsed = parseSanitizedSvgTemplate(
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 20">' +
         '<defs>' +
@@ -20,10 +20,25 @@ describe('svg-template', () => {
 
     expect(parsed.viewBox).toBe('0 0 40 20')
     expect(parsed.root.tagName.toLowerCase()).toBe('svg')
-    expect(parsed.slots.map((slot) => slot.index)).toEqual([0, 1])
+    expect(parsed.slots.map((slot) => slot.index)).toEqual([1, 0])
     expect(parsed.root.querySelector('#shape0')?.getAttribute('fill')).toBe('url(#grad0)')
     expect(parsed.root.querySelector('#shape0')?.getAttribute('clip-path')).toBe('url(#clip0)')
     expect(parsed.root.querySelector('use')?.getAttribute('href')).toBe('#shape0')
+  })
+
+  it('preserves missing and repeated slot occurrences in SVG document order', () => {
+    const parsed = parseSanitizedSvgTemplate(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">' +
+        '<g data-snl-slot="2"/><g data-snl-slot="0"/><g data-snl-slot="2"/>' +
+      '</svg>',
+    )
+    const children = ['A', 'B', 'C', 'D'].map((name) => createSnlSyntaxTreeNode(name))
+
+    expect(parsed.slots.map((slot) => slot.index)).toEqual([2, 0, 2])
+    expect(bindSvgTemplateChildren(parsed, children, (child, index) => `${index}:${child.macro_name}`)
+      .map(({ rendered }) => rendered)).toEqual(['2:C', '0:A', '2:C'])
+    expect(() => bindSvgTemplateChildren(parsed, children.slice(0, 2), () => null))
+      .toThrow(/slot 2.*no corresponding child/i)
   })
 
   it('binds children by each validated slot index rather than slot array order', () => {

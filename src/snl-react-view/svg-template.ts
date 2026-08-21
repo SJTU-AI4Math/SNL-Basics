@@ -1,4 +1,3 @@
-import { analyzeOrderedSlotIndices } from '../snl-syntax-tree/slot-contract'
 import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -422,13 +421,6 @@ export function parseSanitizedSvgTemplate(
   if (!(sanitizedRoot instanceof SVGSVGElement)) reject('SVG template root did not sanitize to <svg>')
   validateLocalReferences(sanitizedRoot)
 
-  slots.sort((left, right) => left.index - right.index)
-  const contract = analyzeOrderedSlotIndices(
-    slots.map((slot) => slot.index),
-    false,
-  )
-  if (contract.invalid) reject('SVG template slot markers must form a contiguous positional set')
-
   return {
     viewBox,
     root: sanitizedRoot,
@@ -441,9 +433,6 @@ export function bindSvgTemplateChildren<T>(
   children: readonly SnlSyntaxTree[],
   renderChild: (child: SnlSyntaxTree, index: number) => T,
 ): Array<{ slot: SvgTemplateSlot; rendered: T }> {
-  if (children.length !== template.slots.length) {
-    reject(`SVG template requires exactly ${template.slots.length} children; received ${children.length}`)
-  }
   return template.slots.map((slot) => {
     const child = children[slot.index]
     if (!child) reject(`SVG template slot ${slot.index} has no corresponding child subtree`)

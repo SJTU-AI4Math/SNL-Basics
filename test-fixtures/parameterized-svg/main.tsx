@@ -18,6 +18,13 @@ if (new URLSearchParams(location.search).has('narrow-sidebar')) {
   document.body.classList.add('narrow-sidebar-fixture')
 }
 
+const sparseRepeatedSource = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">' +
+  '<rect x="1" y="1" width="598" height="298" fill="none" stroke="currentColor" />' +
+  '<g data-snl-slot="2" transform="translate(100 80)" />' +
+  '<g data-snl-slot="0" transform="translate(300 150)" />' +
+  '<g data-snl-slot="2" transform="translate(500 220)" />' +
+  '</svg>'
+
 const projection = {
   mode: 'block' as const,
   body: '#0#1#2#3',
@@ -35,10 +42,28 @@ const projection = {
   },
 }
 
+const sparseProjection = {
+  ...projection,
+  body: '#0#1#2#3',
+  svg_template: {
+    ...projection.svg_template,
+    asset: {
+      ...projection.svg_template.asset,
+      source: 'sparse-repeated.svg',
+      revision: 'sparse-repeated-v1',
+    },
+    accessibility: { label: 'Sparse and repeated slots with a block child' },
+  },
+}
+
 const db: SnlMacroRecord = {
   square: {
     name: 'square', description: '', source: { entries: [], urls: [] }, kind: 'const',
     dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: projection }],
+  },
+  sparseSquare: {
+    name: 'sparseSquare', description: '', source: { entries: [], urls: [] }, kind: 'const',
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: sparseProjection }],
   },
   invalidSquare: {
     name: 'invalidSquare', description: '', source: { entries: [], urls: [] }, kind: 'const',
@@ -56,13 +81,21 @@ const db: SnlMacroRecord = {
     name: 'labelC', description: '', source: { entries: [], urls: [] }, kind: 'const',
     dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'C' } }],
   },
+  blockLabel: {
+    name: 'blockLabel', description: '', source: { entries: [], urls: [] }, kind: 'const',
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'block', body: '#0', block_template_name: 'centered' } }],
+  },
+  blockLeaf: {
+    name: 'blockLeaf', description: '', source: { entries: [], urls: [] }, kind: 'const',
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: 'block child' } }],
+  },
   labelD: {
     name: 'labelD', description: '', source: { entries: [], urls: [] }, kind: 'const',
     dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: { mode: 'formula_inline', body: 'f=g' } }],
   },
 }
 const driver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name }) => db[macro_name] ?? null } })
-const registry = new SvgTemplateAssetRegistry({ loader: async () => squareSource, maxSettled: 2 })
+const registry = new SvgTemplateAssetRegistry({ loader: async (identity) => identity.source === 'sparse-repeated.svg' ? sparseRepeatedSource : squareSource, maxSettled: 2 })
 const BaseSvgRenderer = createSvgTemplateRenderer({ assetRegistry: registry })
 const ProjectionUpdateContext = createContext(false)
 const SvgRenderer: SnlBlockRenderer = (props) => {
@@ -77,6 +110,13 @@ const SvgRenderer: SnlBlockRenderer = (props) => {
 const labelChildren = ['labelA', 'labelB', 'labelC', 'labelD'].map((name) => createSnlSyntaxTreeNode(name))
 const tree = createSnlSyntaxTreeNode('square', { children: labelChildren })
 const invalidTree = createSnlSyntaxTreeNode('invalidSquare', { children: labelChildren })
+const sparseChildren = [
+  createSnlSyntaxTreeNode('labelA'),
+  createSnlSyntaxTreeNode('labelB'),
+  createSnlSyntaxTreeNode('blockLabel', { children: [createSnlSyntaxTreeNode('blockLeaf')] }),
+  createSnlSyntaxTreeNode('labelD'),
+]
+const sparseTree = createSnlSyntaxTreeNode('sparseSquare', { children: sparseChildren })
 
 function DepthCenterProbe() {
   const child = <div data-depth-center-child="true">depth</div>
@@ -128,6 +168,13 @@ function App() {
           hooks={{ renderers: { ...defaultRenderers, 'fixture-svg': SvgRenderer } }}
         />
       </ProjectionUpdateContext.Provider>
+    </section>
+    <section className="sparse-block-fixture" aria-label="sparse repeated block slots">
+      <SnlSyntaxTreeView
+        tree={sparseTree}
+        macro_data_driver={driver}
+        hooks={{ renderers: { ...defaultRenderers, 'fixture-svg': SvgRenderer } }}
+      />
     </section>
     <section id="fallback-probe" aria-label="fixed-arity fallback probe">
       <SnlSyntaxTreeView

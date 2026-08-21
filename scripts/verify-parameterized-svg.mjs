@@ -357,6 +357,33 @@ try {
     assert(before.errors.length === 0, `${caseLabel} (viewport ${width}px) has no console/runtime errors: ${before.errors.join(' | ')}`)
     assert(!before.alert, `${caseLabel} (viewport ${width}px) has no visible fallback: ${before.alert}`)
     assert(before.pageWidth <= before.viewport, `${caseLabel} (viewport ${width}px) fixture has no page overflow`)
+    const sparseBlock = await evaluate(cdp, `(() => {
+      const host = document.querySelector('.sparse-block-fixture');
+      if (!host) return { found: false };
+      const markers = [...host.querySelectorAll('g[data-snl-slot]')];
+      const boxes = [...host.querySelectorAll('.snl-foreign-box[data-state="positioned"]')];
+      const blockCopies = [...host.querySelectorAll('.snl-foreign-box-measure [data-name="blockLabel"]')];
+      const markerCenters = markers.map(marker => { const r = marker.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+      const boxCenters = boxes.map(box => { const r = box.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+      return {
+        found: true,
+        slots: markers.map(marker => Number(marker.getAttribute('data-snl-slot'))),
+        positioned: boxes.length,
+        blockCopies: blockCopies.length,
+        blockPaths: blockCopies.map(block => block.getAttribute('data-tree-path')),
+        missingLabels: host.querySelectorAll('.snl-foreign-box-measure [data-name="labelB"], .snl-foreign-box-measure [data-name="labelD"]').length,
+        centerDeltas: markerCenters.map((marker, index) => ({ x: boxCenters[index]?.x - marker.x, y: boxCenters[index]?.y - marker.y })),
+      };
+    })()`)
+    assert(sparseBlock.found, `${caseLabel} exercises a sparse/repeated block-slot fixture`)
+    assert(JSON.stringify(sparseBlock.slots) === '[2,0,2]', `${caseLabel} preserves sparse/repeated SVG slot document order: ${JSON.stringify(sparseBlock)}`)
+    assert(sparseBlock.positioned === 3 && sparseBlock.blockCopies === 2 && sparseBlock.missingLabels === 0,
+      `${caseLabel} renders repeated block children while omitting unreferenced children: ${JSON.stringify(sparseBlock)}`)
+    assert(new Set(sparseBlock.blockPaths).size === 1 && sparseBlock.blockPaths[0],
+      `${caseLabel} keeps repeated placements on one semantic child tree path: ${JSON.stringify(sparseBlock)}`)
+    assert(sparseBlock.centerDeltas.every(delta => Math.abs(delta.x) <= 0.75 && Math.abs(delta.y) <= 0.75),
+      `${caseLabel} centers every sparse/repeated block placement: ${JSON.stringify(sparseBlock)}`)
+
     const depthProbe = await evaluate(cdp, `(() => {
       const marker = document.querySelector('[data-depth-center-marker]');
       const label = document.querySelector('.depth-center-probe .snl-foreign-box[data-state="positioned"]');

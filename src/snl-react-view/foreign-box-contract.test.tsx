@@ -33,13 +33,17 @@ describe('foreign rendered subtree contracts', () => {
     expect(parsed.root.querySelector('use')?.getAttribute('href')).toBe('#path0')
   })
 
-  it('rejects invalid fixed SVG slot sets', () => {
+  it('accepts sparse and repeated fixed SVG slots while rejecting malformed indices', () => {
+    const accepted = parseSanitizedSvgTemplate(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">' +
+        '<g data-snl-slot="2" /><g data-snl-slot="0" /><g data-snl-slot="2" />' +
+      '</svg>',
+    )
+    expect(accepted.slots.map(slot => slot.index)).toEqual([2, 0, 2])
     for (const source of [
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g data-snl-slot="0" /><g data-snl-slot="0" /></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g data-snl-slot="1" /></svg>',
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g data-snl-slot="-1" /></svg>',
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g data-snl-slot="1.5" /></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g data-snl-slot="0" /><g data-snl-slot="2" /></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g data-snl-slot="100" /></svg>',
     ]) {
       expect(() => parseSanitizedSvgTemplate(source)).toThrow(/slot/i)
     }
@@ -66,7 +70,7 @@ describe('foreign rendered subtree contracts', () => {
     expect(rendered[1].rendered).toEqual({ child: child1 })
   })
 
-  it('rejects dynamic SVG arity and never drops excess child subtrees', () => {
+  it('rejects dynamic SVG arity while allowing fixed children omitted by the visual projection', () => {
     const source = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g data-snl-slot="0" /></svg>'
     expect(() => parseSanitizedSvgTemplate(source, { dynamic_arity: true } as never)).toThrow(/dynamic|fixed/i)
 
@@ -75,7 +79,8 @@ describe('foreign rendered subtree contracts', () => {
       { macro_name: 'kept', kind: '', mdata: null, children: [] },
       { macro_name: 'must-not-be-dropped', kind: '', mdata: null, children: [] },
     ]
-    expect(() => bindSvgTemplateChildren(parsed, children, (child) => child)).toThrow(/excess|exactly|children/i)
+    expect(bindSvgTemplateChildren(parsed, children, (child) => child).map(({ rendered }) => rendered.macro_name))
+      .toEqual(['kept'])
   })
 
   it('keeps the current visible block-in-formula fallback', async () => {

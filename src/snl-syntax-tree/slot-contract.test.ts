@@ -25,17 +25,16 @@ describe('slot-contract', () => {
     })
   })
 
-  it('rejects sparse ordered slot sets', () => {
-    expect(analyzeOrderedSlotIndices([0, 2], false)).toEqual({
+  it('derives ordinary positional arity from sparse and repeated slot occurrences', () => {
+    expect(analyzeOrderedSlotIndices([2, 0, 2], false)).toEqual({
       positional_arity: 3,
       variadic: false,
-      invalid: true,
+      invalid: false,
     })
   })
 
-  it('rejects duplicate, sparse, negative, non-integer, out-of-range, and dynamic-mismatch slot sets', () => {
+  it('rejects negative, non-integer, out-of-range, and dynamic-mismatch slot occurrences', () => {
     for (const contract of [
-      analyzeOrderedSlotIndices([0, 0], false),
       analyzeOrderedSlotIndices([-1], false),
       analyzeOrderedSlotIndices([1.5], false),
       analyzeOrderedSlotIndices([100], false),

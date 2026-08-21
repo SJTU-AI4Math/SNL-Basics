@@ -114,7 +114,29 @@ describe('SvgTemplateRenderer', () => {
     })} />)
     await waitFor(() => expect(view.container.querySelector('svg')).not.toBeNull())
     expect(view.container.querySelectorAll('.snl-foreign-box-measure > .snl-svg-template-slot-content')).toHaveLength(4)
-    expect(seen).toEqual(['0:A', '1:B', '2:C', '3:D'])
+    expect(seen).toEqual(['1:B', '2:C', '3:D', '0:A'])
+  })
+
+  it('renders missing and repeated slot occurrences as independent placements of semantic children', async () => {
+    const sparseRepeated = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+      '<g data-snl-slot="2" transform="translate(10 10)" />' +
+      '<g data-snl-slot="0" transform="translate(50 50)" />' +
+      '<g data-snl-slot="2" transform="translate(90 90)" />' +
+      '</svg>'
+    const seen: string[] = []
+    const { Renderer } = makeRenderer(sparseRepeated)
+    const view = render(<Renderer {...rendererProps(projection(), (child, index) => {
+      seen.push(`${index}:${child.macro_name}`)
+      return <span data-child={child.macro_name}>{child.macro_name}</span>
+    })} />)
+
+    await waitFor(() => expect(view.container.querySelector('svg')).not.toBeNull())
+    await waitFor(() => expect(view.container.querySelectorAll('.snl-foreign-box-measure > .snl-svg-template-slot-content')).toHaveLength(3))
+    expect(seen).toEqual(['2:C', '0:A', '2:C'])
+    expect([...view.container.querySelectorAll('.snl-foreign-box-measure [data-child]')].map((element) => element.getAttribute('data-child')))
+      .toEqual(['C', 'A', 'C'])
+    expect(view.container.querySelectorAll('.snl-foreign-box-measure > .snl-svg-template-slot-content')).toHaveLength(3)
+    expect(view.container.querySelector('[role="alert"]')).toBeNull()
   })
 
   it('preserves child component identity while language-like content updates', async () => {
@@ -164,30 +186,32 @@ describe('SvgTemplateRenderer', () => {
     expect(view.container.querySelectorAll('.snl-foreign-box')).toHaveLength(4)
   })
 
-  it('rejects a direct text child whose resolved subtree contains block content before renderChild', async () => {
-    const renderChild = vi.fn(() => <span>unsafe nested block</span>)
+  it('renders direct block children through the ordinary renderChild path', async () => {
+    const renderChild = vi.fn((child: SnlSyntaxTree) => <section data-block-child={child.macro_name}>block {child.macro_name}</section>)
     const { Renderer } = makeRenderer()
     const view = render(<Renderer
       {...rendererProps(projection(), renderChild)}
+      childMode={() => 'block'}
       childContainsBlock={() => true}
     />)
 
-    await waitFor(() => expect(view.getByRole('alert').textContent).toMatch(/descendant block content/i))
-    expect(renderChild).not.toHaveBeenCalled()
-    expect(view.container.querySelector('.snl-foreign-box-host')).toBeNull()
-    expect(view.container.querySelector('svg')).toBeNull()
+    await waitFor(() => expect(view.container.querySelector('svg')).not.toBeNull())
+    await waitFor(() => expect(view.container.querySelectorAll('.snl-foreign-box-measure [data-block-child]')).toHaveLength(4))
+    expect(renderChild).toHaveBeenCalledTimes(4)
+    expect(view.container.querySelector('[role="alert"]')).toBeNull()
   })
 
-  it('fails closed when recursive subtree capability is unavailable', async () => {
-    const renderChild = vi.fn(() => <span>unchecked child</span>)
+  it('does not require a subtree block-classification capability', async () => {
+    const renderChild = vi.fn((child: SnlSyntaxTree) => <section data-unclassified-child={child.macro_name}>unchecked {child.macro_name}</section>)
     const { Renderer } = makeRenderer()
     const props = rendererProps(projection(), renderChild)
     const { childContainsBlock: _omitted, ...withoutCapability } = props
     const view = render(<Renderer {...withoutCapability} />)
 
-    await waitFor(() => expect(view.getByRole('alert').textContent).toMatch(/recursive block capability/i))
-    expect(renderChild).not.toHaveBeenCalled()
-    expect(view.container.querySelector('.snl-foreign-box-host')).toBeNull()
+    await waitFor(() => expect(view.container.querySelector('svg')).not.toBeNull())
+    await waitFor(() => expect(view.container.querySelectorAll('.snl-foreign-box-measure [data-unclassified-child]')).toHaveLength(4))
+    expect(renderChild).toHaveBeenCalledTimes(4)
+    expect(view.container.querySelector('[role="alert"]')).toBeNull()
   })
 
   it.each([
@@ -195,7 +219,7 @@ describe('SvgTemplateRenderer', () => {
     ['two text levels', (block: SnlSyntaxTree) => createSnlSyntaxTreeNode('textShell', {
       children: [createSnlSyntaxTreeNode('textShell', { children: [block] })],
     })],
-  ])('rejects %s above a nested SVG block before invoking the outer renderChild', async (_name, wrap) => {
+  ])('renders %s above a nested SVG block through ordinary recursion', async (_name, wrap) => {
     let outerRenderChildCalls = 0
     const { Renderer: BaseRenderer } = makeRenderer()
     const GuardedRenderer = (props: SvgTemplateRendererProps) => (
@@ -229,10 +253,10 @@ describe('SvgTemplateRenderer', () => {
       hooks={{ renderers: { ...defaultRenderers, 'consumer-svg': GuardedRenderer } }}
     />)
 
-    await waitFor(() => expect(view.getByRole('alert').textContent).toMatch(/descendant block content/i))
-    expect(outerRenderChildCalls).toBe(0)
-    expect(view.container.querySelectorAll('.snl-foreign-box-host')).toHaveLength(0)
-    expect(view.container.querySelector('svg')).toBeNull()
+    await waitFor(() => expect(view.container.querySelectorAll('svg').length).toBeGreaterThanOrEqual(2))
+    expect(outerRenderChildCalls).toBeGreaterThan(0)
+    expect(view.container.querySelectorAll('.snl-foreign-box-host').length).toBeGreaterThanOrEqual(2)
+    expect(view.container.querySelector('[role="alert"]')).toBeNull()
   })
 
   it('allows ordinary nested text and formula subtrees with no resolved block mode', async () => {
@@ -267,9 +291,7 @@ describe('SvgTemplateRenderer', () => {
 
   it.each([
     ['dynamic arity', { dynamicArity: true }, /fixed arity/i],
-    ['missing child', { node: createSnlSyntaxTreeNode('consumer.diagram', { children: children.slice(0, 3) }) }, /exactly 4 children; received 3/i],
-    ['excess child', { node: createSnlSyntaxTreeNode('consumer.diagram', { children: [...children, createSnlSyntaxTreeNode('E')] }) }, /exactly 4 children; received 5/i],
-    ['block child', { childMode: () => 'block' as const }, /block-mode child/i],
+    ['out-of-range slot', { node: createSnlSyntaxTreeNode('consumer.diagram', { children: children.slice(0, 3) }) }, /slot 3.*no corresponding child/i],
   ])('shows a visible deterministic fallback for %s', async (_name, changed, message) => {
     const { Renderer } = makeRenderer()
     const view = render(<Renderer {...rendererProps()} {...changed} />)
@@ -280,7 +302,6 @@ describe('SvgTemplateRenderer', () => {
   it.each([
     ['malformed SVG', '<svg>'],
     ['unsafe SVG', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><script /></svg>'],
-    ['gapped slots', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><g data-snl-slot="1" /></svg>'],
   ])('falls back visibly for %s', async (_name, badSource) => {
     const { Renderer } = makeRenderer(badSource)
     const view = render(<Renderer {...rendererProps()} />)

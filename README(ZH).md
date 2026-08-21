@@ -556,8 +556,8 @@ const FormulaTable = createFormulaBlockRenderer(defaultRenderers.table, {
 capability 可以自行接受动态 arity；每种专用 capability 独立决定（SVG 仍拒绝动态
 arity）。
 
-公式中的块可包含公式和文本后代；任何直接或间接块后代都会在 capability 发布前被
-拒绝。子节点必须来自同一棵语法树，并使用其规范 tree path。KaTeX marker 的阅读顺序
+公式中的块可以通过普通递归 `renderChild` 路径包含 formula、text 与 block 后代；嵌套
+布局效果由所选 renderer 自行负责。子节点仍必须来自同一棵语法树，并使用其规范 tree path。KaTeX marker 的阅读顺序
 位置保留经过转义的纯文本 fallback，accessibility 所有权切换不会产生重复表示。浏览器
 选择保证包含该纯文本；定位在 overlay DOM 中的富 table/list/widget 不能保证原生选择或
 剪贴板复制保留结构，需要结构化复制时请由使用方提供明确的复制操作。SSR 或无
@@ -621,13 +621,13 @@ const Diagram = createSvgTemplateRenderer({ assetRegistry: assets })
 SVG DOM。request epoch 变化会淘汰过期异步工作；资产 revision 和 producer revision
 都会进入 live foreign-box 身份。
 
-目前只支持固定元数。`dynamic_arity` 必须为 `false`；现有 `body` 占位符继续声明 Macro
-原有的元数，而清理后的 SVG 还必须独立包含恰好连续的空
-`<g data-snl-slot="0">` 到 `<g data-snl-slot="N-1">` 锚点。每个子树按验证后的 slot
-索引选取。text 与 formula 子树仅在递归选中的每个完整 `TemplateSpec` 后代都是非 block 时，
-才支持作为 SVG 标签。任何 block 后代都会在 `renderChild` 之前触发可见 fallback。如果
-`childContainsBlock` capability/resolver 不可用，内置 SVG renderer 会 fail closed 并显示
-可见 fallback。递归的 SVG-in-SVG foreign box 仍不支持。只有选中的完整 projection 含有
+目前只支持固定 Macro 元数。`dynamic_arity` 必须为 `false`；现有 `body` 占位符继续声明
+Macro 原有的元数。清理后的 SVG 可以按文档顺序包含任意数量的空
+`<g data-snl-slot="N">` 锚点；索引可以缺失或重复，与普通占位符的投影语义一致：每次出现
+都渲染第 N 个 child，缺失索引只表示该 child 没有视觉落点，只有超出实际 child 数组范围
+的索引会 fail closed。text、formula 与 block 子树全部走普通 `renderChild` 路径；重复落点
+共享同一语义 child，但拥有独立的 foreign-box placement authority，嵌套 block renderer
+（包括另一个 SVG renderer）保留自己的 host 与生命周期。只有选中的完整 projection 含有
 上例可选的可信 `formula_embed` policy 时，SVG block 才能嵌入 KaTeX formula。
 `total_height_em` 必须是正有限数，`baseline_ratio` 必须严格位于零与一之间。宽度由清理后
 SVG 的 `viewBox` 推导，高度与 depth 由 baseline policy 推导。KaTeX 在最终渲染前预留固定

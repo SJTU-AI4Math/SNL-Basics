@@ -160,8 +160,8 @@ describe('generic block renderers inside formulas', () => {
     expect(view.container.querySelector('.snl-formula-foreign-surface')).toBeNull()
   })
 
-  it('rejects every recursive block descendant before preparation and leaks no nested plan', async () => {
-    const Recursive: SnlBlockRenderer = ({ node, renderChild }) => <div>{node.children.map((child, index) => <span key={index}>{renderChild(child, index)}</span>)}</div>
+  it('renders recursive block descendants inside an explicit formula foreign surface', async () => {
+    const Recursive: SnlBlockRenderer = ({ node, renderChild }) => <div data-recursive-block={node.macro_name}>{node.children.map((child, index) => <span key={index}>{renderChild(child, index)}</span>)}</div>
     const { renderer, prepare } = generic(Recursive)
     const template = blockTemplate('recursive')
     const db: SnlMacroRecord = {
@@ -176,9 +176,11 @@ describe('generic block renderers inside formulas', () => {
       tree={formulaTree(outer)} macro_data_driver={testDriver(db)}
       hooks={{ renderers: { recursive: renderer } }}
     />)
-    await waitFor(() => expect(view.container.textContent).toContain('cannot be used inside a formula'))
-    expect(prepare).not.toHaveBeenCalled()
-    expect(view.container.querySelectorAll('.snl-formula-foreign-surface')).toHaveLength(0)
-    expect(view.container.querySelectorAll('[data-snl-formula-foreign-marker]')).toHaveLength(0)
+    await waitFor(() => expect(prepare).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(view.container.querySelectorAll('.snl-formula-foreign-surface')).toHaveLength(1))
+    expect([...view.container.querySelectorAll('[data-recursive-block]')].map(element => element.getAttribute('data-recursive-block')))
+      .toEqual(['outer.block', 'inner.block'])
+    expect(view.container.textContent).not.toContain('cannot be used inside a formula')
+    expect(view.container.querySelectorAll('[data-snl-formula-foreign-marker]')).toHaveLength(1)
   })
 })

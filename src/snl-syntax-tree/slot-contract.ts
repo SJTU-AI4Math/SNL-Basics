@@ -30,13 +30,13 @@ export function analyzeOrderedSlotIndices(
 ): SnlSlotContract {
   let maxIndex = -1
   let invalid = dynamic_arity !== undefined && dynamic_arity !== variadic
-  for (const [position, index] of indices.entries()) {
+  for (const index of indices) {
     const validIndex =
       Number.isInteger(index) &&
       index >= 0 &&
       index <= MAX_POSITIONAL_SLOT_INDEX
     if (validIndex) maxIndex = Math.max(maxIndex, index)
-    if (!validIndex || index !== position) invalid = true
+    if (!validIndex) invalid = true
   }
   return createSlotContract(maxIndex + 1, variadic, invalid)
 }

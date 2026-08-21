@@ -644,9 +644,10 @@ strictly between 0 and 1. Generic capabilities may accept dynamic arity; each
 specialized capability decides independently (the SVG capability still rejects
 it).
 
-Formula blocks may render formula and text descendants. Any direct or indirect
-block descendant is rejected before capability publication, and renderer child
-dispatch accepts only real nodes owned by the canonical syntax tree. The plain
+Formula blocks may render formula, text, and block descendants through the
+ordinary recursive `renderChild` path; nested layout quality remains the selected
+renderers' responsibility. Renderer child dispatch still accepts only real nodes
+owned by the canonical syntax tree. The plain
 fallback text is escaped and retained at the KaTeX marker's reading-order
 position while live/fallback accessibility ownership changes atomically.
 Browser selection reliably includes that plain marker fallback. A positioned
@@ -717,17 +718,17 @@ sanitizes, scopes IDs, and instantiates its own SVG DOM. A request epoch change
 retires stale async work; asset and producer revisions participate in live
 foreign-box identity.
 
-Only fixed arity is supported. `dynamic_arity` must be `false`; the existing
-`body` placeholders continue to declare the Macro's ordinary arity, while the
-sanitized SVG must independently contain exactly the contiguous empty
-`<g data-snl-slot="0">` through `<g data-snl-slot="N-1">` anchors. Each child is
-selected by the validated slot index. Text and formula child subtrees are
-supported as SVG labels only when every recursively selected complete
-`TemplateSpec` descendant is non-block. Any block descendant triggers a visible
-fallback before `renderChild`. If the `childContainsBlock` capability/resolver is
-unavailable, the built-in SVG renderer fails closed with a visible fallback.
-Recursive SVG-in-SVG foreign boxes remain unsupported. An SVG block may be
-embedded inside a KaTeX formula only when the complete selected projection has
+Only fixed Macro arity is supported. `dynamic_arity` must be `false`; the existing
+`body` placeholders continue to declare the Macro's ordinary arity. The sanitized
+SVG may contain any number of empty `<g data-snl-slot="N">` anchors in document
+order. Indices may be omitted or repeated, matching ordinary placeholder
+projection semantics: every occurrence renders child `N`, an omitted index simply
+has no visual placement, and only an index outside the actual child array fails
+closed. Repeated occurrences share the same semantic child identity while each
+visual placement has independent foreign-box authority. Text, formula, and block
+child subtrees all go through the ordinary `renderChild` path; nested block
+renderers, including another SVG renderer, keep their own lifecycle and measurement. An SVG block may be embedded inside a KaTeX
+formula only when the complete selected projection has
 the optional trusted `formula_embed` policy shown above. `total_height_em` must
 be positive and finite, while `baseline_ratio` must be strictly between zero
 and one. Width is derived from the sanitized SVG `viewBox`; height/depth come
