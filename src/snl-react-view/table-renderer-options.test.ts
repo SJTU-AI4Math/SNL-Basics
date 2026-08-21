@@ -25,16 +25,24 @@ describe('table renderer template contract', () => {
       },
     }), true)).toThrow(/light and dark/i)
 
-    expect(() => assert_valid_style_template(style({
-      mode: 'block', body: '#*', block_template_name: 'table',
-      table: {
-        composition: 'rows',
-        css: {
-          light: { color: '#111', background: 'url(https://example.test/pixel)', border: '#ccc' },
-          dark: { color: '#eee', background: '#222', border: '#555' },
+    for (const unsafe of [
+      'url(https://example.test/pixel)',
+      'linear-gradient(red, red), url(https://example.test/pixel)',
+      'var(--fallback, url(https://example.test/pixel))',
+      'rgb(1 2 3\t/ 50%)',
+      'u\\72l(https://example.test/pixel)',
+    ]) {
+      expect(() => assert_valid_style_template(style({
+        mode: 'block', body: '#*', block_template_name: 'table',
+        table: {
+          composition: 'rows',
+          css: {
+            light: { color: '#111', background: unsafe, border: '#ccc' },
+            dark: { color: '#eee', background: '#222', border: '#555' },
+          },
         },
-      },
-    }), true)).toThrow(/CSS color/i)
+      }), true)).toThrow(/CSS color/i)
+    }
   })
 
   it('allows custom block renderer keys but rejects table options outside block mode', () => {
