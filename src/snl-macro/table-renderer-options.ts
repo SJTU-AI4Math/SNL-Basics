@@ -26,21 +26,27 @@ const SAFE_COLOR_FUNCTIONS = new Set([
 ])
 
 function isSafeCssColorToken(token: string): boolean {
+  if (token.length > 128 || /[\u0000-\u001f\u007f-\u009f]/.test(token)) return false
   const value = token.trim()
   if (value === '') return true
-  if (value.length > 128 || /[\u0000-\u001f\u007f-\u009f;{}\\'"]/.test(value)) return false
+  if (/[;{}\\'"]/.test(value) || value.includes('/*') || value.includes('*/')) return false
   if (/^#[0-9a-f]{3,4}$/i.test(value) || /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value)) return true
   if (/^[a-z][a-z0-9-]*$/i.test(value)) return true
   if (!/^[a-z0-9_#.%(),+*/\s-]+$/i.test(value)) return false
   const functions = [...value.matchAll(/([a-z][a-z0-9-]*)\s*\(/gi)]
   if (functions.length === 0 || functions[0].index !== 0 ||
       functions.some((match) => !SAFE_COLOR_FUNCTIONS.has(match[1].toLowerCase()))) return false
-  let depth = 0
+  const contentStack: boolean[] = []
   for (const char of value) {
-    if (char === '(') depth += 1
-    else if (char === ')' && --depth < 0) return false
+    if (char === '(') contentStack.push(false)
+    else if (char === ')') {
+      if (contentStack.length === 0 || !contentStack.pop()) return false
+      if (contentStack.length > 0) contentStack[contentStack.length - 1] = true
+    } else if (contentStack.length > 0 && !/\s/.test(char)) {
+      contentStack[contentStack.length - 1] = true
+    }
   }
-  return depth === 0
+  return contentStack.length === 0
 }
 
 function readColors(value: unknown, label: string): SnlTableCssColors {
