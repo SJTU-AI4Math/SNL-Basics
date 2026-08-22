@@ -5,6 +5,7 @@ describe('basic demo Entry integration route', () => {
   it('renders and previews through the public Entry path rather than the bare syntax-tree view', () => {
     const app = readFileSync(new URL('../../examples/basic-demo/src/App.tsx', import.meta.url), 'utf8')
     const main = readFileSync(new URL('../../examples/basic-demo/src/main.tsx', import.meta.url), 'utf8')
+    const viteConfig = readFileSync(new URL('../../examples/basic-demo/vite.config.ts', import.meta.url), 'utf8')
     const presets = readFileSync(new URL('../../examples/basic-demo/src/demoPresets.ts', import.meta.url), 'utf8')
     const readme = readFileSync(new URL('../../README.md', import.meta.url), 'utf8')
     const readmeZh = readFileSync(new URL('../../README(ZH).md', import.meta.url), 'utf8')
@@ -26,6 +27,9 @@ describe('basic demo Entry integration route', () => {
     expect(app.match(/color_scheme: 'light'/g)).toHaveLength(2)
     expect(main).not.toContain('@sjtu-ai4math/snl-basics/style.css')
     expect(main).toContain('@sjtu-ai4math/snl-basics/entry/style.css')
+    expect(viteConfig).toContain('searchForWorkspaceRoot')
+    expect(viteConfig).toContain('server: { fs: { allow:')
+    expect(viteConfig).toContain('packageRoot')
     expect(pkg.dependencies['@sjtu-ai4math/snl-basics']).toBe('file:../..')
     expect(pkg.scripts.postinstall).toBe('node scripts/prepare-local-package.mjs')
     expect(pkg.scripts.predev).toBe('node scripts/prepare-local-package.mjs')
