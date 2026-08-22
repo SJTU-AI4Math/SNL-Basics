@@ -69,6 +69,23 @@ describe('SNL TeX typography contract', () => {
     }
   })
 
+  it('binds the browser gate to its owned ephemeral server and exact fixture', () => {
+    const verifier = read('scripts/verify-root-text-typography.mjs')
+    const fixture = read('test-fixtures/root-text-typography/main.tsx')
+
+    expect(verifier).toContain("import { createServer } from 'vite'")
+    expect(verifier).toContain('reserveEphemeralPort')
+    expect(verifier).toContain("listen({ host: '127.0.0.1', port: 0, exclusive: true }")
+    expect(verifier).toContain('port: requestedPort')
+    expect(verifier).not.toContain('4187')
+    expect(verifier).toContain('__SNL_TYPOGRAPHY_VERIFY_NONCE__')
+    expect(verifier).toContain('await server.close()')
+    expect(fixture).toContain('document.fonts.load(')
+    expect(fixture).toContain("performance.getEntriesByType('resource')")
+    expect(fixture).toContain('__SNL_TYPOGRAPHY_VERIFY_NONCE__')
+    expect(fixture).toContain('cjkFontResources.length > 0')
+  })
+
   it('copies the font stylesheet, WOFF2 files, and license into the packed public artifact', () => {
     const copier = read('scripts/copy-lib-assets.mjs')
     expect(copier).toContain("join(root, 'src/snl-react-view/fonts')")

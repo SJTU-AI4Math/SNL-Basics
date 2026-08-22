@@ -10,6 +10,8 @@ import type { SnlMacro } from '../../src/snl-macro/types'
 import { EntryDataDriver } from '../../src/entry-react/entry-data-driver'
 import { EntrySurface } from '../../src/entry-react/entry-render'
 
+declare const __SNL_TYPOGRAPHY_VERIFY_NONCE__: string
+
 const mode = document.body.dataset.mode
 if (mode === 'entry') await import('../../src/entry-react/style.css')
 else await import('../../src/snl-react-view/style.css')
@@ -115,8 +117,13 @@ async function verify() {
   const cjkWidthDelta = Math.abs(cjkRange.getBoundingClientRect().width - cjkProbe.getBoundingClientRect().width)
   const markerSizeDelta = Math.abs(Number.parseFloat(markerStyle.fontSize) - Number.parseFloat(listTextStyle.fontSize))
   const nestedMarkerSizeDelta = Math.abs(Number.parseFloat(nestedMarkerStyle.fontSize) - Number.parseFloat(nestedListTextStyle.fontSize))
-  const cjkFontLoaded = document.fonts.check(`400 ${rootStyle.fontSize} 'SNL Noto Serif SC'`, '中文')
-  const katexFontLoaded = document.fonts.check(`400 ${rootStyle.fontSize} KaTeX_Main`, 'Hamburgefontsiv')
+  const cjkFaces = await document.fonts.load(`400 ${rootStyle.fontSize} 'SNL Noto Serif SC'`, '中文')
+  const katexFaces = await document.fonts.load(`400 ${rootStyle.fontSize} KaTeX_Main`, 'Hamburgefontsiv')
+  const cjkFontResources = performance.getEntriesByType('resource')
+    .map((entry) => entry.name)
+    .filter((name) => /noto-serif-sc-.+\.woff2(?:[?#]|$)/.test(name))
+  const cjkFontLoaded = cjkFaces.length > 0
+  const katexFontLoaded = katexFaces.length > 0
   const metrics = {
     mode,
     rootClass: root.className,
@@ -129,6 +136,7 @@ async function verify() {
     baselineDelta,
     cjkWidthDelta,
     cjkFontLoaded,
+    cjkFontResources,
     katexFontLoaded,
     markerFamily: markerStyle.fontFamily,
     markerSize: markerStyle.fontSize,
@@ -150,6 +158,7 @@ async function verify() {
     [widthDelta < 0.5, 'root Text 1em glyph metrics differ from KaTeX text'],
     [baselineDelta < 4, 'mixed root Text and formula baseline diverges'],
     [cjkFontLoaded, 'bundled CJK serif face did not load'],
+    [cjkFontResources.length > 0, 'bundled CJK serif loaded without a Noto WOFF2 resource'],
     [katexFontLoaded, 'KaTeX_Main did not load; metrics would only compare fallbacks'],
     [cjkWidthDelta < 0.5, 'root CJK run did not use the bundled serif face'],
     [markerStyle.fontFamily.includes('SNL Noto Serif SC'), 'block marker is outside the TeX prose family'],
@@ -162,11 +171,11 @@ async function verify() {
   const failed = assertions.filter(([ok]) => !ok).map(([, message]) => message)
   const result = document.getElementById('result')!
   result.dataset.status = failed.length ? 'fail' : 'pass'
-  result.textContent = JSON.stringify({ metrics, failed })
+  result.textContent = JSON.stringify({ nonce: __SNL_TYPOGRAPHY_VERIFY_NONCE__, metrics, failed })
 }
 
 verify().catch((error) => {
   const result = document.getElementById('result')!
   result.dataset.status = 'fail'
-  result.textContent = JSON.stringify({ failed: [error instanceof Error ? error.message : String(error)] })
+  result.textContent = JSON.stringify({ nonce: __SNL_TYPOGRAPHY_VERIFY_NONCE__, failed: [error instanceof Error ? error.message : String(error)] })
 })

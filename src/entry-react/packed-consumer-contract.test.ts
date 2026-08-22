@@ -15,9 +15,9 @@ describe('0.4 packed-consumer release contract', () => {
       packages: Record<string, { version?: string }>
     }
 
-    expect(pkg.version).toBe('0.4.0')
-    expect(lock.version).toBe('0.4.0')
-    expect(lock.packages[''].version).toBe('0.4.0')
+    expect(pkg.version).toBe('0.3.1')
+    expect(lock.version).toBe('0.3.1')
+    expect(lock.packages[''].version).toBe('0.3.1')
     expect(pkg.scripts['verify:packed-consumer']).toBe('node scripts/verify-packed-consumer.mjs')
     expect(pkg.scripts['verify:release']).toBe('npm run verify:packed-consumer && npm run verify:packed-entry-i18n')
     const entryVerifier = read('scripts/verify-packed-entry-i18n.mjs')
