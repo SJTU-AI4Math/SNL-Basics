@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.3.0 · MIT License · Beta** — [中文版 README](README(ZH).md)
+**v0.4.0 · MIT License · Beta** — [中文版 README](README(ZH).md)
 
 Structured Natural Language (SNL) base library — parse a macro DSL into syntax
 trees and render them to KaTeX-in-React with hover interactions.
@@ -118,6 +118,8 @@ Import the stylesheets once (KaTeX + the SNL hover/block styles):
 import 'katex/dist/katex.min.css'
 import '@sjtu-ai4math/snl-basics/style.css'
 ```
+
+The public stylesheet ships a deterministic TeX-style prose profile: Latin text uses KaTeX_Main, Simplified Chinese uses the bundled OFL-licensed Noto Serif SC face, and formulae remain under KaTeX's math fonts. Native Text roots, Entry titles, and built-in list markers share the same typography tokens (`--snl-tex-prose-font-family`, `--snl-tex-prose-scale`).
 
 ## 5-minute quickstart
 
@@ -810,5 +812,5 @@ npm pack            # produce the publishable tarball
 
 ## Version & License
 
-- **Version:** `0.3.0` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
+- **Version:** `0.4.0` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
 - **License:** [MIT](LICENSE)

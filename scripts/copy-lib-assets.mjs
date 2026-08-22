@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -46,7 +46,13 @@ makeDeclarationsNodeNextCompatible(entryTypes)
 
 mkdirSync(join(root, 'dist-lib'), { recursive: true })
 copyFileSync(join(root, 'src/snl-react-view/style.css'), join(root, 'dist-lib/style.css'))
-copyFileSync(join(root, 'src/entry-react/style.css'), join(root, 'dist-lib/entry.css'))
+writeFileSync(
+  join(root, 'dist-lib/entry.css'),
+  readFileSync(join(root, 'src/entry-react/style.css'), 'utf8')
+    .replace("@import '../snl-react-view/style.css';", "@import './style.css';"),
+)
+rmSync(join(root, 'dist-lib/fonts'), { recursive: true, force: true })
+cpSync(join(root, 'src/snl-react-view/fonts'), join(root, 'dist-lib/fonts'), { recursive: true })
 writeFileSync(join(root, 'dist-lib/style-css.d.ts'), 'declare const css: string\nexport default css\n')
 writeFileSync(join(root, 'dist-lib/entry.d.ts'), "export * from './entry-types/entry-react/index.js'\n")
 writeFileSync(join(root, 'dist-lib/core.d.ts'), `export {

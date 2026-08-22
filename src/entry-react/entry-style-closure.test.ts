@@ -22,8 +22,20 @@ function expectDeclaration(body: string, property: string, value: string): void 
 describe('public Entry stylesheet closure', () => {
   it('owns scoped textual SNL wrapping and intrinsic-island resets', () => {
     const css = read('src/entry-react/style.css')
+    expect(css.startsWith("@import '../snl-react-view/style.css';")).toBe(true)
+
+    const surface = rule(css, '[data-entry-id]')
+    expectDeclaration(surface, '--snl-tex-prose-font-family', "KaTeX_Main, 'SNL Noto Serif SC', serif")
+    expectDeclaration(surface, '--snl-tex-prose-scale', '1.21em')
+
+    const title = rule(css, '.snl-entry-title > span')
+    expectDeclaration(title, 'font-family', 'var(--snl-tex-prose-font-family)')
+
     const text = rule(css, '[data-entry-body] .snl-text')
-    expectDeclaration(text, 'font', "normal 1.21em KaTeX_Main, 'Times New Roman', serif")
+    expectDeclaration(text, 'font-family', 'var(--snl-tex-prose-font-family)')
+    expectDeclaration(text, 'font-size', 'var(--snl-tex-prose-scale)')
+    expectDeclaration(text, 'font-style', 'normal')
+    expectDeclaration(text, 'font-weight', '400')
     expectDeclaration(text, 'line-height', '1.2')
     expectDeclaration(text, 'min-width', '0')
     expectDeclaration(text, 'max-width', '100%')
@@ -71,11 +83,11 @@ describe('public Entry stylesheet closure', () => {
   it('exports and verifies the byte-copied Entry stylesheet before packing', () => {
     const pkg = JSON.parse(read('package.json'))
     expect(pkg.exports['./entry/style.css'].default).toBe('./dist-lib/entry.css')
-    expect(read('scripts/copy-lib-assets.mjs')).toContain("copyFileSync(join(root, 'src/entry-react/style.css'), join(root, 'dist-lib/entry.css'))")
+    expect(read('scripts/copy-lib-assets.mjs')).toContain(".replace(\"@import '../snl-react-view/style.css';\", \"@import './style.css';\")")
     expect(pkg.scripts['build:lib']).toContain('node scripts/verify-entry-style-closure.mjs')
     const verifier = read('scripts/verify-entry-style-closure.mjs')
     expect(verifier).toContain("readFileSync(join(root, 'src/entry-react/style.css'), 'utf8')")
     expect(verifier).toContain("readFileSync(join(root, 'dist-lib/entry.css'), 'utf8')")
-    expect(verifier).toContain('public Entry stylesheet is not a byte-for-byte copy')
+    expect(verifier).toContain('public Entry stylesheet is not the normalized source copy')
   })
 })

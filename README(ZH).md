@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.3.0 · MIT License · Beta** — [English README](README.md)
+**v0.4.0 · MIT License · Beta** — [English README](README.md)
 
 结构化自然语言（Structured Natural Language, SNL）基础库 —— 将宏 DSL 解析为语法树，
 并渲染为带悬停交互的 KaTeX-in-React。
@@ -102,6 +102,8 @@ npm i @sjtu-ai4math/snl-basics katex react react-dom
 import 'katex/dist/katex.min.css'
 import '@sjtu-ai4math/snl-basics/style.css'
 ```
+
+公共样式表自带确定性的 TeX 风格正文方案：拉丁文字使用 `KaTeX_Main`，简体中文使用包内随附、采用 OFL 许可证的 Noto Serif SC，公式仍由 KaTeX 的数学字体负责。原生 Text 根、Entry 标题和内置列表标号共享 `--snl-tex-prose-font-family` 与 `--snl-tex-prose-scale` 两个排版变量。
 
 ## 5 分钟上手
 
@@ -701,5 +703,5 @@ npm pack            # 产出可发布的 tarball
 
 ## 版本与许可证
 
-- **版本：** `0.3.0`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
+- **版本：** `0.4.0`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
 - **许可证：** [MIT](LICENSE)

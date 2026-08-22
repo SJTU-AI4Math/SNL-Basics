@@ -1,3 +1,5 @@
+@import './fonts/noto-serif-sc-400.css';
+
 /* SNL 语法树 KaTeX 视图：与 SnlSyntaxTreeView 配套；使用前请同时引入 katex/dist/katex.min.css
  *
  * Design note (2026-07-04 猫猫): this stylesheet must NOT paint the wrapping
@@ -30,6 +32,8 @@
 .katex-html {
   --snl-c-hover-accent:     #f59e0b;
   --snl-c-hover-bg:         rgba(245, 158, 11, 0.10);
+  --snl-tex-prose-font-family: KaTeX_Main, 'SNL Noto Serif SC', serif;
+  --snl-tex-prose-scale: 1.21em;
 }
 
 /* Per-kind colors (base text + hover treatment) and the binding-scope highlight
@@ -123,7 +127,10 @@
          compound either.
 */
 .snl-text {
-  font: normal 1.21em KaTeX_Main, 'Times New Roman', serif;
+  font-family: var(--snl-tex-prose-font-family);
+  font-size: var(--snl-tex-prose-scale);
+  font-style: normal;
+  font-weight: 400;
   line-height: 1.2;
   min-width: 0;
   max-width: 100%;
@@ -159,8 +166,26 @@
 .snl-block-list {
   padding-left: 2em;
 }
+.snl-block-list > li::marker {
+  font-family: var(--snl-tex-prose-font-family);
+  font-size: var(--snl-tex-prose-scale);
+  font-style: normal;
+  font-weight: 400;
+}
 .snl-block-enumerate {
   padding-left: 2em;
+}
+.snl-block-enumerate > li::marker {
+  font-family: var(--snl-tex-prose-font-family);
+  font-size: var(--snl-tex-prose-scale);
+  font-style: normal;
+  font-weight: 400;
+}
+.snl-text .snl-block-list > li::marker {
+  font-size: 1em;
+}
+.snl-text .snl-block-enumerate > li::marker {
+  font-size: 1em;
 }
 .snl-block-table {
   border-collapse: collapse;

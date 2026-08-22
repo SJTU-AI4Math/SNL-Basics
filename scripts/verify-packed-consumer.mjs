@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -54,6 +54,16 @@ try {
     throw new Error('packed root CSS is missing the formula foreign marker/surface contract')
   }
   if (!entryCss.includes('.snl-markdown-body')) throw new Error('packed Entry CSS is missing .snl-markdown-body')
+  if (!rootCss.includes("@import './fonts/noto-serif-sc-400.css'")) throw new Error('packed root CSS is missing the bundled CJK font import')
+  if (!entryCss.includes("@import './style.css'")) throw new Error('packed Entry CSS does not compose the public root stylesheet')
+  const packedFontDirectory = join(installed, 'dist-lib', 'fonts')
+  const packedCjkFonts = readdirSync(packedFontDirectory).filter(name => name.endsWith('.woff2'))
+  if (packedCjkFonts.length !== 101) throw new Error(`expected 101 packed CJK WOFF2 subsets, got ${packedCjkFonts.length}`)
+  const packedFontCss = readFileSync(join(packedFontDirectory, 'noto-serif-sc-400.css'), 'utf8')
+  if (!packedFontCss.includes('SNL Noto Serif SC')) throw new Error('packed CJK CSS has the wrong family')
+  if (!readFileSync(join(packedFontDirectory, 'OFL.txt'), 'utf8').includes('SIL OPEN FONT LICENSE Version 1.1')) {
+    throw new Error('packed CJK font license is missing')
+  }
 
   const fixture = `
 import { createElement } from 'react';
@@ -152,6 +162,12 @@ void [surface, surfaceProps, runtime, tree, formulaRenderer, svgRenderer, projec
 
   run(join(consumer, 'node_modules', '.bin', 'tsc'), ['--noEmit'], consumer)
   run(join(consumer, 'node_modules', '.bin', 'vite'), ['build'], consumer)
+  const builtAssets = readdirSync(join(consumer, 'dist', 'assets'))
+  const builtCss = builtAssets.filter(name => name.endsWith('.css')).map(name => readFileSync(join(consumer, 'dist', 'assets', name), 'utf8')).join('\n')
+  if (!builtCss.includes('SNL Noto Serif SC')) throw new Error('consumer build dropped the CJK font faces')
+  if (!builtAssets.some(name => name.includes('noto-serif-sc') && name.endsWith('.woff2'))) {
+    throw new Error('consumer build did not emit bundled CJK WOFF2 assets')
+  }
 
   const smoke = `
 import {

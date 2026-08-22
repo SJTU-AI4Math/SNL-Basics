@@ -8,8 +8,9 @@ const publicCss = readFileSync(join(root, 'dist-lib/entry.css'), 'utf8')
 const harness = readFileSync(join(root, 'test-fixtures/entry-narrow/main.tsx'), 'utf8')
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 
-if (source !== publicCss) {
-  throw new Error('public Entry stylesheet is not a byte-for-byte copy of src/entry-react/style.css')
+const expectedPublicCss = source.replace("@import '../snl-react-view/style.css';", "@import './style.css';")
+if (expectedPublicCss !== publicCss) {
+  throw new Error('public Entry stylesheet is not the normalized source copy of src/entry-react/style.css')
 }
 if (pkg.exports?.['./entry/style.css']?.default !== './dist-lib/entry.css') {
   throw new Error('entry/style.css does not export dist-lib/entry.css')

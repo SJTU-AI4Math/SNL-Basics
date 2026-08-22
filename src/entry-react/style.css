@@ -1,3 +1,14 @@
+@import '../snl-react-view/style.css';
+
+[data-entry-id] {
+  --snl-tex-prose-font-family: KaTeX_Main, 'SNL Noto Serif SC', serif;
+  --snl-tex-prose-scale: 1.21em;
+}
+
+.snl-entry-title > span {
+  font-family: var(--snl-tex-prose-font-family);
+}
+
 .snl-markdown-body {
   box-sizing: border-box;
   min-width: 0;
@@ -222,7 +233,10 @@
    standalone snl-react-view stylesheet. Keep these containment rules scoped
    to the public Entry body so they do not restyle standalone syntax trees. */
 [data-entry-body] .snl-text {
-  font: normal 1.21em KaTeX_Main, 'Times New Roman', serif;
+  font-family: var(--snl-tex-prose-font-family);
+  font-size: var(--snl-tex-prose-scale);
+  font-style: normal;
+  font-weight: 400;
   line-height: 1.2;
   min-width: 0;
   max-width: 100%;
