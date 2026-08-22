@@ -362,7 +362,6 @@ import {
   EntryPreviewProvider,
   resolveEntryContextSources,
 } from '@sjtu-ai4math/snl-basics/entry'
-import '@sjtu-ai4math/snl-basics/style.css'
 import '@sjtu-ai4math/snl-basics/entry/style.css'
 ```
 

@@ -88,7 +88,6 @@ import {
   type EntrySurfaceProps,
 } from '@sjtu-ai4math/snl-basics/entry';
 import { ReaderRuntime, type LanguageEnvironment } from '@sjtu-ai4math/snl-basics/runtime';
-import '@sjtu-ai4math/snl-basics/style.css';
 import '@sjtu-ai4math/snl-basics/entry/style.css';
 
 const svgSource = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 10"><g data-snl-slot="0"/></svg>';
@@ -164,6 +163,11 @@ void [surface, surfaceProps, runtime, tree, formulaRenderer, svgRenderer, projec
   run(join(consumer, 'node_modules', '.bin', 'vite'), ['build'], consumer)
   const builtAssets = readdirSync(join(consumer, 'dist', 'assets'))
   const builtCss = builtAssets.filter(name => name.endsWith('.css')).map(name => readFileSync(join(consumer, 'dist', 'assets', name), 'utf8')).join('\n')
+  const sourceFontFaceCount = (packedFontCss.match(/@font-face/g) ?? []).length
+  const builtFontFaceCount = (builtCss.match(/@font-face/g) ?? []).length
+  if (builtFontFaceCount !== sourceFontFaceCount) {
+    throw new Error(`consumer build duplicated or dropped font faces: expected ${sourceFontFaceCount}, got ${builtFontFaceCount}`)
+  }
   if (!builtCss.includes('SNL Noto Serif SC')) throw new Error('consumer build dropped the CJK font faces')
   if (!builtAssets.some(name => name.includes('noto-serif-sc') && name.endsWith('.woff2'))) {
     throw new Error('consumer build did not emit bundled CJK WOFF2 assets')

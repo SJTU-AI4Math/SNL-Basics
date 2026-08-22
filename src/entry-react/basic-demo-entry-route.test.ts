@@ -24,7 +24,7 @@ describe('basic demo Entry integration route', () => {
     expect(app).not.toContain('prefers-color-scheme: dark')
     expect(app).not.toContain("color_scheme: 'dark'")
     expect(app.match(/color_scheme: 'light'/g)).toHaveLength(2)
-    expect(main).toContain('@sjtu-ai4math/snl-basics/style.css')
+    expect(main).not.toContain('@sjtu-ai4math/snl-basics/style.css')
     expect(main).toContain('@sjtu-ai4math/snl-basics/entry/style.css')
     expect(pkg.dependencies['@sjtu-ai4math/snl-basics']).toBe('file:../..')
     expect(pkg.scripts.postinstall).toBe('node scripts/prepare-local-package.mjs')

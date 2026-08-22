@@ -14,7 +14,6 @@ import {
   EntryPreviewProvider,
   EntryView,
 } from '@sjtu-ai4math/snl-basics/entry'
-import '@sjtu-ai4math/snl-basics/style.css'
 import '@sjtu-ai4math/snl-basics/entry/style.css'
 import 'katex/dist/katex.min.css'
 

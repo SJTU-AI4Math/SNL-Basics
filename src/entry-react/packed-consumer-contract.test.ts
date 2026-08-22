@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 const root = new URL('../../', import.meta.url)
 const read = (path: string): string => readFileSync(new URL(path, root), 'utf8')
 
-describe('0.4 packed-consumer release contract', () => {
+describe('0.3.1 packed-consumer release contract', () => {
   it('versions the candidate and wires a non-recursive release verifier', () => {
     const pkg = JSON.parse(read('package.json')) as {
       version: string
@@ -34,8 +34,9 @@ describe('0.4 packed-consumer release contract', () => {
     expect(verifier).toContain("from '@sjtu-ai4math/snl-basics';")
     expect(verifier).toContain("from '@sjtu-ai4math/snl-basics/entry';")
     expect(verifier).toContain("from '@sjtu-ai4math/snl-basics/runtime';")
-    expect(verifier).toContain("import '@sjtu-ai4math/snl-basics/style.css';")
+    expect(verifier).not.toContain("import '@sjtu-ai4math/snl-basics/style.css';")
     expect(verifier).toContain("import '@sjtu-ai4math/snl-basics/entry/style.css';")
+    expect(verifier).toContain('builtFontFaceCount !== sourceFontFaceCount')
     expect(verifier).toContain('skipLibCheck: false')
     expect(verifier).toContain("'.bin', 'vite'")
     expect(verifier).toContain("['build']")
@@ -60,10 +61,14 @@ describe('0.4 packed-consumer release contract', () => {
     expect(readmeZh).not.toMatch(/build:lib[^\n]*核心宏数据库/)
   })
 
-  it('loads root CSS in the source-linked Entry demo', () => {
+  it('loads the complete Entry stylesheet exactly once in consumers and docs', () => {
     const main = read('examples/basic-demo/src/main.tsx')
-    expect(main).toContain("import '@sjtu-ai4math/snl-basics/style.css'")
+    expect(main).not.toContain("import '@sjtu-ai4math/snl-basics/style.css'")
     expect(main).toContain("import '@sjtu-ai4math/snl-basics/entry/style.css'")
+    for (const path of ['README.md', 'README(ZH).md', 'docs/api.md', 'docs/entry-rendering.md']) {
+      const document = read(path)
+      expect(document).not.toMatch(/snl-basics\/style\.css['"]\s*\n\s*import ['"]@sjtu-ai4math\/snl-basics\/entry\/style\.css/)
+    }
   })
 
   it('documents the honest static/no-measurement limit', () => {
