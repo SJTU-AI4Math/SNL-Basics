@@ -85,6 +85,17 @@ function scheduleGeometry(state: HighlightGeometryState): void {
   }
 }
 
+function classWithoutHoverMarks(value: string | null): string {
+  const hoverClasses = new Set<string>(ALL_HOVER_CLASSES)
+  return (value ?? '').split(/\s+/).filter((name) => name && !hoverClasses.has(name)).sort().join(' ')
+}
+
+function mutationAffectsGeometry(record: MutationRecord): boolean {
+  if (record.type !== 'attributes' || record.attributeName !== 'class') return true
+  return classWithoutHoverMarks(record.oldValue) !==
+    classWithoutHoverMarks((record.target as Element).getAttribute('class'))
+}
+
 function observeGeometry(state: HighlightGeometryState): void {
   state.resizeObserver?.disconnect()
   state.mutationObservers.forEach((observer) => observer.disconnect())
@@ -93,13 +104,24 @@ function observeGeometry(state: HighlightGeometryState): void {
   for (const fragment of state.fragments) {
     state.resizeObserver?.observe(fragment)
     for (const descendant of fragment.querySelectorAll('*')) state.resizeObserver?.observe(descendant)
-    if (typeof MutationObserverCtor === 'function') {
-      const observer = new MutationObserverCtor(() => {
-        observeGeometry(state)
-        syncGeometry(state)
-      })
-      observer.observe(fragment, { attributes: true, childList: true, subtree: true })
+  }
+  if (typeof MutationObserverCtor === 'function') {
+    const onMutation = (records: MutationRecord[]) => {
+      if (!records.some(mutationAffectsGeometry)) return
+      if (records.some((record) => record.type === 'childList')) observeGeometry(state)
+      syncGeometry(state)
+    }
+    const subtreeObserver = new MutationObserverCtor(onMutation)
+    subtreeObserver.observe(state.container, {
+      attributes: true, attributeOldValue: true, childList: true, subtree: true,
+    })
+    state.mutationObservers.push(subtreeObserver)
+    let ancestor = state.container.parentElement
+    while (ancestor) {
+      const observer = new MutationObserverCtor(onMutation)
+      observer.observe(ancestor, { attributes: true, attributeOldValue: true })
       state.mutationObservers.push(observer)
+      ancestor = ancestor.parentElement
     }
   }
 }
@@ -203,8 +225,7 @@ export function applySnlHoverHighlight(
     previousGeometry.fragments.length === singleHoverFragments.length &&
     previousGeometry.fragments.every((fragment, index_) => fragment === singleHoverFragments[index_])
   if (view && singleHoverFragments.length > 0) {
-    if (sameGeometry) scheduleGeometry(previousGeometry)
-    else {
+    if (!sameGeometry) {
       removeGeometryState(container)
       installGeometryState(container, singleHoverFragments, view)
     }
