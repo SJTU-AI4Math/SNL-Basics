@@ -10,6 +10,11 @@ import {
 
 const app = document.getElementById('app') as HTMLElement
 const result = document.getElementById('result') as HTMLElement
+Object.assign(document.documentElement.style, {
+  position: 'relative',
+  border: '13px solid transparent',
+  padding: '7px',
+})
 Object.assign(document.body.style, { margin: '40px', fontSize: '28px', minHeight: '1200px' })
 app.className = 'katex-html'
 Object.assign(app.style, { transform: 'translate(80px, 40px) rotate(30deg) scale(1.25)', transformOrigin: '0 0' })
@@ -99,6 +104,24 @@ requestAnimationFrame(async () => {
     if (!close(grownPaint.left, grownUnion.left) || !close(grownPaint.top, grownUnion.top) ||
         !close(grownPaint.width, grownUnion.width) || !close(grownPaint.height, grownUnion.height)) {
       throw new Error(`Highlight did not track growth: paint=${JSON.stringify(grownPaint.toJSON())} union=${JSON.stringify(grownUnion)}`)
+    }
+
+    Object.assign(document.documentElement.style, { height: '100%', overflow: 'hidden' })
+    Object.assign(document.body.style, { height: '400px', minHeight: '0', overflow: 'auto' })
+    const bodySpacer = document.createElement('div')
+    bodySpacer.style.height = '1200px'
+    document.body.append(bodySpacer)
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 50))
+    const beforeBodyScroll = measureSemanticHighlightRect(parent)!
+    document.body.scrollTop = 100
+    document.body.dispatchEvent(new Event('scroll'))
+    const bodyScrolledUnion = measureSemanticHighlightRect(parent)!
+    if (!(bodyScrolledUnion.top < beforeBodyScroll.top - 50)) {
+      throw new Error(`Fixture did not create an independently scrolling body: ${beforeBodyScroll.top} -> ${bodyScrolledUnion.top}`)
+    }
+    const bodyScrolledPaint = overlay.getBoundingClientRect()
+    if (!close(bodyScrolledPaint.left, bodyScrolledUnion.left) || !close(bodyScrolledPaint.top, bodyScrolledUnion.top)) {
+      throw new Error(`Highlight floated in independently scrolling body: paint=(${bodyScrolledPaint.left},${bodyScrolledPaint.top}) union=(${bodyScrolledUnion.left},${bodyScrolledUnion.top})`)
     }
 
     const payload = {

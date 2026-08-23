@@ -61,9 +61,15 @@ function syncGeometry(state: HighlightGeometryState): void {
       return
     }
     overlay.hidden = false
+    // Absolute offsets are relative to the actual containing-block origin,
+    // which can be shifted by author borders/padding on the root element.
+    // Measuring this owned overlay at (0, 0) avoids assuming an unstyled html.
+    overlay.style.left = '0px'
+    overlay.style.top = '0px'
+    const origin = overlay.getBoundingClientRect()
     Object.assign(overlay.style, {
-      left: `${rect.left + state.view.scrollX}px`,
-      top: `${rect.top + state.view.scrollY}px`,
+      left: `${rect.left - origin.left}px`,
+      top: `${rect.top - origin.top}px`,
       width: `${rect.width}px`,
       height: `${rect.height}px`,
     })
@@ -172,7 +178,7 @@ function installGeometryState(container: HTMLElement, fragments: HTMLElement[], 
   state.onScroll = (event) => {
     const document = state.container.ownerDocument
     if (event.target === state.view || event.target === document ||
-        event.target === document.documentElement || event.target === document.body) {
+        event.target === document.scrollingElement) {
       // Root scrolling moves an absolute document-coordinate overlay together
       // with its target without any JavaScript correction.
       return
