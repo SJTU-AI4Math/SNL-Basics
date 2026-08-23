@@ -42,6 +42,11 @@ interface HighlightGeometryState {
   onViewportChange: () => void
 }
 
+type ObserverWindow = Window & {
+  MutationObserver?: typeof MutationObserver
+  ResizeObserver?: typeof ResizeObserver
+}
+
 const geometryStates = new WeakMap<HTMLElement, HighlightGeometryState>()
 
 function syncGeometry(state: HighlightGeometryState): void {
@@ -84,11 +89,12 @@ function observeGeometry(state: HighlightGeometryState): void {
   state.resizeObserver?.disconnect()
   state.mutationObservers.forEach((observer) => observer.disconnect())
   state.mutationObservers = []
+  const MutationObserverCtor = (state.view as ObserverWindow).MutationObserver
   for (const fragment of state.fragments) {
     state.resizeObserver?.observe(fragment)
     for (const descendant of fragment.querySelectorAll('*')) state.resizeObserver?.observe(descendant)
-    if (typeof MutationObserver === 'function') {
-      const observer = new MutationObserver(() => {
+    if (typeof MutationObserverCtor === 'function') {
+      const observer = new MutationObserverCtor(() => {
         observeGeometry(state)
         syncGeometry(state)
       })
@@ -134,8 +140,9 @@ function installGeometryState(container: HTMLElement, fragments: HTMLElement[], 
     onViewportChange: () => {},
   }
   state.onViewportChange = () => scheduleGeometry(state)
-  state.resizeObserver = typeof ResizeObserver === 'function'
-    ? new ResizeObserver(() => syncGeometry(state))
+  const ResizeObserverCtor = (view as ObserverWindow).ResizeObserver
+  state.resizeObserver = typeof ResizeObserverCtor === 'function'
+    ? new ResizeObserverCtor(() => syncGeometry(state))
     : null
   geometryStates.set(container, state)
   view.addEventListener('scroll', state.onViewportChange, true)
