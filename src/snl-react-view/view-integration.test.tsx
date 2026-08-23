@@ -81,16 +81,25 @@ describe('data-tree-path DOM attribute', () => {
   })
 
   it('selects a deeper child represented later in the point stack instead of an escaped parent layout box', async () => {
+    const clickableDb: SnlMacroRecord = Object.fromEntries(Object.entries(db).map(([name, macro]) => [
+      name,
+      { ...macro, source: { entries: [`${name}-entry`], urls: [] } },
+    ]))
     const tree = createSnlSyntaxTreeNode('sum', {
       children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')],
     })
-    const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} />)
+    const { container } = render(<SnlSyntaxTreeView
+      tree={tree}
+      macro_data_driver={testDriver(clickableDb)}
+      interaction_driver={new SnlInteractionDriver({ on_click: vi.fn() })}
+    />)
     const parent = await waitFor(() => {
       const found = container.querySelector<HTMLElement>('[data-tree-path=""]')
       expect(found).not.toBeNull()
       return found!
     })
     const child = container.querySelector<HTMLElement>('[data-tree-path="1"]')!
+    await waitFor(() => expect(parent.dataset.snlKeyboardActivation).toBe('true'))
     const rect = { left: 10, top: 20, right: 50, bottom: 60, width: 40, height: 40 } as DOMRect
     child.getClientRects = () => Object.assign([rect], { item: (index: number) => index === 0 ? rect : null })
     const parentLayout = parent

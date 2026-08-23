@@ -162,7 +162,9 @@ const OWNED_INTERACTION_SELECTOR = [
 function hasOwnedInteractionBoundary(start: Element, activationRoot: HTMLElement): boolean {
   let current: Element | null = start
   while (current && current !== activationRoot) {
-    if (current.matches(OWNED_INTERACTION_SELECTOR)) return true
+    const isGeneratedSnlKeyboardRoot =
+      current instanceof HTMLElement && current.dataset.snlKeyboardActivation === 'true'
+    if (!isGeneratedSnlKeyboardRoot && current.matches(OWNED_INTERACTION_SELECTOR)) return true
     current = current.parentElement
   }
   return false
