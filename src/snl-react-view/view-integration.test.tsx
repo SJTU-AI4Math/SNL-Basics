@@ -117,6 +117,9 @@ describe('data-tree-path DOM attribute', () => {
       expect(parent.classList.contains('snl-single-hover')).toBe(false)
       const activeOverlay = Array.from(document.querySelectorAll<HTMLElement>('[data-snl-highlight-overlay]'))
         .find((overlay) => overlay.style.left === '10px')!
+      fireEvent.mouseMove(parentLayout, { clientX: 4, clientY: 5 })
+      expect(Array.from(document.querySelectorAll('[data-snl-highlight-overlay]'))).toContain(activeOverlay)
+      expect(activeOverlay.isConnected).toBe(true)
       fireEvent.mouseLeave(container.querySelector('div.katex-html')!)
       expect(child.classList.contains('snl-highlight-geometry')).toBe(false)
       expect(child.style.getPropertyValue('--snl-highlight-left')).toBe('')

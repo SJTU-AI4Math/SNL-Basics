@@ -58,6 +58,10 @@ requestAnimationFrame(async () => {
       throw new Error(`Painted geometry ${JSON.stringify(painted)} != union ${JSON.stringify(union)}`)
     }
     if (getComputedStyle(overlay).pointerEvents !== 'none') throw new Error('Highlight frame intercepts pointers')
+    const sourceBackground = getComputedStyle(parent).backgroundColor
+    if (sourceBackground === 'transparent' || sourceBackground === 'rgba(0, 0, 0, 0)') {
+      throw new Error('Primary palette background was suppressed')
+    }
     if (getComputedStyle(parent).position !== 'static') {
       throw new Error('Highlight must not create a containing block for positioned descendants')
     }
@@ -91,6 +95,7 @@ requestAnimationFrame(async () => {
       grownUnion,
       grownPaint: { left: grownPaint.left, top: grownPaint.top, width: grownPaint.width, height: grownPaint.height },
       pointerEvents: getComputedStyle(overlay).pointerEvents,
+      sourceBackground,
       sourcePosition: getComputedStyle(parent).position,
       transform: app.style.transform,
       scrollTop: window.scrollY,

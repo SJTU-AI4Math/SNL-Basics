@@ -104,6 +104,20 @@ describe('findMinimalHoverRoot with kind=sub', () => {
     expect(resolveDeepestHoverHitFromStack([content, button, root], container)).toEqual({ root, hit: content })
   })
 
+  it('resolves elements using the container document realm', () => {
+    const frame = document.createElement('iframe')
+    document.body.append(frame)
+    const foreignDocument = frame.contentDocument!
+    const container = foreignDocument.createElement('div')
+    container.innerHTML = '<span data-name="root" data-kind="const"><span class="leaf"></span></span>'
+    foreignDocument.body.append(container)
+    const root = container.querySelector<HTMLElement>('[data-name="root"]')!
+    const leaf = container.querySelector('.leaf')!
+
+    expect(resolveDeepestHoverHitFromStack([leaf, root], container)).toEqual({ root, hit: leaf })
+    frame.remove()
+  })
+
   it('measures the visible descendant union instead of the undersized semantic line box', () => {
     const container = document.createElement('div')
     container.innerHTML = `

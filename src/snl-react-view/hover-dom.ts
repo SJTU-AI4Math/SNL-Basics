@@ -79,9 +79,12 @@ export function resolveDeepestHoverHitFromStack(
     ancestor !== null && descendant !== null && descendant.length > ancestor.length &&
     ancestor.every((part, index) => descendant[index] === part)
 
+  const HTMLElementCtor = container.ownerDocument.defaultView?.HTMLElement
   for (const element of stack) {
     if (!container.contains(element)) continue
-    const start = element instanceof HTMLElement ? element : element.parentElement
+    const start = HTMLElementCtor && element instanceof HTMLElementCtor
+      ? element as HTMLElement
+      : element.parentElement
     if (!start) continue
     const candidate = findMinimalHoverRoot(start, container)
     if (!candidate.hasAttribute('data-name') || candidate.dataset.kind === 'sub') continue

@@ -92,10 +92,9 @@
 }
 
 /* KaTeX metadata spans can under-bound fractions, limits and vlists. The
-   semantic source keeps only text colour; a document-root viewport overlay
-   paints the authoritative descendant-union frame without entering hit tests. */
+   semantic source retains its palette fill and text colour, while a
+   document-root viewport overlay paints the authoritative full-size frame. */
 .katex-html .snl-single-hover.snl-highlight-geometry {
-  background: transparent !important;
   box-shadow: none !important;
 }
 

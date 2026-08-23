@@ -40,6 +40,7 @@ interface HighlightGeometryState {
   scheduled: number | null
   scheduleKind: 'raf' | 'timeout' | null
   onViewportChange: () => void
+  disposed: boolean
 }
 
 type ObserverWindow = Window & {
@@ -50,6 +51,7 @@ type ObserverWindow = Window & {
 const geometryStates = new WeakMap<HTMLElement, HighlightGeometryState>()
 
 function syncGeometry(state: HighlightGeometryState): void {
+  if (state.disposed) return
   state.fragments.forEach((fragment, index) => {
     const overlay = state.overlays[index]
     const rect = measureSemanticHighlightRect(fragment)
@@ -70,6 +72,7 @@ function syncGeometry(state: HighlightGeometryState): void {
 }
 
 function scheduleGeometry(state: HighlightGeometryState): void {
+  if (state.disposed) return
   if (state.scheduled !== null) return
   const run = () => {
     state.scheduled = null
@@ -97,6 +100,7 @@ function mutationAffectsGeometry(record: MutationRecord): boolean {
 }
 
 function observeGeometry(state: HighlightGeometryState): void {
+  if (state.disposed) return
   state.resizeObserver?.disconnect()
   state.mutationObservers.forEach((observer) => observer.disconnect())
   state.mutationObservers = []
@@ -129,6 +133,7 @@ function observeGeometry(state: HighlightGeometryState): void {
 function removeGeometryState(container: HTMLElement): void {
   const state = geometryStates.get(container)
   if (!state) return
+  state.disposed = true
   state.resizeObserver?.disconnect()
   state.mutationObservers.forEach((observer) => observer.disconnect())
   state.view.removeEventListener('scroll', state.onViewportChange, true)
@@ -160,6 +165,7 @@ function installGeometryState(container: HTMLElement, fragments: HTMLElement[], 
     scheduled: null,
     scheduleKind: null,
     onViewportChange: () => {},
+    disposed: false,
   }
   state.onViewportChange = () => scheduleGeometry(state)
   const ResizeObserverCtor = (view as ObserverWindow).ResizeObserver

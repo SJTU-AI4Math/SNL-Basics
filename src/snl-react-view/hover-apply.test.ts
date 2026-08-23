@@ -119,6 +119,43 @@ describe('applySnlHoverHighlight', () => {
     expect(getClientRects).toHaveBeenCalledTimes(1)
   })
 
+  it('does not let a retained observer callback recreate geometry after cleanup', () => {
+    const original = window.MutationObserver
+    const callbacks: MutationCallback[] = []
+    const instances: Array<{ observe: () => void; disconnect: () => void; takeRecords: () => MutationRecord[] }> = []
+    class RetainedMutationObserver {
+      constructor(callback: MutationCallback) {
+        callbacks.push(callback)
+        instances.push(this)
+      }
+      observe() {}
+      disconnect() {}
+      takeRecords(): MutationRecord[] { return [] }
+    }
+    Object.defineProperty(window, 'MutationObserver', {
+      configurable: true,
+      value: RetainedMutationObserver as unknown as typeof MutationObserver,
+    })
+    try {
+      const container = mount('<span id="t" data-kind="const" data-name="c">c</span>')
+      const rect = { left: 10, top: 20, right: 50, bottom: 40, width: 40, height: 20 } as DOMRect
+      byId('t').getClientRects = () => Object.assign([rect], { item: (index: number) => index === 0 ? rect : null })
+      applySnlHoverHighlight(byId('t'), container)
+      const ownedOverlay = document.querySelector<HTMLElement>('[data-snl-highlight-overlay]')!
+      const observerCount = instances.length
+
+      clearSnlHoverHighlight(container)
+      callbacks[0]([
+        { type: 'childList', target: byId('t') } as unknown as MutationRecord,
+      ], instances[0] as MutationObserver)
+
+      expect(instances).toHaveLength(observerCount)
+      expect(ownedOverlay.isConnected).toBe(false)
+    } finally {
+      Object.defineProperty(window, 'MutationObserver', { configurable: true, value: original })
+    }
+  })
+
   it('lights up only the hovered bvar\'s own binding scope', () => {
     const container = mount(TWO_SCOPES)
     applySnlHoverHighlight(byId('bvar1'), container)

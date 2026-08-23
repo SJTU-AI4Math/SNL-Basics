@@ -161,9 +161,11 @@ const OWNED_INTERACTION_SELECTOR = [
 /** True when a descendant control owns the event before its SNL activation root. */
 function hasOwnedInteractionBoundary(start: Element, activationRoot: HTMLElement): boolean {
   let current: Element | null = start
+  const HTMLElementCtor = activationRoot.ownerDocument.defaultView?.HTMLElement
   while (current && current !== activationRoot) {
     const isGeneratedSnlKeyboardRoot =
-      current instanceof HTMLElement && current.dataset.snlKeyboardActivation === 'true'
+      HTMLElementCtor && current instanceof HTMLElementCtor &&
+      (current as HTMLElement).dataset.snlKeyboardActivation === 'true'
     if (!isGeneratedSnlKeyboardRoot && current.matches(OWNED_INTERACTION_SELECTOR)) return true
     current = current.parentElement
   }
@@ -1441,7 +1443,6 @@ export function SnlSyntaxTreeView({
     container: HTMLElement,
     phase: 0 | 1 | 2 = 0,
   ) => {
-    clearHoverMarks()
     const set = applySnlHoverHighlight(target, container, {
       strategy: mergedHooks.highlightStrategy ?? defaultRenderHooks.highlightStrategy!,
       bvarScopeIndex: bvarScopeIndexRef.current,
@@ -1487,7 +1488,7 @@ export function SnlSyntaxTreeView({
     // KaTeX's escaped vlist descendants can put an outer parent primitive in
     // front of a deeper child at the same point. Resolve every hit stack member
     // and choose the deepest semantic candidate rather than trusting item zero.
-    const pointStack = document.elementsFromPoint(event.clientX, event.clientY)
+    const pointStack = container.ownerDocument.elementsFromPoint(event.clientX, event.clientY)
     const resolved = resolveDeepestHoverHitFromStack(pointStack, container)
     const hit = resolved?.root ?? null
     // Keep explicit semantic and owned-control guards at this delegated-event
