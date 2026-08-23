@@ -91,6 +91,8 @@ describe('data-tree-path DOM attribute', () => {
       return found!
     })
     const child = container.querySelector<HTMLElement>('[data-tree-path="1"]')!
+    const rect = { left: 10, top: 20, right: 50, bottom: 60, width: 40, height: 40 } as DOMRect
+    child.getClientRects = () => Object.assign([rect], { item: (index: number) => index === 0 ? rect : null })
     const parentLayout = parent
     const childLayout = child.querySelector<HTMLElement>('*') ?? child
     const original = document.elementsFromPoint
@@ -101,7 +103,12 @@ describe('data-tree-path DOM attribute', () => {
     try {
       fireEvent.mouseMove(parentLayout, { clientX: 4, clientY: 5 })
       expect(child.classList.contains('snl-single-hover')).toBe(true)
+      expect(child.classList.contains('snl-highlight-geometry')).toBe(true)
       expect(parent.classList.contains('snl-single-hover')).toBe(false)
+      fireEvent.mouseLeave(container.querySelector('div.katex-html')!)
+      expect(child.classList.contains('snl-highlight-geometry')).toBe(false)
+      expect(child.style.getPropertyValue('--snl-highlight-left')).toBe('')
+      expect(child.style.getPropertyValue('--snl-highlight-height')).toBe('')
     } finally {
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
     }
