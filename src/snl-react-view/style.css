@@ -93,7 +93,7 @@
 
 /* KaTeX's metadata span is only a line box; fractions, limits and vlists can
    paint well above or below it. Geometry is measured from the rendered subtree
-   and projected through a fixed, pointer-transparent pseudo-element. It is a
+   and projected through an absolute, pointer-transparent pseudo-element. It is a
    child of the semantic wrapper, so the translucent fill remains behind the
    wrapper's text while matching the complete visual subtree. */
 .katex-html .snl-single-hover.snl-highlight-geometry {
@@ -104,7 +104,7 @@
 
 .katex-html .snl-single-hover.snl-highlight-geometry::before {
   content: '';
-  position: fixed;
+  position: absolute;
   left: var(--snl-highlight-left);
   top: var(--snl-highlight-top);
   width: var(--snl-highlight-width);

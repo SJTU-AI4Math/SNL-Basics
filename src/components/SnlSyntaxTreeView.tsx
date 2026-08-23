@@ -49,7 +49,7 @@ import {
   resolve_style_template,
 } from '../snl-react-view/render-source'
 import { findDeepestHoverRootFromStack } from '../snl-react-view/hover-dom'
-import { applySnlHoverHighlight } from '../snl-react-view/hover-apply'
+import { applySnlHoverHighlight, clearSnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
 import { deriveConvergedFormulaMetrics, formulaForeignCapability, formulaForeignMarkerId, type FixedFormulaMetrics } from '../snl-react-view/formula-foreign-box'
 import { FormulaForeignSurface } from '../snl-react-view/formula-foreign-surface'
@@ -1099,9 +1099,8 @@ export function SnlSyntaxTreeView({
   }
 
   const clearHoverMarks = () => {
-    hoverMarkedElsRef.current.forEach((el) => {
-      el.classList.remove('snl-bvar-scope', 'snl-binder-decl', 'snl-single-hover')
-    })
+    const container = containerRef.current
+    if (container) clearSnlHoverHighlight(container)
     hoverMarkedElsRef.current = []
   }
 

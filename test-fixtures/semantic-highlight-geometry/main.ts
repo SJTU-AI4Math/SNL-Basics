@@ -10,8 +10,9 @@ import {
 
 const app = document.getElementById('app') as HTMLElement
 const result = document.getElementById('result') as HTMLElement
-Object.assign(document.body.style, { margin: '40px', fontSize: '28px' })
+Object.assign(document.body.style, { margin: '40px', fontSize: '28px', minHeight: '1200px' })
 app.className = 'katex-html'
+Object.assign(app.style, { transform: 'translate(80px, 40px) scale(1.25)', transformOrigin: '0 0' })
 app.innerHTML = katex.renderToString(String.raw`
   \htmlData{name=parent,kind=const,tree-path=}{
     \frac{
@@ -22,7 +23,7 @@ app.innerHTML = katex.renderToString(String.raw`
   }
 `, { throwOnError: true, trust: true, output: 'html' })
 
-requestAnimationFrame(() => {
+requestAnimationFrame(async () => {
   try {
     const parent = app.querySelector<HTMLElement>('[data-name="parent"]')!
     const child = app.querySelector<HTMLElement>('[data-name="bottom"]')!
@@ -48,14 +49,20 @@ requestAnimationFrame(() => {
     const union = measureSemanticHighlightRect(parent)!
     const self = parent.getBoundingClientRect()
     const pseudo = getComputedStyle(parent, '::before')
-    const numeric = (value: string) => Number.parseFloat(value)
     const close = (a: number, b: number) => Math.abs(a - b) <= 0.75
-    const painted = {
-      left: numeric(pseudo.left),
-      top: numeric(pseudo.top),
-      width: numeric(pseudo.width),
-      height: numeric(pseudo.height),
-    }
+    const paintProbe = document.createElement('span')
+    Object.assign(paintProbe.style, {
+      position: pseudo.position,
+      left: pseudo.left,
+      top: pseudo.top,
+      width: pseudo.width,
+      height: pseudo.height,
+      pointerEvents: 'none',
+    })
+    parent.append(paintProbe)
+    const paintedRect = paintProbe.getBoundingClientRect()
+    paintProbe.remove()
+    const painted = { left: paintedRect.left, top: paintedRect.top, width: paintedRect.width, height: paintedRect.height }
     if (!(union.height > self.height + 8)) throw new Error(`Fixture did not reproduce undersized wrapper: ${self.height} vs ${union.height}`)
     if (!close(painted.left, union.left) || !close(painted.top, union.top) ||
         !close(painted.width, union.width) || !close(painted.height, union.height)) {
@@ -66,6 +73,25 @@ requestAnimationFrame(() => {
       throw new Error('Highlight must not create a containing block for positioned descendants')
     }
 
+    window.scrollTo(0, 120)
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    const scrolledUnion = measureSemanticHighlightRect(parent)!
+    const scrollProbe = document.createElement('span')
+    Object.assign(scrollProbe.style, {
+      position: pseudo.position,
+      left: pseudo.left,
+      top: pseudo.top,
+      width: pseudo.width,
+      height: pseudo.height,
+      pointerEvents: 'none',
+    })
+    parent.append(scrollProbe)
+    const scrolledPaint = scrollProbe.getBoundingClientRect()
+    scrollProbe.remove()
+    if (!close(scrolledPaint.left, scrolledUnion.left) || !close(scrolledPaint.top, scrolledUnion.top)) {
+      throw new Error(`Highlight did not track scroll: paint=(${scrolledPaint.left},${scrolledPaint.top}) union=(${scrolledUnion.left},${scrolledUnion.top})`)
+    }
+
     const payload = {
       status: 'PASS',
       witness: { x: witness.x, y: witness.y, naive: 'parent', resolved: 'bottom' },
@@ -74,6 +100,8 @@ requestAnimationFrame(() => {
       painted,
       pointerEvents: pseudo.pointerEvents,
       sourcePosition: getComputedStyle(parent).position,
+      transform: app.style.transform,
+      scrollTop: window.scrollY,
     }
     result.dataset.status = 'pass'
     result.textContent = JSON.stringify(payload)

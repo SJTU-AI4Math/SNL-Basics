@@ -17,7 +17,7 @@
 import type { SnlHighlightSet, SnlHighlightStrategy } from './hooks'
 import { defaultHighlightStrategy } from './hooks'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
-import { measureSemanticHighlightRect } from './hover-dom'
+import { measureSemanticHighlightRect, projectViewportRectToAbsoluteSpace } from './hover-dom'
 
 /** CSS custom property holding the container's pre-hover computed text colour. */
 export const SNL_BASE_TEXT_COLOR_VAR = '--snl-base-text-color'
@@ -110,7 +110,8 @@ export function applySnlHoverHighlight(
   for (const fragment of singleHoverFragments) {
     fragment.classList.add(SNL_HOVER_CLASS.singleHover)
     const retained = retainedGeometry.get(fragment)
-    const rect = retained ? null : measureSemanticHighlightRect(fragment)
+    const viewportRect = retained ? null : measureSemanticHighlightRect(fragment)
+    const rect = viewportRect ? projectViewportRectToAbsoluteSpace(fragment, viewportRect) : null
     if (retained || rect) {
       const values = retained ?? [`${rect!.left}px`, `${rect!.top}px`, `${rect!.width}px`, `${rect!.height}px`]
       fragment.style.setProperty('--snl-highlight-left', values[0])

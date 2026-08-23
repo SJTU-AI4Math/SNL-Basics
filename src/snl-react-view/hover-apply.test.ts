@@ -162,7 +162,7 @@ describe('applySnlHoverHighlight', () => {
 describe('clearSnlHoverHighlight', () => {
   it('removes every hover class, including marks it did not apply', () => {
     const container = mount(
-      `<span id="a" class="${SNL_HOVER_CLASS.singleHover}" data-kind="const" data-name="a">a</span>` +
+      `<span id="a" class="${SNL_HOVER_CLASS.singleHover} ${SNL_HOVER_CLASS.geometry}" style="--snl-highlight-left: 10px; --snl-highlight-top: 20px; --snl-highlight-width: 30px; --snl-highlight-height: 40px" data-kind="const" data-name="a">a</span>` +
         `<span id="b" class="${SNL_HOVER_CLASS.bvarScope}" data-kind="bvar" data-name="b">b</span>` +
         `<span id="c2" class="${SNL_HOVER_CLASS.binderDecl}" data-kind="binder" data-name="c">c</span>`
     )
@@ -171,5 +171,8 @@ describe('clearSnlHoverHighlight', () => {
     expect(container.querySelectorAll(`.${SNL_HOVER_CLASS.singleHover}`)).toHaveLength(0)
     expect(container.querySelectorAll(`.${SNL_HOVER_CLASS.bvarScope}`)).toHaveLength(0)
     expect(container.querySelectorAll(`.${SNL_HOVER_CLASS.binderDecl}`)).toHaveLength(0)
+    expect(byId('a').classList.contains(SNL_HOVER_CLASS.geometry)).toBe(false)
+    expect(byId('a').style.getPropertyValue('--snl-highlight-left')).toBe('')
+    expect(byId('a').style.getPropertyValue('--snl-highlight-height')).toBe('')
   })
 })
