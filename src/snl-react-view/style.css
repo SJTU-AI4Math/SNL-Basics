@@ -97,7 +97,10 @@
 }
 
 .snl-highlight-overlay {
-  position: fixed;
+  /* Document coordinates let the browser scroll the frame with its target in
+     the compositor. A fixed viewport box updated on the next RAF visibly
+     floated behind fast wheel scrolling. */
+  position: absolute;
   display: block;
   box-sizing: border-box;
   pointer-events: none;

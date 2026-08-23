@@ -39,7 +39,8 @@ interface HighlightGeometryState {
   mutationObservers: MutationObserver[]
   scheduled: number | null
   scheduleKind: 'raf' | 'timeout' | null
-  onViewportChange: () => void
+  onScroll: (event: Event) => void
+  onResize: () => void
   disposed: boolean
 }
 
@@ -61,8 +62,8 @@ function syncGeometry(state: HighlightGeometryState): void {
     }
     overlay.hidden = false
     Object.assign(overlay.style, {
-      left: `${rect.left}px`,
-      top: `${rect.top}px`,
+      left: `${rect.left + state.view.scrollX}px`,
+      top: `${rect.top + state.view.scrollY}px`,
       width: `${rect.width}px`,
       height: `${rect.height}px`,
     })
@@ -136,8 +137,8 @@ function removeGeometryState(container: HTMLElement): void {
   state.disposed = true
   state.resizeObserver?.disconnect()
   state.mutationObservers.forEach((observer) => observer.disconnect())
-  state.view.removeEventListener('scroll', state.onViewportChange, true)
-  state.view.removeEventListener('resize', state.onViewportChange)
+  state.view.removeEventListener('scroll', state.onScroll, true)
+  state.view.removeEventListener('resize', state.onResize)
   if (state.scheduled !== null) {
     if (state.scheduleKind === 'raf') state.view.cancelAnimationFrame(state.scheduled)
     else state.view.clearTimeout(state.scheduled)
@@ -164,17 +165,30 @@ function installGeometryState(container: HTMLElement, fragments: HTMLElement[], 
     mutationObservers: [],
     scheduled: null,
     scheduleKind: null,
-    onViewportChange: () => {},
+    onScroll: () => {},
+    onResize: () => {},
     disposed: false,
   }
-  state.onViewportChange = () => scheduleGeometry(state)
+  state.onScroll = (event) => {
+    const document = state.container.ownerDocument
+    if (event.target === state.view || event.target === document ||
+        event.target === document.documentElement || event.target === document.body) {
+      // Root scrolling moves an absolute document-coordinate overlay together
+      // with its target without any JavaScript correction.
+      return
+    }
+    // Nested scrollers do change the target's document coordinates. Refresh in
+    // the scroll event itself; deferring to RAF leaves a visible floating frame.
+    syncGeometry(state)
+  }
+  state.onResize = () => scheduleGeometry(state)
   const ResizeObserverCtor = (view as ObserverWindow).ResizeObserver
   state.resizeObserver = typeof ResizeObserverCtor === 'function'
     ? new ResizeObserverCtor(() => syncGeometry(state))
     : null
   geometryStates.set(container, state)
-  view.addEventListener('scroll', state.onViewportChange, true)
-  view.addEventListener('resize', state.onViewportChange)
+  view.addEventListener('scroll', state.onScroll, true)
+  view.addEventListener('resize', state.onResize)
   observeGeometry(state)
   syncGeometry(state)
 }

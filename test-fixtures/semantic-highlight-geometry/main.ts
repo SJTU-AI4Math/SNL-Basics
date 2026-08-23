@@ -58,6 +58,7 @@ requestAnimationFrame(async () => {
       throw new Error(`Painted geometry ${JSON.stringify(painted)} != union ${JSON.stringify(union)}`)
     }
     if (getComputedStyle(overlay).pointerEvents !== 'none') throw new Error('Highlight frame intercepts pointers')
+    if (getComputedStyle(overlay).position !== 'absolute') throw new Error('Highlight frame must scroll in document coordinates')
     const sourceBackground = getComputedStyle(parent).backgroundColor
     const sourceShadow = getComputedStyle(parent).boxShadow
     const overlayBackground = getComputedStyle(overlay).backgroundColor
@@ -75,6 +76,12 @@ requestAnimationFrame(async () => {
     }
 
     window.scrollTo(0, 120)
+    const immediateScrolledUnion = measureSemanticHighlightRect(parent)!
+    const immediateScrolledPaint = overlay.getBoundingClientRect()
+    if (!close(immediateScrolledPaint.left, immediateScrolledUnion.left) ||
+        !close(immediateScrolledPaint.top, immediateScrolledUnion.top)) {
+      throw new Error(`Highlight floated for a frame during scroll: paint=(${immediateScrolledPaint.left},${immediateScrolledPaint.top}) union=(${immediateScrolledUnion.left},${immediateScrolledUnion.top})`)
+    }
     await new Promise<void>((resolve) => window.setTimeout(resolve, 50))
     const scrolledUnion = measureSemanticHighlightRect(parent)!
     const scrolledPaint = overlay.getBoundingClientRect()

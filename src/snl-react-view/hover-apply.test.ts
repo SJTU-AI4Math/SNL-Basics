@@ -119,6 +119,26 @@ describe('applySnlHoverHighlight', () => {
     expect(getClientRects).toHaveBeenCalledTimes(1)
   })
 
+  it('tracks a nested scroller before the next animation frame', () => {
+    const container = mount('<span id="t" data-kind="const" data-name="c">c</span>')
+    const scroller = document.createElement('div')
+    document.body.append(scroller)
+    scroller.append(container)
+    let top = 20
+    byId('t').getClientRects = () => {
+      const rect = { left: 10, top, right: 50, bottom: top + 20, width: 40, height: 20 } as DOMRect
+      return Object.assign([rect], { item: (index: number) => index === 0 ? rect : null })
+    }
+    applySnlHoverHighlight(byId('t'), container)
+    const overlay = document.documentElement.querySelector<HTMLElement>('[data-snl-highlight-overlay]')!
+    expect(overlay.style.top).toBe('20px')
+
+    top = 5
+    scroller.dispatchEvent(new Event('scroll'))
+
+    expect(overlay.style.top).toBe('5px')
+  })
+
   it('does not let a retained observer callback recreate geometry after cleanup', () => {
     const original = window.MutationObserver
     const callbacks: MutationCallback[] = []
