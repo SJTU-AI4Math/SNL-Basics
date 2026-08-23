@@ -88,7 +88,7 @@ describe('data-tree-path DOM attribute', () => {
     const tree = createSnlSyntaxTreeNode('sum', {
       children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')],
     })
-    const { container } = render(<SnlSyntaxTreeView
+    const { container, unmount } = render(<SnlSyntaxTreeView
       tree={tree}
       macro_data_driver={testDriver(clickableDb)}
       interaction_driver={new SnlInteractionDriver({ on_click: vi.fn() })}
@@ -133,6 +133,13 @@ describe('data-tree-path DOM attribute', () => {
       pointStack = [parentLayout, buttonContent, button, child]
       fireEvent.mouseMove(parentLayout, { clientX: 4, clientY: 5 })
       expect(child.classList.contains('snl-single-hover')).toBe(false)
+
+      pointStack = [parentLayout, childLayout]
+      fireEvent.mouseMove(parentLayout, { clientX: 4, clientY: 5 })
+      const overlayBeforeUnmount = Array.from(document.querySelectorAll<HTMLElement>('[data-snl-highlight-overlay]'))
+        .find((overlay) => overlay.style.left === '10px')!
+      unmount()
+      expect(overlayBeforeUnmount.isConnected).toBe(false)
     } finally {
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
     }
@@ -237,6 +244,43 @@ describe('data-tree-path DOM attribute', () => {
 })
 
 describe('SnlInteractionDriver integration', () => {
+  it('keeps iframe-native controls outside semantic click activation', async () => {
+    const frame = document.createElement('iframe')
+    document.body.append(frame)
+    const foreignDocument = frame.contentDocument!
+    const mountPoint = foreignDocument.createElement('div')
+    foreignDocument.body.append(mountPoint)
+    const onClick = vi.fn()
+    const clickableDb: SnlMacroRecord = Object.fromEntries(Object.entries(db).map(([name, macro]) => [
+      name,
+      { ...macro, source: { entries: [`${name}-entry`], urls: [] } },
+    ]))
+    const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x')] })
+    const view = render(
+      <SnlSyntaxTreeView
+        tree={tree}
+        macro_data_driver={testDriver(clickableDb)}
+        interaction_driver={new SnlInteractionDriver({ on_click: onClick })}
+      />,
+      { container: mountPoint, baseElement: foreignDocument.body },
+    )
+    const semantic = await waitFor(() => {
+      const found = mountPoint.querySelector<HTMLElement>('[data-tree-path="0"]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const button = foreignDocument.createElement('button')
+    semantic.append(button)
+    await waitFor(() => expect(semantic.dataset.snlKeyboardActivation).toBe('true'))
+
+    fireEvent.click(button)
+    fireEvent.keyDown(button, { key: 'Enter' })
+
+    expect(onClick).not.toHaveBeenCalled()
+    view.unmount()
+    frame.remove()
+  })
+
   it('exposes generation-safe leases that cannot clear a newer activation', async () => {
     const contexts: SnlInteractionContext[] = []
     const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')] })

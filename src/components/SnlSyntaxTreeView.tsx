@@ -2,6 +2,7 @@ import {
   Fragment,
   forwardRef,
   memo,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useInsertionEffect,
@@ -940,6 +941,11 @@ export function SnlSyntaxTreeView({
   const infoRequestRef = useRef<{ key: string; generation: number } | null>(null)
   const hoverMarkedElsRef = useRef<HTMLElement[]>([])
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+    const previous = containerRef.current
+    if (previous && previous !== node) clearSnlHoverHighlight(previous)
+    containerRef.current = node
+  }, [])
   const katexHandlersRef = useRef<KatexContainerHandlers>({
     onMouseMove: () => {}, onMouseLeave: () => {}, onClick: () => {}, onKeyDown: () => {},
   })
@@ -953,9 +959,7 @@ export function SnlSyntaxTreeView({
   }, [onResolved, result])
 
   useEffect(() => {
-    const mountedContainer = containerRef.current
     return () => {
-      if (mountedContainer) clearSnlHoverHighlight(mountedContainer)
       currentActivationRef.current = null
       interactionGenerationRef.current += 1
       hoverSessionRef.current = null
@@ -1587,7 +1591,14 @@ export function SnlSyntaxTreeView({
   const handleClick: MouseEventHandler<HTMLDivElement> = (event) => {
     const container = containerRef.current
     if (!container) return
-    let el: HTMLElement | null = event.target as HTMLElement
+    const ElementCtor = container.ownerDocument.defaultView?.Element
+    const HTMLElementCtor = container.ownerDocument.defaultView?.HTMLElement
+    const eventTarget = ElementCtor && event.target instanceof ElementCtor
+      ? event.target as Element
+      : null
+    let el: HTMLElement | null = eventTarget && HTMLElementCtor && eventTarget instanceof HTMLElementCtor
+      ? eventTarget as HTMLElement
+      : eventTarget?.parentElement ?? null
     while (el && el !== container && !el.hasAttribute('data-tree-path')) el = el.parentElement
     if (!el || !el.hasAttribute('data-tree-path')) {
       const active = currentActivationRef.current
@@ -1595,7 +1606,6 @@ export function SnlSyntaxTreeView({
       else clearActivationState()
       return
     }
-    const eventTarget = event.target instanceof Element ? event.target : null
     if (eventTarget && hasOwnedInteractionBoundary(eventTarget, el)) return
     dispatchElementActivation(el, event.clientX, event.clientY, {
       ctrl_key: event.ctrlKey,
@@ -1607,11 +1617,15 @@ export function SnlSyntaxTreeView({
 
   const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return
-    const target = event.target instanceof Element
-      ? event.target.closest<HTMLElement>('[data-snl-keyboard-activation="true"]')
+    const ElementCtor = event.currentTarget.ownerDocument.defaultView?.Element
+    const eventTarget = ElementCtor && event.target instanceof ElementCtor
+      ? event.target as Element
+      : null
+    const target = eventTarget
+      ? eventTarget.closest<HTMLElement>('[data-snl-keyboard-activation="true"]')
       : null
     if (!target || !event.currentTarget.contains(target)) return
-    if (event.target instanceof Element && hasOwnedInteractionBoundary(event.target, target)) return
+    if (eventTarget && hasOwnedInteractionBoundary(eventTarget, target)) return
     event.preventDefault()
     const rect = target.getBoundingClientRect()
     dispatchElementActivation(target, rect.left + rect.width / 2, rect.top + rect.height / 2, {
@@ -1823,7 +1837,7 @@ export function SnlSyntaxTreeView({
         <ForeignBoxHost className="snl-formula-foreign-host" authorityKey={formulaHostAuthority}>
           <StableKatexContainer
             key="katex"
-            ref={containerRef}
+            ref={setContainerRef}
             html={committedFormulaHtml}
             handlersRef={katexHandlersRef}
           />
@@ -1832,7 +1846,7 @@ export function SnlSyntaxTreeView({
       ) : (
         <div
           key="react"
-          ref={containerRef}
+          ref={setContainerRef}
           className={`katex-html${rootBucket === 'text' ? ' snl-text' : ''}`}
           style={{ cursor: hasHoverTarget ? 'pointer' : undefined }}
           onMouseMove={handleKaTeXMouseMove}
