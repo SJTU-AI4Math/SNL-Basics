@@ -88,7 +88,7 @@ export function resolveDeepestHoverHitFromStack(
 
     if (
       best === null ||
-      best.contains(candidate) ||
+      (best !== candidate && best.contains(candidate)) ||
       (!candidate.contains(best) && isStrictDescendantPath(pathOf(best), pathOf(candidate)))
     ) {
       best = candidate

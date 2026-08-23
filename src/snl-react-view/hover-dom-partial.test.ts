@@ -4,6 +4,7 @@ import {
   findDeepestHoverRootFromStack,
   findMinimalHoverRoot,
   measureSemanticHighlightRect,
+  resolveDeepestHoverHitFromStack,
 } from './hover-dom'
 
 /** Build a small DOM chain: outer wrap → sub wrap → inner leaf. */
@@ -88,6 +89,19 @@ describe('findMinimalHoverRoot with kind=sub', () => {
     const behindLeaf = container.querySelector<HTMLElement>('.behind-leaf')!
 
     expect(findDeepestHoverRootFromStack([frontLeaf, behindLeaf], container)).toBe(front)
+  })
+
+  it('retains the frontmost stack member when later entries resolve to the same semantic root', () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <span data-name="root" data-kind="const" data-tree-path="">
+        <button><span class="button-content"></span></button>
+      </span>`
+    const root = container.querySelector<HTMLElement>('[data-name="root"]')!
+    const button = container.querySelector('button')!
+    const content = container.querySelector('.button-content')!
+
+    expect(resolveDeepestHoverHitFromStack([content, button, root], container)).toEqual({ root, hit: content })
   })
 
   it('measures the visible descendant union instead of the undersized semantic line box', () => {

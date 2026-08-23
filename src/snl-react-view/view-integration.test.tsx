@@ -127,7 +127,7 @@ describe('data-tree-path DOM attribute', () => {
       const buttonContent = document.createElement('span')
       button.append(buttonContent)
       child.append(button)
-      pointStack = [parentLayout, buttonContent]
+      pointStack = [parentLayout, buttonContent, button, child]
       fireEvent.mouseMove(parentLayout, { clientX: 4, clientY: 5 })
       expect(child.classList.contains('snl-single-hover')).toBe(false)
     } finally {
