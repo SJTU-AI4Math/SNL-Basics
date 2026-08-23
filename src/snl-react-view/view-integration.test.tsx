@@ -104,20 +104,32 @@ describe('data-tree-path DOM attribute', () => {
     child.getClientRects = () => Object.assign([rect], { item: (index: number) => index === 0 ? rect : null })
     const parentLayout = parent
     const childLayout = child.querySelector<HTMLElement>('*') ?? child
+    let pointStack: Element[] = [parentLayout, childLayout]
     const original = document.elementsFromPoint
     Object.defineProperty(document, 'elementsFromPoint', {
       configurable: true,
-      value: () => [parentLayout, childLayout],
+      value: () => pointStack,
     })
     try {
       fireEvent.mouseMove(parentLayout, { clientX: 4, clientY: 5 })
       expect(child.classList.contains('snl-single-hover')).toBe(true)
       expect(child.classList.contains('snl-highlight-geometry')).toBe(true)
       expect(parent.classList.contains('snl-single-hover')).toBe(false)
+      const activeOverlay = Array.from(document.querySelectorAll<HTMLElement>('[data-snl-highlight-overlay]'))
+        .find((overlay) => overlay.style.left === '10px')!
       fireEvent.mouseLeave(container.querySelector('div.katex-html')!)
       expect(child.classList.contains('snl-highlight-geometry')).toBe(false)
       expect(child.style.getPropertyValue('--snl-highlight-left')).toBe('')
       expect(child.style.getPropertyValue('--snl-highlight-height')).toBe('')
+      expect(activeOverlay.isConnected).toBe(false)
+
+      const button = document.createElement('button')
+      const buttonContent = document.createElement('span')
+      button.append(buttonContent)
+      child.append(button)
+      pointStack = [parentLayout, buttonContent]
+      fireEvent.mouseMove(parentLayout, { clientX: 4, clientY: 5 })
+      expect(child.classList.contains('snl-single-hover')).toBe(false)
     } finally {
       Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
     }

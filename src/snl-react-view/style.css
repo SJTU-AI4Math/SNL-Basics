@@ -91,28 +91,21 @@
   border-radius: 5px;
 }
 
-/* KaTeX's metadata span is only a line box; fractions, limits and vlists can
-   paint well above or below it. Geometry is measured from the rendered subtree
-   and projected through an absolute, pointer-transparent pseudo-element. It is a
-   child of the semantic wrapper, so the translucent fill remains behind the
-   wrapper's text while matching the complete visual subtree. */
+/* KaTeX metadata spans can under-bound fractions, limits and vlists. The
+   semantic source keeps only text colour; a document-root viewport overlay
+   paints the authoritative descendant-union frame without entering hit tests. */
 .katex-html .snl-single-hover.snl-highlight-geometry {
-  isolation: isolate;
   background: transparent !important;
   box-shadow: none !important;
 }
 
-.katex-html .snl-single-hover.snl-highlight-geometry::before {
-  content: '';
-  position: absolute;
-  left: var(--snl-highlight-left);
-  top: var(--snl-highlight-top);
-  width: var(--snl-highlight-width);
-  height: var(--snl-highlight-height);
+.snl-highlight-overlay {
+  position: fixed;
+  display: block;
   box-sizing: border-box;
   pointer-events: none;
-  z-index: -1;
-  background: var(--snl-highlight-background, rgba(209, 213, 219, 0.5));
+  z-index: 2147483647;
+  background: transparent;
   box-shadow: inset 0 0 0 1px var(--snl-highlight-stroke, #d1d5db);
   border-radius: 5px;
 }

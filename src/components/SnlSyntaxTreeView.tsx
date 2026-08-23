@@ -48,7 +48,7 @@ import {
   type FormulaForeignResolverOptions,
   resolve_style_template,
 } from '../snl-react-view/render-source'
-import { findDeepestHoverRootFromStack } from '../snl-react-view/hover-dom'
+import { resolveDeepestHoverHitFromStack } from '../snl-react-view/hover-dom'
 import { applySnlHoverHighlight, clearSnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
 import { deriveConvergedFormulaMetrics, formulaForeignCapability, formulaForeignMarkerId, type FixedFormulaMetrics } from '../snl-react-view/formula-foreign-box'
@@ -951,7 +951,9 @@ export function SnlSyntaxTreeView({
   }, [onResolved, result])
 
   useEffect(() => {
+    const mountedContainer = containerRef.current
     return () => {
+      if (mountedContainer) clearSnlHoverHighlight(mountedContainer)
       currentActivationRef.current = null
       interactionGenerationRef.current += 1
       hoverSessionRef.current = null
@@ -1486,15 +1488,13 @@ export function SnlSyntaxTreeView({
     // front of a deeper child at the same point. Resolve every hit stack member
     // and choose the deepest semantic candidate rather than trusting item zero.
     const pointStack = document.elementsFromPoint(event.clientX, event.clientY)
-    const hit = findDeepestHoverRootFromStack(pointStack, container)
-    const topmost = pointStack.find(
-      (el): el is Element => el instanceof Element && container.contains(el),
-    ) ?? null
+    const resolved = resolveDeepestHoverHitFromStack(pointStack, container)
+    const hit = resolved?.root ?? null
     // Keep explicit semantic and owned-control guards at this delegated-event
     // boundary even though the stack resolver already filters sub helpers.
     const hasName =
       hit && hit.hasAttribute('data-name') && hit.dataset.kind !== 'sub' &&
-      (!topmost || !hasOwnedInteractionBoundary(topmost, hit))
+      (!resolved || !hasOwnedInteractionBoundary(resolved.hit, hit))
         ? hit
         : null
 

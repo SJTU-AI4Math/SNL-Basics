@@ -55,11 +55,18 @@ export function findMinimalHoverRoot(start: HTMLElement, container: HTMLElement)
  * deepest eligible semantic descendant represented anywhere in the hit stack;
  * preserve front-to-back order for unrelated branches.
  */
-export function findDeepestHoverRootFromStack(
+export interface HoverStackResolution {
+  root: HTMLElement
+  /** Exact stack member whose ancestry yielded `root`; used for control ownership. */
+  hit: Element
+}
+
+export function resolveDeepestHoverHitFromStack(
   stack: Iterable<Element>,
   container: HTMLElement,
-): HTMLElement | null {
+): HoverStackResolution | null {
   let best: HTMLElement | null = null
+  let bestHit: Element | null = null
 
   const pathOf = (element: HTMLElement): string[] | null => {
     const raw = element.getAttribute('data-tree-path')
@@ -85,10 +92,18 @@ export function findDeepestHoverRootFromStack(
       (!candidate.contains(best) && isStrictDescendantPath(pathOf(best), pathOf(candidate)))
     ) {
       best = candidate
+      bestHit = element
     }
   }
 
-  return best
+  return best && bestHit ? { root: best, hit: bestHit } : null
+}
+
+export function findDeepestHoverRootFromStack(
+  stack: Iterable<Element>,
+  container: HTMLElement,
+): HTMLElement | null {
+  return resolveDeepestHoverHitFromStack(stack, container)?.root ?? null
 }
 
 export interface SemanticHighlightRect {
@@ -120,61 +135,4 @@ export function measureSemanticHighlightRect(target: HTMLElement): SemanticHighl
 
   if (!Number.isFinite(left) || !Number.isFinite(top) || right <= left || bottom <= top) return null
   return { left, top, right, bottom, width: right - left, height: bottom - top }
-}
-
-/**
- * Convert a viewport rect into the coordinate space used by an absolutely
- * positioned child of `target`. A disposable zero-size probe lets the browser
- * resolve the real containing block, including translated/scaled ancestors,
- * without making the semantic wrapper positioned itself.
- */
-export function projectViewportRectToAbsoluteSpace(
-  target: HTMLElement,
-  rect: SemanticHighlightRect,
-): SemanticHighlightRect {
-  const probe = target.ownerDocument.createElement('span')
-  Object.assign(probe.style, {
-    position: 'absolute', left: '0px', top: '0px', width: '0px', height: '0px',
-    margin: '0px', padding: '0px', border: '0px', visibility: 'hidden', pointerEvents: 'none',
-  })
-  target.append(probe)
-  try {
-    const origin = probe.getBoundingClientRect()
-    probe.style.left = '100px'
-    const xProbe = probe.getBoundingClientRect()
-    probe.style.left = '0px'
-    probe.style.top = '100px'
-    const yProbe = probe.getBoundingClientRect()
-    const xx = (xProbe.left - origin.left) / 100
-    const xy = (xProbe.top - origin.top) / 100
-    const yx = (yProbe.left - origin.left) / 100
-    const yy = (yProbe.top - origin.top) / 100
-    const determinant = xx * yy - xy * yx
-
-    // JSDOM and non-layout DOMs report a degenerate basis. Preserve viewport
-    // values there instead of dropping the highlight entirely.
-    if (!Number.isFinite(determinant) || Math.abs(determinant) < 1e-8) return rect
-
-    const toLocal = (x: number, y: number) => {
-      const dx = x - origin.left
-      const dy = y - origin.top
-      return {
-        x: (yy * dx - yx * dy) / determinant,
-        y: (-xy * dx + xx * dy) / determinant,
-      }
-    }
-    const corners = [
-      toLocal(rect.left, rect.top),
-      toLocal(rect.right, rect.top),
-      toLocal(rect.left, rect.bottom),
-      toLocal(rect.right, rect.bottom),
-    ]
-    const left = Math.min(...corners.map((point) => point.x))
-    const top = Math.min(...corners.map((point) => point.y))
-    const right = Math.max(...corners.map((point) => point.x))
-    const bottom = Math.max(...corners.map((point) => point.y))
-    return { left, top, right, bottom, width: right - left, height: bottom - top }
-  } finally {
-    probe.remove()
-  }
 }

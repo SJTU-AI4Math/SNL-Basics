@@ -12,7 +12,7 @@ const app = document.getElementById('app') as HTMLElement
 const result = document.getElementById('result') as HTMLElement
 Object.assign(document.body.style, { margin: '40px', fontSize: '28px', minHeight: '1200px' })
 app.className = 'katex-html'
-Object.assign(app.style, { transform: 'translate(80px, 40px) scale(1.25)', transformOrigin: '0 0' })
+Object.assign(app.style, { transform: 'translate(80px, 40px) rotate(30deg) scale(1.25)', transformOrigin: '0 0' })
 app.innerHTML = katex.renderToString(String.raw`
   \htmlData{name=parent,kind=const,tree-path=}{
     \frac{
@@ -48,48 +48,38 @@ requestAnimationFrame(async () => {
     applySnlHoverHighlight(parent, app)
     const union = measureSemanticHighlightRect(parent)!
     const self = parent.getBoundingClientRect()
-    const pseudo = getComputedStyle(parent, '::before')
+    const overlay = document.querySelector<HTMLElement>('[data-snl-highlight-overlay]')!
     const close = (a: number, b: number) => Math.abs(a - b) <= 0.75
-    const paintProbe = document.createElement('span')
-    Object.assign(paintProbe.style, {
-      position: pseudo.position,
-      left: pseudo.left,
-      top: pseudo.top,
-      width: pseudo.width,
-      height: pseudo.height,
-      pointerEvents: 'none',
-    })
-    parent.append(paintProbe)
-    const paintedRect = paintProbe.getBoundingClientRect()
-    paintProbe.remove()
+    const paintedRect = overlay.getBoundingClientRect()
     const painted = { left: paintedRect.left, top: paintedRect.top, width: paintedRect.width, height: paintedRect.height }
     if (!(union.height > self.height + 8)) throw new Error(`Fixture did not reproduce undersized wrapper: ${self.height} vs ${union.height}`)
     if (!close(painted.left, union.left) || !close(painted.top, union.top) ||
         !close(painted.width, union.width) || !close(painted.height, union.height)) {
       throw new Error(`Painted geometry ${JSON.stringify(painted)} != union ${JSON.stringify(union)}`)
     }
-    if (pseudo.pointerEvents !== 'none') throw new Error(`Highlight frame intercepts pointers: ${pseudo.pointerEvents}`)
+    if (getComputedStyle(overlay).pointerEvents !== 'none') throw new Error('Highlight frame intercepts pointers')
     if (getComputedStyle(parent).position !== 'static') {
       throw new Error('Highlight must not create a containing block for positioned descendants')
     }
 
     window.scrollTo(0, 120)
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 50))
     const scrolledUnion = measureSemanticHighlightRect(parent)!
-    const scrollProbe = document.createElement('span')
-    Object.assign(scrollProbe.style, {
-      position: pseudo.position,
-      left: pseudo.left,
-      top: pseudo.top,
-      width: pseudo.width,
-      height: pseudo.height,
-      pointerEvents: 'none',
-    })
-    parent.append(scrollProbe)
-    const scrolledPaint = scrollProbe.getBoundingClientRect()
-    scrollProbe.remove()
+    const scrolledPaint = overlay.getBoundingClientRect()
     if (!close(scrolledPaint.left, scrolledUnion.left) || !close(scrolledPaint.top, scrolledUnion.top)) {
       throw new Error(`Highlight did not track scroll: paint=(${scrolledPaint.left},${scrolledPaint.top}) union=(${scrolledUnion.left},${scrolledUnion.top})`)
+    }
+
+    const growth = document.createElement('span')
+    Object.assign(growth.style, { display: 'inline-block', width: '20px', height: '20px', transform: 'translateY(300px)' })
+    parent.append(growth)
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 50))
+    const grownUnion = measureSemanticHighlightRect(parent)!
+    const grownPaint = overlay.getBoundingClientRect()
+    if (!(grownUnion.height > scrolledUnion.height + 40)) throw new Error('Growth fixture did not enlarge the subtree')
+    if (!close(grownPaint.left, grownUnion.left) || !close(grownPaint.top, grownUnion.top) ||
+        !close(grownPaint.width, grownUnion.width) || !close(grownPaint.height, grownUnion.height)) {
+      throw new Error(`Highlight did not track growth: paint=${JSON.stringify(grownPaint.toJSON())} union=${JSON.stringify(grownUnion)}`)
     }
 
     const payload = {
@@ -98,7 +88,9 @@ requestAnimationFrame(async () => {
       self: { left: self.left, top: self.top, width: self.width, height: self.height },
       union,
       painted,
-      pointerEvents: pseudo.pointerEvents,
+      grownUnion,
+      grownPaint: { left: grownPaint.left, top: grownPaint.top, width: grownPaint.width, height: grownPaint.height },
+      pointerEvents: getComputedStyle(overlay).pointerEvents,
       sourcePosition: getComputedStyle(parent).position,
       transform: app.style.transform,
       scrollTop: window.scrollY,

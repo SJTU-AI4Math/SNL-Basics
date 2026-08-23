@@ -18,8 +18,12 @@ import {
 
 function mount(html: string): HTMLElement {
   document.body.innerHTML = `<div id="c" class="katex-html">${html}</div>`
-  return document.getElementById('c') as HTMLElement
+  const container = document.getElementById('c') as HTMLElement
+  mountedContainers.push(container)
+  return container
 }
+
+const mountedContainers: HTMLElement[] = []
 
 const TWO_SCOPES = `
 <span data-scope="binder" data-bindref="b1" data-kind="rule" data-name="forall">
@@ -34,6 +38,7 @@ const TWO_SCOPES = `
 const byId = (id: string): HTMLElement => document.getElementById(id) as HTMLElement
 
 afterEach(() => {
+  mountedContainers.splice(0).forEach((container) => clearSnlHoverHighlight(container))
   document.body.innerHTML = ''
 })
 
@@ -95,10 +100,11 @@ describe('applySnlHoverHighlight', () => {
     applySnlHoverHighlight(byId('t'), container)
 
     expect(byId('t').classList.contains(SNL_HOVER_CLASS.geometry)).toBe(true)
-    expect(byId('t').style.getPropertyValue('--snl-highlight-left')).toBe('10px')
-    expect(byId('t').style.getPropertyValue('--snl-highlight-top')).toBe('8px')
-    expect(byId('t').style.getPropertyValue('--snl-highlight-width')).toBe('40px')
-    expect(byId('t').style.getPropertyValue('--snl-highlight-height')).toBe('50px')
+    const overlay = document.documentElement.querySelector<HTMLElement>('[data-snl-highlight-overlay]')!
+    expect(overlay.style.left).toBe('10px')
+    expect(overlay.style.top).toBe('8px')
+    expect(overlay.style.width).toBe('40px')
+    expect(overlay.style.height).toBe('50px')
   })
 
   it('reuses geometry while the pointer remains on the same semantic fragment', () => {
