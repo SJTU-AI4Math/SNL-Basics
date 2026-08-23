@@ -80,6 +80,33 @@ describe('data-tree-path DOM attribute', () => {
     }
   })
 
+  it('selects a deeper child represented later in the point stack instead of an escaped parent layout box', async () => {
+    const tree = createSnlSyntaxTreeNode('sum', {
+      children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')],
+    })
+    const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} />)
+    const parent = await waitFor(() => {
+      const found = container.querySelector<HTMLElement>('[data-tree-path=""]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const child = container.querySelector<HTMLElement>('[data-tree-path="1"]')!
+    const parentLayout = parent
+    const childLayout = child.querySelector<HTMLElement>('*') ?? child
+    const original = document.elementsFromPoint
+    Object.defineProperty(document, 'elementsFromPoint', {
+      configurable: true,
+      value: () => [parentLayout, childLayout],
+    })
+    try {
+      fireEvent.mouseMove(parentLayout, { clientX: 4, clientY: 5 })
+      expect(child.classList.contains('snl-single-hover')).toBe(true)
+      expect(parent.classList.contains('snl-single-hover')).toBe(false)
+    } finally {
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
   it('preserves an explicit constant Macro kind at the root', async () => {
     const constantDb: SnlMacroRecord = {
       c: {

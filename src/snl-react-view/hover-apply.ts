@@ -17,6 +17,7 @@
 import type { SnlHighlightSet, SnlHighlightStrategy } from './hooks'
 import { defaultHighlightStrategy } from './hooks'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
+import { measureSemanticHighlightRect } from './hover-dom'
 
 /** CSS custom property holding the container's pre-hover computed text colour. */
 export const SNL_BASE_TEXT_COLOR_VAR = '--snl-base-text-color'
@@ -24,12 +25,14 @@ export const SNL_BASE_TEXT_COLOR_VAR = '--snl-base-text-color'
 /** The three classes a hover interaction applies. */
 export const SNL_HOVER_CLASS = {
   singleHover: 'snl-single-hover',
+  geometry: 'snl-highlight-geometry',
   bvarScope: 'snl-bvar-scope',
   binderDecl: 'snl-binder-decl',
 } as const
 
 const ALL_HOVER_CLASSES = [
   SNL_HOVER_CLASS.singleHover,
+  SNL_HOVER_CLASS.geometry,
   SNL_HOVER_CLASS.bvarScope,
   SNL_HOVER_CLASS.binderDecl,
 ]
@@ -44,6 +47,10 @@ export function clearSnlHoverHighlight(container: HTMLElement): void {
   const selector = ALL_HOVER_CLASSES.map((c) => `.${c}`).join(',')
   for (const el of Array.from(container.querySelectorAll<HTMLElement>(selector))) {
     el.classList.remove(...ALL_HOVER_CLASSES)
+    el.style.removeProperty('--snl-highlight-left')
+    el.style.removeProperty('--snl-highlight-top')
+    el.style.removeProperty('--snl-highlight-width')
+    el.style.removeProperty('--snl-highlight-height')
   }
 }
 
@@ -77,6 +84,15 @@ export function applySnlHoverHighlight(
   container: HTMLElement,
   options: ApplySnlHoverHighlightOptions = {},
 ): SnlHighlightSet {
+  const retainedGeometry = new Map<HTMLElement, [string, string, string, string]>()
+  for (const element of container.querySelectorAll<HTMLElement>(`.${SNL_HOVER_CLASS.geometry}`)) {
+    retainedGeometry.set(element, [
+      element.style.getPropertyValue('--snl-highlight-left'),
+      element.style.getPropertyValue('--snl-highlight-top'),
+      element.style.getPropertyValue('--snl-highlight-width'),
+      element.style.getPropertyValue('--snl-highlight-height'),
+    ])
+  }
   clearSnlHoverHighlight(container)
 
   const view = container.ownerDocument?.defaultView
@@ -93,6 +109,16 @@ export function applySnlHoverHighlight(
     ?? (set.singleHover ? [set.singleHover] : [])
   for (const fragment of singleHoverFragments) {
     fragment.classList.add(SNL_HOVER_CLASS.singleHover)
+    const retained = retainedGeometry.get(fragment)
+    const rect = retained ? null : measureSemanticHighlightRect(fragment)
+    if (retained || rect) {
+      const values = retained ?? [`${rect!.left}px`, `${rect!.top}px`, `${rect!.width}px`, `${rect!.height}px`]
+      fragment.style.setProperty('--snl-highlight-left', values[0])
+      fragment.style.setProperty('--snl-highlight-top', values[1])
+      fragment.style.setProperty('--snl-highlight-width', values[2])
+      fragment.style.setProperty('--snl-highlight-height', values[3])
+      fragment.classList.add(SNL_HOVER_CLASS.geometry)
+    }
   }
   for (const el of set.bvarScope) {
     el.classList.add(SNL_HOVER_CLASS.bvarScope)

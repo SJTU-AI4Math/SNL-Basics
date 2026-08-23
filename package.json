@@ -93,6 +93,7 @@
     "verify:packed-entry-i18n": "node scripts/verify-packed-entry-i18n.mjs",
     "prepublishOnly": "npm run build:lib",
     "test:root-text-typography": "node scripts/verify-root-text-typography.mjs",
+    "test:semantic-highlight-geometry": "node scripts/verify-semantic-highlight-geometry.mjs",
     "test:popover-origin": "node scripts/verify-popover-origin.mjs",
     "test:parameterized-svg": "node scripts/verify-parameterized-svg.mjs",
     "test:formula-foreign-box": "node scripts/verify-formula-foreign-box.mjs",

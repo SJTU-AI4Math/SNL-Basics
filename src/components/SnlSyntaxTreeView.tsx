@@ -48,7 +48,7 @@ import {
   type FormulaForeignResolverOptions,
   resolve_style_template,
 } from '../snl-react-view/render-source'
-import { findMinimalHoverRoot } from '../snl-react-view/hover-dom'
+import { findDeepestHoverRootFromStack } from '../snl-react-view/hover-dom'
 import { applySnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
 import { deriveConvergedFormulaMetrics, formulaForeignCapability, formulaForeignMarkerId, type FixedFormulaMetrics } from '../snl-react-view/formula-foreign-box'
@@ -1481,24 +1481,16 @@ export function SnlSyntaxTreeView({
     // hover target (case 猫猫 flagged 2026-07-04 for dynamic-arity delimiters
     // and separators between children in a matrix template).
     //
-    // Fix: take the topmost element regardless of data-name, then walk UP the
-    // DOM tree until we hit an ancestor carrying data-name. Falls back to
-    // clearing when no ancestor has one.
-    const topmost = document
-      .elementsFromPoint(event.clientX, event.clientY)
-      .find(
-        (el): el is Element =>
-          el instanceof Element && container.contains(el),
-      )
-    const hoverStart = topmost instanceof HTMLElement ? topmost : topmost?.parentElement ?? null
-
-    const hit = hoverStart
-      ? findMinimalHoverRoot(hoverStart, container)
-      : null
-    // findMinimalHoverRoot already skips sub-kind ancestors, but its
-    // fallback returns the raw `start` when nothing matches. Guard on both
-    // "has data-name" AND "not sub" so hovering into empty space above a
-    // sub node clears the highlight instead of latching onto it.
+    // KaTeX's escaped vlist descendants can put an outer parent primitive in
+    // front of a deeper child at the same point. Resolve every hit stack member
+    // and choose the deepest semantic candidate rather than trusting item zero.
+    const pointStack = document.elementsFromPoint(event.clientX, event.clientY)
+    const hit = findDeepestHoverRootFromStack(pointStack, container)
+    const topmost = pointStack.find(
+      (el): el is Element => el instanceof Element && container.contains(el),
+    ) ?? null
+    // Keep explicit semantic and owned-control guards at this delegated-event
+    // boundary even though the stack resolver already filters sub helpers.
     const hasName =
       hit && hit.hasAttribute('data-name') && hit.dataset.kind !== 'sub' &&
       (!topmost || !hasOwnedInteractionBoundary(topmost, hit))

@@ -113,9 +113,11 @@ export function paletteToCss(palette: KindPalette, colorScheme: ColorScheme = 'l
     assertSafeKindName(kind)
     const colors = resolveKindColoring(variants, colorScheme)
     return `.katex-html .snl-single-hover[data-kind="${kind}"] {
+  --snl-highlight-stroke: ${alpha(colors.stroke, 0.5)};
+  --snl-highlight-background: ${alpha(colors.background, 0.5)};
   color: ${colors.stroke};
-  background: ${alpha(colors.background, 0.5)};
-  box-shadow: 0 0 0 1px ${alpha(colors.stroke, 0.5)};
+  background: var(--snl-highlight-background);
+  box-shadow: 0 0 0 1px var(--snl-highlight-stroke);
   border-radius: 5px;
 }`
   })

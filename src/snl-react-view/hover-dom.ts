@@ -44,3 +44,80 @@ export function findMinimalHoverRoot(start: HTMLElement, container: HTMLElement)
   }
   return start
 }
+
+/**
+ * Resolve a semantic target from the complete front-to-back hit stack.
+ *
+ * KaTeX vlist descendants can escape the line box of their semantic wrapper.
+ * At those coordinates an outer layout primitive may be the topmost hit even
+ * though a later hit belongs to a deeper semantic child. Looking only at the
+ * first element therefore promotes the pointer to the parent. Prefer the
+ * deepest eligible semantic descendant represented anywhere in the hit stack;
+ * preserve front-to-back order for unrelated branches.
+ */
+export function findDeepestHoverRootFromStack(
+  stack: Iterable<Element>,
+  container: HTMLElement,
+): HTMLElement | null {
+  let best: HTMLElement | null = null
+
+  const pathOf = (element: HTMLElement): string[] | null => {
+    const raw = element.getAttribute('data-tree-path')
+    if (raw === null) return null
+    if (raw === '') return []
+    const parts = raw.split('.')
+    return parts.every((part) => /^(0|[1-9]\d*)$/.test(part)) ? parts : null
+  }
+  const isStrictDescendantPath = (ancestor: string[] | null, descendant: string[] | null): boolean =>
+    ancestor !== null && descendant !== null && descendant.length > ancestor.length &&
+    ancestor.every((part, index) => descendant[index] === part)
+
+  for (const element of stack) {
+    if (!container.contains(element)) continue
+    const start = element instanceof HTMLElement ? element : element.parentElement
+    if (!start) continue
+    const candidate = findMinimalHoverRoot(start, container)
+    if (!candidate.hasAttribute('data-name') || candidate.dataset.kind === 'sub') continue
+
+    if (
+      best === null ||
+      best.contains(candidate) ||
+      (!candidate.contains(best) && isStrictDescendantPath(pathOf(best), pathOf(candidate)))
+    ) {
+      best = candidate
+    }
+  }
+
+  return best
+}
+
+export interface SemanticHighlightRect {
+  left: number
+  top: number
+  right: number
+  bottom: number
+  width: number
+  height: number
+}
+
+/** Measure the complete rendered subtree rather than KaTeX's undersized inline wrapper. */
+export function measureSemanticHighlightRect(target: HTMLElement): SemanticHighlightRect | null {
+  let left = Number.POSITIVE_INFINITY
+  let top = Number.POSITIVE_INFINITY
+  let right = Number.NEGATIVE_INFINITY
+  let bottom = Number.NEGATIVE_INFINITY
+  const elements = [target, ...Array.from(target.querySelectorAll<HTMLElement>('*'))]
+
+  for (const element of elements) {
+    for (const rect of Array.from(element.getClientRects())) {
+      if (rect.width <= 0 || rect.height <= 0) continue
+      left = Math.min(left, rect.left)
+      top = Math.min(top, rect.top)
+      right = Math.max(right, rect.right)
+      bottom = Math.max(bottom, rect.bottom)
+    }
+  }
+
+  if (!Number.isFinite(left) || !Number.isFinite(top) || right <= left || bottom <= top) return null
+  return { left, top, right, bottom, width: right - left, height: bottom - top }
+}

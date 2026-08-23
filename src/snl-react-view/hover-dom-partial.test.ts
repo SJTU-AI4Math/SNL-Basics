@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
-import { findMinimalHoverRoot } from './hover-dom'
+import {
+  findDeepestHoverRootFromStack,
+  findMinimalHoverRoot,
+  measureSemanticHighlightRect,
+} from './hover-dom'
 
 /** Build a small DOM chain: outer wrap → sub wrap → inner leaf. */
 function scenario(): {
@@ -56,5 +60,50 @@ describe('findMinimalHoverRoot with kind=sub', () => {
       </span>`
     const leaf = container.querySelector<HTMLElement>('.leaf')!
     expect(findMinimalHoverRoot(leaf, container)).toBe(leaf)
+  })
+
+  it('selects the deepest semantic candidate when an escaped parent layout box is topmost', () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <span data-name="parent" data-kind="const" data-tree-path="">
+        <span class="parent-vlist"></span>
+        <span data-name="child" data-kind="const" data-tree-path="1">
+          <span class="child-vlist"></span>
+        </span>
+      </span>`
+    const parentVlist = container.querySelector<HTMLElement>('.parent-vlist')!
+    const childVlist = container.querySelector<HTMLElement>('.child-vlist')!
+    const child = container.querySelector<HTMLElement>('[data-name="child"]')!
+
+    expect(findDeepestHoverRootFromStack([parentVlist, childVlist], container)).toBe(child)
+  })
+
+  it('keeps front-to-back order for overlapping but unrelated semantic branches', () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <span data-name="front" data-kind="const" data-tree-path="0"><span class="front-leaf"></span></span>
+      <span data-name="behind" data-kind="const" data-tree-path="1.2"><span class="behind-leaf"></span></span>`
+    const front = container.querySelector<HTMLElement>('[data-name="front"]')!
+    const frontLeaf = container.querySelector<HTMLElement>('.front-leaf')!
+    const behindLeaf = container.querySelector<HTMLElement>('.behind-leaf')!
+
+    expect(findDeepestHoverRootFromStack([frontLeaf, behindLeaf], container)).toBe(front)
+  })
+
+  it('measures the visible descendant union instead of the undersized semantic line box', () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <span data-name="parent" data-kind="const" data-tree-path="">
+        <span class="top"></span><span class="bottom"></span>
+      </span>`
+    const parent = container.querySelector<HTMLElement>('[data-name="parent"]')!
+    const top = container.querySelector<HTMLElement>('.top')!
+    const bottom = container.querySelector<HTMLElement>('.bottom')!
+    const rects = (rect: DOMRect): DOMRectList => Object.assign([rect], { item: (index: number) => index === 0 ? rect : null })
+    parent.getClientRects = () => rects({ left: 10, top: 20, right: 50, bottom: 40, width: 40, height: 20 } as DOMRect)
+    top.getClientRects = () => rects({ left: 12, top: 8, right: 48, bottom: 24, width: 36, height: 16 } as DOMRect)
+    bottom.getClientRects = () => rects({ left: 20, top: 36, right: 40, bottom: 58, width: 20, height: 22 } as DOMRect)
+
+    expect(measureSemanticHighlightRect(parent)).toEqual({ left: 10, top: 8, right: 50, bottom: 58, width: 40, height: 50 })
   })
 })

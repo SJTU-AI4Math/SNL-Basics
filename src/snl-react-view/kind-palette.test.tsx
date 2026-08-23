@@ -50,7 +50,8 @@ describe('paletteToCss', () => {
       expect(css).not.toContain(`.katex-html [data-kind="${kind}"] { color: ${coloring.light.stroke}; }`)
       // Hover treatment still emitted, and includes the kind's stroke + background.
       expect(css).toContain(`.katex-html .snl-single-hover[data-kind="${kind}"]`)
-      expect(css).toContain(`box-shadow: 0 0 0 1px ${alpha(coloring.light.stroke, 0.5)};`)
+      expect(css).toContain(`--snl-highlight-stroke: ${alpha(coloring.light.stroke, 0.5)};`)
+      expect(css).toContain('box-shadow: 0 0 0 1px var(--snl-highlight-stroke);')
     }
     // Hover background is the kind background at 50% alpha.
     expect(css).toContain('rgba(214, 254, 224, 0.5)') // rule background @ 50%
@@ -98,7 +99,7 @@ describe('paletteToCss', () => {
     // Overridden `const` shows up in its hover rule.
     expect(css).toContain('.katex-html .snl-single-hover[data-kind="const"]')
     expect(css).toContain('color: #fedcba;')
-    expect(css).toContain('box-shadow: 0 0 0 1px rgba(254, 220, 186, 0.5);')
+    expect(css).toContain('--snl-highlight-stroke: rgba(254, 220, 186, 0.5);')
     // A default kind (rule) is still present in its hover rule.
     expect(css).toContain('.katex-html .snl-single-hover[data-kind="rule"]')
     expect(css).toContain('color: #009C27;')

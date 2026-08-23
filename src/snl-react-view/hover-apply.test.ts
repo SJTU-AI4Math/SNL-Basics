@@ -8,7 +8,7 @@
  * (猫猫 2026-07-29). Now both surfaces call `applySnlHoverHighlight`, so these
  * tests cover both.
  */
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import {
   applySnlHoverHighlight,
   clearSnlHoverHighlight,
@@ -83,6 +83,34 @@ describe('applySnlHoverHighlight', () => {
     expect(byId('row-left').classList.contains(SNL_HOVER_CLASS.singleHover)).toBe(true)
     expect(byId('row-right').classList.contains(SNL_HOVER_CLASS.singleHover)).toBe(true)
     expect(byId('other-row').classList.contains(SNL_HOVER_CLASS.singleHover)).toBe(false)
+  })
+
+  it('projects the complete visible subtree union into paint-only frame geometry', () => {
+    const container = mount('<span id="t" data-kind="const" data-name="c"><span id="upper"></span><span id="lower"></span></span>')
+    const rects = (rect: DOMRect): DOMRectList => Object.assign([rect], { item: (index: number) => index === 0 ? rect : null })
+    byId('t').getClientRects = () => rects({ left: 10, top: 20, right: 50, bottom: 40, width: 40, height: 20 } as DOMRect)
+    byId('upper').getClientRects = () => rects({ left: 12, top: 8, right: 48, bottom: 24, width: 36, height: 16 } as DOMRect)
+    byId('lower').getClientRects = () => rects({ left: 20, top: 36, right: 40, bottom: 58, width: 20, height: 22 } as DOMRect)
+
+    applySnlHoverHighlight(byId('t'), container)
+
+    expect(byId('t').classList.contains(SNL_HOVER_CLASS.geometry)).toBe(true)
+    expect(byId('t').style.getPropertyValue('--snl-highlight-left')).toBe('10px')
+    expect(byId('t').style.getPropertyValue('--snl-highlight-top')).toBe('8px')
+    expect(byId('t').style.getPropertyValue('--snl-highlight-width')).toBe('40px')
+    expect(byId('t').style.getPropertyValue('--snl-highlight-height')).toBe('50px')
+  })
+
+  it('reuses geometry while the pointer remains on the same semantic fragment', () => {
+    const container = mount('<span id="t" data-kind="const" data-name="c">c</span>')
+    const rect = { left: 10, top: 20, right: 50, bottom: 40, width: 40, height: 20 } as DOMRect
+    const getClientRects = vi.fn((): DOMRectList => Object.assign([rect], { item: (index: number) => index === 0 ? rect : null }))
+    byId('t').getClientRects = getClientRects
+
+    applySnlHoverHighlight(byId('t'), container)
+    applySnlHoverHighlight(byId('t'), container)
+
+    expect(getClientRects).toHaveBeenCalledTimes(1)
   })
 
   it('lights up only the hovered bvar\'s own binding scope', () => {
