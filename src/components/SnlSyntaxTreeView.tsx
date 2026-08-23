@@ -953,16 +953,15 @@ export function SnlSyntaxTreeView({
       : null
     if (!target) return
 
-    if (container.contains(target)) {
-      const semantic = target.closest<HTMLElement>('[data-tree-path]')
-      if (semantic && container.contains(semantic)) return
-      if (hasOwnedInteractionBoundary(target, container)) return
-    } else if (target !== panel && panel.contains(target)) {
-      const semantic = target.closest<HTMLElement>('[data-tree-path]')
-      if (semantic && panel.contains(semantic)) return
-      if (target.closest('[data-snl-tooltip-root]')) return
-      if (hasOwnedInteractionBoundary(target, panel)) return
-    }
+    const semantic = target.closest<HTMLElement>('[data-tree-path]')
+    if (semantic) return
+    if (target.closest('[data-snl-tooltip-root]')) return
+    const ownedBoundary = target.closest<HTMLElement>(OWNED_INTERACTION_SELECTOR)
+    const HTMLElementCtor = panel.ownerDocument.defaultView?.HTMLElement
+    const generatedSnlKeyboardRoot =
+      ownedBoundary && HTMLElementCtor && ownedBoundary instanceof HTMLElementCtor &&
+      ownedBoundary.dataset.snlKeyboardActivation === 'true'
+    if (ownedBoundary && !generatedSnlKeyboardRoot) return
 
     const active = currentActivationRef.current
     if (active) active.lease.request_deactivate('blank-activation', event)

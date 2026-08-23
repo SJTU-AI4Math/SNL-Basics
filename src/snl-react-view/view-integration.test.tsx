@@ -404,7 +404,15 @@ describe('SnlInteractionDriver integration', () => {
     const blank = document.createElement('div')
     blank.dataset.testid = 'outside-blank'
     blank.addEventListener('pointerdown', (event) => event.stopPropagation())
-    document.body.append(blank)
+    const externalButton = document.createElement('button')
+    externalButton.textContent = 'outside control'
+    document.body.append(blank, externalButton)
+    const siblingView = render(<SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('y')} macro_data_driver={testDriver({})} />)
+    const siblingTarget = await waitFor(() => {
+      const found = siblingView.container.querySelector<HTMLElement>('[data-tree-path=""]')
+      expect(found).not.toBeNull()
+      return found!
+    })
     try {
       fireEvent.click(target)
       expect(target.dataset.kind).toBe('fvar')
@@ -414,12 +422,19 @@ describe('SnlInteractionDriver integration', () => {
       fireEvent.pointerDown(view.getByTestId('owned-tooltip-content'))
       expect(target.classList.contains('snl-single-hover')).toBe(true)
 
+      fireEvent.pointerDown(externalButton)
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+
+      fireEvent.pointerDown(siblingTarget)
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+
       fireEvent.pointerDown(blank)
 
       expect(target.classList.contains('snl-single-hover')).toBe(false)
       expect(document.querySelector('[data-snl-highlight-overlay]')).toBeNull()
     } finally {
       blank.remove()
+      externalButton.remove()
     }
   })
 
