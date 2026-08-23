@@ -941,6 +941,45 @@ export function SnlSyntaxTreeView({
   const infoRequestRef = useRef<{ key: string; generation: number } | null>(null)
   const hoverMarkedElsRef = useRef<HTMLElement[]>([])
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const panelRef = useRef<HTMLDivElement | null>(null)
+
+  const handleOwnerDocumentPointerDown = useCallback((event: PointerEvent): void => {
+    const panel = panelRef.current
+    const container = containerRef.current
+    if (!panel || !container) return
+    const ElementCtor = panel.ownerDocument.defaultView?.Element
+    const target = ElementCtor && event.target instanceof ElementCtor
+      ? event.target as Element
+      : null
+    if (!target) return
+
+    if (container.contains(target)) {
+      const semantic = target.closest<HTMLElement>('[data-tree-path]')
+      if (semantic && container.contains(semantic)) return
+      if (hasOwnedInteractionBoundary(target, container)) return
+    } else if (target !== panel && panel.contains(target)) {
+      const semantic = target.closest<HTMLElement>('[data-tree-path]')
+      if (semantic && panel.contains(semantic)) return
+      if (target.closest('[data-snl-tooltip-root]')) return
+      if (hasOwnedInteractionBoundary(target, panel)) return
+    }
+
+    const active = currentActivationRef.current
+    if (active) active.lease.request_deactivate('blank-activation', event)
+  }, [])
+
+  const setPanelRef = useCallback((node: HTMLDivElement | null) => {
+    panelRef.current = node
+  }, [])
+
+  useEffect(() => {
+    const panel = panelRef.current
+    if (!panel || !hasHoverTarget) return
+    const ownerDocument = panel.ownerDocument
+    ownerDocument.addEventListener('pointerdown', handleOwnerDocumentPointerDown, true)
+    return () => ownerDocument.removeEventListener('pointerdown', handleOwnerDocumentPointerDown, true)
+  }, [handleOwnerDocumentPointerDown, hasHoverTarget, isKatexRoot, result])
+
   const setContainerRef = useCallback((node: HTMLDivElement | null) => {
     const previous = containerRef.current
     if (previous && previous !== node) clearSnlHoverHighlight(previous)
@@ -1821,7 +1860,7 @@ export function SnlSyntaxTreeView({
 
   const committedFormulaHtml = result?.html ?? lastHtmlRef.current ?? ''
   return (
-    <div className={formulaMarkers.length > 0 ? 'katex-panel snl-has-formula-foreign' : 'katex-panel'}>
+    <div ref={setPanelRef} className={formulaMarkers.length > 0 ? 'katex-panel snl-has-formula-foreign' : 'katex-panel'}>
       <style dangerouslySetInnerHTML={{ __html: paletteCss }} />
       {/*
        * Cat 2026-07-13: use `isKatexRoot` as a KEY so React unmounts the
@@ -1857,7 +1896,9 @@ export function SnlSyntaxTreeView({
           {renderNode(renderTree)}
         </div>
       )}
-      {tooltip ? mergedHooks.renderTooltip?.(tooltip) ?? null : null}
+      {tooltip ? <span data-snl-tooltip-root style={{ display: 'contents' }}>
+        {mergedHooks.renderTooltip?.(tooltip) ?? null}
+      </span> : null}
     </div>
   )
 }

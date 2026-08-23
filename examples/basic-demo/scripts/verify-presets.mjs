@@ -70,6 +70,42 @@ try {
   await cdp.send('Page.navigate', { url: vite.url })
   await waitFor(() => evaluate(cdp, "document.querySelectorAll('.preset').length === 5"), 'five preset buttons')
 
+  await evaluate(cdp, `(() => {
+    const sample = [...document.querySelectorAll('button.sample')]
+      .find(button => button.textContent === 'Layout.right(Left,Right)');
+    if (!sample) throw new Error('right-renderer sample button is missing');
+    sample.click();
+    return true;
+  })()`)
+  await waitFor(() => evaluate(cdp, "document.querySelector('.snl-block-right [data-kind=\"fvar\"]') !== null"), 'right-renderer fvar')
+  const interactionProof = await evaluate(cdp, `(async () => {
+    const block = document.querySelector('.snl-block-right');
+    const fvars = [...block.querySelectorAll('[data-kind="fvar"]')];
+    fvars[0].click();
+    await new Promise(requestAnimationFrame);
+    const before = {
+      active: fvars[0].classList.contains('snl-single-hover'),
+      overlay: Boolean(document.querySelector('[data-snl-highlight-overlay]')),
+    };
+    document.querySelector('h1').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }));
+    await new Promise(requestAnimationFrame);
+    return {
+      textAlign: getComputedStyle(block).textAlign,
+      childOrder: fvars.map(node => node.getAttribute('data-name')),
+      before,
+      after: {
+        active: fvars[0].classList.contains('snl-single-hover'),
+        overlay: Boolean(document.querySelector('[data-snl-highlight-overlay]')),
+      },
+      errors: window.__presetErrors,
+    };
+  })()`)
+  assert(interactionProof.textAlign === 'right', `right renderer is not right-aligned: ${JSON.stringify(interactionProof)}`)
+  assert(JSON.stringify(interactionProof.childOrder) === JSON.stringify(['Left', 'Right']), `right renderer changed child order: ${JSON.stringify(interactionProof)}`)
+  assert(interactionProof.before.active && interactionProof.before.overlay, `fvar activation probe did not activate: ${JSON.stringify(interactionProof)}`)
+  assert(!interactionProof.after.active && !interactionProof.after.overlay, `outside blank pointer did not deactivate fvar: ${JSON.stringify(interactionProof)}`)
+  assert(interactionProof.errors.length === 0, `right/blank interaction emitted runtime errors: ${JSON.stringify(interactionProof.errors)}`)
+
   const modes = [
     { name: 'desktop', stageWidth: null, hostMin: 600, hostMax: 700 },
     { name: '300px-host', stageWidth: 360, hostMin: 270, hostMax: 300 },
@@ -243,7 +279,7 @@ try {
   assert(rasterProof.formulaKnockout.slice(0, 3).every(channel => channel === 49), `formula plate did not reveal #313131: ${JSON.stringify(rasterProof.formulaKnockout)}`)
   assert(rasterProof.doubleArrowKnockout.slice(0, 3).every(channel => channel === 49), `double-arrow gap did not reveal #313131: ${JSON.stringify(rasterProof.doubleArrowKnockout)}`)
   assert(rasterProof.opaqueInk?.slice(0, 3).every(channel => channel === 255), `currentColor ink did not rasterize with theme foreground: ${JSON.stringify(rasterProof.opaqueInk)}`)
-  verificationResults = { matrix: results, liveTheme, rasterProof }
+  verificationResults = { interactionProof, matrix: results, liveTheme, rasterProof }
 } catch (error) {
   verificationError = error
 } finally {

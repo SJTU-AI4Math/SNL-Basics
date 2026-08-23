@@ -281,6 +281,36 @@ describe('SnlInteractionDriver integration', () => {
     frame.remove()
   })
 
+  it('owns outside-blank deactivation and listener cleanup in the container document realm', async () => {
+    const frame = document.createElement('iframe')
+    document.body.append(frame)
+    const foreignDocument = frame.contentDocument!
+    const mountPoint = foreignDocument.createElement('div')
+    const blank = foreignDocument.createElement('div')
+    blank.addEventListener('pointerdown', (event) => event.stopPropagation())
+    foreignDocument.body.append(mountPoint, blank)
+    const removeListener = vi.spyOn(foreignDocument, 'removeEventListener')
+    const view = render(
+      <SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('x')} macro_data_driver={testDriver({})} />,
+      { container: mountPoint, baseElement: foreignDocument.body },
+    )
+    const target = await waitFor(() => {
+      const found = mountPoint.querySelector<HTMLElement>('[data-tree-path=""]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    fireEvent.click(target)
+    expect(target.classList.contains('snl-single-hover')).toBe(true)
+
+    fireEvent.pointerDown(blank)
+
+    expect(target.classList.contains('snl-single-hover')).toBe(false)
+    view.unmount()
+    expect(removeListener).toHaveBeenCalledWith('pointerdown', expect.any(Function), true)
+    removeListener.mockRestore()
+    frame.remove()
+  })
+
   it('exposes generation-safe leases that cannot clear a newer activation', async () => {
     const contexts: SnlInteractionContext[] = []
     const tree = createSnlSyntaxTreeNode('sum', { children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')] })
@@ -359,6 +389,40 @@ describe('SnlInteractionDriver integration', () => {
     }
   })
 
+  it('deactivates a clicked fvar when an outside blank surface stops pointer propagation', async () => {
+    const tree = createSnlSyntaxTreeNode('x')
+    const view = render(<SnlSyntaxTreeView
+      tree={tree}
+      macro_data_driver={testDriver({})}
+      hooks={{ renderTooltip: () => <span data-testid="owned-tooltip-content">details</span> }}
+    />)
+    const target = await waitFor(() => {
+      const found = view.container.querySelector<HTMLElement>('[data-tree-path=""]')
+      expect(found).not.toBeNull()
+      return found!
+    })
+    const blank = document.createElement('div')
+    blank.dataset.testid = 'outside-blank'
+    blank.addEventListener('pointerdown', (event) => event.stopPropagation())
+    document.body.append(blank)
+    try {
+      fireEvent.click(target)
+      expect(target.dataset.kind).toBe('fvar')
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+      expect(document.querySelector('[data-snl-highlight-overlay]')).not.toBeNull()
+
+      fireEvent.pointerDown(view.getByTestId('owned-tooltip-content'))
+      expect(target.classList.contains('snl-single-hover')).toBe(true)
+
+      fireEvent.pointerDown(blank)
+
+      expect(target.classList.contains('snl-single-hover')).toBe(false)
+      expect(document.querySelector('[data-snl-highlight-overlay]')).toBeNull()
+    } finally {
+      blank.remove()
+    }
+  })
+
   it('lets native and ARIA controls inside a Block consume pointer and keyboard interaction before SNL activation', async () => {
     const localClicks = vi.fn()
     const snlClicks = vi.fn()
@@ -398,7 +462,8 @@ describe('SnlInteractionDriver integration', () => {
       view.getByTestId('plain-cell'),
       view.getByTestId('plain-separator'),
     ]
-    expect(button.closest('[data-tree-path]')).not.toBeNull()
+    const semanticRoot = button.closest<HTMLElement>('[data-tree-path]')!
+    expect(semanticRoot).not.toBeNull()
     let pointTarget: Element = button
     const original = document.elementsFromPoint
     Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [pointTarget] })
@@ -415,6 +480,9 @@ describe('SnlInteractionDriver integration', () => {
 
       pointTarget = icon
       fireEvent.mouseMove(icon, { clientX: 1, clientY: 2 })
+      expect(semanticRoot.classList.contains('snl-single-hover')).toBe(true)
+      fireEvent.pointerDown(icon)
+      expect(semanticRoot.classList.contains('snl-single-hover')).toBe(true)
       fireEvent.click(icon)
       expect(localClicks).toHaveBeenCalledOnce()
       expect(snlClicks).not.toHaveBeenCalled()
