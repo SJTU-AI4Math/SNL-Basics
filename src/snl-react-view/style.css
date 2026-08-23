@@ -97,7 +97,6 @@
    child of the semantic wrapper, so the translucent fill remains behind the
    wrapper's text while matching the complete visual subtree. */
 .katex-html .snl-single-hover.snl-highlight-geometry {
-  position: relative;
   isolation: isolate;
   background: transparent !important;
   box-shadow: none !important;

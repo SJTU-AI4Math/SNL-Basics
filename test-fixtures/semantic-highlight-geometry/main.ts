@@ -62,6 +62,9 @@ requestAnimationFrame(() => {
       throw new Error(`Painted geometry ${JSON.stringify(painted)} != union ${JSON.stringify(union)}`)
     }
     if (pseudo.pointerEvents !== 'none') throw new Error(`Highlight frame intercepts pointers: ${pseudo.pointerEvents}`)
+    if (getComputedStyle(parent).position !== 'static') {
+      throw new Error('Highlight must not create a containing block for positioned descendants')
+    }
 
     const payload = {
       status: 'PASS',
@@ -70,6 +73,7 @@ requestAnimationFrame(() => {
       union,
       painted,
       pointerEvents: pseudo.pointerEvents,
+      sourcePosition: getComputedStyle(parent).position,
     }
     result.dataset.status = 'pass'
     result.textContent = JSON.stringify(payload)
