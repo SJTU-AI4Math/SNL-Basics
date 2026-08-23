@@ -43,6 +43,7 @@ const db: SnlMacroRecord = {
     },
   }),
   'sample.centered': blockMacro('sample.centered', 'centered'),
+  'sample.right': blockMacro('sample.right', 'right'),
 }
 
 function leaf(name: string, kind = 'fvar'): SnlSyntaxTree {
@@ -134,6 +135,19 @@ describe('block renderers via SnlSyntaxTreeView', () => {
     await waitFor(() => {
       const div = container.querySelector('div.snl-block-centered')
       expect(div).not.toBeNull()
+    })
+  })
+
+  it('right renderer preserves child order in a right-aligned block div', async () => {
+    const tree = createSnlSyntaxTreeNode('sample.right', {
+      children: [leaf('x'), leaf('y')],
+    })
+    const { container } = renderTree(tree)
+    await waitFor(() => {
+      const div = container.querySelector<HTMLDivElement>('div.snl-block-right')
+      expect(div).not.toBeNull()
+      expect(div!.style.textAlign).toBe('right')
+      expect([...div!.querySelectorAll('[data-name]')].map((element) => element.getAttribute('data-name'))).toEqual(['x', 'y'])
     })
   })
 

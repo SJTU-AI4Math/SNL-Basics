@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.3.1 · MIT License · Beta** — [中文版 README](README(ZH).md)
+**v0.3.2 · MIT License · Beta** — [中文版 README](README(ZH).md)
 
 Structured Natural Language (SNL) base library — parse a macro DSL into syntax
 trees and render them to KaTeX-in-React with hover interactions.
@@ -569,7 +569,8 @@ const hooks: SnlRenderHooks = {
 ### Custom block renderer
 
 Register a renderer keyed by the resolved style's `block_template_name`. Spread
-`defaultRenderers` to keep the built-in `list` / `enumerate` / `table` / `centered` renderers:
+`defaultRenderers` to keep the built-in `list` / `enumerate` / `table` / `centered` / `right` renderers.
+The `right` renderer preserves child order and right-aligns the rendered block:
 
 ```tsx
 import { defaultRenderers, type SnlBlockRenderer } from '@sjtu-ai4math/snl-basics'
@@ -811,5 +812,5 @@ npm pack            # produce the publishable tarball
 
 ## Version & License
 
-- **Version:** `0.3.1` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
+- **Version:** `0.3.2` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
 - **License:** [MIT](LICENSE)

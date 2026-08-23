@@ -51,9 +51,12 @@ describe('hover colors only direct-text descendants, not nested subtrees', () =>
     expect(css).not.toMatch(/\.snl-single-hover \[data-kind\][^{]*\{[^}]*color:\s*(initial|revert)/)
     // palette CSS — style.css must no longer hardcode the accent on hover.
     expect(css).not.toMatch(/\.snl-single-hover\s*\{[^}]*color:\s*var\(--snl-c-hover-accent\)/)
-    // Every hovered element (kind-in-palette or not) gets a visible default
-    // frame — drawn with box-shadow so the layout doesn't reflow on hover.
-    expect(css).toMatch(/\.katex-html \.snl-single-hover\s*\{[^}]*box-shadow:\s*0 0 0 1px/)
+    // The document-root overlay is the only visible frame. The semantic source
+    // must stay paint-free so under-bounded KaTeX wrappers cannot show a second,
+    // smaller highlight.
+    expect(css).toMatch(/\.snl-highlight-overlay\s*\{[^}]*box-shadow:\s*inset 0 0 0 1px/)
+    expect(css).toMatch(/\.snl-single-hover\.snl-highlight-geometry\s*\{[^}]*background:\s*transparent\s*!important;[^}]*box-shadow:\s*none\s*!important/)
+    expect(css).not.toMatch(/\.katex-html \.snl-single-hover\s*\{[^}]*box-shadow:/)
   })
 
   it('paletteToCss: per-kind hover rules for the 5 defaults; no bracket-syntax fossils; no base color', () => {

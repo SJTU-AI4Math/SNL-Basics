@@ -1,5 +1,5 @@
 /**
- * Built-in block renderers (`list` / `table` / `centered`). Each conforms to
+ * Built-in block renderers (`list` / `table` / `centered` / `right`). Each conforms to
  * {@link SnlBlockRenderer} and is registered in {@link defaultRenderers}.
  *
  * A block renderer receives the syntax-tree node, the macro DB, and a
@@ -99,6 +99,16 @@ export const TableRenderer: SnlBlockRenderer = ({ node, renderChild, template, m
  */
 export const CenteredRenderer: SnlBlockRenderer = ({ node, renderChild }) => (
   <div className="snl-block snl-block-centered" style={{ textAlign: 'center' }}>
+    {node.children.map((child, index) => keyed(renderChild(child, index), index))}
+  </div>
+)
+
+/**
+ * `right` renderer — variadic. Renders children in source order inside a
+ * right-aligned block container.
+ */
+export const RightRenderer: SnlBlockRenderer = ({ node, renderChild }) => (
+  <div className="snl-block snl-block-right" style={{ textAlign: 'right' }}>
     {node.children.map((child, index) => keyed(renderChild(child, index), index))}
   </div>
 )

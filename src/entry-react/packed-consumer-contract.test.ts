@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 const root = new URL('../../', import.meta.url)
 const read = (path: string): string => readFileSync(new URL(path, root), 'utf8')
 
-describe('0.3.1 packed-consumer release contract', () => {
+describe('0.3.2 packed-consumer release contract', () => {
   it('versions the candidate and wires a non-recursive release verifier', () => {
     const pkg = JSON.parse(read('package.json')) as {
       version: string
@@ -15,9 +15,9 @@ describe('0.3.1 packed-consumer release contract', () => {
       packages: Record<string, { version?: string }>
     }
 
-    expect(pkg.version).toBe('0.3.1')
-    expect(lock.version).toBe('0.3.1')
-    expect(lock.packages[''].version).toBe('0.3.1')
+    expect(pkg.version).toBe('0.3.2')
+    expect(lock.version).toBe('0.3.2')
+    expect(lock.packages[''].version).toBe('0.3.2')
     expect(pkg.scripts['verify:packed-consumer']).toBe('node scripts/verify-packed-consumer.mjs')
     expect(pkg.scripts['verify:release']).toBe('npm run verify:packed-consumer && npm run verify:packed-entry-i18n')
     const entryVerifier = read('scripts/verify-packed-entry-i18n.mjs')

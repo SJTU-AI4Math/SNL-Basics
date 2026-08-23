@@ -350,7 +350,7 @@ describe('SvgTemplateRenderer', () => {
   })
 
   it('keeps default renderers unchanged and renderer maps shallow', () => {
-    expect(Object.keys(defaultRenderers).sort()).toEqual(['centered', 'enumerate', 'list', 'table'])
+    expect(Object.keys(defaultRenderers).sort()).toEqual(['centered', 'enumerate', 'list', 'right', 'table'])
     const custom = { 'consumer-svg': makeRenderer().Renderer }
     expect((custom as Partial<typeof defaultRenderers>).list).toBeUndefined()
     const merged: typeof defaultRenderers = { ...defaultRenderers, ...custom }

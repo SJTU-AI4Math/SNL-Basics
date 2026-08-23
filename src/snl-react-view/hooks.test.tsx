@@ -70,10 +70,11 @@ describe('defaultRenderHooks', () => {
     expect(typeof defaultHighlightStrategy.computeHighlightSet).toBe('function')
   })
 
-  it('exposes the built-in renderers registry (list / table / centered)', () => {
+  it('exposes the built-in renderers registry (list / table / centered / right)', () => {
     expect(defaultRenderHooks.renderers).toBe(defaultRenderers)
     expect(typeof defaultRenderers.list).toBe('function')
     expect(typeof defaultRenderers.table).toBe('function')
     expect(typeof defaultRenderers.centered).toBe('function')
+    expect(typeof defaultRenderers.right).toBe('function')
   })
 })

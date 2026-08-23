@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import {
   annotateBindings,
   createSvgTemplateRenderer,
+  defaultRenderers,
   SvgTemplateAssetRegistry,
   parseSnlSyntaxTree,
   serializeSnlSyntaxTree,
@@ -21,7 +22,7 @@ import {
 import { DEMO_MACROS, DEMO_PRESETS, DEMO_SVG_SOURCES, type DemoPreset } from './demoPresets'
 
 const INITIAL_INPUT = DEMO_PRESETS[0].source
-const SAMPLES = ['群.示例(@x,x)', 'Théorie.groupe(élément)', 'Ελληνικά.Ομάδα(αντικείμενο)']
+const SAMPLES = ['群.示例(@x,x)', 'Théorie.groupe(élément)', 'Ελληνικά.Ομάδα(αντικείμενο)', 'Layout.right(Left,Right)']
 
 const svgAssets = new SvgTemplateAssetRegistry({
   loader: async (identity) => {
@@ -35,6 +36,13 @@ const svgRenderer = createSvgTemplateRenderer({ assetRegistry: svgAssets })
 
 const macroDb: Record<string, SnlMacro> = {
   ...DEMO_MACROS,
+  'Layout.right': {
+    name: 'Layout.right', description: 'Right-aligns its rendered child sequence.',
+    source: { entries: [], urls: [] }, dynamic_arity: true, kind: 'const', tags: [],
+    styles: [{ style_name: 'default', tags: [], template: {
+      mode: 'block', body: '#*', block_template_name: 'right',
+    } }],
+  },
   '群.示例': {
     name: '群.示例', description: 'A source-backed group example.',
     source: { entries: ['demo.group.zh'], urls: [] }, dynamic_arity: false, kind: 'const', tags: [],
@@ -166,7 +174,7 @@ export default function App() {
           kind={entryKinds.definition}
           entry_data_driver={entryDriver}
           macro_data_driver={macroDriver}
-          hooks={{ renderers: { svg_template: svgRenderer } }}
+          hooks={{ renderers: { ...defaultRenderers, svg_template: svgRenderer } }}
         />
       </EntryPreviewProvider>
     </section>

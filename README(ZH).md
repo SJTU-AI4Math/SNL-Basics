@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.3.1 · MIT License · Beta** — [English README](README.md)
+**v0.3.2 · MIT License · Beta** — [English README](README.md)
 
 结构化自然语言（Structured Natural Language, SNL）基础库 —— 将宏 DSL 解析为语法树，
 并渲染为带悬停交互的 KaTeX-in-React。
@@ -500,7 +500,8 @@ const hooks: SnlRenderHooks = {
 ### 自定义块渲染器
 
 以解析出的 style 的 `block_template_name` 为键注册渲染器。展开 `defaultRenderers`
-以保留内置的 `list` / `enumerate` / `table` / `centered` 渲染器：
+以保留内置的 `list` / `enumerate` / `table` / `centered` / `right` 渲染器。
+`right` 渲染器保持子节点顺序，并将整个 block 居右显示：
 
 ```tsx
 import { defaultRenderers, type SnlBlockRenderer } from '@sjtu-ai4math/snl-basics'
@@ -702,5 +703,5 @@ npm pack            # 产出可发布的 tarball
 
 ## 版本与许可证
 
-- **版本：** `0.3.1`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
+- **版本：** `0.3.2`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
 - **许可证：** [MIT](LICENSE)

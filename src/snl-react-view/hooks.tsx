@@ -10,7 +10,7 @@ import {
   defaultHighlightStrategy,
   type SnlHighlightStrategy,
 } from './highlight-strategy'
-import { CenteredRenderer, EnumerateRenderer, ListRenderer, TableRenderer } from './block-renderers'
+import { CenteredRenderer, EnumerateRenderer, ListRenderer, RightRenderer, TableRenderer } from './block-renderers'
 
 
 /** Shared mutable channel for one uninterrupted hover lifecycle. */
@@ -123,6 +123,7 @@ export type SnlRendererRegistry = Record<string, SnlBlockRenderer>
  *                   `mdata.listStyle` ('decimal' / 'lower-alpha' / …).
  *   `"table"`     — `<table>` with optional `table-header` first row.
  *   `"centered"`  — horizontally-centered block wrapper.
+ *   `"right"`     — right-aligned block wrapper.
  * Spread your own entries over this to extend it.
  */
 export const defaultRenderers: SnlRendererRegistry = {
@@ -130,6 +131,7 @@ export const defaultRenderers: SnlRendererRegistry = {
   enumerate: EnumerateRenderer,
   table: TableRenderer,
   centered: CenteredRenderer,
+  right: RightRenderer,
 }
 
 /**

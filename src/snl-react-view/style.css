@@ -16,7 +16,7 @@
  *   2. Hover-model layout rules that require `.katex-html` as a scoping
  *      selector (kind chips, single-hover frame, missing-arg placeholder,
  *      nested-subtree color-preservation).
- *   3. Block-renderer structural rules (list / table / centered).
+ *   3. Block-renderer structural rules (list / table / centered / right).
  *   4. Tooltip widget styling.
  */
 
@@ -86,15 +86,13 @@
   --snl-highlight-background: rgba(209, 213, 219, 0.5);
   --snl-highlight-stroke: #d1d5db;
   color: #374151;
-  background: var(--snl-highlight-background);
-  box-shadow: 0 0 0 1px var(--snl-highlight-stroke);
-  border-radius: 5px;
 }
 
 /* KaTeX metadata spans can under-bound fractions, limits and vlists. The
-   semantic source retains its palette fill and text colour, while a
-   document-root viewport overlay paints the authoritative full-size frame. */
+   semantic source retains only its palette text colour; the document-root
+   viewport overlay is the sole authoritative full-size highlight frame. */
 .katex-html .snl-single-hover.snl-highlight-geometry {
+  background: transparent !important;
   box-shadow: none !important;
 }
 

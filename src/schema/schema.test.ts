@@ -29,7 +29,7 @@ describe('schema/versions', () => {
   it('exports correct version constants', () => {
     expect(MACRO_SCHEMA_VERSION).toBe(11)
     expect(TREE_SCHEMA_VERSION).toBe(3)
-    expect(PACKAGE_VERSION).toBe('0.3.1')
+    expect(PACKAGE_VERSION).toBe('0.3.2')
   })
 })
 

@@ -116,9 +116,6 @@ export function paletteToCss(palette: KindPalette, colorScheme: ColorScheme = 'l
   --snl-highlight-stroke: ${alpha(colors.stroke, 0.5)};
   --snl-highlight-background: ${alpha(colors.background, 0.5)};
   color: ${colors.stroke};
-  background: var(--snl-highlight-background);
-  box-shadow: 0 0 0 1px var(--snl-highlight-stroke);
-  border-radius: 5px;
 }`
   })
   const bvar = palette.bvar ? resolveKindColoring(palette.bvar, colorScheme) : undefined

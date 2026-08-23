@@ -48,12 +48,15 @@ describe('paletteToCss', () => {
     for (const [kind, coloring] of Object.entries(DEFAULT_KIND_PALETTE)) {
       // No base color rule — un-hovered text keeps its native color.
       expect(css).not.toContain(`.katex-html [data-kind="${kind}"] { color: ${coloring.light.stroke}; }`)
-      // Hover treatment still emitted, and includes the kind's stroke + background.
+      // Hover treatment still emits palette variables and text colour, but the
+      // semantic source must not paint a second, under-bounded frame/background.
       expect(css).toContain(`.katex-html .snl-single-hover[data-kind="${kind}"]`)
       expect(css).toContain(`--snl-highlight-stroke: ${alpha(coloring.light.stroke, 0.5)};`)
-      expect(css).toContain('box-shadow: 0 0 0 1px var(--snl-highlight-stroke);')
+      expect(css).not.toContain('box-shadow: 0 0 0 1px var(--snl-highlight-stroke);')
+      expect(css).not.toContain('background: var(--snl-highlight-background);')
     }
-    // Hover background is the kind background at 50% alpha.
+    // The background token remains available to consumers but is not painted
+    // on the under-bounded semantic source.
     expect(css).toContain('rgba(214, 254, 224, 0.5)') // rule background @ 50%
     // Binding-scope highlight rules from bvar / binder entries.
     expect(css).toContain('.snl-bvar-scope')

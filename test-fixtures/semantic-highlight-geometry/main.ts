@@ -59,9 +59,17 @@ requestAnimationFrame(async () => {
     }
     if (getComputedStyle(overlay).pointerEvents !== 'none') throw new Error('Highlight frame intercepts pointers')
     const sourceBackground = getComputedStyle(parent).backgroundColor
-    if (sourceBackground === 'transparent' || sourceBackground === 'rgba(0, 0, 0, 0)') {
-      throw new Error('Primary palette background was suppressed')
+    const sourceShadow = getComputedStyle(parent).boxShadow
+    const overlayBackground = getComputedStyle(overlay).backgroundColor
+    const overlayShadow = getComputedStyle(overlay).boxShadow
+    if (sourceBackground !== 'transparent' && sourceBackground !== 'rgba(0, 0, 0, 0)') {
+      throw new Error(`Semantic source still paints a second background: ${sourceBackground}`)
     }
+    if (sourceShadow !== 'none') throw new Error(`Semantic source still paints a second frame: ${sourceShadow}`)
+    if (overlayBackground !== 'transparent' && overlayBackground !== 'rgba(0, 0, 0, 0)') {
+      throw new Error(`Authoritative overlay unexpectedly paints a background: ${overlayBackground}`)
+    }
+    if (overlayShadow === 'none') throw new Error('Authoritative overlay frame is missing')
     if (getComputedStyle(parent).position !== 'static') {
       throw new Error('Highlight must not create a containing block for positioned descendants')
     }
@@ -96,6 +104,9 @@ requestAnimationFrame(async () => {
       grownPaint: { left: grownPaint.left, top: grownPaint.top, width: grownPaint.width, height: grownPaint.height },
       pointerEvents: getComputedStyle(overlay).pointerEvents,
       sourceBackground,
+      sourceShadow,
+      overlayBackground,
+      overlayShadow,
       sourcePosition: getComputedStyle(parent).position,
       transform: app.style.transform,
       scrollTop: window.scrollY,
