@@ -76,7 +76,7 @@ async function verify() {
   const listText = listItem?.querySelector<HTMLElement>('.snl-text')
   const nestedListItem = document.querySelector<HTMLElement>('#nested-block-surface .snl-block-enumerate > li')
   const nestedListText = nestedListItem?.querySelector<HTMLElement>('.snl-text')
-  const entryTitle = document.querySelector<HTMLElement>('#surface .snl-entry-title > span')
+  const entryTitle = document.querySelector<HTMLElement>('#surface .snl-entry-title')
   if (!root || !math || !reference || !referenceText || !listItem || !listText || !nestedListItem || !nestedListText) throw new Error(`missing production DOM in ${mode}`)
 
   const rootProbe = document.createElement('span')

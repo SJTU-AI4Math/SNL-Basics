@@ -28,7 +28,7 @@ describe('public Entry stylesheet closure', () => {
     expectDeclaration(surface, '--snl-tex-prose-font-family', "KaTeX_Main, 'SNL Noto Serif SC', serif")
     expectDeclaration(surface, '--snl-tex-prose-scale', '1.21em')
 
-    const title = rule(css, '.snl-entry-title > span')
+    const title = rule(css, '.snl-entry-title')
     expectDeclaration(title, 'font-family', 'var(--snl-tex-prose-font-family)')
 
     const text = rule(css, '[data-entry-body] .snl-text')

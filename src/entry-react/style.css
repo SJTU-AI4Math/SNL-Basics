@@ -5,7 +5,7 @@
   --snl-tex-prose-scale: 1.21em;
 }
 
-.snl-entry-title > span {
+.snl-entry-title {
   font-family: var(--snl-tex-prose-font-family);
 }
 
