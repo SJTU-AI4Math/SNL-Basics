@@ -92,6 +92,7 @@ try {
     addEventListener('unhandledrejection', event => window.__fixtureErrors.push('unhandledrejection: ' + String(event.reason)));
   ` })
   const results = []
+  let fixedCanvasLabelWidths
   const cases = [
     { name: '390', viewportWidth: 390, path: '/' },
     { name: '1000-wide', viewportWidth: 1000, path: '/' },
@@ -132,6 +133,7 @@ try {
     const before = await evaluate(cdp, `(async () => {
       const svg = document.querySelector('.fixture-frame svg.snl-svg-template-artwork');
       const frame = document.querySelector('.fixture-frame');
+      const panel = document.querySelector('.fixture-frame .katex-panel');
       const host = document.querySelector('.fixture-frame .snl-svg-template');
       const labels = [...document.querySelectorAll('.fixture-frame .snl-foreign-box[data-state="positioned"]')];
       const markers = [...svg.querySelectorAll('g[data-snl-slot]')];
@@ -234,7 +236,7 @@ try {
           contentOverflowY: content ? getComputedStyle(content).overflowY : 'missing',
           contentContained: Boolean(content && contained(content.getBoundingClientRect(), label.getBoundingClientRect())),
           visibleSurfaceContained: Boolean(content && [...content.querySelectorAll('.katex-html, .snl-text')]
-            .every(surface => contained(surface.getBoundingClientRect(), hostRect) && contained(surface.getBoundingClientRect(), frameRect))),
+            .every(surface => contained(surface.getBoundingClientRect(), hostRect))),
         };
       });
       return {
@@ -248,7 +250,9 @@ try {
         accessibleForeign: document.querySelectorAll('.fixture-frame .snl-foreign-box[data-state="positioned"][aria-hidden="false"]:not([inert])').length,
         geometry: {
           frame: { clientWidth: frame.clientWidth, scrollWidth: frame.scrollWidth, clientHeight: frame.clientHeight, scrollHeight: frame.scrollHeight, rect: rectValue(frameRect) },
-          host: { clientWidth: host.clientWidth, scrollWidth: host.scrollWidth, clientHeight: host.clientHeight, scrollHeight: host.scrollHeight, rect: rectValue(hostRect) },
+          panel: { clientWidth: panel.clientWidth, scrollWidth: panel.scrollWidth, clientHeight: panel.clientHeight, scrollHeight: panel.scrollHeight, overflowX: getComputedStyle(panel).overflowX },
+          host: { clientWidth: host.clientWidth, scrollWidth: host.scrollWidth, clientHeight: host.clientHeight, scrollHeight: host.scrollHeight, overflowX: getComputedStyle(host).overflowX, overflowY: getComputedStyle(host).overflowY, rect: rectValue(hostRect) },
+          artworkViewBox: { width: svg.viewBox.baseVal.width, height: svg.viewBox.baseVal.height },
           labelRects,
           markerRects,
           centerDeltas,
@@ -327,22 +331,33 @@ try {
       `${caseLabel} (viewport ${width}px) aligns every non-square SNL child center to its SVG slot center: ${JSON.stringify(before.geometry.centerDeltas)}`)
     assert(before.accessibleArtwork === 1, `${caseLabel} (viewport ${width}px) exposes exactly one labelled SVG artwork`)
     assert(before.accessibleForeign === 4, `${caseLabel} (viewport ${width}px) exposes exactly four positioned foreign labels`)
-    assert(before.geometry.frame.scrollWidth <= before.geometry.frame.clientWidth + 1, `${caseLabel} (viewport ${width}px) fixture frame has no internal horizontal overflow`)
-    assert(before.geometry.host.scrollWidth <= before.geometry.host.clientWidth + 1, `${caseLabel} (viewport ${width}px) SVG host has no internal horizontal overflow`)
+    assert(before.geometry.host.clientWidth === 680, `${caseLabel} (viewport ${width}px) keeps the renderer-owned 680px intrinsic canvas (received ${before.geometry.host.clientWidth}px)`)
+    const expectedCanvasHeight = 680 * before.geometry.artworkViewBox.height / before.geometry.artworkViewBox.width
+    assert(Math.abs(before.geometry.host.clientHeight - expectedCanvasHeight) <= 1,
+      `${caseLabel} (viewport ${width}px) derives the intrinsic canvas height from the artwork viewBox (received ${before.geometry.host.clientHeight}px, expected ${expectedCanvasHeight}px)`)
+    if (before.geometry.panel.clientWidth < before.geometry.host.clientWidth) {
+      assert(before.geometry.panel.overflowX === 'auto' && before.geometry.panel.scrollWidth > before.geometry.panel.clientWidth + 1,
+        `${caseLabel} (viewport ${width}px) narrow KaTeX panel owns horizontal scrolling for the transformed fixed canvas: ${JSON.stringify({ panel: before.geometry.panel, host: before.geometry.host })}`)
+    } else {
+      assert(before.geometry.panel.scrollWidth <= before.geometry.panel.clientWidth + 1,
+        `${caseLabel} (viewport ${width}px) desktop KaTeX panel does not scroll unnecessarily`)
+    }
+    assert(before.geometry.host.overflowX === 'visible' && before.geometry.host.overflowY === 'visible',
+      `${caseLabel} (viewport ${width}px) SVG host does not become an internal scroll owner: ${JSON.stringify(before.geometry.host)}`)
     assert(before.geometry.frame.scrollHeight <= before.geometry.frame.clientHeight + 1, `${caseLabel} (viewport ${width}px) fixture frame has no internal vertical overflow (${before.geometry.frame.clientHeight}/${before.geometry.frame.scrollHeight})`)
     assert(before.geometry.host.scrollHeight <= before.geometry.host.clientHeight + 1, `${caseLabel} (viewport ${width}px) SVG host has no internal vertical overflow (${before.geometry.host.clientHeight}/${before.geometry.host.scrollHeight})`)
     if (testCase.narrowSidebar) {
-      assert(before.geometry.host.clientWidth >= 275 && before.geometry.host.clientWidth <= 305,
-        `${caseLabel} uses an approximately 300px sidebar host (received ${before.geometry.host.clientWidth}px)`)
-      const rightLabel = before.geometry.labelRects[1]
-      assert(rightLabel.height >= 40, `${caseLabel} right-side long label wraps to multiple lines`)
-      assert(rightLabel.width <= before.geometry.host.clientWidth * 0.205,
-        `${caseLabel} right-side slot stays within 20% of its host (received ${rightLabel.width}px)`)
+      assert(before.geometry.frame.clientWidth >= 295 && before.geometry.frame.clientWidth <= 330,
+        `${caseLabel} uses an approximately 300px sidebar frame (received ${before.geometry.frame.clientWidth}px)`)
     }
-    assert(before.geometry.labelsContainedInFrame && before.geometry.labelsContainedInHost, `${caseLabel} (viewport ${width}px) every positioned label is contained in frame and SVG host: ${JSON.stringify(before.geometry)}`)
+    assert(before.geometry.labelsContainedInHost, `${caseLabel} (viewport ${width}px) every positioned label is contained in the fixed SVG host: ${JSON.stringify(before.geometry)}`)
     assert(before.geometry.maxPairOverlap <= 1, `${caseLabel} (viewport ${width}px) positioned labels do not intersect: ${JSON.stringify(before.geometry)}`)
     assert(before.geometry.labelEdgeCrossings.length === 0, `${caseLabel} (viewport ${width}px) labels do not cross painted edge corridors: ${JSON.stringify(before.geometry.labelEdgeCrossings)}`)
     assert(before.geometry.clippedLabels === 0, `${caseLabel} (viewport ${width}px) positioned labels are not clipped: ${JSON.stringify(before.geometry)}`)
+    const currentLabelWidths = before.geometry.slotWidths.map(slot => slot.width)
+    if (!fixedCanvasLabelWidths) fixedCanvasLabelWidths = currentLabelWidths
+    else assert(currentLabelWidths.every((value, index) => Math.abs(value - fixedCanvasLabelWidths[index]) <= 0.75),
+      `${caseLabel} (viewport ${width}px) fixed-canvas labels do not squeeze across hosts: ${JSON.stringify({ fixedCanvasLabelWidths, currentLabelWidths })}`)
     assert(before.foreignFallbacks.length === 4, `${caseLabel} (viewport ${width}px) retains four stable main-fixture fallback boundaries`)
     before.foreignFallbacks.forEach((fallback, index) => {
       assert(fallback.hidden, `${caseLabel} (viewport ${width}px) fallback ${index} has the hidden gate after positioning`)
@@ -451,6 +466,8 @@ try {
     const screenshot = join(artifactDir, `parameterized-svg-${caseLabel}.png`)
     const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
     writeFileSync(screenshot, Buffer.from(capture.data, 'base64'))
+    const domSnapshot = join(artifactDir, `parameterized-svg-${caseLabel}.html`)
+    writeFileSync(domSnapshot, await evaluate(cdp, 'document.documentElement.outerHTML'))
     results.push({
       case: caseLabel,
       width,
@@ -482,6 +499,7 @@ try {
       viteMessages: [...vite.viteMessages],
       networkFailures: [...networkFailures],
       screenshot,
+      domSnapshot,
     })
   }
   verificationResults = results

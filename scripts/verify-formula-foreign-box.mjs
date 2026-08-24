@@ -121,6 +121,7 @@ try {
         const outer = section.querySelector('.snl-foreign-box[data-state="positioned"]');
         const panel = section.querySelector('.katex-panel');
         const host = section.querySelector('.snl-formula-foreign-host');
+        const templateHost = surface?.querySelector('.snl-svg-template');
         const fallback = section.querySelector('.snl-formula-foreign-fallback');
         const rr = rule?.getBoundingClientRect();
         const sr = surface?.getBoundingClientRect();
@@ -137,6 +138,13 @@ try {
           surface: sr ? rv(sr) : null,
           outerState: outer?.getAttribute('data-state') || '',
           overflow: { panel: panel ? getComputedStyle(panel).overflow : 'missing', host: host ? getComputedStyle(host).overflow : 'missing' },
+          templateHost: templateHost ? {
+            inlineWidth: templateHost.style.width,
+            inlineHeight: templateHost.style.height,
+            computedWidth: getComputedStyle(templateHost).width,
+            computedHeight: getComputedStyle(templateHost).height,
+            rect: rv(templateHost.getBoundingClientRect()),
+          } : null,
           accessibleSvg: section.querySelectorAll('svg[role="img"][aria-label="Arrow from A to B"]').length,
           fallbackHidden: Boolean(fallback?.hidden),
           fallbackDisplay: fallback ? getComputedStyle(fallback).display : 'missing',
@@ -164,9 +172,17 @@ try {
     assert(before.contexts.length === 12, `${testCase.name} renders ten SVG and two generic formula contexts`)
     for (const context of before.contexts) {
       assert(context.markerCount === 1 && context.rule && context.surface, `${testCase.name}/${context.name} has one marker, calibrated rule, and surface: ${JSON.stringify(context)}`)
+      const generic = context.name.startsWith('generic-')
+      if (!generic) {
+        assert(context.templateHost?.inlineWidth === '' && context.templateHost?.inlineHeight === '',
+          `${testCase.name}/${context.name} formula SVG host must not carry block-canvas inline dimensions: ${JSON.stringify(context.templateHost)}`)
+        assert(context.templateHost
+          && Math.abs(context.templateHost.rect.width - context.rule.width) <= 0.75
+          && Math.abs(context.templateHost.rect.height - context.rule.height) <= 0.75,
+        `${testCase.name}/${context.name} effective cascade must size formula SVG to its reserved marker: ${JSON.stringify({ rule: context.rule, templateHost: context.templateHost })}`)
+      }
       const delta = Math.max(Math.abs(context.rule.x - context.surface.x), Math.abs(context.rule.y - context.surface.y), Math.abs(context.rule.width - context.surface.width), Math.abs(context.rule.height - context.surface.height))
       assert(delta <= 0.75, `${testCase.name}/${context.name} marker/surface alignment drift ${delta}: ${JSON.stringify(context)}`)
-      const generic = context.name.startsWith('generic-')
       const expectedFallback = context.name === 'generic-badge' ? 'Build passed' : context.name === 'generic-table' ? 'Fixed formula table' : 'Arrow from A to B'
       assert(context.rule.width > (context.name === 'scaled' ? 20 : context.name === 'generic-badge' ? 10 : 40) && context.rule.height > (context.name === 'scaled' ? 12 : context.name === 'generic-badge' ? 8 : 25), `${testCase.name}/${context.name} reserves positive fixed TeX geometry`)
       assert(context.outerState === 'positioned', `${testCase.name}/${context.name} surface is committed`)

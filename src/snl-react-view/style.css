@@ -321,9 +321,9 @@
 /* Opt-in parameterized SVG renderer. Artwork remains ordinary sanitized SVG;
  * live SNL labels are independently owned foreign boxes positioned at its g markers. */
 .snl-svg-template {
-  width: 100%;
+  width: 680px;
   min-width: 0;
-  max-width: 100%;
+  max-width: none;
   overflow: visible;
   container-type: inline-size;
 }
@@ -331,20 +331,18 @@
 .snl-svg-template-artwork {
   display: block;
   width: 100%;
-  max-width: 100%;
+  max-width: none;
   height: auto;
   overflow: visible;
 }
-/* The shared ForeignBox measure surface remains intrinsic. This renderer-owned
- * child surface supplies the responsive placement policy for live and fallback
- * SVG labels: short labels stay intrinsic while long labels wrap before they can
- * escape the remaining right-hand viewBox corridor. */
+/* The shared ForeignBox measure surface remains intrinsic. Narrow readers
+ * scroll the fixed canvas instead of resizing artwork and squeezing labels. */
 .snl-svg-template-slot-content {
   display: flow-root;
   box-sizing: border-box;
   width: fit-content;
   min-width: 0;
-  max-width: min(11rem, 20cqw);
+  max-width: 9rem;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;

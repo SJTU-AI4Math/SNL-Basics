@@ -64,12 +64,14 @@ function makeRenderer(svgSource = source) {
 afterEach(cleanup)
 
 describe('SvgTemplateRenderer', () => {
-  it('sizes SVG slots from their host container rather than the viewport', () => {
+  it('owns a fixed 680×423-ish block canvas without responsively squashing labels', () => {
     const hostRule = rendererCss.match(/\.snl-svg-template\s*\{([^}]*)\}/)?.[1] ?? ''
     const slotRule = rendererCss.match(/\.snl-svg-template-slot-content\s*\{([^}]*)\}/)?.[1] ?? ''
     expect(hostRule).toMatch(/container-type\s*:\s*inline-size\s*;/)
-    expect(slotRule).toMatch(/max-width\s*:\s*min\(11rem,\s*20cqw\)\s*;/)
-    expect(slotRule).not.toMatch(/\bvw\b/)
+    expect(hostRule).toMatch(/width\s*:\s*680px\s*;/)
+    expect(hostRule).toMatch(/max-width\s*:\s*none\s*;/)
+    expect(slotRule).toMatch(/max-width\s*:\s*9rem\s*;/)
+    expect(slotRule).not.toMatch(/\b(?:cqw|vw)\b/)
     expect(slotRule).not.toMatch(/min-width\s*:\s*[1-9]/)
   })
 
