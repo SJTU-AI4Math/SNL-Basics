@@ -1,6 +1,6 @@
 {
   "name": "@sjtu-ai4math/snl-basics",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "license": "MIT",
   "description": "SNL syntax tree → React (KaTeX + htmlData hover) — SNL_Basics",
   "keywords": [
@@ -91,14 +91,15 @@
     "preview": "vite preview",
     "test": "vitest run",
     "verify:packed-entry-i18n": "node scripts/verify-packed-entry-i18n.mjs",
-    "prepublishOnly": "npm run build:lib",
+    "prepublishOnly": "npm run test:version-contract && npm run build:lib",
+    "test:version-contract": "vitest run scripts/readme-version.test.mjs --maxWorkers=1",
     "test:root-text-typography": "node scripts/verify-root-text-typography.mjs",
     "test:semantic-highlight-geometry": "node scripts/verify-semantic-highlight-geometry.mjs",
     "test:popover-origin": "node scripts/verify-popover-origin.mjs",
     "test:parameterized-svg": "node scripts/verify-parameterized-svg.mjs",
     "test:formula-foreign-box": "node scripts/verify-formula-foreign-box.mjs",
     "verify:packed-consumer": "node scripts/verify-packed-consumer.mjs",
-    "verify:release": "npm run verify:packed-consumer && npm run verify:packed-entry-i18n"
+    "verify:release": "npm run test:version-contract && npm run verify:packed-consumer && npm run verify:packed-entry-i18n"
   },
   "peerDependencies": {
     "katex": "^0.16.0",

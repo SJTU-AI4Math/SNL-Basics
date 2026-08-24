@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 const root = new URL('../../', import.meta.url)
 const read = (path: string): string => readFileSync(new URL(path, root), 'utf8')
 
-describe('0.3.2 packed-consumer release contract', () => {
+describe('0.3.3 packed-consumer release contract', () => {
   it('versions the candidate and wires a non-recursive release verifier', () => {
     const pkg = JSON.parse(read('package.json')) as {
       version: string
@@ -15,15 +15,16 @@ describe('0.3.2 packed-consumer release contract', () => {
       packages: Record<string, { version?: string }>
     }
 
-    expect(pkg.version).toBe('0.3.2')
-    expect(lock.version).toBe('0.3.2')
-    expect(lock.packages[''].version).toBe('0.3.2')
+    expect(pkg.version).toBe('0.3.3')
+    expect(lock.version).toBe('0.3.3')
+    expect(lock.packages[''].version).toBe('0.3.3')
+    expect(pkg.scripts['test:version-contract']).toBe('vitest run scripts/readme-version.test.mjs --maxWorkers=1')
     expect(pkg.scripts['verify:packed-consumer']).toBe('node scripts/verify-packed-consumer.mjs')
-    expect(pkg.scripts['verify:release']).toBe('npm run verify:packed-consumer && npm run verify:packed-entry-i18n')
+    expect(pkg.scripts['verify:release']).toBe('npm run test:version-contract && npm run verify:packed-consumer && npm run verify:packed-entry-i18n')
     const entryVerifier = read('scripts/verify-packed-entry-i18n.mjs')
     expect(entryVerifier).toContain("execFileSync('npm', ['run', 'build:lib']")
     expect(entryVerifier.indexOf("['run', 'build:lib']")).toBeLessThan(entryVerifier.indexOf("'pack', '--json'"))
-    expect(pkg.scripts.prepublishOnly).not.toContain('verify:release')
+    expect(pkg.scripts.prepublishOnly).toBe('npm run test:version-contract && npm run build:lib')
   })
 
   it('builds, packs, and validates only public runtime, Entry, and CSS surfaces', () => {
