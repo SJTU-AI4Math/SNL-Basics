@@ -252,9 +252,9 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
             // this live wrapper. React state only mirrors the completed handoff.
             setEntryPositioned(entry, true)
             delete wrapper.dataset.geometryError
-            wrapper.dataset.state = 'positioned'
+            if (wrapper.dataset.state !== 'positioned') wrapper.dataset.state = 'positioned'
             wrapper.style.visibility = 'visible'
-            wrapper.setAttribute('aria-hidden', 'false')
+            if (wrapper.getAttribute('aria-hidden') !== 'false') wrapper.setAttribute('aria-hidden', 'false')
             wrapper.removeAttribute('inert')
             const focusRestore = entry.focusRestore
             if (focusRestore) {
