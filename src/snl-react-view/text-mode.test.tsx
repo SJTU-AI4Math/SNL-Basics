@@ -306,6 +306,31 @@ describe('text-mode template splicing (regression)', () => {
     })
   })
 
+  it('materializes newlines in a #* text-mode separator', async () => {
+    const newlineList: SnlMacro = {
+      ...listAllPeople,
+      styles: [{
+        style_name: 'default',
+        template: { mode: 'text', body: '#*', separator: '\n\n' },
+        tags: [],
+      }],
+    }
+    const tree = createSnlSyntaxTreeNode('ListPeople.all', {
+      children: [leaf('Alice'), leaf('Bob')],
+    })
+    const { container } = render(
+      <SnlSyntaxTreeView
+        tree={tree}
+        macro_data_driver={testDriver({ 'ListPeople.all': newlineList })}
+      />,
+    )
+
+    await waitFor(() => {
+      const root = container.querySelector('.snl-text[data-name="ListPeople.all"]')
+      expect(root?.querySelectorAll('br')).toHaveLength(2)
+    })
+  })
+
   it('preserves a literal newline and keeps enumerate sub metadata-transparent', async () => {
     const fields = createSnlSyntaxTreeNode('enumerate', {
       children: [leaf('name'), leaf('kind')],
