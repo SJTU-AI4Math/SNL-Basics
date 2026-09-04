@@ -41,9 +41,9 @@
    SnlSyntaxTreeView (see kind-palette.ts::paletteToCss). This stylesheet only
    carries structural rules that don't depend on palette values. */
 
-.katex-html [data-kind='bvar'],
-.katex-html [data-kind='fvar'],
-.katex-html [data-kind='binder'] {
+.katex-html .katex [data-kind='bvar'],
+.katex-html .katex [data-kind='fvar'],
+.katex-html .katex [data-kind='binder'] {
   display: inline-block;
   vertical-align: baseline;
   border-radius: 2px;

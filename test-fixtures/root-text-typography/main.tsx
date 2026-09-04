@@ -36,12 +36,16 @@ const itemMacro: SnlMacro = {
   name: 'text-item', description: '', source: { entries: [], urls: [] }, dynamic_arity: false, tags: [],
   styles: [{ style_name: 'default', tags: [], template: { mode: 'text', body: '嵌套列表正文' } }],
 }
+const formulaSemanticMacro: SnlMacro = {
+  name: 'formula-semantic', description: '', source: { entries: [], urls: [] }, dynamic_arity: false, kind: 'fvar', tags: [],
+  styles: [{ style_name: 'default', tags: [], template: { mode: 'formula_inline', body: 'x' } }],
+}
 const macroDriver = new MacroDataDriver({ queries: {
-  query_macro: async ({ macro_name }) => macro_name === 'tex-list' ? enumerateMacro : macro_name === 'note' ? noteMacro : macro_name === 'text-item' ? itemMacro : null,
+  query_macro: async ({ macro_name }) => macro_name === 'tex-list' ? enumerateMacro : macro_name === 'note' ? noteMacro : macro_name === 'text-item' ? itemMacro : macro_name === 'formula-semantic' ? formulaSemanticMacro : null,
 } })
 const entryDriver = new EntryDataDriver({ queries: { query_entry: async () => null, query_entry_kind: async () => null } })
 const source = '%$x$ 中文 TeX 正文 Hamburgefontsiv root text with an uninterrupted_identifier_that_must_wrap_narrowly%'
-const blockSource = 'tex-list(%第一项 中文 TeX prose%,%第二项 $x_i$ 与正文%)'
+const blockSource = 'tex-list(%第一项中文 TeX prose wraps across several lines in this narrow list%,%第二项 $x_i$ 与正文%)'
 const nestedBlockTree = createSnlSyntaxTreeNode('note', { children: [
   createSnlSyntaxTreeNode('tex-list', { children: [createSnlSyntaxTreeNode('text-item')] }),
 ] })
@@ -57,6 +61,9 @@ function Surface() {
     </div>
     <div id="nested-block-surface" style={{ width: '11rem', fontSize: '16px' }}>
       <SnlSyntaxTreeView tree={nestedBlockTree} macro_data_driver={macroDriver} />
+    </div>
+    <div id="formula-semantic-surface">
+      <SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('formula-semantic')} macro_data_driver={macroDriver} />
     </div>
     <div id="reference" dangerouslySetInnerHTML={{ __html: katex.renderToString('\\text{Hamburgefontsiv}', { throwOnError: true }) }} />
     <pre id="result" data-status="pending">pending</pre>
@@ -76,8 +83,9 @@ async function verify() {
   const listText = listItem?.querySelector<HTMLElement>('.snl-text')
   const nestedListItem = document.querySelector<HTMLElement>('#nested-block-surface .snl-block-enumerate > li')
   const nestedListText = nestedListItem?.querySelector<HTMLElement>('.snl-text')
+  const formulaSemantic = document.querySelector<HTMLElement>("#formula-semantic-surface .katex [data-kind='fvar']")
   const entryTitle = document.querySelector<HTMLElement>('#surface .snl-entry-title')
-  if (!root || !math || !reference || !referenceText || !listItem || !listText || !nestedListItem || !nestedListText) throw new Error(`missing production DOM in ${mode}`)
+  if (!root || !math || !reference || !referenceText || !listItem || !listText || !nestedListItem || !nestedListText || !formulaSemantic) throw new Error(`missing production DOM in ${mode}`)
 
   const rootProbe = document.createElement('span')
   rootProbe.textContent = 'Hamburgefontsiv'
@@ -109,6 +117,15 @@ async function verify() {
   const titleStyle = entryTitle ? getComputedStyle(entryTitle) : null
   const nestedMarkerStyle = getComputedStyle(nestedListItem, '::marker')
   const nestedListTextStyle = getComputedStyle(nestedListText)
+  const formulaSemanticStyle = getComputedStyle(formulaSemantic)
+  const markerBaselineProbe = document.createElement('span')
+  markerBaselineProbe.textContent = '\u200b'
+  listItem.prepend(markerBaselineProbe)
+  const listTextRects = [...listText.getClientRects()]
+  const markerBaselineProbeRect = markerBaselineProbe.getBoundingClientRect()
+  const markerFirstLineDelta = listTextRects.length > 0
+    ? Math.abs(markerBaselineProbeRect.top - listTextRects[0].top)
+    : Number.POSITIVE_INFINITY
   const rootSize = Number.parseFloat(rootStyle.fontSize)
   const referenceSize = Number.parseFloat(referenceStyle.fontSize)
   const lineHeight = Number.parseFloat(rootStyle.lineHeight)
@@ -145,6 +162,10 @@ async function verify() {
     nestedMarkerSize: nestedMarkerStyle.fontSize,
     nestedListTextSize: nestedListTextStyle.fontSize,
     nestedMarkerSizeDelta,
+    listTextDisplay: listTextStyle.display,
+    listTextLineRects: listTextRects.length,
+    markerFirstLineDelta,
+    formulaSemanticDisplay: formulaSemanticStyle.display,
     titleFamily: titleStyle?.fontFamily ?? null,
     clientWidth: root.clientWidth,
     scrollWidth: root.scrollWidth,
@@ -164,6 +185,10 @@ async function verify() {
     [markerStyle.fontFamily.includes('SNL Noto Serif SC'), 'block marker is outside the TeX prose family'],
     [markerSizeDelta < 0.05, 'block marker size differs from adjacent prose'],
     [nestedMarkerSizeDelta < 0.05, 'text-embedded block marker compounds relative to adjacent prose'],
+    [listTextStyle.display === 'inline', 'native list text became an atomic inline-block'],
+    [listTextRects.length >= 2, 'narrow list marker fixture did not wrap across lines'],
+    [markerFirstLineDelta < 5, 'native list marker baseline does not align with the first text line'],
+    [formulaSemanticStyle.display === 'inline-block', 'KaTeX semantic metadata lost its atomic display'],
     [mode !== 'entry' || titleStyle?.fontFamily.includes('SNL Noto Serif SC'), 'Entry title is outside the TeX prose family'],
     [root.scrollWidth <= root.clientWidth + 1, 'narrow root Text overflows instead of wrapping'],
     [root.getBoundingClientRect().height > lineHeight * 2, 'narrow wrapping fixture did not wrap'],
