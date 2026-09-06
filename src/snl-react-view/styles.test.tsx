@@ -38,7 +38,7 @@ describe('style dispatch via [style] bracket', () => {
     await waitFor(() => expect(container.querySelector('[data-style="double"]')).not.toBeNull())
   })
 
-  it('falls back to the first style and reports an unknown style diagnostic', async () => {
+  it('rejects an unknown explicit style without producing fallback LaTeX', async () => {
     const tree = parseSnlSyntaxTree('implies[nope](a,b)')
     let latex = ''
     let codes: string[] = []
@@ -50,8 +50,9 @@ describe('style dispatch via [style] bracket', () => {
         onDiagnostics={(items) => { codes = items.map((item) => item.code) }}
       />,
     )
-    await waitFor(() => expect(latex).toContain('\\rightarrow'))
-    expect(container.querySelector('.katex-error')).toBeNull()
+    await waitFor(() => expect(container.querySelector('.katex-error')?.textContent ?? '').toContain('unknown style "nope"'))
+    expect(latex).toBe('')
+    expect(tree.style_name).toBe('nope')
     expect(codes).toContain('SNL_STYLE_NOT_FOUND')
   })
 })
