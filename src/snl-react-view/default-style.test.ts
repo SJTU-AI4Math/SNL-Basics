@@ -53,6 +53,7 @@ describe('automatic selection boundaries', () => {
   it.each([
     ['Example.macro(x,T,y)', '#0 = #2', 'full'],
     ['Example.macro(x,,y)', '#0', 'full'],
+    ['Example.macro(x,,y)', '#1 #2', 'full'],
     ['Example.macro(x)', '#0', 'body'],
     ['Example.macro(x,)', '#0', 'body'],
     ['Example.macro(x,%%)', '#0', 'full'],
@@ -105,7 +106,7 @@ describe('automatic selection boundaries', () => {
     }
     data.styles[1].template = { type: 'i18n', default_language: 'en', values }
     for (const language of ['en', 'zh', 'missing']) expect(resolveStyle(tree, data, language).style_name).toBe('body')
-    values.zh.body = '#0 #1 #2'
+    values.zh.body = '#1 #2'
     for (const language of ['en', 'zh', 'missing']) expect(resolveStyle(tree, data, language).style_name).toBe('full')
   })
 
