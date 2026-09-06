@@ -918,7 +918,10 @@
       "pattern": "^\\s*style_name\\??\\s*(?::|\\()",
       "flags": "m"
     },
-    "body": "Unique style identifier within the macro. Renamed from `tag` in v0.10.0."
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Unique style identifier within the macro. Renamed from `tag` in v0.10.0."
+    }
   },
   {
     "id": "mac.iface.snl-macro-style.template",
@@ -3538,86 +3541,163 @@
     "id": "mac.cls.macro-data-driver",
     "kind": "class",
     "title": "MacroDataDriver",
-    "body": "Query-only macro data source with bounded LRU cache and in-flight deduplication. All macro lookups go through `query_macro()`. Added in v0.10.0.",
-    "parent": "mod.snl-macro",
     "pointer": {
       "file": "src/snl-macro/macro-data-driver.ts",
       "mode": "regex",
       "pattern": "export\\s+class\\s+MacroDataDriver\\b"
+    },
+    "content": {
+      "markdown": "Query-only macro data source with bounded LRU cache and in-flight deduplication. All macro lookups go through `query_macro()`. Added in v0.10.0."
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Query-only macro data source with bounded LRU cache and in-flight deduplication. All macro lookups go through `query_macro()`. Added in v0.10.0.",
+      "parent": "mod.snl-macro"
     }
   },
   {
     "id": "mac.iface.macro-data-queries",
     "kind": "interface",
     "title": "MacroDataQueries",
-    "body": "Injectable backend interface for MacroDataDriver. Consumers implement `query_macro({macro_name, signal?}): Promise<SnlMacro|null>` to plug in their data source.",
-    "parent": "mod.snl-macro",
     "pointer": {
       "file": "src/snl-macro/macro-data-driver.ts",
       "mode": "regex",
       "pattern": "export\\s+interface\\s+MacroDataQueries\\b"
+    },
+    "content": {
+      "markdown": "Injectable backend interface for MacroDataDriver. Consumers implement `query_macro({macro_name, signal?}): Promise<SnlMacro|null>` to plug in their data source."
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Injectable backend interface for MacroDataDriver. Consumers implement `query_macro({macro_name, signal?}): Promise<SnlMacro|null>` to plug in their data source.",
+      "parent": "mod.snl-macro"
     }
   },
   {
     "id": "mac.iface.macro-data-queries.query_macro",
     "kind": "field",
     "title": "$\\texttt{query\\_macro}$",
-    "body": "Asynchronously queries one macro by macro_name and returns null when it is not found.",
-    "parent": "mac.iface.macro-data-queries",
     "pointer": {
       "file": "src/snl-macro/macro-data-driver.ts",
       "mode": "regex",
       "pattern": "^\\s*query_macro\\??\\s*(?::|\\()",
       "flags": "m"
+    },
+    "content": {
+      "markdown": "Asynchronously queries one macro by macro_name and returns null when it is not found."
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Asynchronously queries one macro by macro_name and returns null when it is not found.",
+      "parent": "mac.iface.macro-data-queries"
     }
   },
   {
     "id": "rv.cls.snl-interaction-driver",
     "kind": "class",
     "title": "SnlInteractionDriver",
-    "body": "Injectable interaction handler for SnlSyntaxTreeView. Class-based, async-capable. Dispatches hover/leave/click/ctrl-click with full modifier key context. ctrl_key means literal Ctrl (NOT macOS Meta). Added in v0.10.0.",
-    "parent": "mod.snl-react-view"
+    "content": {
+      "markdown": "Injectable interaction handler for SnlSyntaxTreeView. Class-based, async-capable. Dispatches hover/leave/click/ctrl-click with full modifier key context. ctrl_key means literal Ctrl (NOT macOS Meta). Added in v0.10.0."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Injectable interaction handler for SnlSyntaxTreeView. Class-based, async-capable. Dispatches hover/leave/click/ctrl-click with full modifier key context. ctrl_key means literal Ctrl (NOT macOS Meta). Added in v0.10.0.",
+      "parent": "mod.snl-react-view"
+    }
   },
   {
     "id": "rv.iface.snl-interaction-context",
     "kind": "interface",
     "title": "SnlInteractionContext",
-    "body": "Full context passed to interaction callbacks: node, tree_path, macro|null, target element, client_x/y, and modifier keys (ctrl_key, meta_key, shift_key, alt_key).",
-    "parent": "mod.snl-react-view"
+    "content": {
+      "markdown": "Full context passed to interaction callbacks: node, tree_path, macro|null, target element, client_x/y, and modifier keys (ctrl_key, meta_key, shift_key, alt_key)."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Full context passed to interaction callbacks: node, tree_path, macro|null, target element, client_x/y, and modifier keys (ctrl_key, meta_key, shift_key, alt_key).",
+      "parent": "mod.snl-react-view"
+    }
   },
   {
     "id": "mod.schema",
     "kind": "module",
     "title": "Schema Migration Module",
-    "body": "Centralized schema migration chains (src/schema/) from supported legacy documents to current macro v11 and tree v3, with retained stepwise migrations, version constants, validation, and CLI tooling."
+    "content": {
+      "markdown": "Centralized schema migration chains (src/schema/) from supported legacy documents to current macro v11 and tree v3, with retained stepwise migrations, version constants, validation, and CLI tooling."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Centralized schema migration chains (src/schema/) from supported legacy documents to current macro v11 and tree v3, with retained stepwise migrations, version constants, validation, and CLI tooling."
+    }
   },
   {
     "id": "schema.fn.migrate-macro-document",
     "kind": "function",
     "title": "migrateMacroDocument",
-    "body": "Migrates an entire macro DB through the retained v6→v7→v9→v10→v11 chain to current v11. The first step maps tag→style_name, the variadic triple→separator+template, and react_renderer_key→block_template_name, and adds tags:[].",
-    "parent": "mod.schema"
+    "content": {
+      "markdown": "Migrates an entire macro DB through the retained v6→v7→v9→v10→v11 chain to current v11. The first step maps tag→style_name, the variadic triple→separator+template, and react_renderer_key→block_template_name, and adds tags:[]."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Migrates an entire macro DB through the retained v6→v7→v9→v10→v11 chain to current v11. The first step maps tag→style_name, the variadic triple→separator+template, and react_renderer_key→block_template_name, and adds tags:[].",
+      "parent": "mod.schema"
+    }
   },
   {
     "id": "schema.fn.migrate-syntax-tree-document",
     "kind": "function",
     "title": "migrateSyntaxTreeDocument",
-    "body": "Migrates a syntax tree recursively through the retained v1→v2→v3 chain to current v3. The first step maps name→macro_name, style→style_name, and envMode→env_mode.",
-    "parent": "mod.schema"
+    "content": {
+      "markdown": "Migrates a syntax tree recursively through the retained v1→v2→v3 chain to current v3. The first step maps name→macro_name, style→style_name, and envMode→env_mode."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Migrates a syntax tree recursively through the retained v1→v2→v3 chain to current v3. The first step maps name→macro_name, style→style_name, and envMode→env_mode.",
+      "parent": "mod.schema"
+    }
   },
   {
     "id": "schema.const.macro-schema-version",
     "kind": "constant",
     "title": "MACRO_SCHEMA_VERSION",
-    "body": "Current macro schema version (11). Used for version detection in migrations.",
-    "parent": "mod.schema"
+    "content": {
+      "markdown": "Current macro schema version (11). Used for version detection in migrations."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Current macro schema version (11). Used for version detection in migrations.",
+      "parent": "mod.schema"
+    }
   },
   {
     "id": "schema.const.tree-schema-version",
     "kind": "constant",
     "title": "TREE_SCHEMA_VERSION",
-    "body": "Current syntax tree schema version (3). Used for version detection in migrations.",
-    "parent": "mod.schema"
+    "content": {
+      "markdown": "Current syntax tree schema version (3). Used for version detection in migrations."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Current syntax tree schema version (3). Used for version detection in migrations.",
+      "parent": "mod.schema"
+    }
   },
   {
     "id": "rv.iface.snl-syntax-tree-view-props.interaction_driver",
@@ -3645,7 +3725,8 @@
       "file": "src/entry-react/index.ts",
       "mode": "regex",
       "pattern": "Tree-shakeable"
-    }
+    },
+    "contribution_info": null
   },
   {
     "id": "entry.cls.entry-data-driver",
@@ -3654,11 +3735,15 @@
     "content": {
       "markdown": "Query-only Entry and EntryKind access with a bounded hit-and-miss LRU, unsignalled in-flight deduplication, independent caller cancellation, and epoch-safe cache clearing."
     },
-    "parent": "mod.entry-react",
     "pointer": {
       "file": "src/entry-react/entry-data-driver.ts",
       "mode": "regex",
       "pattern": "export\\s+class\\s+EntryDataDriver\\b"
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "parent": "mod.entry-react"
     }
   },
   {
@@ -3668,11 +3753,15 @@
     "content": {
       "markdown": "The injected storage-neutral backend: `query_entry` and `query_entry_kind`, each with an optional AbortSignal."
     },
-    "parent": "mod.entry-react",
     "pointer": {
       "file": "src/entry-react/entry-data-driver.ts",
       "mode": "regex",
       "pattern": "export\\s+interface\\s+EntryDataQueries\\b"
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "parent": "mod.entry-react"
     }
   },
   {
@@ -3682,11 +3771,15 @@
     "content": {
       "markdown": "Renders a loaded Entry as a kind-colored card. Body precedence is nonblank SNL, Markdown, LaTeX, text, then header-only empty state."
     },
-    "parent": "mod.entry-react",
     "pointer": {
       "file": "src/entry-react/entry-render.tsx",
       "mode": "regex",
       "pattern": "export\\s+function\\s+EntrySurface\\b"
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "parent": "mod.entry-react"
     }
   },
   {
@@ -3696,11 +3789,15 @@
     "content": {
       "markdown": "Queries one Entry and its EntryKind, aborts stale work, and renders loading, missing, error, or ready state without projecting a prior driver identity."
     },
-    "parent": "mod.entry-react",
     "pointer": {
       "file": "src/entry-react/entry-render.tsx",
       "mode": "regex",
       "pattern": "export\\s+function\\s+EntryView\\b"
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "parent": "mod.entry-react"
     }
   },
   {
@@ -3710,11 +3807,15 @@
     "content": {
       "markdown": "Provides recursive, dismissible Entry previews derived from queried macro `source.entries`, reusing the same Entry and Macro drivers."
     },
-    "parent": "mod.entry-react",
     "pointer": {
       "file": "src/entry-react/entry-render.tsx",
       "mode": "regex",
       "pattern": "export\\s+function\\s+EntryPreviewProvider\\b"
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "parent": "mod.entry-react"
     }
   },
   {
@@ -3724,11 +3825,15 @@
     "content": {
       "markdown": "Queries every unique `mdata.src` Entry, upgrades matching source-bound variables to `bvar`, and records `dangling` or `srcResolvedNoDecl` status without storage assumptions."
     },
-    "parent": "mod.entry-react",
     "pointer": {
       "file": "src/entry-react/context-source.ts",
       "mode": "regex",
       "pattern": "export\\s+async\\s+function\\s+resolveEntryContextSources\\b"
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "parent": "mod.entry-react"
     }
   }
 ]
