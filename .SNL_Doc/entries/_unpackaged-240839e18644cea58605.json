@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sub.public.macro-db.loading",
+    "kind": "subsection",
+    "title": "Loading and Cache",
+    "content": {
+      "snl": "%Macro database URL, loading, and cache management.%",
+      "markdown": "Macro database URL, loading, and cache management."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.macro-data-queries",
+    "kind": "interface",
+    "title": "MacroDataQueries",
+    "pointer": {
+      "file": "src/snl-macro/macro-data-driver.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+MacroDataQueries\\b"
+    },
+    "content": {
+      "markdown": "Injectable backend interface for MacroDataDriver. Consumers implement `query_macro({macro_name, signal?}): Promise<SnlMacro|null>` to plug in their data source."
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Injectable backend interface for MacroDataDriver. Consumers implement `query_macro({macro_name, signal?}): Promise<SnlMacro|null>` to plug in their data source.",
+      "parent": "mod.snl-macro"
+    },
+    "package": "_unpackaged"
+  }
+}

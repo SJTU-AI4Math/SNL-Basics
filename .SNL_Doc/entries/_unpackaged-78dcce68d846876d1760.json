@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.fn.mode-bucket",
+    "kind": "function",
+    "title": "Classify Render Mode",
+    "content": {
+      "snl": "ts.function(fn.modeBucket,ts.function-type(ts.parameters(Type.judge(api.code(%mode%),api.code(%SnlMacroTemplate[\"mode\"]%))),ts.union(api.code(%\"formula\"%),api.code(%\"text\"%),api.code(%\"block\"%))),ts.ellipsis@remark.rv.fn.mode-bucket)",
+      "markdown": "`modeBucket`’s formal TypeScript signature; see the linked Remark for implementation details."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+modeBucket\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

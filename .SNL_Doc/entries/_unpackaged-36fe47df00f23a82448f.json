@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-block-renderer-props",
+    "kind": "interface",
+    "title": "SNL Block Renderer Properties",
+    "content": {
+      "snl": "interface(SnlBlockRendererProps,enumerate(Type.judge(SnlBlockRendererProps.node,SnlSyntaxTree),Type.judge(SnlBlockRendererProps.macro_data_driver,MacroDataDriver),Type.judge(SnlBlockRendererProps.template,SnlBlockMacroTemplate),Type.judge(SnlBlockRendererProps.dynamicArity,boolean),Type.judge(SnlBlockRendererProps.treePath,string),Type.judge(SnlBlockRendererProps.childMode,api.code(%(child: SnlSyntaxTree) => 'formula_inline' | 'formula_display' | 'text' | 'block'%)),Type.judge(SnlBlockRendererProps.childContainsBlock,Type.opt(api.code(%(child: SnlSyntaxTree) => boolean%))),Type.judge(SnlBlockRendererProps.renderChild,api.code(%(child: SnlSyntaxTree, index?: number) => ReactElement%))))",
+      "markdown": "The complete block-renderer projection: `node` and `macro_data_driver`; the complete, localized consumer-owned `TemplateSpec` projection in `template`; the macro-level `dynamicArity` contract; exact semantic `treePath`; mode resolution through `childMode`; the optional `childContainsBlock` recursive block capability; and mode-aware `renderChild`. `childContainsBlock` reports whether the selected complete templates anywhere in a child's subtree include block content, allowing specialized foreign-content renderers such as the SVG renderer to fail closed before unsupported recursive block content crosses the SVG boundary."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlBlockRendererProps\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

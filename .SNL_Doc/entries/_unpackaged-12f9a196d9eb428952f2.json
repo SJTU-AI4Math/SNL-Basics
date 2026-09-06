@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.fn.wrap-html-data",
+    "kind": "function",
+    "title": "Wrap HTML Data",
+    "content": {
+      "snl": "ts.function(fn.wrapHtmlData,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%inner%),string),Type.judge(api.code(%macro%),ts.union(SnlMacro,ts.null)),Type.judge(api.code(%treePath%),Type.opt(TreePath)),Type.judge(api.code(%kindOverride%),Type.opt(string))),string),ts.ellipsis@remark.rv.fn.wrap-html-data)",
+      "markdown": "`wrapHtmlData`’s formal TypeScript signature; see the linked Remark for implementation details."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+wrapHtmlData\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

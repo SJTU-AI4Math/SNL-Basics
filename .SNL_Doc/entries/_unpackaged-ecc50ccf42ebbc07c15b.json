@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "schema.const.macro-schema-version",
+    "kind": "constant",
+    "title": "MACRO_SCHEMA_VERSION",
+    "content": {
+      "markdown": "Current macro schema version (11). Used for version detection in migrations."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Current macro schema version (11). Used for version detection in migrations.",
+      "parent": "mod.schema"
+    },
+    "package": "_unpackaged"
+  }
+}

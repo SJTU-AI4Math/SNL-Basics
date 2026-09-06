@@ -1,0 +1,26 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.snl-macro-style.style_name",
+    "kind": "field",
+    "title": "$\\texttt{style\\_name}$",
+    "content": {
+      "markdown": "Required semantic style identifier — the token used in `foo[style_name](…)`. It must be unique within a macro's `styles` array; schema v7 renamed the historical flat `tag` field."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "^\\s*style_name\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Unique style identifier within the macro. Renamed from `tag` in v0.10.0."
+    },
+    "package": "_unpackaged"
+  }
+}

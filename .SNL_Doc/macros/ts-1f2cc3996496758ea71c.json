@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "TypeScript `Readonly<T>` utility type — marks all properties of T as readonly.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://www.typescriptlang.org/docs/handbook/utility-types.html#readonlytype"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "ts.readonly"
+  },
+  "schema_version": 1
+}

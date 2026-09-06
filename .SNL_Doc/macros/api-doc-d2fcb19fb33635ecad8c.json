@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `mdata` field of `SnlSyntaxTreeBase`.",
+    "source": {
+      "entries": [
+        "st.iface.snl-syntax-tree-base.mdata"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{mdata}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTreeBase.mdata"
+  },
+  "schema_version": 1
+}

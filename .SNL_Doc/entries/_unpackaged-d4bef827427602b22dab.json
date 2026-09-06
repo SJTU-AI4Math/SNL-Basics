@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mod.snl-react-view",
+    "kind": "module",
+    "title": "SNL React View Module",
+    "content": {
+      "snl": "%The React component layer, which depends on KaTeX and React. It provides the main SnlSyntaxTreeView rendering component, the SnlSyntaxTreeEditor editor, and a complete rendering infrastructure including hooks, a palette, a DB loader, and a block-renderer registry.%",
+      "markdown": "The React component layer, which depends on KaTeX and React. It provides the main `SnlSyntaxTreeView` rendering component, the `SnlSyntaxTreeEditor` editor, and a complete rendering infrastructure including hooks, a palette, a DB loader, and a block-renderer registry."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/index.ts",
+      "mode": "regex",
+      "pattern": "@sjtu-ai4math/snl-basics"
+    },
+    "package": "_unpackaged"
+  }
+}

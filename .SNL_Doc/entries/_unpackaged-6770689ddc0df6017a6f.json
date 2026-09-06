@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "schema.fn.migrate-syntax-tree-document",
+    "kind": "function",
+    "title": "migrateSyntaxTreeDocument",
+    "content": {
+      "markdown": "Migrates a syntax tree recursively through the retained v1→v2→v3 chain to current v3. The first step maps name→macro_name, style→style_name, and envMode→env_mode."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Migrates a syntax tree recursively through the retained v1→v2→v3 chain to current v3. The first step maps name→macro_name, style→style_name, and envMode→env_mode.",
+      "parent": "mod.schema"
+    },
+    "package": "_unpackaged"
+  }
+}

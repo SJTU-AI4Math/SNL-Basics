@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.hover-popover-provider-props",
+    "kind": "interface",
+    "title": "Hover Popover Provider Properties",
+    "content": {
+      "snl": "interface(HoverPopoverProviderProps,enumerate(Type.judge(HoverPopoverProviderProps.children,ReactNode),Type.judge(HoverPopoverProviderProps.renderPopover,api.code(%method%)),Type.judge(HoverPopoverProviderProps.options,Type.opt(HoverPopoverOptions)),Type.judge(HoverPopoverProviderProps.className,Type.opt(string)),Type.judge(HoverPopoverProviderProps.style,Type.opt(api.code(%CSSProperties | ((popover, index) => CSSProperties)%))),Type.judge(HoverPopoverProviderProps.resolveBounds,Type.opt(api.code(%method%))),Type.judge(HoverPopoverProviderProps.portalTarget,Type.opt(HTMLElement))))",
+      "markdown": "The public TypeScript schema for Hover Popover Provider Properties."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+HoverPopoverProviderProps\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-syntax-tree-base",
+    "kind": "interface",
+    "title": "SNL Syntax Tree Base",
+    "content": {
+      "snl": "interface(SnlSyntaxTreeBase,enumerate(Type.judge(SnlSyntaxTreeBase.macro_name,string),Type.judge(SnlSyntaxTreeBase.style_name,Type.opt(string)),Type.judge(SnlSyntaxTreeBase.kind,string),Type.judge(SnlSyntaxTreeBase.scope,Type.opt(string)),Type.judge(SnlSyntaxTreeBase.mdata,unknown),Type.judge(SnlSyntaxTreeBase.children,Type.array(SnlSyntaxTree))))",
+      "markdown": "The base containing the fields common to all three branches of the `SnlSyntaxTree` union: `macro_name` (a macro name or delimiter payload), `kind` (`bvar`, `fvar`, `binder`, `rule`, and so on, or empty), `children` (an array of child nodes), `mdata` (a free-form metadata bag), `style_name` (an optional style-variant name), and `scope` (a structural scope marker)."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/node-types.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlSyntaxTreeBase\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

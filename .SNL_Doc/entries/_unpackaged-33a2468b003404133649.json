@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "con.stability-stable",
+    "kind": "concept",
+    "title": "Stability Level — Stable",
+    "content": {
+      "snl": "%Semantics and signatures are frozen; changes require a semver-major release. Symbols already used by Extension or Toolkit belong to this level by default.%",
+      "markdown": "Semantics and signatures are frozen; changes require a semver-major release. Symbols already used by Extension or Toolkit belong to this level by default."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

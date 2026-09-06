@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.st.fn.fill-latex-template",
+    "kind": "remark",
+    "title": "Fill LaTeX Template — Remark",
+    "content": {
+      "snl": "%Fills fixed and dynamic placeholders in a LaTeX template with named child-node values.%",
+      "markdown": "Fills fixed and dynamic placeholders in a LaTeX template with named child-node values."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/template.ts",
+      "mode": "regex",
+      "pattern": "export\\s+function\\s+fillLatexTemplate\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

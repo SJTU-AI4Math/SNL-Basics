@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-syntax-tree-block-node",
+    "kind": "interface",
+    "title": "Block SNL Syntax Tree Node",
+    "content": {
+      "snl": "interface(SnlSyntaxTreeBlockNode,enumerate(Type.judge(SnlSyntaxTreeBlockNode.mode,Type.literal(block)),Type.judge(SnlSyntaxTreeBlockNode.block_kind,Type.union(Type.literal(list),Type.literal(table),Type.literal(centered),Type.literal(custom)))))",
+      "markdown": "The branch whose `env_mode` is `block`. Its resolved complete `SnlBlockMacroTemplate` may select a renderer through `block_template_name`, such as `list`, `enumerate`, `matrix`, or `table`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/node-types.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlSyntaxTreeBlockNode\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

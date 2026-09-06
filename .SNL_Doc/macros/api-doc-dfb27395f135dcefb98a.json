@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `maxZIndexBase` field of `HoverPopoverOptions`.",
+    "source": {
+      "entries": [
+        "rv.iface.hover-popover-options.max-z-index-base"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{maxZIndexBase}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "HoverPopoverOptions.maxZIndexBase"
+  },
+  "schema_version": 1
+}

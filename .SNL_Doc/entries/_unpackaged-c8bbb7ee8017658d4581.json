@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.fn.use-current-popover-id",
+    "kind": "function",
+    "title": "Read Current Popover ID",
+    "content": {
+      "snl": "ts.function(fn.useCurrentPopoverId,ts.function-type(ts.parameters(),ts.union(string,ts.null)),ts.ellipsis@remark.rv.fn.use-current-popover-id)",
+      "markdown": "`useCurrentPopoverId`’s formal TypeScript signature; see the linked Remark for implementation details."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+useCurrentPopoverId\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

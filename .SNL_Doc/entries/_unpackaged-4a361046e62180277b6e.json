@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-syntax-tree",
+    "kind": "interface",
+    "title": "SNL Syntax Tree",
+    "content": {
+      "snl": "interface(SnlSyntaxTree,enumerate(Type.judge(SnlSyntaxTree.macro_name,string),Type.judge(SnlSyntaxTree.style_name,Type.opt(string)),Type.judge(SnlSyntaxTree.env_mode,Type.opt(Type.union(Type.literal(formula_inline),Type.literal(formula_display),Type.literal(text)))),Type.judge(SnlSyntaxTree.kind,string),Type.judge(SnlSyntaxTree.scope,Type.opt(string)),Type.judge(SnlSyntaxTree.mdata,unknown),Type.judge(SnlSyntaxTree.children,Type.array(SnlSyntaxTree))))",
+      "markdown": "The principal type for an SNL syntax tree. A node has fields including `macro_name`, `kind`, `children`, `mdata`, `env_mode`, `style_name`, and `scope`. It is a union type combining the three `env_mode` branches: formula, text, and block. All parser output, serializer input, and renderer consumption use this type."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/types.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlSyntaxTree\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

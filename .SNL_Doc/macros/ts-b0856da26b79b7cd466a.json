@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function paletteToCss.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "rv.fn.palette-to-css"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{paletteToCss}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.paletteToCss"
+  },
+  "schema_version": 1
+}

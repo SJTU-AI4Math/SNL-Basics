@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-syntax-tree-view-props",
+    "kind": "interface",
+    "title": "SNL Syntax Tree View Properties",
+    "content": {
+      "snl": "interface(SnlSyntaxTreeViewProps,enumerate(Type.judge(SnlSyntaxTreeViewProps.tree,SnlSyntaxTree),Type.judge(SnlSyntaxTreeViewProps.macro_data_driver,MacroDataDriver),Type.judge(SnlSyntaxTreeViewProps.interaction_driver,Type.opt(SnlInteractionDriver)),Type.judge(SnlSyntaxTreeViewProps.katexOptions,Type.opt(KatexOptions)),Type.judge(SnlSyntaxTreeViewProps.kindPalette,Type.opt(KindPalette)),Type.judge(SnlSyntaxTreeViewProps.onResolved,Type.opt(api.code(%(latexSource: string) => void%))),Type.judge(SnlSyntaxTreeViewProps.hooks,Type.opt(SnlRenderHooks))))",
+      "markdown": "The props interface for the `SnlSyntaxTreeView` component. See the Property subentries attached to `SnlSyntaxTreeView` for individual props. The source interface declaration is authoritative for their count; Phase 3 will verify and complete them one by one."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/components/SnlSyntaxTreeView.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlSyntaxTreeViewProps\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

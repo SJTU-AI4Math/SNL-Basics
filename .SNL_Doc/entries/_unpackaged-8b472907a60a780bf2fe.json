@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.st.fn.try-parse-snl-syntax-tree",
+    "kind": "remark",
+    "title": "Try Parsing SNL Syntax Tree — Remark",
+    "content": {
+      "snl": "%Parses SNL but encodes failure in the return value instead of throwing an exception; suitable for editors and linters.%",
+      "markdown": "Parses SNL but encodes failure in the return value instead of throwing an exception; suitable for editors and linters."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/parse.ts",
+      "mode": "regex",
+      "pattern": "export\\s+function\\s+tryParseSnlSyntaxTree\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

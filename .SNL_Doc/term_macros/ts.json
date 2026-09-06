@@ -1,5 +1,5 @@
 {
-  "version": "7",
+  "version": "8",
   "name": "ts",
   "description": "TypeScript language and standard library concepts referenced from SNL docs. Each macro links to the official TypeScript handbook or MDN.",
   "macros": {
@@ -21,7 +21,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.type-alias": {
       "description": "TypeScript `type` alias — names a type expression.",
@@ -41,7 +44,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.union": {
       "description": "TypeScript union type.",
@@ -62,7 +68,10 @@
           "separator": "\\texttt{ | }"
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.record": {
       "description": "TypeScript `Record<K,V>` utility type — an object whose keys are of type K and values of type V.",
@@ -82,7 +91,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.readonly": {
       "description": "TypeScript `Readonly<T>` utility type — marks all properties of T as readonly.",
@@ -102,7 +114,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.promise": {
       "description": "JavaScript `Promise` — represents the eventual completion (or failure) of an async operation.",
@@ -122,7 +137,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.function-type": {
       "description": "TypeScript arrow function type.",
@@ -142,7 +160,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.function": {
       "description": "TypeScript function declaration.",
@@ -162,7 +183,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.parameters": {
       "description": "TypeScript parameter list.",
@@ -183,7 +207,10 @@
           "separator": "\\texttt{, }"
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.type-arguments": {
       "description": "TypeScript generic type argument list.",
@@ -204,7 +231,10 @@
           "separator": "\\texttt{, }"
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.generic": {
       "description": "TypeScript generic type application.",
@@ -224,7 +254,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.null": {
       "description": "TypeScript null type.",
@@ -244,7 +277,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.Promise": {
       "description": "TypeScript Promise type used by async APIs.",
@@ -264,7 +300,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ts.ellipsis": {
       "description": "Elided function implementation; the node source points to its Remark entry.",
@@ -284,7 +323,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.createSnlSyntaxTreeNode": {
       "description": "Public function createSnlSyntaxTreeNode.",
@@ -304,7 +346,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.isSnlSyntaxTree": {
       "description": "Public function isSnlSyntaxTree.",
@@ -324,7 +369,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.parseSnlSyntaxTree": {
       "description": "Public function parseSnlSyntaxTree.",
@@ -344,7 +392,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.tryParseSnlSyntaxTree": {
       "description": "Public function tryParseSnlSyntaxTree.",
@@ -364,7 +415,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.serializeSnlSyntaxTree": {
       "description": "Public function serializeSnlSyntaxTree.",
@@ -384,7 +438,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.annotateBindings": {
       "description": "Public function annotateBindings.",
@@ -404,7 +461,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.analyzeSnlTreeSources": {
       "description": "Public function analyzeSnlTreeSources.",
@@ -424,7 +484,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.alpha": {
       "description": "Public function alpha.",
@@ -444,7 +507,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.paletteToCss": {
       "description": "Public function paletteToCss.",
@@ -464,7 +530,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.assertSafeKindName": {
       "description": "Public function assertSafeKindName.",
@@ -484,7 +553,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.clampPopoverPosition": {
       "description": "Public function clampPopoverPosition.",
@@ -504,7 +576,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.collectPopoverSubtree": {
       "description": "Public function collectPopoverSubtree.",
@@ -524,7 +599,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.expandPopoverAncestors": {
       "description": "Public function expandPopoverAncestors.",
@@ -544,7 +622,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.findPopoverBounds": {
       "description": "Public function findPopoverBounds.",
@@ -564,7 +645,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.useCurrentPopoverId": {
       "description": "Public function useCurrentPopoverId.",
@@ -584,7 +668,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.useHoverPopovers": {
       "description": "Public function useHoverPopovers.",
@@ -604,7 +691,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.fillLatexTemplate": {
       "description": "Public function fillLatexTemplate.",
@@ -624,7 +714,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.modeBucket": {
       "description": "Public function modeBucket.",
@@ -644,7 +737,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.nodeDisplay": {
       "description": "Public function nodeDisplay.",
@@ -664,7 +760,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.nodeMode": {
       "description": "Public function nodeMode.",
@@ -684,7 +783,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.resolveNodeLatex": {
       "description": "Public function resolveNodeLatex.",
@@ -704,7 +806,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.resolveRootLatex": {
       "description": "Public function resolveRootLatex.",
@@ -724,7 +829,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.resolveStyle": {
       "description": "Public function resolveStyle.",
@@ -744,7 +852,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.sanitizeHtmlDataAttr": {
       "description": "Public function sanitizeHtmlDataAttr.",
@@ -764,7 +875,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.wrapForParent": {
       "description": "Public function wrapForParent.",
@@ -784,7 +898,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "fn.wrapHtmlData": {
       "description": "Public function wrapHtmlData.",
@@ -804,7 +921,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     }
   }
 }

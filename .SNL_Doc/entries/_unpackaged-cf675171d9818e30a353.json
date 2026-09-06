@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.snl-macro.dynamic_arity",
+    "kind": "field",
+    "title": "$\\texttt{dynamic\\_arity}$",
+    "content": {
+      "markdown": "True when the macro's child count is not fixed by its template — its default (styles[0]) template must contain `#*`. All styles must agree on this flag; it's a macro-level invariant so switching styles never changes the arity contract at the call site."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "^\\s*dynamic_arity\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

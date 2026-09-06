@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.fn.resolve-root-latex",
+    "kind": "function",
+    "title": "Resolve Root LaTeX",
+    "content": {
+      "snl": "ts.function(fn.resolveRootLatex,ts.function-type(ts.parameters(Type.judge(api.code(%root%),SnlSyntaxTree),Type.judge(api.code(%driver%),MacroDataDriver)),ts.generic(ts.Promise,ts.type-arguments(string))),ts.ellipsis@remark.rv.fn.resolve-root-latex)",
+      "markdown": "`resolveRootLatex`’s formal TypeScript signature; see the linked Remark for implementation details."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+resolveRootLatex\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

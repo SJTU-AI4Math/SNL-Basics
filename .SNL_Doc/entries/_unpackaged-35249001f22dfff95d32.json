@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.hover-popover-api",
+    "kind": "interface",
+    "title": "Hover Popover API",
+    "content": {
+      "snl": "interface(HoverPopoverApi,enumerate(Type.judge(HoverPopoverApi.spawn,api.code(%method%)),Type.judge(HoverPopoverApi.updatePointer,api.code(%method%)),Type.judge(HoverPopoverApi.freeze,api.code(%method%)),Type.judge(HoverPopoverApi.cancelUnfrozen,api.code(%method%)),Type.judge(HoverPopoverApi.dismissAll,api.code(%method%)),Type.judge(HoverPopoverApi.isAlive,api.code(%method%))))",
+      "markdown": "The public TypeScript schema for Hover Popover API."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+HoverPopoverApi\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

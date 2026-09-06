@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-render-hooks",
+    "kind": "interface",
+    "title": "SNL Render Hooks",
+    "content": {
+      "snl": "interface(SnlRenderHooks,enumerate(Type.judge(SnlRenderHooks.onHover,Type.opt(api.code(%(event: SnlHoverEvent) => void%))),Type.judge(SnlRenderHooks.onLeave,Type.opt(api.code(%() => void%))),Type.judge(SnlRenderHooks.resolveMacroInfo,Type.opt(api.code(%(name: string, macro: SnlMacro | undefined) => Promise<SnlMacroInfo>%))),Type.judge(SnlRenderHooks.resolveSource,Type.opt(api.code(%(source: SnlMacroSource) => SnlResolvedSource | null%))),Type.judge(SnlRenderHooks.renderTooltip,Type.opt(api.code(%(state: SnlTooltipState) => ReactElement | null%))),Type.judge(SnlRenderHooks.highlightStrategy,Type.opt(SnlHighlightStrategy)),Type.judge(SnlRenderHooks.renderers,Type.opt(SnlRendererRegistry))))",
+      "markdown": "The collection of rendering hooks. It defines callbacks such as `onHover`, `resolveMacroInfo`, `resolveSource`, and `macroPopover`; a host can customize interaction by overriding any subset. `defaultRenderHooks` supplies the default implementation."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlRenderHooks\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

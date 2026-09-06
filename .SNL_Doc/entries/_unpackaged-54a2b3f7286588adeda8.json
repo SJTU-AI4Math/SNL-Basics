@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sec.syntax.construction",
+    "kind": "section",
+    "title": "Construction and Validation",
+    "content": {
+      "snl": "%Syntax-tree construction and validation utilities.%",
+      "markdown": "Syntax-tree construction and validation utilities."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

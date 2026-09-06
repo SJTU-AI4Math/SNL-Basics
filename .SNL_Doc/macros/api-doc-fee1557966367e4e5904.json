@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `info` field of `SnlTooltipState`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-tooltip-state.info"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{info}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlTooltipState.info"
+  },
+  "schema_version": 1
+}

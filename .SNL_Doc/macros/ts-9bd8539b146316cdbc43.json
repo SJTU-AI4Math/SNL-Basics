@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "TypeScript `type` alias — names a type expression.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#type-aliases"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "ts.type-alias"
+  },
+  "schema_version": 1
+}

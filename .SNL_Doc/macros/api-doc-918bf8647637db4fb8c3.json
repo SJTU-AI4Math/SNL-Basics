@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Options for parsing an SNL fragment.",
+    "source": {
+      "entries": [
+        "st.iface.snl-syntax-tree-parse-options"
+      ],
+      "urls": []
+    },
+    "kind": "class",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{\\color{4EC9A2}SnlSyntaxTreeParseOptions}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTreeParseOptions"
+  },
+  "schema_version": 1
+}

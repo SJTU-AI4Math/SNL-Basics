@@ -1,0 +1,27 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Inline reference to a React component prop. Renders in \\texttt{} with a rose tint.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{RubineRed}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "api.prop"
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-syntax-tree-view-props.tree",
+    "kind": "field",
+    "title": "$\\texttt{tree}$",
+    "content": {
+      "markdown": "The (annotated) syntax tree to render."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/components/SnlSyntaxTreeView.tsx",
+      "mode": "regex",
+      "pattern": "^\\s*tree\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

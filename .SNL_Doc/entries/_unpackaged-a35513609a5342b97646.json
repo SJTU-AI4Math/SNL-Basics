@@ -1,0 +1,23 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.snl-macro.kind",
+    "kind": "field",
+    "title": "$\\texttt{kind}$ [REMOVED v0.10.0]",
+    "content": {
+      "markdown": "Semantic kind (rule / const / bvar / binder / fvar / custom). If unset, nodes rendered for this macro get `data-kind=\"fvar\"`. (There is no more `'default'` kind — un-classified = fvar.)"
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "^\\s*kind\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "deprecated": true,
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.fn.node-display",
+    "kind": "function",
+    "title": "Resolve Node Display",
+    "content": {
+      "snl": "ts.function(fn.nodeDisplay,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%macro%),ts.union(SnlMacro,ts.null))),ts.union(api.code(%\"inline\"%),api.code(%\"block\"%))),ts.ellipsis@remark.rv.fn.node-display)",
+      "markdown": "`nodeDisplay`’s formal TypeScript signature; see the linked Remark for implementation details."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+nodeDisplay\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "TypeScript generic type application.",
+    "kind": "Syntax",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://www.typescriptlang.org/docs/handbook/2/generics.html"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "#0#1"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "ts.generic"
+  },
+  "schema_version": 1
+}

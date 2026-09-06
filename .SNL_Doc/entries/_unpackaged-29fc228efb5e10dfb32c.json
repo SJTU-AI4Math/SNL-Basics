@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.snl-macro-source",
+    "kind": "interface",
+    "title": "SNL Macro Source",
+    "content": {
+      "snl": "interface(SnlMacroSource,enumerate(Type.judge(SnlMacroSource.entries,Type.array(string)),Type.judge(SnlMacroSource.urls,Type.array(string))))",
+      "markdown": "A macro’s **semantic-source references**. Resolution selects the first host-resolvable item in `entries[0..]`; if none resolves, it falls back to `urls[0]`, and if that is absent, to `null`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlMacroSource\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

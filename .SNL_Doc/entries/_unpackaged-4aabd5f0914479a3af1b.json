@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sec.public.rendering",
+    "kind": "section",
+    "title": "Rendering",
+    "content": {
+      "snl": "%React components, rendering configuration, hover popovers, and the low-level render pipeline.%",
+      "markdown": "React components, rendering configuration, hover popovers, and the low-level render pipeline."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

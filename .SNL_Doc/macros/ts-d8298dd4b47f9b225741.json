@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function useCurrentPopoverId.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "rv.fn.use-current-popover-id"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{useCurrentPopoverId}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.useCurrentPopoverId"
+  },
+  "schema_version": 1
+}

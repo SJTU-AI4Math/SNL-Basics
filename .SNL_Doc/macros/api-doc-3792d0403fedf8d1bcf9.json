@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `fadeMs` field of `HoverPopoverOptions`.",
+    "source": {
+      "entries": [
+        "rv.iface.hover-popover-options.fade-ms"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{fadeMs}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "HoverPopoverOptions.fadeMs"
+  },
+  "schema_version": 1
+}

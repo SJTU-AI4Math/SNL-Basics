@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "con.consumer-toolkit",
+    "kind": "concept",
+    "title": "Consumer — SNL-Agent-Toolkit",
+    "content": {
+      "snl": "%Imports external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts through a deep path. It uses only parseSnlSyntaxTree, SnlSyntaxTreeParseError, and SnlSyntaxTree.%",
+      "markdown": "Imports `external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts` through a deep path. It uses only `parseSnlSyntaxTree`, `SnlSyntaxTreeParseError`, and `SnlSyntaxTree`."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

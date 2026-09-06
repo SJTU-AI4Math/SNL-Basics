@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.wrap-for-parent",
+    "kind": "remark",
+    "title": "Wrap Child for Parent — Remark",
+    "content": {
+      "snl": "%Adds the necessary wrappers at formula/text boundaries according to the child and parent rendering modes.%",
+      "markdown": "Adds the necessary wrappers at formula/text boundaries according to the child and parent rendering modes."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+wrapForParent\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

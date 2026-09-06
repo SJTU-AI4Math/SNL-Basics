@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.cls.parse-error.field.message",
+    "kind": "field",
+    "title": "$\\texttt{message}$",
+    "content": {
+      "markdown": "The error description inherited from `Error`. Its wording is not a stable API; use `position` and the surrounding source context for programmatic diagnostics."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/parser.ts",
+      "mode": "regex",
+      "pattern": "constructor\\s*\\(message\\s*:\\s*string"
+    },
+    "package": "_unpackaged"
+  }
+}

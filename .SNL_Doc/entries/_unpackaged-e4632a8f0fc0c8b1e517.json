@@ -1,0 +1,23 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.snl-macro.tags",
+    "kind": "field",
+    "title": "$\\texttt{tags}$",
+    "content": {
+      "markdown": "Required free-text `string[]` labels attached to the macro and used by downstream search indices. Backslashes are forbidden."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "^\\s*tags\\??\\s*(?::|\\()",
+      "flags": "m",
+      "occurrence": 2
+    },
+    "package": "_unpackaged"
+  }
+}

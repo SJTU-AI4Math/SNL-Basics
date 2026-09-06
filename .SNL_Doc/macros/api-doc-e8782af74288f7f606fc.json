@@ -1,0 +1,27 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Inline reference to a function or method exported by SNL-Basics. Renders in \\texttt{} with an orange tint.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Orange}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "api.fn"
+  },
+  "schema_version": 1
+}

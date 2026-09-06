@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function wrapHtmlData.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "rv.fn.wrap-html-data"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{wrapHtmlData}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.wrapHtmlData"
+  },
+  "schema_version": 1
+}

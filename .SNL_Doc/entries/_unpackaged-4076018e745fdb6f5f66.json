@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "con.deep-path-import-decision",
+    "kind": "concept",
+    "title": "Formalization Decision for Deep-Path Imports (Pending)",
+    "content": {
+      "snl": "%The current package exports the host-safe @sjtu-ai4math/snl-basics/core subpath but does not expose a parser-only subpath. Consumers must use documented public entry points or explicitly vendor source; any SNL-Agent-Toolkit migration requires an API audit before replacing deep imports. This decision is independent of whether a registry release exists.%",
+      "markdown": "The current package exports the host-safe `@sjtu-ai4math/snl-basics/core` subpath but does not expose a parser-only subpath. Consumers must use documented public entry points or explicitly vendor source; any SNL-Agent-Toolkit migration requires an API audit before replacing deep imports. This decision is independent of whether a registry release exists."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-hover-event",
+    "kind": "interface",
+    "title": "SNL Hover Event",
+    "content": {
+      "snl": "interface(SnlHoverEvent,enumerate(Type.judge(SnlHoverEvent.name,string),Type.judge(SnlHoverEvent.kind,string),Type.judge(SnlHoverEvent.node,SnlSyntaxTree),Type.judge(SnlHoverEvent.bindingHint,string),Type.judge(SnlHoverEvent.variableRole,Type.union(Type.literal(bvar),Type.literal(fvar),Type.literal(none))),Type.judge(SnlHoverEvent.target,HTMLElement),Type.judge(SnlHoverEvent.clientX,number),Type.judge(SnlHoverEvent.clientY,number)))",
+      "markdown": "The payload of the `onHover` hook. It carries `name`, `kind`, a `node` snapshot, `bindingHint`, `variableRole`, the target element, and `clientX` and `clientY`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlHoverEvent\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

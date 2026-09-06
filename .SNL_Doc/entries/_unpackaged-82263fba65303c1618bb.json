@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-hover-event.name",
+    "kind": "field",
+    "title": "$\\texttt{name}$",
+    "content": {
+      "markdown": "`name` is an field of `SnlHoverEvent`. Its declared TypeScript type is `string`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "^\\s*name\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mod.snl-syntax-tree",
+    "kind": "module",
+    "title": "SNL Syntax Tree Module",
+    "content": {
+      "snl": "%A pure-TypeScript syntax-tree module with no React, KaTeX, or DOM dependencies. It is responsible for parsing, serializing, and annotating SNL source as SnlSyntaxTree. SNL-Agent-Toolkit imports this module’s parser and types directly through a deep path.%",
+      "markdown": "A pure-TypeScript syntax-tree module with no React, KaTeX, or DOM dependencies. It is responsible for parsing, serializing, and annotating SNL source as `SnlSyntaxTree`. SNL-Agent-Toolkit imports this module’s parser and types directly through a deep path."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/index.ts",
+      "mode": "regex",
+      "pattern": "export\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

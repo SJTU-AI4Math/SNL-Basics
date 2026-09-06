@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "TypeScript arrow function type.",
+    "kind": "Syntax",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://www.typescriptlang.org/docs/handbook/2/functions.html"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "#0\\texttt{ => }#1"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "ts.function-type"
+  },
+  "schema_version": 1
+}

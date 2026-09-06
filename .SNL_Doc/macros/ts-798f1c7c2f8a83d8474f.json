@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function expandPopoverAncestors.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "rv.fn.expand-popover-ancestors"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{expandPopoverAncestors}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.expandPopoverAncestors"
+  },
+  "schema_version": 1
+}

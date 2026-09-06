@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.viewport-bounds",
+    "kind": "interface",
+    "title": "Viewport Bounds",
+    "content": {
+      "snl": "Type.judge(ViewportBounds,api.code(%{ left: number; top: number; right: number; bottom: number }%))",
+      "markdown": "The public TypeScript schema for Viewport Bounds."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+type\\s+ViewportBounds\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-source-metrics",
+    "kind": "interface",
+    "title": "SNL Source Metrics",
+    "content": {
+      "snl": "interface(SnlSourceMetrics,enumerate(Type.judge(SnlSourceMetrics.totalNodes,number),Type.judge(SnlSourceMetrics.sourcedNodes,number),Type.judge(SnlSourceMetrics.semanticFreedom,number),Type.judge(SnlSourceMetrics.structuredRatio,number)))",
+      "markdown": "The public TypeScript schema for SNL Source Metrics."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/source-metrics.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlSourceMetrics\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

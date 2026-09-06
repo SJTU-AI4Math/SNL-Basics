@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-macro-info.extra",
+    "kind": "field",
+    "title": "$\\texttt{extra}$",
+    "content": {
+      "markdown": "`extra` is an optional field of `SnlMacroInfo`. Its declared TypeScript type is `string`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "^\\s*extra\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

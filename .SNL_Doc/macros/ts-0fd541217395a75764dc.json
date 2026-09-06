@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Elided function implementation; the node source points to its Remark entry.",
+    "kind": "Syntax",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://www.typescriptlang.org/docs/handbook/2/functions.html"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\ldots"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "ts.ellipsis"
+  },
+  "schema_version": 1
+}

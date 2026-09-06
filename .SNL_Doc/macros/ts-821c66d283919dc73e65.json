@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function serializeSnlSyntaxTree.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "st.fn.serialize-snl-syntax-tree"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{serializeSnlSyntaxTree}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.serializeSnlSyntaxTree"
+  },
+  "schema_version": 1
+}

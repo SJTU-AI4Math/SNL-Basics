@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `sourcedNodes` field of `SnlSourceMetrics`.",
+    "source": {
+      "entries": [
+        "st.iface.snl-source-metrics.sourced-nodes"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{sourcedNodes}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSourceMetrics.sourcedNodes"
+  },
+  "schema_version": 1
+}

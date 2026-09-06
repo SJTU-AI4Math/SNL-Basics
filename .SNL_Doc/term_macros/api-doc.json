@@ -1,5 +1,5 @@
 {
-  "version": "7",
+  "version": "8",
   "name": "api-doc",
   "macros": {
     "api.iface": {
@@ -18,7 +18,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.class": {
       "description": "Inline reference to a TypeScript class in the SNL-Basics API. Renders in \\texttt{} with a teal tint.",
@@ -36,7 +39,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.field": {
       "description": "Inline reference to a Class's field (data or method member). Renders in \\texttt{} with a lime tint.",
@@ -54,7 +60,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.fn": {
       "description": "Inline reference to a function or method exported by SNL-Basics. Renders in \\texttt{} with an orange tint.",
@@ -72,7 +81,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.const": {
       "description": "Inline reference to an exported constant / default-instance / value in SNL-Basics. Renders in \\texttt{} with an amber tint.",
@@ -90,7 +102,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.prop": {
       "description": "Inline reference to a React component prop. Renders in \\texttt{} with a rose tint.",
@@ -108,7 +123,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.comp": {
       "description": "Inline reference to a React component. Renders in \\texttt{} with a pink tint.",
@@ -126,7 +144,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.mod": {
       "description": "Inline reference to a source-tree module / namespace. Renders in \\texttt{} with an indigo tint.",
@@ -144,7 +165,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.pkg": {
       "description": "Inline reference to an npm package or distribution unit. Renders in \\texttt{} with a violet tint.",
@@ -162,7 +186,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.concept": {
       "description": "Inline reference to a cross-cutting concept (surface, stability level, consumer, distribution decision). Renders in \\texttt{} with a neutral tint.",
@@ -180,7 +207,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.kw": {
       "description": "Inline lowercase keyword or built-in term (macro, kind, envMode, template, ...). Renders in \\texttt{} with a neutral gray, no strong color — these are common vocabulary, not linked artefacts.",
@@ -198,7 +228,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.file": {
       "description": "Inline reference to a source file or workspace-relative path. Renders in \\texttt{} with a cyan tint.",
@@ -216,7 +249,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.code": {
       "description": "Inline monospace fallback for arbitrary code snippets (e.g. \\forall, `dist-lib/index.js`). No color; use when no other kind fits.",
@@ -234,7 +270,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.slash": {
       "description": "Variadic connector macro — joins children with ' / '. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
@@ -253,7 +292,10 @@
           "separator": " / "
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.plus": {
       "description": "Variadic connector macro — joins children with ' + '. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
@@ -272,7 +314,10 @@
           "separator": " + "
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.arrow": {
       "description": "Variadic connector macro — joins children with ' → '. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
@@ -291,7 +336,10 @@
           "separator": " → "
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.list": {
       "description": "Variadic connector macro — joins children with '、'. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
@@ -310,7 +358,10 @@
           "separator": "、"
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "api.para": {
       "description": "One paragraph of prose. Variadic in the number of inline items. Renders as a text-mode block; every entry's content.snl uses `api.para` as its ROOT single macro tree (SNL grammar requirement). Multi-paragraph entries chain paragraphs via literal newlines inside the para text, or nest a second para as the last child.",
@@ -328,7 +379,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "interface": {
       "description": "",
@@ -362,7 +416,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacro": {
       "description": "",
@@ -398,7 +455,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "enumerate": {
       "description": "",
@@ -433,7 +493,10 @@
         }
       ],
       "tags": [],
-      "kind": "partial"
+      "kind": "partial",
+      "default_style": {
+        "en": "default"
+      }
     },
     "Type.judge": {
       "description": "",
@@ -467,7 +530,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacro.name": {
       "description": "The `name` field of `SnlMacro`.",
@@ -503,7 +569,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "string": {
       "description": "",
@@ -539,7 +608,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "Type.opt": {
       "description": "",
@@ -573,7 +645,10 @@
         }
       ],
       "kind": "Syntax",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "Type.array": {
       "description": "",
@@ -607,7 +682,10 @@
         }
       ],
       "kind": "Syntax",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "Type.record": {
       "description": "",
@@ -641,7 +719,10 @@
         }
       ],
       "kind": "Syntax",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "Type.union": {
       "description": "",
@@ -676,7 +757,10 @@
         }
       ],
       "kind": "Syntax",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "Type.literal": {
       "description": "",
@@ -710,7 +794,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "boolean": {
       "description": "",
@@ -746,7 +833,10 @@
         }
       ],
       "kind": "class",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "number": {
       "description": "",
@@ -782,7 +872,10 @@
         }
       ],
       "kind": "class",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "null": {
       "description": "",
@@ -816,7 +909,10 @@
         }
       ],
       "kind": "class",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "void": {
       "description": "",
@@ -852,7 +948,10 @@
         }
       ],
       "kind": "class",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroSource": {
       "description": "",
@@ -888,7 +987,10 @@
         }
       ],
       "kind": "class",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroStyle": {
       "description": "",
@@ -924,7 +1026,10 @@
         }
       ],
       "kind": "class",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTree": {
       "description": "",
@@ -960,7 +1065,10 @@
         }
       ],
       "kind": "class",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlRenderHooks": {
       "description": "",
@@ -996,7 +1104,10 @@
         }
       ],
       "kind": "class",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroInfo": {
       "description": "",
@@ -1032,7 +1143,10 @@
         }
       ],
       "kind": "class",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacro.description": {
       "description": "The `description` field of `SnlMacro`.",
@@ -1068,7 +1182,10 @@
         }
       ],
       "kind": "const",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacro.source": {
       "description": "The `source` field of `SnlMacro`.",
@@ -1104,7 +1221,10 @@
         }
       ],
       "kind": "const",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacro.kind": {
       "description": "The `kind` field of `SnlMacro`.",
@@ -1140,7 +1260,10 @@
         }
       ],
       "kind": "const",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacro.dynamic_arity": {
       "description": "The `dynamic_arity` field of `SnlMacro`.",
@@ -1176,7 +1299,10 @@
         }
       ],
       "kind": "const",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacro.styles": {
       "description": "The `styles` field of `SnlMacro`.",
@@ -1212,7 +1338,10 @@
         }
       ],
       "kind": "const",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacro.tags": {
       "description": "The `tags` field of `SnlMacro`.",
@@ -1248,7 +1377,10 @@
         }
       ],
       "kind": "const",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroStyle.style_name": {
       "description": "The `style_name` field of `SnlMacroStyle`.",
@@ -1284,7 +1416,10 @@
           "template": "\\texttt{style\\_name}"
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroStyle.template": {
       "description": "The `template` field of `SnlMacroStyle`.",
@@ -1320,7 +1455,10 @@
         }
       ],
       "kind": "const",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroStyle.tags": {
       "description": "The `tags` field of `SnlMacroStyle`.",
@@ -1356,7 +1494,10 @@
         }
       ],
       "kind": "const",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroSource.entries": {
       "description": "The `entries` field of `SnlMacroSource`.",
@@ -1392,7 +1533,10 @@
         }
       ],
       "kind": "const",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroSource.urls": {
       "description": "The `urls` field of `SnlMacroSource`.",
@@ -1428,7 +1572,10 @@
         }
       ],
       "kind": "const",
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTree.macro_name": {
       "description": "The `macro_name` field of `SnlSyntaxTree`.",
@@ -1448,7 +1595,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTree.style_name": {
       "description": "The `style_name` field of `SnlSyntaxTree`.",
@@ -1468,7 +1618,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTree.env_mode": {
       "description": "The `env_mode` field of `SnlSyntaxTree`.",
@@ -1488,7 +1641,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTree.kind": {
       "description": "The `kind` field of `SnlSyntaxTree`.",
@@ -1508,7 +1664,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTree.scope": {
       "description": "The `scope` field of `SnlSyntaxTree`.",
@@ -1528,7 +1687,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTree.mdata": {
       "description": "The `mdata` field of `SnlSyntaxTree`.",
@@ -1548,7 +1710,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTree.children": {
       "description": "The `children` field of `SnlSyntaxTree`.",
@@ -1568,7 +1733,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeBase": {
       "description": "",
@@ -1588,7 +1756,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeBase.macro_name": {
       "description": "The `macro_name` field of `SnlSyntaxTreeBase`.",
@@ -1608,7 +1779,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeBase.style_name": {
       "description": "The `style_name` field of `SnlSyntaxTreeBase`.",
@@ -1628,7 +1802,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeBase.kind": {
       "description": "The `kind` field of `SnlSyntaxTreeBase`.",
@@ -1648,7 +1825,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeBase.scope": {
       "description": "The `scope` field of `SnlSyntaxTreeBase`.",
@@ -1668,7 +1848,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeBase.mdata": {
       "description": "The `mdata` field of `SnlSyntaxTreeBase`.",
@@ -1688,7 +1871,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeBase.children": {
       "description": "The `children` field of `SnlSyntaxTreeBase`.",
@@ -1708,7 +1894,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeFormulaNode": {
       "description": "",
@@ -1728,7 +1917,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeFormulaNode.mode": {
       "description": "The `mode` field of `SnlSyntaxTreeFormulaNode`.",
@@ -1748,7 +1940,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeTextNode": {
       "description": "",
@@ -1768,7 +1963,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeTextNode.mode": {
       "description": "The `mode` field of `SnlSyntaxTreeTextNode`.",
@@ -1788,7 +1986,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeBlockNode": {
       "description": "",
@@ -1808,7 +2009,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeBlockNode.mode": {
       "description": "The `mode` field of `SnlSyntaxTreeBlockNode`.",
@@ -1828,7 +2032,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeBlockNode.block_kind": {
       "description": "The `block_kind` field of `SnlSyntaxTreeBlockNode`.",
@@ -1848,7 +2055,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeViewProps": {
       "description": "",
@@ -1868,7 +2078,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeViewProps.tree": {
       "description": "The `tree` field of `SnlSyntaxTreeViewProps`.",
@@ -1888,7 +2101,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeViewProps.query": {
       "description": "The `query` field of `SnlSyntaxTreeViewProps`.",
@@ -1908,7 +2124,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeViewProps.macro_data_driver": {
       "description": "The `macro_data_driver` field of `SnlSyntaxTreeViewProps`.",
@@ -1928,7 +2147,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeViewProps.katexOptions": {
       "description": "The `katexOptions` field of `SnlSyntaxTreeViewProps`.",
@@ -1948,7 +2170,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeViewProps.kindPalette": {
       "description": "The `kindPalette` field of `SnlSyntaxTreeViewProps`.",
@@ -1968,7 +2193,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeViewProps.onResolved": {
       "description": "The `onResolved` field of `SnlSyntaxTreeViewProps`.",
@@ -1988,7 +2216,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeViewProps.hooks": {
       "description": "The `hooks` field of `SnlSyntaxTreeViewProps`.",
@@ -2008,7 +2239,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlRenderHooks.onHover": {
       "description": "The `onHover` field of `SnlRenderHooks`.",
@@ -2028,7 +2262,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlRenderHooks.onLeave": {
       "description": "The `onLeave` field of `SnlRenderHooks`.",
@@ -2048,7 +2285,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlRenderHooks.resolveMacroInfo": {
       "description": "The `resolveMacroInfo` field of `SnlRenderHooks`.",
@@ -2068,7 +2308,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlRenderHooks.resolveSource": {
       "description": "The `resolveSource` field of `SnlRenderHooks`.",
@@ -2088,7 +2331,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlRenderHooks.renderTooltip": {
       "description": "The `renderTooltip` field of `SnlRenderHooks`.",
@@ -2108,7 +2354,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlRenderHooks.highlightStrategy": {
       "description": "The `highlightStrategy` field of `SnlRenderHooks`.",
@@ -2128,7 +2377,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlRenderHooks.renderers": {
       "description": "The `renderers` field of `SnlRenderHooks`.",
@@ -2148,7 +2400,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHoverEvent": {
       "description": "",
@@ -2168,7 +2423,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHoverEvent.name": {
       "description": "The `name` field of `SnlHoverEvent`.",
@@ -2188,7 +2446,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHoverEvent.kind": {
       "description": "The `kind` field of `SnlHoverEvent`.",
@@ -2208,7 +2469,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHoverEvent.node": {
       "description": "The `node` field of `SnlHoverEvent`.",
@@ -2228,7 +2492,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHoverEvent.bindingHint": {
       "description": "The `bindingHint` field of `SnlHoverEvent`.",
@@ -2248,7 +2515,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHoverEvent.variableRole": {
       "description": "The `variableRole` field of `SnlHoverEvent`.",
@@ -2268,7 +2538,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHoverEvent.target": {
       "description": "The `target` field of `SnlHoverEvent`.",
@@ -2288,7 +2561,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHoverEvent.clientX": {
       "description": "The `clientX` field of `SnlHoverEvent`.",
@@ -2308,7 +2584,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHoverEvent.clientY": {
       "description": "The `clientY` field of `SnlHoverEvent`.",
@@ -2328,7 +2607,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroInfo.description": {
       "description": "The `description` field of `SnlMacroInfo`.",
@@ -2348,7 +2630,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroInfo.extra": {
       "description": "The `extra` field of `SnlMacroInfo`.",
@@ -2368,7 +2653,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlResolvedSource": {
       "description": "",
@@ -2388,7 +2676,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlResolvedSource.kind": {
       "description": "The `kind` field of `SnlResolvedSource`.",
@@ -2408,7 +2699,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlResolvedSource.ref": {
       "description": "The `ref` field of `SnlResolvedSource`.",
@@ -2428,7 +2722,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlResolvedSource.displayName": {
       "description": "The `displayName` field of `SnlResolvedSource`.",
@@ -2448,7 +2745,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlResolvedSource.href": {
       "description": "The `href` field of `SnlResolvedSource`.",
@@ -2468,7 +2768,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState": {
       "description": "",
@@ -2488,7 +2791,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState.visible": {
       "description": "The `visible` field of `SnlTooltipState`.",
@@ -2508,7 +2814,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState.x": {
       "description": "The `x` field of `SnlTooltipState`.",
@@ -2528,7 +2837,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState.y": {
       "description": "The `y` field of `SnlTooltipState`.",
@@ -2548,7 +2860,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState.name": {
       "description": "The `name` field of `SnlTooltipState`.",
@@ -2568,7 +2883,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState.kind": {
       "description": "The `kind` field of `SnlTooltipState`.",
@@ -2588,7 +2906,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState.variableRole": {
       "description": "The `variableRole` field of `SnlTooltipState`.",
@@ -2608,7 +2929,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState.bindingHint": {
       "description": "The `bindingHint` field of `SnlTooltipState`.",
@@ -2628,7 +2952,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState.info": {
       "description": "The `info` field of `SnlTooltipState`.",
@@ -2648,7 +2975,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState.loading": {
       "description": "The `loading` field of `SnlTooltipState`.",
@@ -2668,7 +2998,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlTooltipState.source": {
       "description": "The `source` field of `SnlTooltipState`.",
@@ -2688,7 +3021,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHighlightStrategy": {
       "description": "",
@@ -2708,7 +3044,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHighlightStrategy.computeHighlightSet": {
       "description": "The `computeHighlightSet` field of `SnlHighlightStrategy`.",
@@ -2728,7 +3067,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHighlightSet": {
       "description": "",
@@ -2748,7 +3090,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHighlightSet.singleHover": {
       "description": "The `singleHover` field of `SnlHighlightSet`.",
@@ -2768,7 +3113,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHighlightSet.bvarScope": {
       "description": "The `bvarScope` field of `SnlHighlightSet`.",
@@ -2788,7 +3136,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlHighlightSet.binderDecl": {
       "description": "The `binderDecl` field of `SnlHighlightSet`.",
@@ -2808,7 +3159,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlRendererRegistry": {
       "description": "",
@@ -2828,7 +3182,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlBlockRenderer": {
       "description": "",
@@ -2848,7 +3205,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlBlockRendererProps": {
       "description": "",
@@ -2868,7 +3228,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlBlockRendererProps.node": {
       "description": "The `node` field of `SnlBlockRendererProps`.",
@@ -2888,7 +3251,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlBlockRendererProps.macro_data_driver": {
       "description": "The `macro_data_driver` field of `SnlBlockRendererProps`.",
@@ -2908,7 +3274,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlBlockRendererProps.renderChild": {
       "description": "The `renderChild` field of `SnlBlockRendererProps`.",
@@ -2928,7 +3297,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "KindPalette": {
       "description": "",
@@ -2948,7 +3320,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "KindColoring": {
       "description": "",
@@ -2968,7 +3343,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "KindColoring.stroke": {
       "description": "The `stroke` field of `KindColoring`.",
@@ -2988,7 +3366,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "KindColoring.background": {
       "description": "The `background` field of `KindColoring`.",
@@ -3008,7 +3389,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlMacroSourceLookup": {
       "description": "Public TypeScript schema SnlMacroSourceLookup.",
@@ -3028,7 +3412,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSourceMetrics": {
       "description": "Public TypeScript schema SnlSourceMetrics.",
@@ -3048,7 +3435,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSourceMetrics.totalNodes": {
       "description": "The `totalNodes` field of `SnlSourceMetrics`.",
@@ -3068,7 +3458,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSourceMetrics.sourcedNodes": {
       "description": "The `sourcedNodes` field of `SnlSourceMetrics`.",
@@ -3088,7 +3481,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSourceMetrics.semanticFreedom": {
       "description": "The `semanticFreedom` field of `SnlSourceMetrics`.",
@@ -3108,7 +3504,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSourceMetrics.structuredRatio": {
       "description": "The `structuredRatio` field of `SnlSourceMetrics`.",
@@ -3128,7 +3527,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopover": {
       "description": "Public TypeScript schema HoverPopover.",
@@ -3148,7 +3550,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopover.id": {
       "description": "The `id` field of `HoverPopover`.",
@@ -3168,7 +3573,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopover.subject": {
       "description": "The `subject` field of `HoverPopover`.",
@@ -3188,7 +3596,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopover.originRect": {
       "description": "The `originRect` field of `HoverPopover`.",
@@ -3208,7 +3619,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopover.x": {
       "description": "The `x` field of `HoverPopover`.",
@@ -3228,7 +3642,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopover.y": {
       "description": "The `y` field of `HoverPopover`.",
@@ -3248,7 +3665,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopover.parentId": {
       "description": "The `parentId` field of `HoverPopover`.",
@@ -3268,7 +3688,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopover.frozen": {
       "description": "The `frozen` field of `HoverPopover`.",
@@ -3288,7 +3711,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopover.phase": {
       "description": "The `phase` field of `HoverPopover`.",
@@ -3308,7 +3734,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverApi": {
       "description": "Public TypeScript schema HoverPopoverApi.",
@@ -3328,7 +3757,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverApi.spawn": {
       "description": "The `spawn` field of `HoverPopoverApi`.",
@@ -3348,7 +3780,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverApi.updatePointer": {
       "description": "The `updatePointer` field of `HoverPopoverApi`.",
@@ -3368,7 +3803,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverApi.freeze": {
       "description": "The `freeze` field of `HoverPopoverApi`.",
@@ -3388,7 +3826,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverApi.cancelUnfrozen": {
       "description": "The `cancelUnfrozen` field of `HoverPopoverApi`.",
@@ -3408,7 +3849,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverApi.dismissAll": {
       "description": "The `dismissAll` field of `HoverPopoverApi`.",
@@ -3428,7 +3872,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverApi.isAlive": {
       "description": "The `isAlive` field of `HoverPopoverApi`.",
@@ -3448,7 +3895,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverOptions": {
       "description": "Public TypeScript schema HoverPopoverOptions.",
@@ -3468,7 +3918,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverOptions.offset": {
       "description": "The `offset` field of `HoverPopoverOptions`.",
@@ -3488,7 +3941,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverOptions.hitPadding": {
       "description": "The `hitPadding` field of `HoverPopoverOptions`.",
@@ -3508,7 +3964,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverOptions.viewportMargin": {
       "description": "The `viewportMargin` field of `HoverPopoverOptions`.",
@@ -3528,7 +3987,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverOptions.openDelayMs": {
       "description": "The `openDelayMs` field of `HoverPopoverOptions`.",
@@ -3548,7 +4010,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverOptions.fadeMs": {
       "description": "The `fadeMs` field of `HoverPopoverOptions`.",
@@ -3568,7 +4033,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverOptions.freezeDelayMs": {
       "description": "The `freezeDelayMs` field of `HoverPopoverOptions`.",
@@ -3588,7 +4056,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverOptions.maxZIndexBase": {
       "description": "The `maxZIndexBase` field of `HoverPopoverOptions`.",
@@ -3608,7 +4079,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverProviderProps": {
       "description": "Public TypeScript schema HoverPopoverProviderProps.",
@@ -3628,7 +4102,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverProviderProps.children": {
       "description": "The `children` field of `HoverPopoverProviderProps`.",
@@ -3648,7 +4125,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverProviderProps.renderPopover": {
       "description": "The `renderPopover` field of `HoverPopoverProviderProps`.",
@@ -3668,7 +4148,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverProviderProps.options": {
       "description": "The `options` field of `HoverPopoverProviderProps`.",
@@ -3688,7 +4171,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverProviderProps.className": {
       "description": "The `className` field of `HoverPopoverProviderProps`.",
@@ -3708,7 +4194,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverProviderProps.style": {
       "description": "The `style` field of `HoverPopoverProviderProps`.",
@@ -3728,7 +4217,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverProviderProps.resolveBounds": {
       "description": "The `resolveBounds` field of `HoverPopoverProviderProps`.",
@@ -3748,7 +4240,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "HoverPopoverProviderProps.portalTarget": {
       "description": "The `portalTarget` field of `HoverPopoverProviderProps`.",
@@ -3768,7 +4263,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "PopoverPhase": {
       "description": "Public TypeScript schema PopoverPhase.",
@@ -3788,7 +4286,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "ViewportBounds": {
       "description": "Public TypeScript schema ViewportBounds.",
@@ -3808,7 +4309,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeParseOptions": {
       "description": "Options for parsing an SNL fragment.",
@@ -3828,7 +4332,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeParseOptions.activeBinderIds": {
       "description": "The `activeBinderIds` field of `SnlSyntaxTreeParseOptions`.",
@@ -3848,7 +4355,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeParseError.position": {
       "description": "The `position` field of `SnlSyntaxTreeParseError`.",
@@ -3868,7 +4378,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeParseError.message": {
       "description": "The `message` field of `SnlSyntaxTreeParseError`.",
@@ -3888,7 +4401,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "MacroDataQueries.query_macro": {
       "description": "The `query_macro` field of `MacroDataQueries`.",
@@ -3908,7 +4424,10 @@
           "template": "\\texttt{query\\_macro}",
           "tags": []
         }
-      ]
+      ],
+      "default_style": {
+        "en": "default"
+      }
     },
     "SnlSyntaxTreeViewProps.interaction_driver": {
       "description": "The `interaction_driver` field of `SnlSyntaxTreeViewProps`.",
@@ -3928,7 +4447,10 @@
           "template": "\\texttt{interaction\\_driver}",
           "tags": []
         }
-      ]
+      ],
+      "default_style": {
+        "en": "default"
+      }
     }
   },
   "description": "Term macros for the SNL-Basics dogfood API doc (Phase 2). Inline-term references (api.iface, api.fn, api.class, api.const, api.prop, api.comp, api.mod, api.pkg, api.concept, api.kw, api.file, api.code), connector punctuation (api.slash, api.plus, api.arrow, api.list), and one structural macro (api.para) for prose paragraphs."

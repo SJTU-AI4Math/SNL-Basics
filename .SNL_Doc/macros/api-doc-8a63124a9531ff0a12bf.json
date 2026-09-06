@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `variableRole` field of `SnlTooltipState`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-tooltip-state.variable-role"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{variableRole}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlTooltipState.variableRole"
+  },
+  "schema_version": 1
+}

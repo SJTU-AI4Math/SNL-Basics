@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sec.public.parsing",
+    "kind": "section",
+    "title": "Parsing",
+    "content": {
+      "snl": "%Syntax-tree parsing and related tree operations.%",
+      "markdown": "Syntax-tree parsing and related tree operations."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

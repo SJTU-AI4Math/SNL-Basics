@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.comp.hover-popover-provider",
+    "kind": "component",
+    "title": "Hover Popover Provider",
+    "content": {
+      "snl": "%Generic React provider for nested hover popovers.%",
+      "markdown": "Generic React provider for nested hover popovers."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+HoverPopoverProvider\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

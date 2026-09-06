@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-interaction-context",
+    "kind": "interface",
+    "title": "SnlInteractionContext",
+    "content": {
+      "markdown": "Full context passed to interaction callbacks: node, tree_path, macro|null, target element, client_x/y, and modifier keys (ctrl_key, meta_key, shift_key, alt_key)."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Full context passed to interaction callbacks: node, tree_path, macro|null, target element, client_x/y, and modifier keys (ctrl_key, meta_key, shift_key, alt_key).",
+      "parent": "mod.snl-react-view"
+    },
+    "package": "_unpackaged"
+  }
+}

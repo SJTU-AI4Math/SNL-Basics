@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-syntax-tree-text-node",
+    "kind": "interface",
+    "title": "Text SNL Syntax Tree Node",
+    "content": {
+      "snl": "interface(SnlSyntaxTreeTextNode,enumerate(Type.judge(SnlSyntaxTreeTextNode.mode,Type.literal(text))))",
+      "markdown": "The branch whose `envMode` is `text`. The `name` field carries text content, which is rendered as a React text run rather than in KaTeX math mode."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/node-types.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlSyntaxTreeTextNode\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

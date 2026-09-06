@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sec.react.macro-db",
+    "kind": "section",
+    "title": "Macro Database and Queries",
+    "content": {
+      "snl": "%Macro database loading, caching, and template-query APIs.%",
+      "markdown": "Macro database loading, caching, and template-query APIs."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

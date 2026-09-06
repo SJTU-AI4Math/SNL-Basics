@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mod.schema",
+    "kind": "module",
+    "title": "Schema Migration Module",
+    "content": {
+      "markdown": "Centralized schema migration chains (src/schema/) from supported legacy documents to current macro v11 and tree v3, with retained stepwise migrations, version constants, validation, and CLI tooling."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Centralized schema migration chains (src/schema/) from supported legacy documents to current macro v11 and tree v3, with retained stepwise migrations, version constants, validation, and CLI tooling."
+    },
+    "package": "_unpackaged"
+  }
+}

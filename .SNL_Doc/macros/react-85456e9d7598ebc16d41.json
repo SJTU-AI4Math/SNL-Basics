@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "react",
+  "macro": {
+    "description": "React `FunctionComponent<Props>` — the type of a function component. Accepts props, returns a `ReactElement`.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://react.dev/learn/your-first-component"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "react.FC"
+  },
+  "schema_version": 1
+}

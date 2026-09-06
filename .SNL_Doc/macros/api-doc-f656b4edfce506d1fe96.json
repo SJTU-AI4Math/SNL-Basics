@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `query` field of `SnlSyntaxTreeViewProps`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-syntax-tree-view-props.query"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{query}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTreeViewProps.query"
+  },
+  "schema_version": 1
+}

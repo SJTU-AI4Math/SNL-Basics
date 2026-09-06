@@ -1,5 +1,5 @@
 {
-  "version": "7",
+  "version": "8",
   "name": "react",
   "description": "React framework concepts referenced from SNL docs. Each macro links to the official react.dev reference.",
   "macros": {
@@ -21,7 +21,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "react.ReactElement": {
       "description": "React `ReactElement` — the value returned by a component; a lightweight description of what to render.",
@@ -41,7 +44,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "react.useMemo": {
       "description": "React `useMemo` hook — memoizes a computed value across renders.",
@@ -61,7 +67,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "react.useEffect": {
       "description": "React `useEffect` hook — synchronizes a component with an external system.",
@@ -81,7 +90,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "react.useState": {
       "description": "React `useState` hook — declares a state variable local to a component.",
@@ -101,7 +113,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "react.useRef": {
       "description": "React `useRef` hook — creates a mutable ref object whose `.current` is stable across renders.",
@@ -121,7 +136,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "react.hooks": {
       "description": "React Hooks — functions starting with `use` that let function components hook into React state and lifecycle.",
@@ -141,7 +159,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     },
     "react.props": {
       "description": "React props — the parameters a parent component passes to a child.",
@@ -161,7 +182,10 @@
           "tags": []
         }
       ],
-      "tags": []
+      "tags": [],
+      "default_style": {
+        "en": "default"
+      }
     }
   }
 }

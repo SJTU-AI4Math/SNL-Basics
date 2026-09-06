@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "con.stability-experimental",
+    "kind": "concept",
+    "title": "Stability Level — Experimental",
+    "content": {
+      "snl": "%Publicly usable, but subject to change; changes are announced only in minor releases. Advanced APIs that are exported but currently have no downstream imports belong to this level by default.%",
+      "markdown": "Publicly usable, but subject to change; changes are announced only in minor releases. Advanced APIs that are exported but currently have no downstream imports belong to this level by default."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

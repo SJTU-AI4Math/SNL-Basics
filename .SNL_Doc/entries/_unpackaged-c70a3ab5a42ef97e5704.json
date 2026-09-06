@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mod.entry-react",
+    "kind": "module",
+    "title": "Generic Entry React Module",
+    "content": {
+      "markdown": "The tree-shakeable `@sjtu-ai4math/snl-basics/entry` route. It renders complete query-backed Entry cards while keeping Markdown dependencies outside the package-root import graph."
+    },
+    "pointer": {
+      "file": "src/entry-react/index.ts",
+      "mode": "regex",
+      "pattern": "Tree-shakeable"
+    },
+    "contribution_info": null,
+    "package": "_unpackaged"
+  }
+}

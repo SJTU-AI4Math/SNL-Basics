@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `kindPalette` field of `SnlSyntaxTreeViewProps`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-syntax-tree-view-props.kind-palette"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{kindPalette}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTreeViewProps.kindPalette"
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function clampPopoverPosition.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "rv.fn.clamp-popover-position"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{clampPopoverPosition}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.clampPopoverPosition"
+  },
+  "schema_version": 1
+}

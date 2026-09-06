@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "con.entry-kinds-catalogue",
+    "kind": "concept",
+    "title": "Entry-Kinds Decision for This Document (Metadocumentation)",
+    "content": {
+      "snl": "%Ten kinds are used: NpmPackage, Module, Interface, Class, Field, Function, ReactComponent, Property, Constant, and Concept. Interface members are documented within content rather than as separate entries. Class members receive separate subentries. Methods reuse Function; the full name Property avoids ambiguity with Lean’s Prop = Proposition; and default implementations reuse Constant.%",
+      "markdown": "Ten kinds are used: `NpmPackage`, `Module`, `Interface`, `Class`, `Field`, `Function`, `ReactComponent`, `Property`, `Constant`, and `Concept`. Interface members are documented within `content` rather than as separate entries. Class members receive separate subentries. Methods reuse `Function`; the full name `Property` avoids ambiguity with Lean’s `Prop = Proposition`; and default implementations reuse `Constant`."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

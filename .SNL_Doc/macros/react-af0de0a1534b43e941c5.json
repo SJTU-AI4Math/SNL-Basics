@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "react",
+  "macro": {
+    "description": "React `useMemo` hook — memoizes a computed value across renders.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://react.dev/reference/react/useMemo"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "react.useMemo"
+  },
+  "schema_version": 1
+}

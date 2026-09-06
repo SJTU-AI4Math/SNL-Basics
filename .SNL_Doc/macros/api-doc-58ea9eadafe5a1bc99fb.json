@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `x` field of `SnlTooltipState`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-tooltip-state.x"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{x}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlTooltipState.x"
+  },
+  "schema_version": 1
+}

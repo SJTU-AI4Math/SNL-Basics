@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.cls.snl-interaction-driver",
+    "kind": "class",
+    "title": "SnlInteractionDriver",
+    "content": {
+      "markdown": "Injectable interaction handler for SnlSyntaxTreeView. Class-based, async-capable. Dispatches hover/leave/click/ctrl-click with full modifier key context. ctrl_key means literal Ctrl (NOT macOS Meta). Added in v0.10.0."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Injectable interaction handler for SnlSyntaxTreeView. Class-based, async-capable. Dispatches hover/leave/click/ctrl-click with full modifier key context. ctrl_key means literal Ctrl (NOT macOS Meta). Added in v0.10.0.",
+      "parent": "mod.snl-react-view"
+    },
+    "package": "_unpackaged"
+  }
+}

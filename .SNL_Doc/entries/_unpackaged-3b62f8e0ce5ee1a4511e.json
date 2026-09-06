@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.const.default-render-hooks",
+    "kind": "constant",
+    "title": "Default Render Hooks",
+    "content": {
+      "snl": "%The default implementation of SnlRenderHooks. It covers all hooks, including onHover, resolveMacroInfo, and resolveSource, and provides normal interaction when the host does not customize them. A host normally performs a partial merge ({ ...defaultRenderHooks, onHover: mine }) rather than replacing the object completely.%",
+      "markdown": "The default implementation of `SnlRenderHooks`. It covers all hooks, including `onHover`, `resolveMacroInfo`, and `resolveSource`, and provides normal interaction when the host does not customize them. A host normally performs a partial merge (`{ ...defaultRenderHooks, onHover: mine }`) rather than replacing the object completely."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+const\\s+defaultRenderHooks\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

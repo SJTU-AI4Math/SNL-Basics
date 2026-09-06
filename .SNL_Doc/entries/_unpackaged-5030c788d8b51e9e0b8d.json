@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.resolve-node-latex",
+    "kind": "remark",
+    "title": "Resolve Node LaTeX — Remark",
+    "content": {
+      "snl": "%Recursively resolves a node and its subtree, producing KaTeX source with source and binding metadata.%",
+      "markdown": "Recursively resolves a node and its subtree, producing KaTeX source with source and binding metadata."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+resolveNodeLatex\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

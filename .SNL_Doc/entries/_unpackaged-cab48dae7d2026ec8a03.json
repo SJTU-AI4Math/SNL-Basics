@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-highlight-strategy",
+    "kind": "interface",
+    "title": "SNL Highlight Strategy",
+    "content": {
+      "snl": "interface(SnlHighlightStrategy,enumerate(Type.judge(SnlHighlightStrategy.computeHighlightSet,api.code(%(target: HTMLElement, container: HTMLElement, bvarScopeIndex: Map<string, BvarScopeEntry>) => SnlHighlightSet%))))",
+      "markdown": "The interface for a `bvar`-scope highlighting strategy. It determines which sibling nodes with the same `bindRef` are highlighted together on hover. The default implementation is `defaultHighlightStrategy`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlHighlightStrategy\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

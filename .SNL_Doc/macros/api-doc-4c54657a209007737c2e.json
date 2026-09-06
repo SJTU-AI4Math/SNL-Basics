@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `originRect` field of `HoverPopover`.",
+    "source": {
+      "entries": [
+        "rv.iface.hover-popover.origin-rect"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{originRect}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "HoverPopover.originRect"
+  },
+  "schema_version": 1
+}

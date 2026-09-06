@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `style_name` field of `SnlSyntaxTree`.",
+    "source": {
+      "entries": [
+        "st.iface.snl-syntax-tree.style_name"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\\\texttt{style\\\\_name}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTree.style_name"
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,44 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "",
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "dynamic_arity": true,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "block",
+          "body": "#*",
+          "block_template_name": "enumerate",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      }
+    ],
+    "tags": [],
+    "kind": "sub",
+    "name": "enumerate"
+  },
+  "schema_version": 1
+}

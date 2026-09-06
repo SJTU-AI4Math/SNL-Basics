@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.snl-macro-source.entries",
+    "kind": "field",
+    "title": "$\\texttt{entries}$",
+    "content": {
+      "markdown": "`entries` is an field of `SnlMacroSource`. Its declared TypeScript type is `string[]`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "^\\s*entries\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-block-renderer",
+    "kind": "interface",
+    "title": "SNL Block Renderer",
+    "content": {
+      "snl": "Type.judge(SnlBlockRenderer,api.code(%FC<SnlBlockRendererProps>%))",
+      "markdown": "The function-component type for one block renderer: `FC<SnlBlockRendererProps>`. It receives the complete `SnlBlockRendererProps` projection and determines the HTML output structure of that block macro."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+type\\s+SnlBlockRenderer\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

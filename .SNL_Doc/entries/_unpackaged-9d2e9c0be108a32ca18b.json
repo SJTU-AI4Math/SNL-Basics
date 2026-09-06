@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sub.public.rendering.components",
+    "kind": "subsection",
+    "title": "Components",
+    "content": {
+      "snl": "%Public React components.%",
+      "markdown": "Public React components."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

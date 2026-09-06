@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sec.react.popovers",
+    "kind": "section",
+    "title": "Hover Popovers",
+    "content": {
+      "snl": "%Hover-popover component, hooks, geometry helpers, and data interfaces.%",
+      "markdown": "Hover-popover component, hooks, geometry helpers, and data interfaces."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

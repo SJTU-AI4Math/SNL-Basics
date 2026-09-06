@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `bvarScope` field of `SnlHighlightSet`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-highlight-set.bvar-scope"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{bvarScope}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlHighlightSet.bvarScope"
+  },
+  "schema_version": 1
+}

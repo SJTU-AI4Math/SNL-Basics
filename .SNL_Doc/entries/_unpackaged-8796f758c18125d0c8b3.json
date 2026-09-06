@@ -1,0 +1,25 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "entry.comp.entry-surface",
+    "kind": "component",
+    "title": "EntrySurface",
+    "content": {
+      "markdown": "Renders a loaded Entry as a kind-colored card. Body precedence is nonblank SNL, Markdown, LaTeX, text, then header-only empty state."
+    },
+    "pointer": {
+      "file": "src/entry-react/entry-render.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+function\\s+EntrySurface\\b"
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "parent": "mod.entry-react"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function sanitizeHtmlDataAttr.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "rv.fn.sanitize-html-data-attr"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{sanitizeHtmlDataAttr}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.sanitizeHtmlDataAttr"
+  },
+  "schema_version": 1
+}

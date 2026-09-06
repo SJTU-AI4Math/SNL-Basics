@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "schema.fn.migrate-macro-document",
+    "kind": "function",
+    "title": "migrateMacroDocument",
+    "content": {
+      "markdown": "Migrates an entire macro DB through the retained v6→v7→v9→v10→v11 chain to current v11. The first step maps tag→style_name, the variadic triple→separator+template, and react_renderer_key→block_template_name, and adds tags:[]."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Migrates an entire macro DB through the retained v6→v7→v9→v10→v11 chain to current v11. The first step maps tag→style_name, the variadic triple→separator+template, and react_renderer_key→block_template_name, and adds tags:[].",
+      "parent": "mod.schema"
+    },
+    "package": "_unpackaged"
+  }
+}

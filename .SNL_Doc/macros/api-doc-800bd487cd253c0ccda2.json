@@ -1,0 +1,45 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `dynamic_arity` field of `SnlMacro`.",
+    "source": {
+      "entries": [
+        "mac.iface.snl-macro.dynamic_arity"
+      ],
+      "urls": []
+    },
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{dynamic\\_arity}",
+          "typst": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "latex": {
+            "built_in": "",
+            "synthesis": {
+              "mode": "formula",
+              "macro": ""
+            }
+          },
+          "markdown": "",
+          "text": ""
+        }
+      }
+    ],
+    "kind": "const",
+    "tags": [],
+    "name": "SnlMacro.dynamic_arity"
+  },
+  "schema_version": 1
+}

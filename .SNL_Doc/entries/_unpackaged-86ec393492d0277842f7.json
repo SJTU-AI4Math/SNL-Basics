@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.expand-popover-ancestors",
+    "kind": "remark",
+    "title": "Expand Popover Ancestors — Remark",
+    "content": {
+      "snl": "%Given a set of popover IDs, adds all of their ancestor popovers.%",
+      "markdown": "Given a set of popover IDs, adds all of their ancestor popovers."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+expandPopoverAncestors\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-syntax-tree-base.macro_name",
+    "kind": "field",
+    "title": "$\\texttt{macro\\_name}$",
+    "content": {
+      "markdown": "Macro name or delimiter payload. Macro metadata is resolved exclusively through MacroDataDriver queries."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/types.ts",
+      "mode": "regex",
+      "pattern": "^\\s*macro_name\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

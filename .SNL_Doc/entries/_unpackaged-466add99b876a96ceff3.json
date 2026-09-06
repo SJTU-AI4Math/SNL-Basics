@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "overview.public-api",
+    "kind": "npm-package",
+    "title": "Overall Info",
+    "content": {
+      "snl": "%The @sjtu-ai4math/snl-basics npm package: its package-root public API, SNL syntax-tree parser, React/KaTeX renderer, and macro database surface.%",
+      "markdown": "The @sjtu-ai4math/snl-basics npm package: its package-root public API, SNL syntax-tree parser, React/KaTeX renderer, and macro database surface."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

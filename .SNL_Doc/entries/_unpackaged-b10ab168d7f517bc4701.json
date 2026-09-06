@@ -1,0 +1,27 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.macro-data-queries.query_macro",
+    "kind": "field",
+    "title": "$\\texttt{query\\_macro}$",
+    "pointer": {
+      "file": "src/snl-macro/macro-data-driver.ts",
+      "mode": "regex",
+      "pattern": "^\\s*query_macro\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "content": {
+      "markdown": "Asynchronously queries one macro by macro_name and returns null when it is not found."
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Asynchronously queries one macro by macro_name and returns null when it is not found.",
+      "parent": "mac.iface.macro-data-queries"
+    },
+    "package": "_unpackaged"
+  }
+}

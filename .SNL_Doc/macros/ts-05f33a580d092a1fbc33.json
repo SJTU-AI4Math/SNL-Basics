@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function collectPopoverSubtree.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "rv.fn.collect-popover-subtree"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{collectPopoverSubtree}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.collectPopoverSubtree"
+  },
+  "schema_version": 1
+}

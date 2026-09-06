@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "con.stability-internal",
+    "kind": "concept",
+    "title": "Stability Level — Internal",
+    "content": {
+      "snl": "%Accidentally exposed in compiled artifacts, with no compatibility guarantee. It may be removed from index.ts in the next minor release. See public-api-draft.md v1 §4 for the candidate-removal list (v2 has moved to entries).%",
+      "markdown": "Accidentally exposed in compiled artifacts, with no compatibility guarantee. It may be removed from `index.ts` in the next minor release. See `public-api-draft.md` v1 §4 for the candidate-removal list (v2 has moved to entries)."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

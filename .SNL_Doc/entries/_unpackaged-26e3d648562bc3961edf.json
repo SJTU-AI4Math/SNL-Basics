@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.cls.parse-error.field.position",
+    "kind": "field",
+    "title": "$\\texttt{position}$",
+    "content": {
+      "markdown": "The zero-based character offset of the error in the source. It is non-negative and points to the start of the first ambiguous or failing token."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/parser.ts",
+      "mode": "regex",
+      "pattern": "public\\s+readonly\\s+position\\s*:\\s*number\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

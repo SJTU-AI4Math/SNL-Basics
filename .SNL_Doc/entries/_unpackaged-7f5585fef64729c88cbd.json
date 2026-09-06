@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-render-hooks.on-hover",
+    "kind": "field",
+    "title": "$\\texttt{onHover}$",
+    "content": {
+      "markdown": "Fire-and-forget — NOT awaited. Called on hover start / move for consumer side effects (logging, host messaging). The view's internal hover state machine runs regardless. Default: undefined."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "^\\s*onHover\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

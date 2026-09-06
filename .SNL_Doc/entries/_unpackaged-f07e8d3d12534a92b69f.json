@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.collect-popover-subtree",
+    "kind": "remark",
+    "title": "Collect Popover Subtree — Remark",
+    "content": {
+      "snl": "%Starting at the specified popover, collects its ID and the IDs of all descendant popovers.%",
+      "markdown": "Starting at the specified popover, collects its ID and the IDs of all descendant popovers."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+collectPopoverSubtree\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "entry.iface.entry-data-queries",
+    "kind": "interface",
+    "title": "EntryDataQueries",
+    "content": {
+      "markdown": "The injected storage-neutral backend: `query_entry` and `query_entry_kind`, each with an optional AbortSignal."
+    },
+    "pointer": {
+      "file": "src/entry-react/entry-data-driver.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+EntryDataQueries\\b"
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "parent": "mod.entry-react"
+    },
+    "package": "_unpackaged"
+  }
+}

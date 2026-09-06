@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `background` field of `KindColoring`.",
+    "source": {
+      "entries": [
+        "rv.iface.kind-coloring.background"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{background}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "KindColoring.background"
+  },
+  "schema_version": 1
+}

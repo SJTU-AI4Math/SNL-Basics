@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `node` field of `SnlBlockRendererProps`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-block-renderer-props.node"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{node}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlBlockRendererProps.node"
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `env_mode` field of `SnlSyntaxTree`.",
+    "source": {
+      "entries": [
+        "st.iface.snl-syntax-tree.env_mode"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\\\texttt{env\\\\_mode}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTree.env_mode"
+  },
+  "schema_version": 1
+}

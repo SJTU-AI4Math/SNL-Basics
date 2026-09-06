@@ -1,0 +1,26 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.cls.macro-data-driver",
+    "kind": "class",
+    "title": "MacroDataDriver",
+    "pointer": {
+      "file": "src/snl-macro/macro-data-driver.ts",
+      "mode": "regex",
+      "pattern": "export\\s+class\\s+MacroDataDriver\\b"
+    },
+    "content": {
+      "markdown": "Query-only macro data source with bounded LRU cache and in-flight deduplication. All macro lookups go through `query_macro()`. Added in v0.10.0."
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Query-only macro data source with bounded LRU cache and in-flight deduplication. All macro lookups go through `query_macro()`. Added in v0.10.0.",
+      "parent": "mod.snl-macro"
+    },
+    "package": "_unpackaged"
+  }
+}

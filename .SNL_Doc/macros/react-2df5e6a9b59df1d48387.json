@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "react",
+  "macro": {
+    "description": "React props — the parameters a parent component passes to a child.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://react.dev/learn/passing-props-to-a-component"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "react.props"
+  },
+  "schema_version": 1
+}

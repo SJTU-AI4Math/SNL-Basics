@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "con.consumer-extension",
+    "kind": "concept",
+    "title": "Consumer — SNL-Doc-Extension",
+    "content": {
+      "snl": "%References @sjtu-ai4math/snl-basics through an npm alias. The webview has eight import sites and actually uses approximately 15 symbols.%",
+      "markdown": "References `@sjtu-ai4math/snl-basics` through an npm alias. The webview has eight import sites and actually uses approximately 15 symbols."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

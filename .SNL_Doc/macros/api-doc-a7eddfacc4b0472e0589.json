@@ -1,0 +1,28 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Variadic connector macro — joins children with ' + '. Used to sew inline API-term references into readable prose without leaving formula mode boundaries.",
+    "kind": "rule",
+    "dynamic_arity": true,
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "text",
+          "body": "#*",
+          "separator": " + "
+        }
+      }
+    ],
+    "tags": [],
+    "name": "api.plus"
+  },
+  "schema_version": 1
+}

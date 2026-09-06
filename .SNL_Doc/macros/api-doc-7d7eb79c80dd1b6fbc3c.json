@@ -1,0 +1,27 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Inline reference to a cross-cutting concept (surface, stability level, consumer, distribution decision). Renders in \\texttt{} with a neutral tint.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Gray}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "api.concept"
+  },
+  "schema_version": 1
+}

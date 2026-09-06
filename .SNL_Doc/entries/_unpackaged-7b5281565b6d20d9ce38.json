@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.comp.snl-syntax-tree-view",
+    "kind": "component",
+    "title": "SNL Syntax Tree View",
+    "content": {
+      "snl": "%The main rendering component. It accepts a tree and one MacroDataDriver as its macro data source, plus optional interaction, hooks, and palette customization. It supports hover popovers, bvar-scope highlighting, block-renderer dispatch, and themeable palettes.%",
+      "markdown": "The main rendering component. It accepts a tree and one `MacroDataDriver` as its macro data source, plus optional interaction, hooks, and palette customization. It supports hover popovers, `bvar`-scope highlighting, block-renderer dispatch, and themeable palettes."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/components/SnlSyntaxTreeView.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+function\\s+SnlSyntaxTreeView\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

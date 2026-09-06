@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-render-hooks.resolve-macro-info",
+    "kind": "field",
+    "title": "$\\texttt{resolveMacroInfo}$",
+    "content": {
+      "markdown": "Async — awaited after hover starts (with a short debounce). Fine to hit a network or disk cache; the view keeps `loading: true` in the tooltip state until it resolves. The default reads the queried macro description."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "^\\s*resolveMacroInfo\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

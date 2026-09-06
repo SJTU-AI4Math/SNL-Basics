@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function fillLatexTemplate.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "st.fn.fill-latex-template"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{fillLatexTemplate}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.fillLatexTemplate"
+  },
+  "schema_version": 1
+}

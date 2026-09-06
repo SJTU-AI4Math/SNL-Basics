@@ -1,0 +1,25 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "entry.fn.resolve-entry-context-sources",
+    "kind": "function",
+    "title": "Resolve Entry Context Sources",
+    "content": {
+      "markdown": "Queries every unique `mdata.src` Entry, upgrades matching source-bound variables to `bvar`, and records `dangling` or `srcResolvedNoDecl` status without storage assumptions."
+    },
+    "pointer": {
+      "file": "src/entry-react/context-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+async\\s+function\\s+resolveEntryContextSources\\b"
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "parent": "mod.entry-react"
+    },
+    "package": "_unpackaged"
+  }
+}

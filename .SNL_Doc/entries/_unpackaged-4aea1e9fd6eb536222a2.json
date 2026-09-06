@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.const.htmldata-katex-defaults",
+    "kind": "constant",
+    "title": "HTML Data KaTeX Defaults",
+    "content": {
+      "snl": "%The default allowlist of attribute names permitted by KaTeX \\htmlData. It includes name, kind, style, scope, bindRef, src, and others. The component passes it to katex.renderToString so these attributes pass KaTeX’s sanitizer.%",
+      "markdown": "The default allowlist of attribute names permitted by KaTeX `\\htmlData`. It includes `name`, `kind`, `style`, `scope`, `bindRef`, `src`, and others. The component passes it to `katex.renderToString` so these attributes pass KaTeX’s sanitizer."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/katex-defaults.ts",
+      "mode": "regex",
+      "pattern": "export\\s+const\\s+HTMLDATA_KATEX_DEFAULTS\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

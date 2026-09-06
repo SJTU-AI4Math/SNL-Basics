@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.const.default-highlight-strategy",
+    "kind": "constant",
+    "title": "Default Highlight Strategy",
+    "content": {
+      "snl": "%The default bvar-scope highlighting strategy. Hovering over a bvar also highlights sibling bvar nodes with the same bindRef and the binder declaration. This is not a primitive constant; it is an object implementing SnlHighlightStrategy.%",
+      "markdown": "The default `bvar`-scope highlighting strategy. Hovering over a `bvar` also highlights sibling `bvar` nodes with the same `bindRef` and the binder declaration. This is not a primitive constant; it is an object implementing `SnlHighlightStrategy`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+const\\s+defaultHighlightStrategy\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

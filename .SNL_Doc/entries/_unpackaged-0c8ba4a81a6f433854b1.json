@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.sanitize-html-data-attr",
+    "kind": "remark",
+    "title": "Sanitize HTML Data Attribute — Remark",
+    "content": {
+      "snl": "%Sanitizes a value written to a KaTeX htmlData attribute and rejects control characters.%",
+      "markdown": "Sanitizes a value written to a KaTeX `htmlData` attribute and rejects control characters."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+sanitizeHtmlDataAttr\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

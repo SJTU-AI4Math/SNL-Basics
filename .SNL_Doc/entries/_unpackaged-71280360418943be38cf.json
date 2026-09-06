@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sub.public.interfaces.syntax-tree",
+    "kind": "subsection",
+    "title": "SNL Syntax Tree",
+    "content": {
+      "snl": "%Interfaces from the SNL syntax-tree module.%",
+      "markdown": "Interfaces from the SNL syntax-tree module."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

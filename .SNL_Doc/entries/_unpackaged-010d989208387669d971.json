@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sec.public.interfaces",
+    "kind": "section",
+    "title": "Interfaces",
+    "content": {
+      "snl": "%Public TypeScript interfaces and type aliases, grouped by source module.%",
+      "markdown": "Public TypeScript interfaces and type aliases, grouped by source module."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

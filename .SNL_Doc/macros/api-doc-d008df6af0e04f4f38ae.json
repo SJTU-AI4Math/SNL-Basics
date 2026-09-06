@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `position` field of `SnlSyntaxTreeParseError`.",
+    "source": {
+      "entries": [
+        "st.cls.parse-error.field.position"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{position}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTreeParseError.position"
+  },
+  "schema_version": 1
+}

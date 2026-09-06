@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "TypeScript `interface` — a named object type describing the shape of a value.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://www.typescriptlang.org/docs/handbook/2/objects.html"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Purple}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "ts.interface"
+  },
+  "schema_version": 1
+}

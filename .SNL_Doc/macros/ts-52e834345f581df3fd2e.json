@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "TypeScript null type.",
+    "kind": "class",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://www.typescriptlang.org/tsconfig/strictNullChecks.html"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{\\color{4EC9A2}null}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "ts.null"
+  },
+  "schema_version": 1
+}

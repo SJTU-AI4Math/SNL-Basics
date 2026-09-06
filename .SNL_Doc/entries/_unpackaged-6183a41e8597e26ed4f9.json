@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mod.snl-macro",
+    "kind": "module",
+    "title": "SNL Macro Module",
+    "content": {
+      "snl": "%Query-oriented macro data model. It defines SnlMacro, SnlMacroStyle, SnlMacroSource, MacroDataQueries, and MacroDataDriver. Consumers own storage and provide query_macro.%",
+      "markdown": "Query-oriented macro data model. It defines `SnlMacro`, `SnlMacroStyle`, `SnlMacroSource`, `MacroDataQueries`, and `MacroDataDriver`. Consumers own storage and provide `query_macro`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/index.ts",
+      "mode": "regex",
+      "pattern": "export\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

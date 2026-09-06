@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.hover-popover",
+    "kind": "interface",
+    "title": "Hover Popover",
+    "content": {
+      "snl": "interface(HoverPopover,enumerate(Type.judge(HoverPopover.id,string),Type.judge(HoverPopover.subject,TSubject),Type.judge(HoverPopover.originRect,DOMRect),Type.judge(HoverPopover.x,number),Type.judge(HoverPopover.y,number),Type.judge(HoverPopover.parentId,ts.union(string,ts.null)),Type.judge(HoverPopover.frozen,boolean),Type.judge(HoverPopover.phase,PopoverPhase)))",
+      "markdown": "The public TypeScript schema for Hover Popover."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+HoverPopover\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

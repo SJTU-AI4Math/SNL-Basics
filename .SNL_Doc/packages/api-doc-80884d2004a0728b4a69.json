@@ -1,0 +1,9 @@
+{
+  "format": "snl-package",
+  "version": 1,
+  "schema_version": 2,
+  "id": "api-doc",
+  "name": "api-doc",
+  "description": "Term macros for the SNL-Basics dogfood API doc (Phase 2). Inline-term references (api.iface, api.fn, api.class, api.const, api.prop, api.comp, api.mod, api.pkg, api.concept, api.kw, api.file, api.code), connector punctuation (api.slash, api.plus, api.arrow, api.list), and one structural macro (api.para) for prose paragraphs.",
+  "entry_ids": []
+}

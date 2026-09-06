@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `displayName` field of `SnlResolvedSource`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-resolved-source.display-name"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{displayName}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlResolvedSource.displayName"
+  },
+  "schema_version": 1
+}

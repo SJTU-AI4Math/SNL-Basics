@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `activeBinderIds` field of `SnlSyntaxTreeParseOptions`.",
+    "source": {
+      "entries": [
+        "st.iface.snl-syntax-tree-parse-options.active-binder-ids"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{activeBinderIds}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTreeParseOptions.activeBinderIds"
+  },
+  "schema_version": 1
+}

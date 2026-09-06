@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.snl-macro.styles",
+    "kind": "field",
+    "title": "$\\texttt{styles}$",
+    "content": {
+      "markdown": "All render styles in order. `styles[0]` is the **implicit default** used when the SNL source omits `[style]`. In `foo[bar](x)`, the parser picks the style whose `tag === \"bar\"`; unknown tags are a render-time error. Every macro has at least one style. Style tags follow `[A-Za-z_][A-Za-z0-9_]*` (parser IDENT rules) and must be unique within this array."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "^\\s*styles\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

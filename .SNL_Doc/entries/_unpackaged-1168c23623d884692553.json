@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.kind-palette",
+    "kind": "interface",
+    "title": "Kind Palette",
+    "content": {
+      "snl": "Type.judge(KindPalette,Type.record(string,KindColoring))",
+      "markdown": "The complete kind-color palette, `Record<string, KindColoring>`. Built-in kinds include `bvar` (purple), `fvar` (red), `rule`, `const`, `binder`, and `rewrite`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/kind-palette.ts",
+      "mode": "regex",
+      "pattern": "export\\s+type\\s+KindPalette\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

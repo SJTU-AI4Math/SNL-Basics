@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.popover-phase",
+    "kind": "interface",
+    "title": "Popover Phase",
+    "content": {
+      "snl": "Type.judge(PopoverPhase,ts.union(Type.literal($\\texttt{opening}$),Type.literal($\\texttt{visible}$),Type.literal($\\texttt{closing}$)))",
+      "markdown": "The public TypeScript schema for Popover Phase."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+type\\s+PopoverPhase\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

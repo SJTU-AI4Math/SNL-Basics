@@ -1,0 +1,23 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-tooltip-state.binding-hint",
+    "kind": "field",
+    "title": "$\\texttt{bindingHint}$",
+    "content": {
+      "markdown": "`bindingHint` is an field of `SnlTooltipState`. Its declared TypeScript type is `string`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "^\\s*bindingHint\\??\\s*(?::|\\()",
+      "flags": "m",
+      "occurrence": 2
+    },
+    "package": "_unpackaged"
+  }
+}

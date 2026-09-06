@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `children` field of `HoverPopoverProviderProps`.",
+    "source": {
+      "entries": [
+        "rv.iface.hover-popover-provider-props.children"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{children}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "HoverPopoverProviderProps.children"
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-highlight-set",
+    "kind": "interface",
+    "title": "SNL Highlight Set",
+    "content": {
+      "snl": "interface(SnlHighlightSet,enumerate(Type.judge(SnlHighlightSet.singleHover,Type.union(HTMLElement,null)),Type.judge(SnlHighlightSet.bvarScope,Type.array(HTMLElement)),Type.judge(SnlHighlightSet.binderDecl,Type.array(HTMLElement))))",
+      "markdown": "The highlighting result returned by `HighlightStrategy`. It contains three candidate groups: `singleHover`, `bvarScope`, and `binderDecl`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlHighlightSet\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

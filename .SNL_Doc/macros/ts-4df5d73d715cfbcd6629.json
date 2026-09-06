@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "TypeScript Promise type used by async APIs.",
+    "kind": "class",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://www.typescriptlang.org/tsconfig/lib.html"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{\\color{4EC9A2}Promise}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "ts.Promise"
+  },
+  "schema_version": 1
+}

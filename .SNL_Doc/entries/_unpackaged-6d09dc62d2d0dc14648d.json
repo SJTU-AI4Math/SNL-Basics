@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.fn.clamp-popover-position",
+    "kind": "function",
+    "title": "Clamp Popover Position",
+    "content": {
+      "snl": "ts.function(fn.clampPopoverPosition,ts.function-type(ts.parameters(Type.judge(api.code(%x%),number),Type.judge(api.code(%y%),number),Type.judge(api.code(%size%),api.code(%{ width: number; height: number; }%)),Type.judge(api.code(%bounds%),ViewportBounds),Type.judge(api.code(%margin%),Type.opt(number))),api.code(%{ x: number; y: number; }%)),ts.ellipsis@remark.rv.fn.clamp-popover-position)",
+      "markdown": "`clampPopoverPosition`’s formal TypeScript signature; see the linked Remark for implementation details."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+clampPopoverPosition\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

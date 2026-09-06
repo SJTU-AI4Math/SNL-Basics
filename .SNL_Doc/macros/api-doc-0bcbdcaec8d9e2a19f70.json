@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `mode` field of `SnlSyntaxTreeTextNode`.",
+    "source": {
+      "entries": [
+        "st.iface.snl-syntax-tree-text-node.mode"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{mode}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTreeTextNode.mode"
+  },
+  "schema_version": 1
+}

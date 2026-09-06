@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.kind-coloring.background",
+    "kind": "field",
+    "title": "$\\texttt{background}$",
+    "content": {
+      "markdown": "Background base + hover border; hover background = this color @ 50% alpha."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/kind-palette.ts",
+      "mode": "regex",
+      "pattern": "^\\s*background\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

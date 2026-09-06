@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-render-hooks.render-tooltip",
+    "kind": "field",
+    "title": "$\\texttt{renderTooltip}$",
+    "content": {
+      "markdown": "Sync React render — called during render, must be pure (no side effects). Default: SNL-Basics's built-in tooltip DOM. Return null to suppress the tooltip entirely."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "^\\s*renderTooltip\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

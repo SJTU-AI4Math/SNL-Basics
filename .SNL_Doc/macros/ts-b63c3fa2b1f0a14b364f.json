@@ -1,0 +1,30 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "TypeScript parameter list.",
+    "kind": "Syntax",
+    "dynamic_arity": true,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://www.typescriptlang.org/docs/handbook/2/functions.html"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{(}#*\\texttt{)}",
+          "separator": "\\texttt{, }"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "ts.parameters"
+  },
+  "schema_version": 1
+}

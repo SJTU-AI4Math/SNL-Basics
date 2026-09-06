@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.fn.use-hover-popovers",
+    "kind": "function",
+    "title": "Use Hover Popovers",
+    "content": {
+      "snl": "ts.function(ts.generic(fn.useHoverPopovers,ts.type-arguments(api.code(%TSubject%))),ts.function-type(ts.parameters(),ts.generic(api.code(%HoverPopoverApi%),ts.type-arguments(api.code(%TSubject%)))),ts.ellipsis@remark.rv.fn.use-hover-popovers)",
+      "markdown": "`useHoverPopovers`’s formal TypeScript signature; see the linked Remark for implementation details."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+useHoverPopovers\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

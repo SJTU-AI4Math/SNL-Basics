@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `spawn` field of `HoverPopoverApi`.",
+    "source": {
+      "entries": [
+        "rv.iface.hover-popover-api.spawn"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{spawn}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "HoverPopoverApi.spawn"
+  },
+  "schema_version": 1
+}

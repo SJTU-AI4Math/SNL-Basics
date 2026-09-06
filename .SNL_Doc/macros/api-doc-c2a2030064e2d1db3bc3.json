@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `resolveMacroInfo` field of `SnlRenderHooks`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-render-hooks.resolve-macro-info"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{resolveMacroInfo}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlRenderHooks.resolveMacroInfo"
+  },
+  "schema_version": 1
+}

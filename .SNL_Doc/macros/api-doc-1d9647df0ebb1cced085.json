@@ -1,0 +1,27 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Inline reference to an exported constant / default-instance / value in SNL-Basics. Renders in \\texttt{} with an amber tint.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Goldenrod}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "api.const"
+  },
+  "schema_version": 1
+}

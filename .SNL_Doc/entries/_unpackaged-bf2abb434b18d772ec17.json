@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "con.surface-a-npm",
+    "kind": "concept",
+    "title": "Surface A — @sjtu-ai4math/snl-basics npm Entry Point",
+    "content": {
+      "snl": "%The public surface that depends on React and KaTeX. It targets hosts capable of running React, such as VS Code webviews and ordinary frontend applications. Its compiled artifact is dist-lib/index.js, which re-exports from src/snl-react-view/index.ts.%",
+      "markdown": "The public surface that depends on React and KaTeX. It targets hosts capable of running React, such as VS Code webviews and ordinary frontend applications. Its compiled artifact is `dist-lib/index.js`, which re-exports from `src/snl-react-view/index.ts`."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

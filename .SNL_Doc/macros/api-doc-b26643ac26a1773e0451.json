@@ -1,0 +1,27 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Inline monospace fallback for arbitrary code snippets (e.g. \\forall, `dist-lib/index.js`). No color; use when no other kind fits.",
+    "kind": "fvar",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Black}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "api.code"
+  },
+  "schema_version": 1
+}

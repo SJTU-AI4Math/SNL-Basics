@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `name` field of `SnlHoverEvent`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-hover-event.name"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{name}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlHoverEvent.name"
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sub.public.rendering.configuration",
+    "kind": "subsection",
+    "title": "Configuration and Defaults",
+    "content": {
+      "snl": "%Rendering constants, palettes, and validation helpers.%",
+      "markdown": "Rendering constants, palettes, and validation helpers."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

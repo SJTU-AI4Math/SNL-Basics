@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `offset` field of `HoverPopoverOptions`.",
+    "source": {
+      "entries": [
+        "rv.iface.hover-popover-options.offset"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{offset}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "HoverPopoverOptions.offset"
+  },
+  "schema_version": 1
+}

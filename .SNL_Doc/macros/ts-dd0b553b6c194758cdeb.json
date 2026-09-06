@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function assertSafeKindName.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "rv.fn.assert-safe-kind-name"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{assertSafeKindName}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.assertSafeKindName"
+  },
+  "schema_version": 1
+}

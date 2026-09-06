@@ -1,0 +1,27 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "One paragraph of prose. Variadic in the number of inline items. Renders as a text-mode block; every entry's content.snl uses `api.para` as its ROOT single macro tree (SNL grammar requirement). Multi-paragraph entries chain paragraphs via literal newlines inside the para text, or nest a second para as the last child.",
+    "kind": "rule",
+    "dynamic_arity": true,
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "text",
+          "body": "#*"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "api.para"
+  },
+  "schema_version": 1
+}

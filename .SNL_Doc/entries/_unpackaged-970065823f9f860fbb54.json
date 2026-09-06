@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sec.syntax.sources",
+    "kind": "section",
+    "title": "Source Analysis",
+    "content": {
+      "snl": "%Source-reference analysis interfaces and utilities.%",
+      "markdown": "Source-reference analysis interfaces and utilities."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

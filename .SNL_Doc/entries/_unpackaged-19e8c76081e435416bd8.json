@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-resolved-source",
+    "kind": "interface",
+    "title": "SNL Resolved Source",
+    "content": {
+      "snl": "interface(SnlResolvedSource,enumerate(Type.judge(SnlResolvedSource.kind,Type.union(Type.literal(entry),Type.literal(url))),Type.judge(SnlResolvedSource.ref,string),Type.judge(SnlResolvedSource.displayName,Type.opt(string)),Type.judge(SnlResolvedSource.href,Type.opt(string))))",
+      "markdown": "The resolved macro-source result returned by `resolveSource`, used to display the entry or URL containing the macro definition in a tooltip."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlResolvedSource\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

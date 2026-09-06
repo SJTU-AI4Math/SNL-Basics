@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `query_macro` field of `MacroDataQueries`.",
+    "source": {
+      "entries": [
+        "mac.iface.macro-data-queries.query_macro"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "tags": [],
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{query\\_macro}"
+        }
+      }
+    ],
+    "name": "MacroDataQueries.query_macro"
+  },
+  "schema_version": 1
+}

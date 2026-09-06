@@ -1,0 +1,27 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Inline reference to a Class's field (data or method member). Renders in \\texttt{} with a lime tint.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{OliveGreen}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "api.field"
+  },
+  "schema_version": 1
+}

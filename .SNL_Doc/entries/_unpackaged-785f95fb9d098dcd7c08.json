@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-renderer-registry",
+    "kind": "interface",
+    "title": "SNL Renderer Registry",
+    "content": {
+      "snl": "Type.judge(SnlRendererRegistry,Type.record(string,SnlBlockRenderer))",
+      "markdown": "The block-renderer registry type, `Record<string, SnlBlockRenderer>`. A resolved complete `SnlBlockMacroTemplate` uses its `block_template_name` (`list`, `enumerate`, `matrix`, and so on) as the dispatch key."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+type\\s+SnlRendererRegistry\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

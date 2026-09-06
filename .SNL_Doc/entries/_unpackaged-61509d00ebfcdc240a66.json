@@ -1,0 +1,25 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "entry.cls.entry-data-driver",
+    "kind": "class",
+    "title": "EntryDataDriver",
+    "content": {
+      "markdown": "Query-only Entry and EntryKind access with a bounded hit-and-miss LRU, unsignalled in-flight deduplication, independent caller cancellation, and epoch-safe cache clearing."
+    },
+    "pointer": {
+      "file": "src/entry-react/entry-data-driver.ts",
+      "mode": "regex",
+      "pattern": "export\\s+class\\s+EntryDataDriver\\b"
+    },
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "parent": "mod.entry-react"
+    },
+    "package": "_unpackaged"
+  }
+}

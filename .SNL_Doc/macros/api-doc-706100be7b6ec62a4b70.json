@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `resolveSource` field of `SnlRenderHooks`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-render-hooks.resolve-source"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{resolveSource}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlRenderHooks.resolveSource"
+  },
+  "schema_version": 1
+}

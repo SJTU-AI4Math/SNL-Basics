@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-syntax-tree-parse-options",
+    "kind": "interface",
+    "title": "SNL Syntax Tree Parse Options",
+    "content": {
+      "snl": "interface(SnlSyntaxTreeParseOptions,enumerate(Type.judge(SnlSyntaxTreeParseOptions.activeBinderIds,Type.opt(Type.array(string)))))",
+      "markdown": "The set of enclosing binder names passed when parsing a fragment."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/parser.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlSyntaxTreeParseOptions\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

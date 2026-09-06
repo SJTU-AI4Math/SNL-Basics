@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sub.public.interfaces.react-view",
+    "kind": "subsection",
+    "title": "React View",
+    "content": {
+      "snl": "%Interfaces from the React rendering module.%",
+      "markdown": "Interfaces from the React rendering module."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

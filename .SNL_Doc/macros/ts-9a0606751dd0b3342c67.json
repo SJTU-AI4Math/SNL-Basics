@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function parseSnlSyntaxTree.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "st.fn.parse-snl-syntax-tree"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{parseSnlSyntaxTree}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.parseSnlSyntaxTree"
+  },
+  "schema_version": 1
+}

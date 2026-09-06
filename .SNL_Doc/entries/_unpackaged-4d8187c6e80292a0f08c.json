@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sub.public.parsing.core",
+    "kind": "subsection",
+    "title": "Core Parsing",
+    "content": {
+      "snl": "%Parser entry points and parse errors.%",
+      "markdown": "Parser entry points and parse errors."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

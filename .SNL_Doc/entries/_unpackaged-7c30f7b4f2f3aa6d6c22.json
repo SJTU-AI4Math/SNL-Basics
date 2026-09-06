@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-tooltip-state.source",
+    "kind": "field",
+    "title": "$\\texttt{source}$",
+    "content": {
+      "markdown": "`source` is an field of `SnlTooltipState`. Its declared TypeScript type is `SnlResolvedSource | null`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "^\\s*source\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

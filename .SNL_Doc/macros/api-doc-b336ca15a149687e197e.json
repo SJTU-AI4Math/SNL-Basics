@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `computeHighlightSet` field of `SnlHighlightStrategy`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-highlight-strategy.compute-highlight-set"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{computeHighlightSet}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlHighlightStrategy.computeHighlightSet"
+  },
+  "schema_version": 1
+}

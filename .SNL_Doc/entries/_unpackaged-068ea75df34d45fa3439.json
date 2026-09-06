@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.use-current-popover-id",
+    "kind": "remark",
+    "title": "Read Current Popover ID — Remark",
+    "content": {
+      "snl": "%Reads the ID from the current popover context; returns null when not inside a popover.%",
+      "markdown": "Reads the ID from the current popover context; returns `null` when not inside a popover."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+useCurrentPopoverId\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

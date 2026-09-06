@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-syntax-tree.scope",
+    "kind": "field",
+    "title": "$\\texttt{scope}$",
+    "content": {
+      "markdown": "Structural scope marker (out of the kind namespace). annotate-bind sets `scope = 'binder'` on quantifier nodes; the view emits `data-scope` from it."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/types.ts",
+      "mode": "regex",
+      "pattern": "^\\s*scope\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

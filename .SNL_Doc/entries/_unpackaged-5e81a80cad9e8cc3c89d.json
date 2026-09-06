@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.kind-coloring",
+    "kind": "interface",
+    "title": "Kind Coloring",
+    "content": {
+      "snl": "interface(KindColoring,enumerate(Type.judge(KindColoring.stroke,string),Type.judge(KindColoring.background,string)))",
+      "markdown": "The color pair for one kind: `{ stroke, background }`. `stroke` is used for the border and text color, while `background` is used for the hover-highlight background."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/kind-palette.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+KindColoring\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

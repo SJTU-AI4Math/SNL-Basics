@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "con.surface-b-deep-path",
+    "kind": "concept",
+    "title": "Surface B — Toolkit Deep Path (Parser Only)",
+    "content": {
+      "snl": "%SNL-Agent-Toolkit currently imports external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts directly through a git submodule. This is pure TypeScript with no React, KaTeX, or DOM dependencies and can run in a Node CLI. See the related decision concept for whether to formalize it as a subpath export.%",
+      "markdown": "SNL-Agent-Toolkit currently imports `external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts` directly through a git submodule. This is pure TypeScript with no React, KaTeX, or DOM dependencies and can run in a Node CLI. See the related decision concept for whether to formalize it as a subpath export."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

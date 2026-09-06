@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "ts",
+  "macro": {
+    "description": "Public function isSnlSyntaxTree.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [
+        "st.fn.is-snl-syntax-tree"
+      ],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{isSnlSyntaxTree}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "fn.isSnlSyntaxTree"
+  },
+  "schema_version": 1
+}

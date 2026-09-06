@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-syntax-tree-formula-node",
+    "kind": "interface",
+    "title": "Formula SNL Syntax Tree Node",
+    "content": {
+      "snl": "interface(SnlSyntaxTreeFormulaNode,enumerate(Type.judge(SnlSyntaxTreeFormulaNode.mode,Type.literal(formula))))",
+      "markdown": "The branch whose `envMode` is `formula_inline` or `formula_display`. In this branch, `name` carries LaTeX source and is rendered directly by KaTeX."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/node-types.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlSyntaxTreeFormulaNode\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

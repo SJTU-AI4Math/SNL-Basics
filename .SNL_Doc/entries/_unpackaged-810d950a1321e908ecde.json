@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.resolve-root-latex",
+    "kind": "remark",
+    "title": "Resolve Root LaTeX — Remark",
+    "content": {
+      "snl": "%Resolves the entire tree and adds the final text or display wrapper according to the root node’s mode.%",
+      "markdown": "Resolves the entire tree and adds the final text or display wrapper according to the root node’s mode."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+resolveRootLatex\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

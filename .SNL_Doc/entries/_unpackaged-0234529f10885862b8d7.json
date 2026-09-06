@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sec.public.macro-db",
+    "kind": "section",
+    "title": "Macro Data Access",
+    "content": {
+      "snl": "%Consumer-owned macro data queries, loading, caching, and template resolution.%",
+      "markdown": "Consumer-owned macro data queries, loading, caching, and template resolution."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

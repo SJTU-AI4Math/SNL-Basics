@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.clamp-popover-position",
+    "kind": "remark",
+    "title": "Clamp Popover Position — Remark",
+    "content": {
+      "snl": "%Clamps popover coordinates to the specified viewport bounds and margin.%",
+      "markdown": "Clamps popover coordinates to the specified viewport bounds and margin."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+clampPopoverPosition\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

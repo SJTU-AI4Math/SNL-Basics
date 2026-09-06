@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `katexOptions` field of `SnlSyntaxTreeViewProps`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-syntax-tree-view-props.katex-options"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{katexOptions}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTreeViewProps.katexOptions"
+  },
+  "schema_version": 1
+}

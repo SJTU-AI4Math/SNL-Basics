@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sub.public.macro-db.queries",
+    "kind": "subsection",
+    "title": "Template Queries",
+    "content": {
+      "snl": "%Macro template-query constructors.%",
+      "markdown": "Macro template-query constructors."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

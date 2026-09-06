@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.hover-popover-options",
+    "kind": "interface",
+    "title": "Hover Popover Options",
+    "content": {
+      "snl": "interface(HoverPopoverOptions,enumerate(Type.judge(HoverPopoverOptions.offset,Type.opt(number)),Type.judge(HoverPopoverOptions.hitPadding,Type.opt(number)),Type.judge(HoverPopoverOptions.viewportMargin,Type.opt(number)),Type.judge(HoverPopoverOptions.openDelayMs,Type.opt(number)),Type.judge(HoverPopoverOptions.fadeMs,Type.opt(number)),Type.judge(HoverPopoverOptions.freezeDelayMs,Type.opt(ts.union(number,ts.null))),Type.judge(HoverPopoverOptions.maxZIndexBase,Type.opt(number))))",
+      "markdown": "The public TypeScript schema for Hover Popover Options."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+HoverPopoverOptions\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

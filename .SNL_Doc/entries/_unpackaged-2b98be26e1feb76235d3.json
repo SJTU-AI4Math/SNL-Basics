@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-tooltip-state",
+    "kind": "interface",
+    "title": "SNL Tooltip State",
+    "content": {
+      "snl": "interface(SnlTooltipState,enumerate(Type.judge(SnlTooltipState.visible,boolean),Type.judge(SnlTooltipState.x,number),Type.judge(SnlTooltipState.y,number),Type.judge(SnlTooltipState.name,string),Type.judge(SnlTooltipState.kind,string),Type.judge(SnlTooltipState.variableRole,Type.union(Type.literal(bvar),Type.literal(fvar),Type.literal(none))),Type.judge(SnlTooltipState.bindingHint,string),Type.judge(SnlTooltipState.info,Type.union(SnlMacroInfo,null)),Type.judge(SnlTooltipState.loading,boolean),Type.judge(SnlTooltipState.source,Type.union(SnlResolvedSource,null))))",
+      "markdown": "The component’s internal tooltip-state type. Ordinary consumers generally do not use it directly, but it is exported for advanced customization."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlTooltipState\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

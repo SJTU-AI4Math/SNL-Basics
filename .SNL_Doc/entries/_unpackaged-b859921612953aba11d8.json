@@ -1,0 +1,23 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-syntax-tree-block-node.mode",
+    "kind": "field",
+    "title": "$\\texttt{mode}$",
+    "content": {
+      "markdown": "`mode` is an field of `SnlSyntaxTreeBlockNode`. Its declared TypeScript type is `'block'`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/node-types.ts",
+      "mode": "regex",
+      "pattern": "^\\s*mode\\??\\s*(?::|\\()",
+      "flags": "m",
+      "occurrence": 3
+    },
+    "package": "_unpackaged"
+  }
+}

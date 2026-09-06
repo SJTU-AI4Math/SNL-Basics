@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.snl-macro-style",
+    "kind": "interface",
+    "title": "SNL Macro Style",
+    "content": {
+      "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.style_name,string),Type.judge(SnlMacroStyle.tags,Type.array(string)),Type.judge(SnlMacroStyle.template,Type.union(SnlMacroTemplate,api.code(%I18n<string, SnlMacroTemplate>%)))))",
+      "markdown": "One semantic rendering style of a macro. `template` is the complete render template, either invariant (`SnlMacroTemplate`) or localized as `I18n<string, SnlMacroTemplate>`; localization selects the complete `TemplateSpec` projection as one unit. `style_name` and `tags` remain language-invariant, and `styles[0]` is the implicit default."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlMacroStyle\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

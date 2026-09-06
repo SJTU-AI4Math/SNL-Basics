@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.fn.collect-popover-subtree",
+    "kind": "function",
+    "title": "Collect Popover Subtree",
+    "content": {
+      "snl": "ts.function(fn.collectPopoverSubtree,ts.function-type(ts.parameters(Type.judge(api.code(%rootId%),string),Type.judge(api.code(%list%),Type.array(api.code(%readonly PopoverNode%)))),ts.generic(api.code(%Set%),ts.type-arguments(string))),ts.ellipsis@remark.rv.fn.collect-popover-subtree)",
+      "markdown": "`collectPopoverSubtree`’s formal TypeScript signature; see the linked Remark for implementation details."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+collectPopoverSubtree\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.mode-bucket",
+    "kind": "remark",
+    "title": "Classify Render Mode — Remark",
+    "content": {
+      "snl": "%Groups the four rendering modes into the three concatenation categories formula, text, and block.%",
+      "markdown": "Groups the four rendering modes into the three concatenation categories `formula`, `text`, and `block`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+modeBucket\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

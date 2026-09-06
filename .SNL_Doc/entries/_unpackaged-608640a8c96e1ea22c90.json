@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.st.fn.analyze-snl-tree-sources",
+    "kind": "remark",
+    "title": "Analyze SNL Tree Sources — Remark",
+    "content": {
+      "snl": "%Counts nodes in the tree that have resolvable semantic sources and reports the structured ratio and semantic freedom.%",
+      "markdown": "Counts nodes in the tree that have resolvable semantic sources and reports the structured ratio and semantic freedom."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/source-metrics.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+analyzeSnlTreeSources\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

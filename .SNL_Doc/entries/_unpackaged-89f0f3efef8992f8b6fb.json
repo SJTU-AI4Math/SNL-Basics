@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-macro-info",
+    "kind": "interface",
+    "title": "SNL Macro Information",
+    "content": {
+      "snl": "interface(SnlMacroInfo,enumerate(Type.judge(SnlMacroInfo.description,string),Type.judge(SnlMacroInfo.extra,Type.opt(string))))",
+      "markdown": "The tooltip-display payload returned by `resolveMacroInfo`. It contains the primary `description` text and an additional `extra` field, both displayed in the popover."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlMacroInfo\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

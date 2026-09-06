@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.fn.sanitize-html-data-attr",
+    "kind": "function",
+    "title": "Sanitize HTML Data Attribute",
+    "content": {
+      "snl": "ts.function(fn.sanitizeHtmlDataAttr,ts.function-type(ts.parameters(Type.judge(api.code(%value%),string)),string),ts.ellipsis@remark.rv.fn.sanitize-html-data-attr)",
+      "markdown": "`sanitizeHtmlDataAttr`’s formal TypeScript signature; see the linked Remark for implementation details."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+sanitizeHtmlDataAttr\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

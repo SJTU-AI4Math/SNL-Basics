@@ -1,0 +1,27 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Inline reference to a source-tree module / namespace. Renders in \\texttt{} with an indigo tint.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{RoyalBlue}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "api.mod"
+  },
+  "schema_version": 1
+}

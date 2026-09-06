@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "schema.const.tree-schema-version",
+    "kind": "constant",
+    "title": "TREE_SCHEMA_VERSION",
+    "content": {
+      "markdown": "Current syntax tree schema version (3). Used for version detection in migrations."
+    },
+    "pointer": null,
+    "contribution_info": null,
+    "legacy_predecessor_draft": {
+      "source_workspace_version": "0.0.3",
+      "body": "Current syntax tree schema version (3). Used for version detection in migrations.",
+      "parent": "mod.schema"
+    },
+    "package": "_unpackaged"
+  }
+}

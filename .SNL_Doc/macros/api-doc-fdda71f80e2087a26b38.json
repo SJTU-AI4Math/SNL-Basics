@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `onLeave` field of `SnlRenderHooks`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-render-hooks.on-leave"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{onLeave}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlRenderHooks.onLeave"
+  },
+  "schema_version": 1
+}

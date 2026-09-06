@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.cls.parse-error",
+    "kind": "class",
+    "title": "SNL Syntax Tree Parse Error",
+    "content": {
+      "snl": "%The exception class thrown by the parser on a syntax error. It extends Error and carries a position field identifying the character position in the source (zero-based), allowing the host to locate the error.%",
+      "markdown": "The exception class thrown by the parser on a syntax error. It extends `Error` and carries a `position` field identifying the character position in the source (zero-based), allowing the host to locate the error."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/parser.ts",
+      "mode": "regex",
+      "pattern": "export\\s+class\\s+SnlSyntaxTreeParseError\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

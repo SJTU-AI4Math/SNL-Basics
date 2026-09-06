@@ -1,0 +1,18 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "sec.macro.interfaces",
+    "kind": "section",
+    "title": "Interfaces",
+    "content": {
+      "snl": "%SNL macro data model interfaces.%",
+      "markdown": "SNL macro data model interfaces."
+    },
+    "contribution_info": null,
+    "pointer": null,
+    "package": "_unpackaged"
+  }
+}

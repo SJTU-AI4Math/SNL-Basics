@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "",
+    "source": {
+      "entries": [
+        "rv.iface.snl-hover-event"
+      ],
+      "urls": []
+    },
+    "kind": "class",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{\\color{4EC9A2}SnlHoverEvent}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlHoverEvent"
+  },
+  "schema_version": 1
+}

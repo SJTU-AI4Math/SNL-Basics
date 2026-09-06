@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "mac.iface.snl-macro",
+    "kind": "interface",
+    "title": "SNL Macro",
+    "content": {
+      "snl": "interface(SnlMacro,enumerate(Type.judge(SnlMacro.name,string),Type.judge(SnlMacro.description,string),Type.judge(SnlMacro.source,SnlMacroSource),Type.judge(SnlMacro.kind,Type.opt(string)),Type.judge(SnlMacro.dynamic_arity,boolean),Type.judge(SnlMacro.styles,Type.array(SnlMacroStyle)),Type.judge(SnlMacro.tags,Type.array(string))))",
+      "markdown": "The complete definition of one macro. The globally unique `name` is its primary ID; `styles[]` contains every rendering variant; `source` binds semantic source entries or URLs; `kind` drives the palette; and `dynamic_arity` determines whether `#*` may be used."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/types.ts",
+      "mode": "regex",
+      "pattern": "export\\s+interface\\s+SnlMacro\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

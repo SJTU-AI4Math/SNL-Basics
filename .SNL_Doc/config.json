@@ -1,12 +1,18 @@
 {
-  "version": "0.0.3",
+  "version": "0.1.0",
   "entry_kinds": [
     {
       "id": "npm-package",
       "name": "NpmPackage",
       "coloring": {
-        "stroke": "#8b5cf6",
-        "background": "#ede9fe"
+        "light": {
+          "stroke": "#8b5cf6",
+          "background": "#ede9fe"
+        },
+        "dark": {
+          "stroke": "#8b5cf6",
+          "background": "#ede9fe"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -15,8 +21,14 @@
       "id": "module",
       "name": "Module",
       "coloring": {
-        "stroke": "#6366f1",
-        "background": "#e0e7ff"
+        "light": {
+          "stroke": "#6366f1",
+          "background": "#e0e7ff"
+        },
+        "dark": {
+          "stroke": "#6366f1",
+          "background": "#e0e7ff"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -25,8 +37,14 @@
       "id": "section",
       "name": "Section",
       "coloring": {
-        "stroke": "#475569",
-        "background": "#e2e8f0"
+        "light": {
+          "stroke": "#475569",
+          "background": "#e2e8f0"
+        },
+        "dark": {
+          "stroke": "#475569",
+          "background": "#e2e8f0"
+        }
       },
       "style": "",
       "defaultCounterName": "Section"
@@ -35,8 +53,14 @@
       "id": "subsection",
       "name": "Subsection",
       "coloring": {
-        "stroke": "#64748b",
-        "background": "#f1f5f9"
+        "light": {
+          "stroke": "#64748b",
+          "background": "#f1f5f9"
+        },
+        "dark": {
+          "stroke": "#64748b",
+          "background": "#f1f5f9"
+        }
       },
       "defaultCounterName": "Subsection",
       "style": ""
@@ -45,8 +69,14 @@
       "id": "interface",
       "name": "Interface",
       "coloring": {
-        "stroke": "#0891b2",
-        "background": "#cffafe"
+        "light": {
+          "stroke": "#0891b2",
+          "background": "#cffafe"
+        },
+        "dark": {
+          "stroke": "#0891b2",
+          "background": "#cffafe"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -55,8 +85,14 @@
       "id": "class",
       "name": "Class",
       "coloring": {
-        "stroke": "#0d9488",
-        "background": "#ccfbf1"
+        "light": {
+          "stroke": "#0d9488",
+          "background": "#ccfbf1"
+        },
+        "dark": {
+          "stroke": "#0d9488",
+          "background": "#ccfbf1"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -65,8 +101,14 @@
       "id": "field",
       "name": "Field",
       "coloring": {
-        "stroke": "#65a30d",
-        "background": "#ecfccb"
+        "light": {
+          "stroke": "#65a30d",
+          "background": "#ecfccb"
+        },
+        "dark": {
+          "stroke": "#65a30d",
+          "background": "#ecfccb"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -75,8 +117,14 @@
       "id": "function",
       "name": "Function",
       "coloring": {
-        "stroke": "#ea580c",
-        "background": "#ffedd5"
+        "light": {
+          "stroke": "#ea580c",
+          "background": "#ffedd5"
+        },
+        "dark": {
+          "stroke": "#ea580c",
+          "background": "#ffedd5"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -85,8 +133,14 @@
       "id": "component",
       "name": "ReactComponent",
       "coloring": {
-        "stroke": "#db2777",
-        "background": "#fce7f3"
+        "light": {
+          "stroke": "#db2777",
+          "background": "#fce7f3"
+        },
+        "dark": {
+          "stroke": "#db2777",
+          "background": "#fce7f3"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -95,8 +149,14 @@
       "id": "property",
       "name": "Property",
       "coloring": {
-        "stroke": "#e11d48",
-        "background": "#ffe4e6"
+        "light": {
+          "stroke": "#e11d48",
+          "background": "#ffe4e6"
+        },
+        "dark": {
+          "stroke": "#e11d48",
+          "background": "#ffe4e6"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -105,8 +165,14 @@
       "id": "constant",
       "name": "Constant",
       "coloring": {
-        "stroke": "#ca8a04",
-        "background": "#fef9c3"
+        "light": {
+          "stroke": "#ca8a04",
+          "background": "#fef9c3"
+        },
+        "dark": {
+          "stroke": "#ca8a04",
+          "background": "#fef9c3"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -115,8 +181,14 @@
       "id": "concept",
       "name": "Concept",
       "coloring": {
-        "stroke": "#525252",
-        "background": "#f5f5f5"
+        "light": {
+          "stroke": "#525252",
+          "background": "#f5f5f5"
+        },
+        "dark": {
+          "stroke": "#525252",
+          "background": "#f5f5f5"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -125,8 +197,14 @@
       "id": "remark",
       "name": "Remark",
       "coloring": {
-        "stroke": "#64748b",
-        "background": "#f1f5f9"
+        "light": {
+          "stroke": "#64748b",
+          "background": "#f1f5f9"
+        },
+        "dark": {
+          "stroke": "#64748b",
+          "background": "#f1f5f9"
+        }
       },
       "style": "",
       "defaultCounterName": ""
@@ -138,8 +216,14 @@
       "name": "Syntax",
       "description": "",
       "coloring": {
-        "stroke": "#0078D4",
-        "background": "#DDEEFF"
+        "light": {
+          "stroke": "#0078D4",
+          "background": "#DDEEFF"
+        },
+        "dark": {
+          "stroke": "#0078D4",
+          "background": "#DDEEFF"
+        }
       }
     },
     {
@@ -147,8 +231,14 @@
       "name": "Class",
       "description": "",
       "coloring": {
-        "stroke": "#4EC9A2",
-        "background": "#ddffee"
+        "light": {
+          "stroke": "#4EC9A2",
+          "background": "#ddffee"
+        },
+        "dark": {
+          "stroke": "#4EC9A2",
+          "background": "#ddffee"
+        }
       }
     },
     {
@@ -156,8 +246,14 @@
       "name": "Constant",
       "description": "",
       "coloring": {
-        "stroke": "#888888",
-        "background": "#eeeeee"
+        "light": {
+          "stroke": "#888888",
+          "background": "#eeeeee"
+        },
+        "dark": {
+          "stroke": "#888888",
+          "background": "#eeeeee"
+        }
       }
     },
     {
@@ -165,8 +261,14 @@
       "name": "Partial",
       "description": "Structural partial-output macros that organize child content without denoting a complete semantic term.",
       "coloring": {
-        "stroke": "#64748b",
-        "background": "#f1f5f9"
+        "light": {
+          "stroke": "#64748b",
+          "background": "#f1f5f9"
+        },
+        "dark": {
+          "stroke": "#64748b",
+          "background": "#f1f5f9"
+        }
       }
     }
   ],
@@ -175,5 +277,19 @@
     "katex",
     "react",
     "ts"
-  ]
+  ],
+  "entity_storage": {
+    "version": 1,
+    "legacy_backup_version": "0.0.5",
+    "entry_default_package": "_unpackaged",
+    "receipt": {
+      "legacy_backup_present": true,
+      "legacy_entries_present": true,
+      "entry_count": 264,
+      "macro_package_count": 4,
+      "macro_count": 223,
+      "entries_digest": "4c5d7a269ad1f5d9fce5d3e239e551f880e01af3c724705474d686938d412176",
+      "macro_packages_digest": "04935d5a5685e35e05bae36cd4da0094e79063fa520f0a0d9a337bfc87b12f16"
+    }
+  }
 }

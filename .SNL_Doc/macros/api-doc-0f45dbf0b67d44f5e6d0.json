@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Public TypeScript schema HoverPopoverProviderProps.",
+    "source": {
+      "entries": [
+        "rv.iface.hover-popover-provider-props"
+      ],
+      "urls": []
+    },
+    "kind": "class",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{\\color{4EC9A2}HoverPopoverProviderProps}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "HoverPopoverProviderProps"
+  },
+  "schema_version": 1
+}

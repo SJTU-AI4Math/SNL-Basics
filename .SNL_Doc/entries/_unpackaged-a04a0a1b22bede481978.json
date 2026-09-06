@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.find-popover-bounds",
+    "kind": "remark",
+    "title": "Find Popover Bounds — Remark",
+    "content": {
+      "snl": "%Walks up the DOM to find the nearest clipping container and computes the bounds available to the popover.%",
+      "markdown": "Walks up the DOM to find the nearest clipping container and computes the bounds available to the popover."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hover-popovers.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+findPopoverBounds\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

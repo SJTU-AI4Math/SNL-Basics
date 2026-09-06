@@ -1,0 +1,27 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "Inline reference to a TypeScript interface or type alias defined in the SNL-Basics API. Renders in \\texttt{} with a cyan tint.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": []
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{Cerulean}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "api.iface"
+  },
+  "schema_version": 1
+}

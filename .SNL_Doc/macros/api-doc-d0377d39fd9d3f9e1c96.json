@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `renderChild` field of `SnlBlockRendererProps`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-block-renderer-props.render-child"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{renderChild}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlBlockRendererProps.renderChild"
+  },
+  "schema_version": 1
+}

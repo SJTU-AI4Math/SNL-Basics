@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.const.default-renderers",
+    "kind": "constant",
+    "title": "Default Renderers",
+    "content": {
+      "snl": "%The default block-renderer registry. It includes built-in renderers such as list, enumerate, matrix, table, and centered. A host can extend it with spread syntax: { ...defaultRenderers, custom: MyRenderer }.%",
+      "markdown": "The default block-renderer registry. It includes built-in renderers such as `list`, `enumerate`, `matrix`, `table`, and `centered`. A host can extend it with spread syntax: `{ ...defaultRenderers, custom: MyRenderer }`."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/hooks.tsx",
+      "mode": "regex",
+      "pattern": "export\\s+const\\s+defaultRenderers\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

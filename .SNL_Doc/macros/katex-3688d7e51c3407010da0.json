@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "katex",
+  "macro": {
+    "description": "KaTeX `renderToString(source, options)` — synchronously compiles LaTeX to an HTML string.",
+    "kind": "const",
+    "dynamic_arity": false,
+    "source": {
+      "entries": [],
+      "urls": [
+        "https://katex.org/docs/api.html"
+      ]
+    },
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\textcolor{BurntOrange}{\\texttt{#0}}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "katex.renderToString"
+  },
+  "schema_version": 1
+}

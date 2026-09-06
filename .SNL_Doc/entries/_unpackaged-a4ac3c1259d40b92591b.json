@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "remark.rv.fn.node-display",
+    "kind": "remark",
+    "title": "Resolve Node Display — Remark",
+    "content": {
+      "snl": "%Uses the node’s final mode to determine whether the root formula is displayed inline or as a block.%",
+      "markdown": "Uses the node’s final mode to determine whether the root formula is displayed inline or as a block."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export\\s+(?:async\\s+)?function\\s+nodeDisplay\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `href` field of `SnlResolvedSource`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-resolved-source.href"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{href}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlResolvedSource.href"
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "st.iface.snl-macro-source-lookup",
+    "kind": "interface",
+    "title": "SNL Macro Source Lookup",
+    "content": {
+      "snl": "Type.judge(SnlMacroSourceLookup,Type.record(string,api.code(%{ source: SnlMacroSource }%)))",
+      "markdown": "The public TypeScript schema for SNL Macro Source Lookup."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/source-metrics.ts",
+      "mode": "regex",
+      "pattern": "export\\s+type\\s+SnlMacroSourceLookup\\b"
+    },
+    "package": "_unpackaged"
+  }
+}

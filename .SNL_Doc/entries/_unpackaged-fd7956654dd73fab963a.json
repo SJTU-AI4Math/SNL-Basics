@@ -1,0 +1,22 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "_unpackaged",
+  "entry": {
+    "id": "rv.iface.snl-syntax-tree-view-props.macro_data_driver",
+    "kind": "field",
+    "title": "$\\texttt{macro\\_data\\_driver}$",
+    "content": {
+      "markdown": "MacroDataDriver instance — sole data source for macro lookups. Replaces the old `query` prop in v0.10.0."
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/components/SnlSyntaxTreeView.tsx",
+      "mode": "regex",
+      "pattern": "^\\s*macro_data_driver\\??\\s*(?::|\\()",
+      "flags": "m"
+    },
+    "package": "_unpackaged"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `loading` field of `SnlTooltipState`.",
+    "source": {
+      "entries": [
+        "rv.iface.snl-tooltip-state.loading"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{loading}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlTooltipState.loading"
+  },
+  "schema_version": 1
+}

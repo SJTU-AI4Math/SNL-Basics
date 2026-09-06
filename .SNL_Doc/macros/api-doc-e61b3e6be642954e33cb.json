@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `message` field of `SnlSyntaxTreeParseError`.",
+    "source": {
+      "entries": [
+        "st.cls.parse-error.field.message"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{message}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "SnlSyntaxTreeParseError.message"
+  },
+  "schema_version": 1
+}

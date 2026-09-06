@@ -1,0 +1,29 @@
+{
+  "format": "snl-macro",
+  "version": 1,
+  "package": "api-doc",
+  "macro": {
+    "description": "The `className` field of `HoverPopoverProviderProps`.",
+    "source": {
+      "entries": [
+        "rv.iface.hover-popover-provider-props.class-name"
+      ],
+      "urls": []
+    },
+    "kind": "const",
+    "dynamic_arity": false,
+    "styles": [
+      {
+        "style_name": "default",
+        "tags": [],
+        "template": {
+          "mode": "formula_inline",
+          "body": "\\texttt{className}"
+        }
+      }
+    ],
+    "tags": [],
+    "name": "HoverPopoverProviderProps.className"
+  },
+  "schema_version": 1
+}
