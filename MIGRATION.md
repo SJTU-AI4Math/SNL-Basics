@@ -2,6 +2,21 @@
 
 **Date:** 2026-07-01
 
+## Package 0.3.4
+
+- Omitted `[style]` now performs conservative exact filled-slot selection for
+  fixed-arity ordinary text/formula Styles. First exact match in Style order wins;
+  no match retains `styles[0]`. Explicit `[style]` and legacy runtime language maps
+  retain their precedence and errors. To pin an older implicit presentation, write
+  its explicit `[style_name]` in the source.
+- This changes default rendering semantics, not Macro schema 11 or Tree schema 3.
+  Every locale must expose the same exact slot set for inference. Block/SVG/opaque
+  templates, empty text bodies and dynamic arity stay outside inference.
+- The repository's own `.SNL_Doc` moved to workspace data 0.1.0 through the
+  Extension migration chain. Current content is in per-entity envelopes; legacy
+  aggregates are frozen migration backups and must not receive version edits.
+- Includes the multiline list alignment and native text line-highlight fixes.
+
 ## Package 0.2.3
 
 - Activation highlighting now follows one semantic tree path across every DOM
@@ -222,7 +237,9 @@ rather than silently changing rendering semantics.
 
 ## Macro schema v11 template-scope localization
 
-`styles[0]` is the sole implicit style. Each Style keeps invariant identity and
+Before package 0.3.4, `styles[0]` is the sole implicit style; 0.3.4 adds the
+conservative inference described above without changing this storage shape.
+Each Style keeps invariant identity and
 tags while its `template` is either one complete TemplateSpec or an `I18n` of
 complete TemplateSpecs:
 

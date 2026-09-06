@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.3.3 · MIT License · Beta** — [English README](README.md)
+**v0.3.4 · MIT License · Beta** — [English README](README.md)
 
 结构化自然语言（Structured Natural Language, SNL）基础库 —— 将宏 DSL 解析为语法树，
 并渲染为带悬停交互的 KaTeX-in-React。
@@ -275,7 +275,7 @@ export default defineConfig({
 
 ## Style 与 `[style]` 方括号
 
-一个宏声明一个或多个以 `style_name` 为键的渲染 **style**。`styles[0]` 是唯一隐式默认 style。
+一个宏声明一个或多个以 `style_name` 为键的渲染 **style**。`styles[0]` 是隐式选择的回退 Style。
 同一 localized Style 内的所有语言 projection 必须具有相同的 escape-aware placeholder contract。
 不同显式 Style 可以有意隐藏或显示不同子节点；选择 Style 不会改变已解析的语法树：
 
@@ -283,14 +283,20 @@ export default defineConfig({
 node := IDENT ('[' IDENT ']')? ('(' args ')')?
 ```
 
-可选的 `[style]` 方括号用于显式选定 Style，并且永远优先。不写时使用 `styles[0]`。语言在所选 Style 内原子解析一个完整的本地化 TemplateSpec，不会切换 Style。
+可选的 `[style]` 方括号用于显式选定 Style，并且永远优先。不写时，固定参数宏按 Style 顺序寻找“模板引用槽位集合 = 已填参数槽位集合”的精确匹配。
+例如 `M(a,,c)` 匹配 `#0 = #2`，不匹配 `#0 : #1 = #2`；重复引用只算一个槽位，转义 `\#` 是字面量。
+显式空槽和缺失参数算未填，明确写出的空文本 `%%` 算已填。多个匹配取靠前的 Style，无匹配回退 `styles[0]`。
+
+只有所有语言投影引用相同槽位、且仅含普通 text/formula 字段（`mode`、`body`、可选 `separator`）的 Style 才参与自动匹配。
+Block、SVG、不透明后端扩展和空 text body 不参与推断；动态参数宏以及旧运行时 `default_style` 映射维持原行为。
+语言在所选 Style 内原子解析完整 TemplateSpec，不切换自动选择的 Style。自动选择不写回 `node.style_name`，不改 AST、参数索引或查询缓存。
 
 ```ts
-parseSnlSyntaxTree('Pow.pow(x, 2)')          // styles[0]
+parseSnlSyntaxTree('Pow.pow(x, 2)')          // 精确槽位匹配，否则 styles[0]
 parseSnlSyntaxTree('operator[double](a, b)')     // 'double' style → a \Rightarrow b
 ```
 
-选中的标签会暴露在节点的 `node.style_name` 上，并且（当它是显式写出的时）作为
+显式方括号中的标签会记录在节点的 `node.style_name` 上，并作为
 `data-style="<tag>"` 输出到渲染元素上。未知的标签是渲染错误。
 
 `serializeSnlSyntaxTree` 会保留显式的 style 方括号，因此 parse → serialize 是
@@ -299,7 +305,7 @@ round-trip 闭合的。
 ## 核心概念
 
 - **Macro（宏）** —— 一个具名的渲染器。顶层字段为 `name`、`description`、`source`、
-  可选的 `kind`、`dynamic_arity`，以及一个有序 `styles` 数组（`styles[0]` 是隐式默认）。
+  可选的 `kind`、`dynamic_arity`，以及一个有序 `styles` 数组（`styles[0]` 是隐式回退）。
   使用方自有的输出策略（`typst` / `latex` / `markdown` / `text`）位于下游。字段与语义定义在
   [`src/snl-macro/types.ts`](src/snl-macro/types.ts)：
 
@@ -703,5 +709,5 @@ npm pack            # 产出可发布的 tarball
 
 ## 版本与许可证
 
-- **版本：** `0.3.3`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
+- **版本：** `0.3.4`（beta —— 见 [beta 说明](#beta-阶段--100-之前不承诺-schema-稳定)）
 - **许可证：** [MIT](LICENSE)

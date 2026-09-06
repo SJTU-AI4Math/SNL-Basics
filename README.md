@@ -1,6 +1,6 @@
 # SNL-Basics
 
-**v0.3.3 · MIT License · Beta** — [中文版 README](README(ZH).md)
+**v0.3.4 · MIT License · Beta** — [中文版 README](README(ZH).md)
 
 Structured Natural Language (SNL) base library — parse a macro DSL into syntax
 trees and render them to KaTeX-in-React with hover interactions.
@@ -302,7 +302,7 @@ arity* are **styles**, not separate macros — see below.
 ## Styles & the `[style]` bracket
 
 A macro declares one or more render **styles** keyed by `style_name`.
-`styles[0]` is the single implicit default. Every language projection within
+`styles[0]` is the implicit fallback. Every language projection within
 one localized Style must have the same escape-aware placeholder contract.
 Separate explicit Styles may intentionally omit or reveal children; selecting
 one never changes the parsed syntax tree:
@@ -312,15 +312,26 @@ node := IDENT ('[' IDENT ']')? ('(' args ')')?
 ```
 
 The optional `[style]` bracket picks a style and always wins. Without it,
-`styles[0]` is selected. Language changes resolve one complete localized
-TemplateSpec inside the selected Style; they never switch Styles.
+fixed-arity macros choose the first eligible Style whose exact referenced
+parameter slots equal the filled child slots. For example, `M(a,,c)` matches
+`#0 = #2`, not `#0 : #1 = #2`. Repeated references are deduplicated and escaped
+`\#` is literal. Explicit empty slots and missing children are unfilled;
+intentional empty text `%%` counts as filled. If no Style matches, selection falls back to `styles[0]`.
+
+Automatic inference requires every locale projection to use the same slot set
+and only ordinary text/formula fields (`mode`, `body`, optional `separator`).
+Block/SVG/opaque backend projections and empty text bodies are not inferred;
+dynamic macros and deprecated runtime `default_style` maps retain their old
+selection behavior. Language changes resolve one complete localized TemplateSpec
+inside the selected Style; they never switch an automatically selected Style.
+This is render state only: no AST rewrite, parameter reindexing or query-cache change.
 
 ```ts
-parseSnlSyntaxTree('Pow.pow(x, 2)')               // styles[0]
+parseSnlSyntaxTree('Pow.pow(x, 2)')               // exact-slot match, otherwise styles[0]
 parseSnlSyntaxTree('operator[double](a, b)')     // 'double' style → a \Rightarrow b
 ```
 
-The picked tag is exposed on the node as `node.style_name` and (when explicit)
+The explicit bracket tag is exposed on the node as `node.style_name` and
 is emitted as `data-style="<tag>"` on the rendered element. An unknown tag is a
 render error.
 
@@ -331,7 +342,7 @@ serialize round-trips.
 
 - **Macro** — a named renderer. Top-level fields are `name`, `description`,
   `source`, optional `kind`, `dynamic_arity`, and an ordered `styles` array
-  (`styles[0]` is the implicit default).
+  (`styles[0]` is the implicit fallback).
   Consumer-owned output strategies (`typst` /
   `latex` / `markdown` / `text`) live downstream. Fields and semantics live in
   [`src/snl-macro/types.ts`](src/snl-macro/types.ts):
@@ -812,5 +823,5 @@ npm pack            # produce the publishable tarball
 
 ## Version & License
 
-- **Version:** `0.3.3` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
+- **Version:** `0.3.4` (beta — see [the beta notice](#beta-status--the-schema-is-not-stable-until-100))
 - **License:** [MIT](LICENSE)

@@ -9,7 +9,7 @@ const compactFormatter = new SnlDslFormatter(0, Number.MAX_SAFE_INTEGER)
  *
  * Round-trips with {@link parseSnlSyntaxTree}: an explicit `[style]` bracket in
  * the source survives parse → serialize. A node with no `style_name` emits no
- * bracket (the view then falls back to the macro's default `styles[0]`).
+ * bracket (the view chooses an eligible exact-slot Style or falls back to `styles[0]`).
  */
 export function serializeSnlSyntaxTree(node: SnlSyntaxTree): string {
   return compactFormatter.formatTree(node, '')

@@ -184,6 +184,24 @@ import {
 import { EntrySurface } from '@sjtu-ai4math/snl-basics/entry';
 import { ReaderRuntime } from '@sjtu-ai4math/snl-basics/runtime';
 const registry = new SvgTemplateAssetRegistry({ loader: async () => '<svg/>', maxSettled: 1 });
+const { MacroDataDriver, PACKAGE_VERSION, parseSnlSyntaxTree, resolveStyle, resolveRootLatex, serializeSnlSyntaxTree } = await import('@sjtu-ai4math/snl-basics');
+if (PACKAGE_VERSION !== ${JSON.stringify(manifest.version)}) throw new Error('packed runtime version mismatch');
+const autoMacro = {
+  name: 'Packed.auto', description: '', source: { entries: [], urls: [] }, dynamic_arity: false, tags: [],
+  styles: [
+    { style_name: 'full', tags: [], template: { mode: 'formula_inline', body: '#0 : #1 = #2' } },
+    { style_name: 'body', tags: [], template: { mode: 'text', body: 'BODY #0 = #2' } },
+  ],
+};
+const autoTree = parseSnlSyntaxTree('Packed.auto(x,,y)');
+if (resolveStyle(autoTree, autoMacro).style_name !== 'body') throw new Error('packed automatic Style selection failed');
+if (resolveStyle(parseSnlSyntaxTree('Packed.auto(x,%%,y)'), autoMacro).style_name !== 'full') throw new Error('packed deliberate-empty occupancy failed');
+if (resolveStyle({ ...autoTree, style_name: 'full' }, autoMacro).style_name !== 'full') throw new Error('packed explicit Style precedence failed');
+const autoDriver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name }) => macro_name === autoMacro.name ? autoMacro : null } });
+const autoLatex = await resolveRootLatex(autoTree, autoDriver);
+if (!autoLatex.includes('BODY') || autoLatex.includes('snlArgPlaceholder')) throw new Error('packed automatic render failed');
+if (serializeSnlSyntaxTree(autoTree) !== 'Packed.auto(x,,y)' || autoTree.style_name !== undefined) throw new Error('packed automatic selection changed source');
+console.log('packed automatic Style selection and source-preservation smoke pass');
 const template = {
   mode: 'block', body: '#0', block_template_name: 'consumer-svg',
   svg_template: {

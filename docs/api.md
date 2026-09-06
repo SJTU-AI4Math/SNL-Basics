@@ -1,6 +1,6 @@
 # `@sjtu-ai4math/snl-basics` — Public API Reference
 
-Current beta surface for v0.3.3. Import from the package root:
+Current beta surface for v0.3.4. Import from the package root:
 
 ```ts
 import { MacroDataDriver, SnlSyntaxTreeView } from '@sjtu-ai4math/snl-basics'
@@ -62,8 +62,13 @@ Dynamic templates place `#*` in `body`; `separator` joins expanded children.
 projections within one Style must have the same escape-aware arity contract;
 different explicit Styles may intentionally omit or reveal children.
 
-When source omits an explicit `[style]`, `styles[0]` is the sole implicit
-default. An explicit `[style]` always wins. Language resolves one complete
+When source omits `[style]`, fixed-arity macros select the first eligible Style
+whose exact referenced-slot set equals the filled-child-slot set; if none matches,
+selection falls back to `styles[0]`. Eligibility requires matching slot sets across every locale
+and only understood text/formula fields. Block/opaque projections, empty text
+bodies, dynamic arity and legacy `default_style` maps are not automatically inferred.
+Explicit `[style]` always wins (unknown names remain errors). Selection never
+rewrites the AST or changes query/cache identity. Language resolves one complete
 TemplateSpec atomically, including mode, body, separator, block renderer, and
 consumer-owned projection extensions.
 

@@ -8,7 +8,7 @@
     "kind": "field",
     "title": "$\\texttt{style\\_name}$",
     "content": {
-      "markdown": "Style identifier for the node. Renamed from `style` in tree v2."
+      "markdown": "Explicit Style selector recorded by the parser from `[style_name]`. When omitted, rendering selects an eligible exact-filled-slot Style or falls back to the first Style, as specified in `spec.rv.automatic-style-selection-034`. An inferred choice is never written to this field; serialization preserves only the explicit bracket."
     },
     "contribution_info": null,
     "pointer": {
