@@ -1,4 +1,5 @@
 import React from 'react'
+import { verifyAutomaticStyle } from './automatic-style'
 import { createRoot } from 'react-dom/client'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
@@ -141,7 +142,9 @@ async function verify() {
     .filter((name) => /noto-serif-sc-.+\.woff2(?:[?#]|$)/.test(name))
   const cjkFontLoaded = cjkFaces.length > 0
   const katexFontLoaded = katexFaces.length > 0
+  const automaticStyle = await verifyAutomaticStyle()
   const metrics = {
+    automaticStyle,
     mode,
     rootClass: root.className,
     rootFamily: rootStyle.fontFamily,

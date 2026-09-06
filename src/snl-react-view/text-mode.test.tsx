@@ -23,6 +23,8 @@ import type { SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { testDriver } from '../snl-react-view/test-helpers'
 import { ReaderRuntime } from '../runtime'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
+import { serializeSnlSyntaxTree } from './serialize'
+import { automaticStyleFixture, automaticStyleText } from '../../test-fixtures/root-text-typography/automatic-style'
 
 function leaf(name: string): SnlSyntaxTree {
   return createSnlSyntaxTreeNode(name, { kind: 'fvar' })
@@ -96,6 +98,64 @@ afterEach(cleanup)
 function panelText(container: HTMLElement): string {
   return container.querySelector('.katex-html')?.textContent ?? ''
 }
+
+describe('automatic Style real-component integration', () => {
+  it('selects per-node slots through one cached Macro across rerenders, languages and explicit overrides without rewriting bindings', async () => {
+    const f = automaticStyleFixture()
+    const cachedMacro = await f.driver.query_macro({ macro_name: f.macro.name })
+    const trees = [f.body, f.full, f.explicit]
+    const before = JSON.stringify(trees)
+    const serialized = trees.map(serializeSnlSyntaxTree)
+    const macroBefore = JSON.stringify(f.macro)
+    const pair = (tree: SnlSyntaxTree) => <>
+      <section data-case="changing"><SnlSyntaxTreeView tree={tree} macro_data_driver={f.driver} reader_runtime={f.runtime} /></section>
+      <section data-case="full"><SnlSyntaxTreeView tree={f.full} macro_data_driver={f.driver} reader_runtime={f.runtime} /></section>
+    </>
+    const view = render(pair(f.body))
+    for (const [tree, language, expected] of [
+      [f.body, 'en', 'BODY x = x'],
+      [f.full, 'en', 'FULL x : T = x'],
+      [f.body, 'en', 'BODY x = x'],
+      [f.body, 'zh', '正文 x = x'],
+      [f.explicit, 'zh', 'FULL x : 1 = x'],
+    ] as const) {
+      f.setLanguage(language)
+      view.rerender(pair(tree))
+      await waitFor(() => {
+        const changing = view.container.querySelector<HTMLElement>('[data-case="changing"]')!
+        expect(automaticStyleText(changing)).toBe(expected)
+        expect(automaticStyleText(view.container.querySelector<HTMLElement>('[data-case="full"]')!)).toBe('FULL x : T = x')
+        expect(changing.querySelector('[data-tree-path="0"]')?.getAttribute('data-kind')).toBe('binder')
+        expect(changing.querySelector('[data-tree-path="2"]')?.getAttribute('data-kind')).toBe('bvar')
+        expect(changing.querySelector('[data-tree-path="2"]')?.getAttribute('data-src')).toBe('x')
+        const paths = [...changing.querySelectorAll('[data-tree-path]')].map(node => node.getAttribute('data-tree-path'))
+        expect(paths.indexOf('2') < paths.indexOf('0')).toBe(language === 'zh' && tree !== f.explicit)
+        expect(changing.querySelector('.katex-error')).toBeNull()
+      })
+    }
+    expect(await f.driver.query_macro({ macro_name: f.macro.name })).toBe(cachedMacro)
+    expect(f.requests()).toBe(1)
+    expect(JSON.stringify(f.macro)).toBe(macroBefore)
+    expect(JSON.stringify(trees)).toBe(before)
+    expect(trees.map(serializeSnlSyntaxTree)).toEqual(serialized)
+    expect(f.body.style_name).toBeUndefined()
+    expect(f.full.style_name).toBeUndefined()
+  })
+
+  it('dispatches an inferred formula_display Style through real KaTeX, retaining canonical binding paths', async () => {
+    const f = automaticStyleFixture(true)
+    const before = serializeSnlSyntaxTree(f.body)
+    const view = render(<SnlSyntaxTreeView tree={f.body} macro_data_driver={f.driver} reader_runtime={f.runtime} />)
+    await waitFor(() => {
+      expect(view.container.querySelector('.katex-display .katex-html')?.textContent).toContain('BODY')
+      expect(view.container.querySelector('.katex-error')).toBeNull()
+      expect(view.container.querySelector('[data-tree-path="0"]')?.getAttribute('data-kind')).toBe('binder')
+      expect(view.container.querySelector('[data-tree-path="2"]')?.getAttribute('data-kind')).toBe('bvar')
+    })
+    expect(serializeSnlSyntaxTree(f.body)).toBe(before)
+    expect(f.body.style_name).toBeUndefined()
+  })
+})
 
 describe('text-mode template splicing (regression)', () => {
   it('renders a root temporary text payload like a text Macro while remaining bare sub HTML', async () => {
