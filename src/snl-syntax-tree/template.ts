@@ -52,17 +52,25 @@ export function analyzeLatexTemplatePlaceholders(template: string): {
   variadic: boolean
   invalid: boolean
 } {
+  const { positional_indices: _indices, ...contract } = analyzeLatexTemplateSlotUsage(template)
+  return contract
+}
+
+/** Exact positional use for render-time selection; the public arity result stays unchanged. */
+export function analyzeLatexTemplateSlotUsage(template: string) {
   const ESCAPED_HASH = '\u0001ESCAPED_HASH\u0001'
   const source = template.replace(/\\#/g, ESCAPED_HASH)
+  const indices = new Set<number>()
   let maxIndex = -1
   for (const match of source.matchAll(/#(\d{1,2})(?!\d)/g)) {
-    maxIndex = Math.max(maxIndex, Number(match[1]))
+    const index = Number(match[1])
+    indices.add(index)
+    maxIndex = Math.max(maxIndex, index)
   }
-  return createSlotContract(
-    maxIndex + 1,
-    /#\*/.test(source),
-    /#\d{3,}/.test(source),
-  )
+  return {
+    ...createSlotContract(maxIndex + 1, /#\*/.test(source), /#\d{3,}/.test(source)),
+    positional_indices: [...indices].sort((a, b) => a - b),
+  }
 }
 
 export function fillLatexTemplate(

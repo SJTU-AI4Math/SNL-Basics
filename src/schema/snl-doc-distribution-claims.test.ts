@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const snlDocRoot = fileURLToPath(new URL('../../.SNL_Doc', import.meta.url))
+const entries = readdirSync(join(snlDocRoot, 'entries')).filter(name => name.endsWith('.json'))
+  .map(name => JSON.parse(readFileSync(join(snlDocRoot, 'entries', name), 'utf8')).entry)
 
 function jsonFiles(root: string): string[] {
   return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
@@ -20,8 +22,8 @@ type Graph = {
 
 describe('SNL documentation distribution claims', () => {
   it('keeps package metadata publication-neutral and count-neutral', () => {
-    const entries = readFileSync(new URL('../../.SNL_Doc/entries.json', import.meta.url), 'utf8')
-    const normalized = entries.toLowerCase()
+    const entryText = JSON.stringify(entries)
+    const normalized = entryText.toLowerCase()
     for (const stale of [
       'public on npm',
       'bundled macro database',
@@ -31,20 +33,19 @@ describe('SNL documentation distribution claims', () => {
       '29 kB',
       'depending on the schedule for actually publishing',
     ]) expect(normalized).not.toContain(stale.toLowerCase())
-    expect(entries).toContain('Publication status is external registry state')
-    expect(entries).toContain('README.md, README(ZH).md, MIGRATION.md, and LICENSE')
-    expect(entries).toContain('exact file count and byte size are measured afresh')
+    expect(entryText).toContain('Publication status is external registry state')
+    expect(entryText).toContain('README.md, README(ZH).md, MIGRATION.md, and LICENSE')
+    expect(entryText).toContain('exact file count and byte size are measured afresh')
   })
 
   it('keeps every active graph free of stale claims and dangling references', () => {
-    const files = jsonFiles(snlDocRoot)
+    const files = ['entries', 'macros', 'packages', 'libraries'].flatMap(name => jsonFiles(join(snlDocRoot, name)))
     const allText = files.map((path) => readFileSync(path, 'utf8')).join('\n').toLowerCase()
     expect(allText).not.toContain('bundled macro database')
     expect(allText).not.toContain('bundled macro data')
     expect(allText).not.toContain('bundled data')
 
-    const entries = JSON.parse(readFileSync(join(snlDocRoot, 'entries.json'), 'utf8')) as Array<{ id: string }>
-    const entryIds = new Set(entries.map(({ id }) => id))
+    const entryIds = new Set(entries.map(({ id }: { id: string }) => id))
     for (const path of files.filter((value) => value.endsWith('graph.json'))) {
       const graph = JSON.parse(readFileSync(path, 'utf8')) as Graph
       const nodeIds = new Set((graph.nodes ?? []).map(({ id }) => id))

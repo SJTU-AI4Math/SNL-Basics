@@ -23,8 +23,9 @@ export interface SnlSyntaxTree {
   macro_name: string
   /**
    * Style-name override from the parser's `[style]` bracket, e.g. `foo[bar]` sets
-   * `style_name = 'bar'`. Undefined when no bracket — the view uses
-   * `SnlMacro.styles[0]`; language only resolves a projection inside text styles.
+   * `style_name = 'bar'`. Undefined when no bracket — the view chooses an
+   * eligible exact filled-slot Style or falls back to `SnlMacro.styles[0]`.
+   * The inferred Style is never written here; language resolves within a Style.
    */
   style_name?: string
   /**

@@ -32,7 +32,7 @@ import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { getBindRef, getSrc, getTreeSourcePath } from '../snl-syntax-tree/binding'
 import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
 import { slotContractKey } from '../snl-syntax-tree/slot-contract'
-import { analyzeLatexTemplatePlaceholders, fillLatexTemplate } from '../snl-syntax-tree/template'
+import { analyzeLatexTemplatePlaceholders, analyzeLatexTemplateSlotUsage, fillLatexTemplate } from '../snl-syntax-tree/template'
 import { isEmptySnlSyntaxTreeNode, type SnlSyntaxTree } from '../snl-syntax-tree/types'
 import { encodeTreePath, type TreePath } from './interaction-driver'
 import { resolveRenderedKind } from './kind-behavior'
@@ -66,7 +66,8 @@ export function sanitizeHtmlDataAttr(value: string): string {
 /**
  * Resolve which {@link SnlMacroStyle} renders a node. An explicit parser
  * `[style]` selector wins. Legacy 0.1.x runtime inputs may still select a
- * language default; current persisted data uses the ordered first style.
+ * language default; current fixed-arity data first matches exact filled slots,
+ * then falls back to the ordered first style.
  */
 export function resolveStyle(
   node: SnlSyntaxTree,
@@ -85,7 +86,15 @@ export function resolveStyle(
     ? legacyDefaults.en
     : undefined
   const resolvedName = node.style_name ?? mappedLanguage ?? mappedEnglish
-  if (resolvedName == null) return macro.styles[0]
+  if (resolvedName == null) {
+    if (!macro.dynamic_arity && legacyDefaults == null) {
+      const filled = node.children.flatMap((child, index) =>
+        child && !isEmptySnlSyntaxTreeNode(child) ? [index] : [])
+      const match = macro.styles.find(candidate => styleMatchesFilledSlots(candidate, filled))
+      if (match) return match
+    }
+    return macro.styles[0]
+  }
   const style = macro.styles.find((s) => s.style_name === resolvedName)
   if (!style) {
     throw new Error(
@@ -94,6 +103,22 @@ export function resolveStyle(
     )
   }
   return style
+}
+
+/** Only infer use from fully understood fixed templates, never opaque renderer programs. */
+function styleMatchesFilledSlots(style: SnlMacroStyle, filled: readonly number[]): boolean {
+  const templates = 'type' in style.template
+    ? Object.values((style.template as I18n<string, SnlMacroTemplate>).values)
+    : [style.template as SnlMacroTemplate]
+  return templates.every(template => {
+    if (!template || template.mode === 'block' ||
+        Object.keys(template).some(key => !['mode', 'body', 'separator'].includes(key)) ||
+        // Native empty text bodies append all children, so body alone is not a usage contract.
+        (template.mode === 'text' && template.body === '')) return false
+    const usage = analyzeLatexTemplateSlotUsage(template.body)
+    return !usage.variadic && !usage.invalid && usage.positional_indices.length === filled.length &&
+      usage.positional_indices.every((index, position) => index === filled[position])
+  })
 }
 
 /** Validate one complete untrusted template projection. */

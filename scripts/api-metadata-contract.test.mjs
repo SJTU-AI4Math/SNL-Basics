@@ -3,7 +3,8 @@ import { readFileSync, readdirSync } from 'node:fs'
 
 const root = new URL('..', import.meta.url)
 const read = name => readFileSync(new URL(name, root), 'utf8')
-const entries = JSON.parse(read('.SNL_Doc/entries.json'))
+const entries = readdirSync(new URL('.SNL_Doc/entries/', root)).filter(name => name.endsWith('.json'))
+  .map(name => JSON.parse(read(`.SNL_Doc/entries/${name}`)).entry)
 const entryIds = new Set(entries.map(candidate => candidate.id))
 
 function filesNamed(directory, name) {
@@ -69,10 +70,10 @@ function assertCurrentStyleMetadata(candidateEntries = entries) {
     { name: 'template', required: true, type: 'SnlMacroTemplate | I18n<string, SnlMacroTemplate>' },
   ])
   expect(documentedFields(metadata.snl, 'SnlMacroStyle')).toEqual(properties.map(property => property.name))
-  expect(styleFieldEntries(candidateEntries).map(candidate => candidate.id)).toEqual([
+  expect(styleFieldEntries(candidateEntries).map(candidate => candidate.id).sort()).toEqual([
     'mac.iface.snl-macro-style.style_name',
-    'mac.iface.snl-macro-style.template',
     'mac.iface.snl-macro-style.tags',
+    'mac.iface.snl-macro-style.template',
   ])
 
   const template = candidateEntries.find(candidate => candidate.id === 'mac.iface.snl-macro-style.template')

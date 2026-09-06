@@ -3,7 +3,8 @@ import type { I18n } from '../runtime'
 /**
  * SnlMacro v11 (on-disk) — the single source of truth for a macro.
  *
- * The first style is the single implicit default. Every style may localize one
+ * Implicit fixed-arity calls prefer an eligible exact filled-slot match in Style
+ * order; the first Style remains the fallback. Every style may localize one
  * complete render template atomically; style identity and tags remain invariant.
  * Explicit `[style]` always wins and never depends on the current language.
  *
@@ -136,8 +137,8 @@ export interface SnlMacro {
   default_style?: Record<string, string>
 
   /**
-   * All render styles in order. `styles[0]` is the single implicit default.
-   * In `foo[bar](x)`, the parser picks
+   * All render styles in order: automatic exact-slot ties use this order, and
+   * `styles[0]` is the implicit fallback. In `foo[bar](x)`, rendering picks
    * the style whose `style_name === "bar"`; unknown names are a render-time error.
    * Every macro has at least one style. Style names follow the shared
    * {@link isSnlIdentifier} policy and must be unique within this array.

@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { MACRO_SCHEMA_VERSION, PACKAGE_VERSION, TREE_SCHEMA_VERSION } from '../src/schema'
 
 const root = new URL('..', import.meta.url)
 const read = name => readFileSync(new URL(name, root), 'utf8')
+// Current entities are authoritative; entries.json is a frozen migration backup.
+const entries = readdirSync(new URL('.SNL_Doc/entries/', root)).filter(name => name.endsWith('.json'))
+  .map(name => JSON.parse(read(`.SNL_Doc/entries/${name}`)).entry)
 
 describe('published package version', () => {
   it('matches every current-version surface and derives the packed expectation', () => {
@@ -23,9 +26,9 @@ describe('published package version', () => {
     }
 
     expect(read('docs/api.md')).toContain(`Current beta surface for v${version}.`)
-    const entries = JSON.parse(read('.SNL_Doc/entries.json'))
-    expect(entries[0].content.snl).toContain(`version ${version}`)
-    expect(entries[0].content.markdown).toContain(`version \`${version}\``)
+    const manifestEntry = entries.find(entry => entry.id === 'npm.snl-basics-react')
+    expect(manifestEntry.content.snl).toContain(`version ${version}`)
+    expect(manifestEntry.content.markdown).toContain(`version \`${version}\``)
 
     const packedVerifier = read('scripts/verify-packed-entry-i18n.mjs')
     expect(packedVerifier).toMatch(/const expectedVersion = .*package\.json/)
@@ -33,8 +36,7 @@ describe('published package version', () => {
   })
 
   it('keeps current SNL metadata aligned with exported schema versions', () => {
-    const entries = JSON.parse(read('.SNL_Doc/entries.json'))
-    const body = id => entries.find(entry => entry.id === id)?.body
+    const body = id => entries.find(entry => entry.id === id)?.content.markdown
     const macroMigration = body('schema.fn.migrate-macro-document')
     const treeMigration = body('schema.fn.migrate-syntax-tree-document')
     const macroVersion = body('schema.const.macro-schema-version')
