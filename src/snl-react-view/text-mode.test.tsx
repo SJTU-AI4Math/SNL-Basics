@@ -100,6 +100,32 @@ function panelText(container: HTMLElement): string {
 }
 
 describe('automatic Style real-component integration', () => {
+  it('keeps an unknown explicit selector as a visible error and recovers without contaminating the shared Macro', async () => {
+    const f = automaticStyleFixture()
+    const bad = parseSnlSyntaxTree('AutoStyle[missing](@x,,x@x)')
+    const before = JSON.stringify(bad)
+    const pair = (tree: SnlSyntaxTree) => <>
+      <section data-case="bad"><SnlSyntaxTreeView tree={tree} macro_data_driver={f.driver} reader_runtime={f.runtime} /></section>
+      <section data-case="good"><SnlSyntaxTreeView tree={f.body} macro_data_driver={f.driver} reader_runtime={f.runtime} /></section>
+    </>
+    const view = render(pair(f.body))
+    await waitFor(() => expect(automaticStyleText(view.container.querySelector('[data-case="bad"]')!)).toBe('BODY x = x'))
+    view.rerender(pair(bad))
+    await waitFor(() => {
+      const broken = view.container.querySelector('[data-case="bad"]')!
+      expect(broken.querySelector('.katex-error')?.textContent ?? '').toContain('unknown style "missing"')
+      expect(broken.textContent).not.toContain('BODY x')
+      expect(broken.textContent).not.toContain('FULL x')
+      expect(automaticStyleText(view.container.querySelector('[data-case="good"]')!)).toBe('BODY x = x')
+    })
+    expect(JSON.stringify(bad)).toBe(before)
+    view.rerender(pair(f.explicit))
+    await waitFor(() => expect(automaticStyleText(view.container.querySelector('[data-case="bad"]')!)).toBe('FULL x : 1 = x'))
+    view.rerender(pair(f.body))
+    await waitFor(() => expect(automaticStyleText(view.container.querySelector('[data-case="bad"]')!)).toBe('BODY x = x'))
+    expect(view.container.querySelector('.katex-error')).toBeNull()
+  })
+
   it('selects per-node slots through one cached Macro across rerenders, languages and explicit overrides without rewriting bindings', async () => {
     const f = automaticStyleFixture()
     const cachedMacro = await f.driver.query_macro({ macro_name: f.macro.name })
@@ -140,6 +166,26 @@ describe('automatic Style real-component integration', () => {
     expect(trees.map(serializeSnlSyntaxTree)).toEqual(serialized)
     expect(f.body.style_name).toBeUndefined()
     expect(f.full.style_name).toBeUndefined()
+  })
+
+  it.each(['text', 'formula_inline', 'block'] as const)('rejects an unknown explicit descendant under a %s parent', async (mode) => {
+    const f = automaticStyleFixture()
+    const driver = testDriver({
+      AutoStyle: f.macro,
+      Wrapper: {
+        name: 'Wrapper', description: '', source: { entries: [], urls: [] }, tags: [],
+        dynamic_arity: mode === 'block',
+        styles: [{ style_name: 'default', tags: [], template: mode === 'block'
+          ? { mode, body: '#*', block_template_name: 'enumerate' }
+          : { mode, body: '#0' } }],
+      },
+    })
+    const tree = parseSnlSyntaxTree('Wrapper(AutoStyle[missing](@x,,x@x))')
+    const before = JSON.stringify(tree)
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} />)
+    await waitFor(() => expect(view.container.querySelector('.katex-error')?.textContent ?? '').toContain('unknown style "missing"'))
+    expect(view.container.textContent).not.toContain('BODY x')
+    expect(JSON.stringify(tree)).toBe(before)
   })
 
   it('dispatches an inferred formula_display Style through real KaTeX, retaining canonical binding paths', async () => {

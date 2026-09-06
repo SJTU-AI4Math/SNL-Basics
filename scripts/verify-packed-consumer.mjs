@@ -201,6 +201,15 @@ const autoDriver = new MacroDataDriver({ queries: { query_macro: async ({ macro_
 const autoLatex = await resolveRootLatex(autoTree, autoDriver);
 if (!autoLatex.includes('BODY') || autoLatex.includes('snlArgPlaceholder')) throw new Error('packed automatic render failed');
 if (serializeSnlSyntaxTree(autoTree) !== 'Packed.auto(x,,y)' || autoTree.style_name !== undefined) throw new Error('packed automatic selection changed source');
+const { resolveSnlSemantics } = await import('@sjtu-ai4math/snl-basics');
+const invalidInput = parseSnlSyntaxTree('Packed.auto[missing](x,,y)');
+const invalidResolved = resolveSnlSemantics(invalidInput, { [autoMacro.name]: autoMacro });
+if (invalidResolved.tree.style_name !== 'missing' || invalidInput.style_name !== 'missing') throw new Error('packed semantic pass erased explicit Style');
+if (!invalidResolved.diagnostics.some(d => d.code === 'SNL_STYLE_NOT_FOUND' && d.severity === 'error')) throw new Error('packed explicit Style error diagnostic missing');
+let rejected = false;
+try { await resolveRootLatex(invalidResolved.tree, autoDriver); }
+catch (error) { rejected = error.message.includes('unknown style') && error.message.includes('missing'); }
+if (!rejected) throw new Error('packed semantic/render pipeline silently fell back from explicit Style');
 console.log('packed automatic Style selection and source-preservation smoke pass');
 const template = {
   mode: 'block', body: '#0', block_template_name: 'consumer-svg',

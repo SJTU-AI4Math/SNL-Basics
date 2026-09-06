@@ -107,14 +107,14 @@ export function resolveSnlSemantics(
       node.binder_name ??= node.macro_name
     } else if (macro) {
       node.kind = macro.kind || 'const'
-      if (node.style_name && !macro.styles.some((style) => style.style_name === node.style_name)) {
+      if (node.style_name != null && !macro.styles.some((style) => style.style_name === node.style_name)) {
         diagnostics.push({
           code: 'SNL_STYLE_NOT_FOUND',
-          severity: 'warning',
+          severity: 'error',
           tree_path: [...path],
-          message: `style ${JSON.stringify(node.style_name)} was not found; using the first style`,
+          message: `style ${JSON.stringify(node.style_name)} was not found; explicit selection is preserved`,
         })
-        node.style_name = undefined
+        // The renderer must reject this explicit selector, not infer a replacement.
       }
       if (node.postfix?.type === 'name') node.binder_name = node.postfix.name
       node.source = undefined

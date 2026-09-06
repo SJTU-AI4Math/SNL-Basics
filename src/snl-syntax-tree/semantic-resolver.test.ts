@@ -101,12 +101,16 @@ describe('Macro-aware SNL semantic resolution', () => {
     }))
   })
 
-  it('falls back to the first style with a diagnostic when an explicit style is missing', () => {
-    const result = resolveSnlSemantics(parseSnlSyntaxTree('C[missing]'), db(['C']))
+  it.each(['missing', ''])('preserves unknown explicit style %j and reports an error without a fallback', (style_name) => {
+    const input = { ...parseSnlSyntaxTree('C'), style_name }
+    const before = JSON.stringify(input)
+    const result = resolveSnlSemantics(input, db(['C']))
+    expect(JSON.stringify(input)).toBe(before)
     expect(result.tree.kind).toBe('const')
-    expect(result.tree.style_name).toBeUndefined()
+    expect(result.tree.style_name).toBe(style_name)
     expect(result.diagnostics).toContainEqual(expect.objectContaining({
       code: 'SNL_STYLE_NOT_FOUND',
+      severity: 'error',
       tree_path: [],
     }))
   })

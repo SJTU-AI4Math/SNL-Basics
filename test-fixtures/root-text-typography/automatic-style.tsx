@@ -102,6 +102,25 @@ export async function verifyAutomaticStyle() {
       check(rect.width > 0 && rect.height > 0 && getComputedStyle(changing).display !== 'none', `${stage} not visible`)
       snapshots.push({ stage, text, fullText, paths: [binder.dataset.treePath, bound.dataset.treePath], kinds: [binder.dataset.kind, bound.dataset.kind], width: rect.width, height: rect.height })
     }
+    const invalid = parseSnlSyntaxTree('AutoStyle[missing](@x,,x@x)')
+    const invalidBefore = JSON.stringify(invalid)
+    renderPair(invalid)
+    for (let n = 0; n < 100; n++) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+      if (host.querySelector('[data-case="changing"] .katex-error')) break
+    }
+    const error = host.querySelector('[data-case="changing"] .katex-error')
+    check(error?.textContent?.includes('unknown style "missing"'), 'unknown explicit Style silently fell back instead of rendering an error')
+    check(automaticStyleText(host.querySelector('[data-case="full"]')!) === 'FULL x : T = x', 'explicit error contaminated shared sibling')
+    check(JSON.stringify(invalid) === invalidBefore, 'explicit invalid selector was rewritten on input')
+    snapshots.push({ stage: 'unknown-explicit-error', error: error!.textContent })
+    renderPair(fixture.body)
+    for (let n = 0; n < 100; n++) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+      if (automaticStyleText(host.querySelector('[data-case="changing"]')!) === '正文 x = x') break
+    }
+    check(!host.querySelector('.katex-error') && automaticStyleText(host.querySelector('[data-case="changing"]')!) === '正文 x = x', 'implicit rendering did not recover after explicit error')
+    snapshots.push({ stage: 'recovered-after-error', text: automaticStyleText(host.querySelector('[data-case="changing"]')!) })
     check(JSON.stringify(sources) === jsonBefore, 'input AST/bindings mutated')
     check(JSON.stringify(sources.map(serializeSnlSyntaxTree)) === JSON.stringify(before), 'serialization changed')
     check(JSON.stringify(fixture.macro) === macroBefore, 'shared Macro mutated')
