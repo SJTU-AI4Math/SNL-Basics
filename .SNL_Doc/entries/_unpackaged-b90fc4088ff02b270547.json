@@ -8,7 +8,7 @@
     "kind": "field",
     "title": "$\\texttt{styles}$",
     "content": {
-      "markdown": "All render styles in order. `styles[0]` is the **implicit default** used when the SNL source omits `[style]`. In `foo[bar](x)`, the parser picks the style whose `tag === \"bar\"`; unknown tags are a render-time error. Every macro has at least one style. Style tags follow `[A-Za-z_][A-Za-z0-9_]*` (parser IDENT rules) and must be unique within this array."
+      "markdown": "All render Styles in order; each has a unique `style_name` under the shared SNL identifier policy. In `foo[bar](x)`, the parser records the explicit selector and rendering resolves `style_name === \"bar\"`; unknown names are a render-time error. Every Macro has at least one Style. At the 0.3.3 baseline, `styles[0]` is the implicit default for current data. Under the planned 0.3.4 contract in `spec.rv.automatic-style-selection-034`, an omitted selector first permits conservative exact-filled-slot inference for eligible fixed-arity text/formula Styles, with array order breaking multiple exact matches. `styles[0]` remains the fallback when no eligible exact match exists and for excluded cases. Explicit selectors and deprecated runtime `default_style` mapping keep their existing precedence and errors. No implementation is claimed here."
     },
     "contribution_info": null,
     "pointer": {

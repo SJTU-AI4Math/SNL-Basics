@@ -1014,6 +1014,13 @@
       "props": {
         "entryId": "rv.iface.snl-syntax-tree-view-props.interaction_driver"
       }
+    },
+    {
+      "id": "spec-rv-automatic-style-selection-034",
+      "label": "Entry",
+      "props": {
+        "entryId": "spec.rv.automatic-style-selection-034"
+      }
     }
   ],
   "relationships": [
@@ -1771,6 +1778,11 @@
     {
       "from": "6e437da1-562a-482a-aa19-6d734178337b",
       "to": "entry-rv-iface-snl-syntax-tree-view-props-interaction-driver",
+      "label": "branch"
+    },
+    {
+      "from": "90c9efe6-806a-55e7-90f8-1e17fb30245d",
+      "to": "spec-rv-automatic-style-selection-034",
       "label": "branch"
     }
   ]

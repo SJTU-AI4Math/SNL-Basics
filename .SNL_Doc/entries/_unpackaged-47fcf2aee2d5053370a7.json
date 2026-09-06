@@ -9,7 +9,7 @@
     "title": "SNL Macro Style",
     "content": {
       "snl": "interface(SnlMacroStyle,enumerate(Type.judge(SnlMacroStyle.style_name,string),Type.judge(SnlMacroStyle.tags,Type.array(string)),Type.judge(SnlMacroStyle.template,Type.union(SnlMacroTemplate,api.code(%I18n<string, SnlMacroTemplate>%)))))",
-      "markdown": "One semantic rendering style of a macro. `template` is the complete render template, either invariant (`SnlMacroTemplate`) or localized as `I18n<string, SnlMacroTemplate>`; localization selects the complete `TemplateSpec` projection as one unit. `style_name` and `tags` remain language-invariant, and `styles[0]` is the implicit default."
+      "markdown": "One semantic rendering Style of a Macro. `template` is the complete render template, either invariant (`SnlMacroTemplate`) or localized as `I18n<string, SnlMacroTemplate>`; localization selects the complete template projection as one unit. `style_name` and `tags` remain language-invariant. At the 0.3.3 baseline, `styles[0]` is the implicit default for current data. Planned 0.3.4 retains it as fallback after conservative exact-slot automatic selection; see `spec.rv.automatic-style-selection-034`. All language projections must expose the same exact referenced slot set and contain only understood text/formula template fields for a Style to be eligible. Opaque extensions remain valid consumer-owned data but exclude automatic inference. This changes planned rendering semantics, not Macro schema 11, and is not an implementation claim."
     },
     "contribution_info": null,
     "pointer": {

@@ -9,7 +9,7 @@
     "title": "Resolve Macro Style",
     "content": {
       "snl": "ts.function(fn.resolveStyle,ts.function-type(ts.parameters(Type.judge(api.code(%node%),SnlSyntaxTree),Type.judge(api.code(%macro%),SnlMacro)),SnlMacroStyle),ts.ellipsis@remark.rv.fn.resolve-style)",
-      "markdown": "`resolveStyle`’s formal TypeScript signature; see the linked Remark for implementation details."
+      "markdown": "`resolveStyle` selects the render Style for a node; its existing structured signature is retained here. At the 0.3.3 baseline it honors an explicit `node.style_name`, then the deprecated runtime language-default mapping or `styles[0]`. Planned 0.3.4 adds conservative exact-filled-slot inference only for the implicit current fixed-arity path; see `spec.rv.automatic-style-selection-034` and the linked Remark. This Entry does not claim that change is implemented."
     },
     "contribution_info": null,
     "pointer": {

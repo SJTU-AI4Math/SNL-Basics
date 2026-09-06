@@ -8,8 +8,8 @@
     "kind": "remark",
     "title": "Resolve Macro Style — Remark",
     "content": {
-      "snl": "%Selects a Macro Style by the node’s style tag; a missing or unknown style is handled according to the contract or reported as an error.%",
-      "markdown": "Selects a Macro Style by the node’s style tag; a missing or unknown style is handled according to the contract or reported as an error."
+      "snl": "enumerate(%Current baseline: explicit Style selection and legacy/default fallback. Planned 0.3.4 adds conservative exact-slot inference without changing the AST or Macro query contract; implementation is not verified.%,ts.ellipsis@spec.rv.automatic-style-selection-034)",
+      "markdown": "At the 0.3.3 baseline, `resolveStyle` validates Macro templates, honors an explicit `node.style_name`, and otherwise uses the deprecated runtime `default_style` language/English mapping or `styles[0]`; unknown selected names remain errors. Planned 0.3.4: when no explicit selector or legacy map applies, select the first eligible fixed-arity text/formula Style whose exact referenced positional-slot set equals the filled-child-slot set. Eligibility examines every locale and excludes block/SVG/custom and opaque consumer-owned templates. No exact match or dynamic arity keeps the old fallback. Locale projection stays within the selected Style; no AST, query signature or cache mutation is permitted. See `spec.rv.automatic-style-selection-034` for the complete normative contract and unexecuted acceptance matrix. This is planned behavior, not verified implementation."
     },
     "contribution_info": null,
     "pointer": {

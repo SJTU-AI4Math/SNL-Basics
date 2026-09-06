@@ -216,6 +216,7 @@
     "sec.syntax.serialization",
     "sec.syntax.sources",
     "sec.syntax.templates",
+    "spec.rv.automatic-style-selection-034",
     "st.cls.parse-error",
     "st.cls.parse-error.field.message",
     "st.cls.parse-error.field.position",
