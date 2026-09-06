@@ -1,7 +1,12 @@
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import { SnlSyntaxTreeView } from '../../src/components/SnlSyntaxTreeView'
+import { createSnlSyntaxTreeNode } from '../../src/snl-syntax-tree/types'
+import { MacroDataDriver } from '../../src/snl-macro/macro-data-driver'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
 import '../../src/snl-react-view/style.css'
-import { applySnlHoverHighlight } from '../../src/snl-react-view/hover-apply'
+import { applySnlHoverHighlight, clearSnlHoverHighlight } from '../../src/snl-react-view/hover-apply'
 import {
   findDeepestHoverRootFromStack,
   findMinimalHoverRoot,
@@ -27,6 +32,117 @@ app.innerHTML = katex.renderToString(String.raw`
     }
   }
 `, { throwOnError: true, trust: true, output: 'html' })
+
+// Retain a checked surface for manual screenshots; automated runs always clean up.
+const inspect = new URLSearchParams(location.search).get('inspect')
+const settle = () => new Promise<void>((resolve) => setTimeout(resolve, 100))
+const visibleRects = (element: Element) => [...element.getClientRects()].filter((r) => r.width > 0 && r.height > 0)
+const paintedRects = () => [...document.querySelectorAll<HTMLElement>('[data-snl-highlight-overlay]')].map((e) => e.getBoundingClientRect())
+const contains = (outer: DOMRect, inner: DOMRect) => outer.left <= inner.left + 0.75 && outer.right >= inner.right - 0.75 &&
+  outer.top <= inner.top + 0.75 && outer.bottom >= inner.bottom - 0.75
+const equalRect = (a: DOMRect, b: DOMRect) => ['left', 'top', 'width', 'height'].every((key) =>
+  Math.abs(a[key as keyof DOMRect] as number - (b[key as keyof DOMRect] as number)) <= 0.75)
+
+async function verifyNativeText() {
+  app.style.display = 'none'
+  document.body.scrollTop = 0
+  const host = document.createElement('div')
+  host.id = 'native-text'
+  Object.assign(host.style, { width: '270px', fontSize: '20px', height: '220px', overflow: 'auto' })
+  document.body.prepend(host)
+  const root = createRoot(host)
+  const driver = new MacroDataDriver({ queries: { query_macro: async () => null } })
+  const renderText = async (text: string) => {
+    root.render(React.createElement(SnlSyntaxTreeView, {
+      tree: Object.assign(createSnlSyntaxTreeNode('prose-root', {
+        kind: 'sub',
+        children: [Object.assign(createSnlSyntaxTreeNode('wrapped-target', { kind: 'const' }), {
+          env_mode: 'text' as const, temporary_source: text,
+        })],
+      }), { env_mode: 'text' as const, temporary_source: 'BEFORE #0 AFTER AFTER' }),
+      macro_data_driver: driver,
+    }))
+    await settle()
+    const target = host.querySelector<HTMLElement>('.snl-text[data-name="wrapped-target"]')
+    if (!target || target.dataset.treePath !== '0' || getComputedStyle(target).display !== 'inline') {
+      throw new Error('Missing production inline native Text semantic target')
+    }
+    return target
+  }
+  const checkLines = (target: HTMLElement) => {
+    const lines = visibleRects(target)
+    const paint = paintedRects()
+    if (paint.length !== lines.length || !lines.every((line, i) => equalRect(line, paint[i]))) {
+      throw new Error(`Native text must paint separate line rectangles: lines=${JSON.stringify(lines)} paint=${JSON.stringify(paint)}`)
+    }
+    return { lines: lines.map((r) => r.toJSON()), paint: paint.map((r) => r.toJSON()) }
+  }
+  try {
+    const target = await renderText('selected words wrap here')
+    applySnlHoverHighlight(target, host)
+    const plain = checkLines(target)
+    const lines = visibleRects(target)
+    if (lines.length !== 2 || lines[0].left < lines[1].left + 30 || lines[1].right > lines[0].right - 30) {
+      throw new Error(`Fixture needs first-line tail and second-line start: ${JSON.stringify(lines)}`)
+    }
+    // Prefix/suffix are literal siblings outside the semantic target.
+    for (const sibling of [target.previousSibling, target.nextSibling]) {
+      if (!sibling || sibling.nodeType !== Node.TEXT_NODE) throw new Error('Missing outside prose sentinel')
+      const range = document.createRange()
+      range.selectNodeContents(sibling)
+      for (const rect of range.getClientRects()) {
+        if (paintedRects().some((paint) => contains(paint, new DOMRect(rect.left + rect.width / 2, rect.top + rect.height / 2, 1, 1)))) {
+          throw new Error('Native text frame encloses outside prose')
+        }
+      }
+    }
+    if (inspect === 'plain') return { plain }
+    target.style.display = 'none'
+    await settle()
+    if (paintedRects().some((rect) => rect.width > 0 && rect.height > 0)) {
+      throw new Error('Hidden native text still paints retained overlay geometry')
+    }
+    target.style.removeProperty('display')
+    await settle()
+    checkLines(target)
+    host.style.width = '180px'
+    await settle()
+    const narrow = checkLines(target)
+    host.style.width = '600px'
+    await settle()
+    checkLines(target)
+    if (paintedRects().length !== 1) throw new Error('Reflow retained obsolete line overlays')
+    host.style.width = '270px'
+    await settle()
+    const spacer = document.createElement('div')
+    spacer.style.height = '500px'
+    host.append(spacer)
+    host.scrollTop = 20
+    host.dispatchEvent(new Event('scroll'))
+    checkLines(target)
+    clearSnlHoverHighlight(host)
+    if (paintedRects().length || target.classList.contains('snl-highlight-geometry')) throw new Error('Native cleanup leaked line overlays')
+    host.scrollTop = 0
+    const mixed = await renderText(String.raw`selected words $\frac{\sum_{i=0}^{n}i}{\frac{a}{b}}$ then more text wraps here`)
+    applySnlHoverHighlight(mixed, host)
+    const math = mixed.querySelector<HTMLElement>('.snl-math-span')
+    if (!math || visibleRects(mixed).length < 2 || paintedRects().length < 2) throw new Error('Missing wrapped text/formula fixture')
+    const mathRects = [math, ...math.querySelectorAll('*')].flatMap(visibleRects)
+    const mathUnion = new DOMRect(Math.min(...mathRects.map((r) => r.left)), Math.min(...mathRects.map((r) => r.top)), 0, 0)
+    mathUnion.width = Math.max(...mathRects.map((r) => r.right)) - mathUnion.left
+    mathUnion.height = Math.max(...mathRects.map((r) => r.bottom)) - mathUnion.top
+    if (!paintedRects().some((paint) => contains(paint, mathUnion))) {
+      throw new Error(`Mixed native text lost atomic formula envelope: math=${JSON.stringify(mathUnion)} paint=${JSON.stringify(paintedRects())}`)
+    }
+    return { plain, narrow, mixed: { lines: visibleRects(mixed).map((r) => r.toJSON()), paint: paintedRects().map((r) => r.toJSON()), mathUnion } }
+  } finally {
+    if (!inspect) {
+      clearSnlHoverHighlight(host)
+      root.unmount()
+      host.remove()
+    }
+  }
+}
 
 requestAnimationFrame(async () => {
   try {
@@ -141,6 +257,9 @@ requestAnimationFrame(async () => {
       transform: app.style.transform,
       scrollTop: window.scrollY,
     }
+    clearSnlHoverHighlight(app)
+    const nativeText = await verifyNativeText()
+    Object.assign(payload, { nativeText })
     result.dataset.status = 'pass'
     result.textContent = JSON.stringify(payload)
   } catch (error) {

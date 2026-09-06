@@ -9,7 +9,7 @@
 import type { SnlHighlightSet, SnlHighlightStrategy } from './hooks'
 import { defaultHighlightStrategy } from './hooks'
 import { buildBvarScopeIndex, type BvarScopeEntry } from '../snl-syntax-tree/bvar-scope-index'
-import { measureSemanticHighlightRect } from './hover-dom'
+import { measureSemanticHighlightRects } from './hover-dom'
 
 /** CSS custom property holding the container's pre-hover computed text colour. */
 export const SNL_BASE_TEXT_COLOR_VAR = '--snl-base-text-color'
@@ -53,29 +53,40 @@ const geometryStates = new WeakMap<HTMLElement, HighlightGeometryState>()
 
 function syncGeometry(state: HighlightGeometryState): void {
   if (state.disposed) return
-  state.fragments.forEach((fragment, index) => {
-    const overlay = state.overlays[index]
-    const rect = measureSemanticHighlightRect(fragment)
-    if (!rect || !fragment.isConnected) {
-      overlay.hidden = true
-      return
-    }
-    overlay.hidden = false
-    // Absolute offsets are relative to the actual containing-block origin,
-    // which can be shifted by author borders/padding on the root element.
-    // Measuring this owned overlay at (0, 0) avoids assuming an unstyled html.
-    overlay.style.left = '0px'
-    overlay.style.top = '0px'
-    const origin = overlay.getBoundingClientRect()
-    Object.assign(overlay.style, {
-      left: `${rect.left - origin.left}px`,
-      top: `${rect.top - origin.top}px`,
-      width: `${rect.width}px`,
-      height: `${rect.height}px`,
-    })
+  let index = 0
+  for (const fragment of state.fragments) {
+    const rects = fragment.isConnected ? measureSemanticHighlightRects(fragment) : []
     const computed = state.view.getComputedStyle(fragment)
-    overlay.style.setProperty('--snl-highlight-stroke', computed.getPropertyValue('--snl-highlight-stroke'))
-  })
+    // Preserve an owned, hidden placeholder for fragments without visible boxes.
+    for (const rect of rects.length ? rects : [null]) {
+      let overlay = state.overlays[index++]
+      if (!overlay) {
+        overlay = state.container.ownerDocument.createElement('span')
+        overlay.setAttribute(OVERLAY_ATTRIBUTE, '')
+        overlay.setAttribute('aria-hidden', 'true')
+        overlay.className = 'snl-highlight-overlay'
+        state.container.ownerDocument.documentElement.append(overlay)
+        state.overlays.push(overlay)
+      }
+      overlay.hidden = rect === null
+      if (!rect) continue
+      // Absolute offsets are relative to the actual containing-block origin,
+      // which can be shifted by author borders/padding on the root element.
+      // Measuring this owned overlay at (0, 0) avoids assuming an unstyled html.
+      overlay.style.left = '0px'
+      overlay.style.top = '0px'
+      const origin = overlay.getBoundingClientRect()
+      Object.assign(overlay.style, {
+        left: `${rect.left - origin.left}px`,
+        top: `${rect.top - origin.top}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+      })
+      overlay.style.setProperty('--snl-highlight-stroke', computed.getPropertyValue('--snl-highlight-stroke'))
+    }
+  }
+  // Reflow can add or remove visual lines without changing semantic fragments.
+  state.overlays.splice(index).forEach((overlay) => overlay.remove())
 }
 
 function scheduleGeometry(state: HighlightGeometryState): void {
@@ -154,18 +165,10 @@ function removeGeometryState(container: HTMLElement): void {
 }
 
 function installGeometryState(container: HTMLElement, fragments: HTMLElement[], view: Window): void {
-  const overlays = fragments.map(() => {
-    const overlay = container.ownerDocument.createElement('span')
-    overlay.setAttribute(OVERLAY_ATTRIBUTE, '')
-    overlay.setAttribute('aria-hidden', 'true')
-    overlay.className = 'snl-highlight-overlay'
-    container.ownerDocument.documentElement.append(overlay)
-    return overlay
-  })
   const state: HighlightGeometryState = {
     container,
     fragments,
-    overlays,
+    overlays: [],
     view,
     resizeObserver: null,
     mutationObservers: [],

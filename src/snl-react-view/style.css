@@ -110,6 +110,10 @@
   border-radius: 5px;
 }
 
+.snl-highlight-overlay[hidden] {
+  display: none;
+}
+
 /* Nested subtrees inside a hovered element keep the computed text color from
    the render container. Do not use `initial`/`revert`: under an explicit dark
    `color-scheme` those resolve to a light CanvasText even when the Entry body

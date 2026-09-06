@@ -118,6 +118,50 @@ export interface SemanticHighlightRect {
   height: number
 }
 
+/** Native inline prose wraps; formula and block targets retain a subtree envelope. */
+export function measureSemanticHighlightRects(target: HTMLElement): SemanticHighlightRect[] {
+  if (target.classList.contains('snl-text') &&
+      target.ownerDocument.defaultView?.getComputedStyle(target).display === 'inline') {
+    const anchors = Array.from(target.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0)
+    const lines: SemanticHighlightRect[] = anchors.map(({ left, top, right, bottom, width, height }) =>
+      ({ left, top, right, bottom, width, height }))
+    if (!lines.length) return []
+    const include = (rect: SemanticHighlightRect, anchor = rect) => {
+      // Match against the original line boxes, never an already expanded frame:
+      // a tall formula must not absorb the preceding/following prose line.
+      let index = 0
+      let distance = Number.POSITIVE_INFINITY
+      anchors.forEach((line, i) => {
+        const vertical = Math.abs((line.top + line.bottom) - (anchor.top + anchor.bottom))
+        if (vertical < distance) { index = i; distance = vertical }
+      })
+      const line = lines[index]
+      line.left = Math.min(line.left, rect.left)
+      line.top = Math.min(line.top, rect.top)
+      line.right = Math.max(line.right, rect.right)
+      line.bottom = Math.max(line.bottom, rect.bottom)
+      line.width = line.right - line.left
+      line.height = line.bottom - line.top
+    }
+    const visit = (element: HTMLElement) => {
+      const rects = Array.from(element.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0)
+      // KaTeX vlists can escape their inline wrapper by several lines. Attach
+      // their complete envelope using the island's layout box, not each glyph.
+      if (element.matches('.snl-math-span, .katex, .snl-block-host')) {
+        const envelope = measureSemanticHighlightRect(element)
+        if (envelope) include(envelope, rects[0] ?? envelope)
+        return
+      }
+      rects.forEach((rect) => include(rect))
+      Array.from(element.children).forEach((child) => visit(child as HTMLElement))
+    }
+    Array.from(target.children).forEach((child) => visit(child as HTMLElement))
+    return lines
+  }
+  const rect = measureSemanticHighlightRect(target)
+  return rect ? [rect] : []
+}
+
 /** Measure the complete rendered subtree rather than KaTeX's undersized inline wrapper. */
 export function measureSemanticHighlightRect(target: HTMLElement): SemanticHighlightRect | null {
   let left = Number.POSITIVE_INFINITY

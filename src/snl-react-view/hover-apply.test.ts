@@ -90,8 +90,8 @@ describe('applySnlHoverHighlight', () => {
     expect(byId('other-row').classList.contains(SNL_HOVER_CLASS.singleHover)).toBe(false)
   })
 
-  it('projects the complete visible subtree union into paint-only frame geometry', () => {
-    const container = mount('<span id="t" data-kind="const" data-name="c"><span id="upper"></span><span id="lower"></span></span>')
+  it.each(['', 'class="snl-text" style="display:block"'])('projects the complete visible subtree union into paint-only frame geometry (%s)', (attributes) => {
+    const container = mount(`<span id="t" ${attributes} data-kind="const" data-name="c"><span id="upper"></span><span id="lower"></span></span>`)
     const rects = (rect: DOMRect): DOMRectList => Object.assign([rect], { item: (index: number) => index === 0 ? rect : null })
     byId('t').getClientRects = () => rects({ left: 10, top: 20, right: 50, bottom: 40, width: 40, height: 20 } as DOMRect)
     byId('upper').getClientRects = () => rects({ left: 12, top: 8, right: 48, bottom: 24, width: 36, height: 16 } as DOMRect)
@@ -105,6 +105,62 @@ describe('applySnlHoverHighlight', () => {
     expect(overlay.style.top).toBe('8px')
     expect(overlay.style.width).toBe('40px')
     expect(overlay.style.height).toBe('50px')
+  })
+
+  it('paints native text line fragments without enclosing the preceding or following text', () => {
+    const container = mount('prefix <span id="t" class="snl-text" style="display:inline" data-kind="const" data-name="text" data-tree-path="0">wrapped text</span> suffix')
+    let lines = [new DOMRect(80, 20, 40, 20), new DOMRect(10, 44, 35, 20)]
+    byId('t').getClientRects = () => Object.assign(lines, { item: (index: number) => lines[index] ?? null })
+    const overlays = () => [...document.querySelectorAll<HTMLElement>('[data-snl-highlight-overlay]')]
+    const boxes = () => overlays().map((overlay) => [overlay.style.left, overlay.style.top, overlay.style.width, overlay.style.height])
+
+    const set = applySnlHoverHighlight(byId('t'), container)
+
+    expect(set.singleHover).toBe(byId('t'))
+    expect(byId('t').dataset.treePath).toBe('0')
+    expect(boxes()).toEqual([['80px', '20px', '40px', '20px'], ['10px', '44px', '35px', '20px']])
+    const original = overlays()
+    applySnlHoverHighlight(byId('t'), container)
+    expect(overlays()).toEqual(original)
+
+    // Nested scrolling/reflow changes both coordinates and the number of lines.
+    lines = [new DOMRect(10, 5, 105, 20)]
+    container.dispatchEvent(new Event('scroll'))
+    expect(boxes()).toEqual([['10px', '5px', '105px', '20px']])
+    expect(original[1].isConnected).toBe(false)
+    lines = [new DOMRect(80, 20, 40, 20), new DOMRect(10, 44, 35, 20)]
+    container.dispatchEvent(new Event('scroll'))
+    expect(overlays()).toHaveLength(2)
+    lines = []
+    container.dispatchEvent(new Event('scroll'))
+    expect(overlays()).toHaveLength(1)
+    expect(overlays()[0].hidden).toBe(true)
+    lines = [new DOMRect(10, 5, 105, 20)]
+    container.dispatchEvent(new Event('scroll'))
+    expect(overlays()[0].hidden).toBe(false)
+    expect(boxes()).toEqual([['10px', '5px', '105px', '20px']])
+    clearSnlHoverHighlight(container)
+    expect(overlays()).toHaveLength(0)
+    expect(byId('t').classList.contains(SNL_HOVER_CLASS.geometry)).toBe(false)
+  })
+
+  it('keeps a tall inline formula atomic on its own text line, including escaped descendants', () => {
+    const container = mount('<span id="t" class="snl-text" style="display:inline" data-kind="const" data-name="mixed"><span id="nested" class="snl-text">text</span><span id="math" class="snl-math-span"><span id="fraction"></span></span></span>')
+    const stub = (id: string, rects: DOMRect[]) => {
+      byId(id).getClientRects = () => Object.assign(rects, { item: (index: number) => rects[index] ?? null })
+    }
+    stub('t', [new DOMRect(80, 20, 40, 20), new DOMRect(10, 64, 70, 20)])
+    stub('nested', [new DOMRect(80, 20, 40, 20), new DOMRect(10, 64, 20, 20)])
+    stub('math', [new DOMRect(35, 64, 30, 20)])
+    // A vlist escapes upward past the preceding line: do not assign its pieces
+    // independently to neighboring prose lines or ignore them altogether.
+    stub('fraction', [new DOMRect(35, 10, 30, 90)])
+
+    applySnlHoverHighlight(byId('t'), container)
+
+    const boxes = [...document.querySelectorAll<HTMLElement>('[data-snl-highlight-overlay]')]
+      .map((overlay) => [overlay.style.left, overlay.style.top, overlay.style.width, overlay.style.height])
+    expect(boxes).toEqual([['80px', '20px', '40px', '20px'], ['10px', '10px', '70px', '90px']])
   })
 
   it('reuses geometry while the pointer remains on the same semantic fragment', () => {
