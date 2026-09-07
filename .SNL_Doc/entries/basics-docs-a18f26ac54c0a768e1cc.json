@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.Interaction",
+    "title": "Semantic Interaction and Host Actions",
+    "kind": "concept",
+    "package": "basics-docs",
+    "content": {
+      "markdown": "Semantic interaction starts from rendered coordinates, not displayed text. In `src/components/SnlSyntaxTreeView.tsx`, `handleClick` locates the enclosing `data-tree-path` element, respects descendant controls that own their events, and calls `dispatchElementActivation`. That function resolves the path against the rendered tree and supplies the actual node, resolved Macro, DOM target, modifier state, and activation lease to the interaction driver.\n\n`SnlInteractionDriver.dispatch_click` in `src/snl-react-view/interaction-driver.ts` distinguishes Ctrl from Meta and falls back to the ordinary click callback when no Ctrl callback exists. Its callbacks may be asynchronous. The view's `createActivation` gives each activation a generation-checked lease: delayed work can request deactivation without clearing a newer activation.\n\n`EntrySurface` in `src/entry-react/entry-render.tsx` connects these semantic events to Entry previews. With a preview provider present, hovering uses the Macro's first source Entry, ordinary clicking pins its preview, and Ctrl-clicking calls the consumer's preview-activation port. Consumer interaction callbacks remain chained into this behavior.\n\nNavigation itself stays outside Basics. `EntryInteractionPorts` receives title activation, source activation with the opaque pointer, preview activation, and block interactions; host adapters decide what those actions mean. `EntryPreviewProvider` recursively renders previews with the supplied drivers, language runtime, hooks, and ports. Thus shared semantic targeting and preview behavior do not require an editor-specific navigation implementation.\n"
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/entry-react/entry-render.tsx",
+      "mode": "regex",
+      "pattern": "export interface EntryInteractionPorts \\{"
+    }
+  }
+}

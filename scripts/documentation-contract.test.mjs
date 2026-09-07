@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 
 const root = new URL('../', import.meta.url)
 const read = path => readFileSync(new URL(path, root), 'utf8')
@@ -52,24 +52,45 @@ describe('maintained repository documentation', () => {
       expect(() => assertDarkPalette(copy)).toThrow()
     }
   })
-  it('provides distinct connected Specification and Document reading routes', () => {
-    for (const [slug, id] of [['specification', 'Basics.Specification'], ['document', 'Basics.Document']]) {
-      const graph = JSON.parse(read(`.SNL_Doc/libraries/${slug}/graph.json`))
-      const meta = JSON.parse(read(`.SNL_Doc/libraries/${slug}/meta.json`))
-      expect(meta.title).toBe(id.split('.')[1])
-      const rootNode = graph.nodes.find(node => node.props.entryId === id)
-      expect(rootNode).toBeDefined()
-      const visited = new Set([rootNode.id])
-      for (let changed = true; changed;) {
-        changed = false
-        for (const edge of graph.relationships) {
-          if (edge.label === 'branch' && visited.has(edge.from) && !visited.has(edge.to)) {
-            visited.add(edge.to); changed = true
-          }
+  it('organizes the system Library as specification parents with implementation children', () => {
+    expect(existsSync(new URL('.SNL_Doc/libraries/SNLBasics/graph.json', root))).toBe(true)
+    const graph = JSON.parse(read('.SNL_Doc/libraries/SNLBasics/graph.json'))
+    const meta = JSON.parse(read('.SNL_Doc/libraries/SNLBasics/meta.json'))
+    expect(meta.title).toBe('SNL-Basics')
+    for (const slug of ['specification', 'document']) {
+      expect(existsSync(new URL(`.SNL_Doc/libraries/${slug}/meta.json`, root))).toBe(false)
+    }
+    const rootNode = graph.nodes.find(node => node.props.entryId === 'Basics.Specification')
+    expect(rootNode).toBeDefined()
+    const visited = new Set([rootNode.id])
+    for (let changed = true; changed;) {
+      changed = false
+      for (const edge of graph.relationships) {
+        if (edge.label === 'branch' && visited.has(edge.from) && !visited.has(edge.to)) {
+          visited.add(edge.to); changed = true
         }
       }
-      expect(visited.size).toBe(graph.nodes.length)
-      for (const node of graph.nodes) expect(byId.has(node.props.entryId)).toBe(true)
+    }
+    expect(visited.size).toBe(graph.nodes.length)
+    for (const node of graph.nodes) expect(byId.has(node.props.entryId)).toBe(true)
+    for (const [spec, doc] of [
+      ['Ownership', 'Setup'], ['Syntax', 'FirstTree'], ['Macros', 'Templates'],
+      ['Drivers', 'Drivers'], ['Rendering', 'Entries'], ['Svg', 'Svg'],
+      ['Theme', 'Theme'], ['Interaction', 'Interaction'], ['Compatibility', 'Maintenance'],
+    ]) {
+      const parent = graph.nodes.find(node => node.props.entryId === `Basics.Specification.${spec}`)
+      const child = graph.nodes.find(node => node.props.entryId === `Basics.Document.${doc}`)
+      expect(parent, spec).toBeDefined()
+      expect(child, doc).toBeDefined()
+      expect(graph.relationships.some(edge => edge.label === 'branch' && edge.from === parent.id && edge.to === child.id), spec).toBe(true)
+    }
+    const included = new Set(graph.nodes.map(node => node.props.entryId))
+    for (const entry of entries.filter(entry => entry.package === 'basics-docs')) {
+      expect(included.has(entry.id), entry.id).toBe(true)
+      expect(entry.content.markdown, entry.id).not.toMatch(/(?:Specification|Document)\*\* Library|Specification's Macro chapter|guide chapters below in order/)
+    }
+    for (const slug of ['concepts', 'snl-syntax-tree', 'snl-macro', 'snl-react-view', 'entry-react', 'public-api']) {
+      expect(existsSync(new URL(`.SNL_Doc/libraries/${slug}/graph.json`, root))).toBe(true)
     }
   })
   it('keeps authored guide chapters substantive and source pointers resolvable', () => {
