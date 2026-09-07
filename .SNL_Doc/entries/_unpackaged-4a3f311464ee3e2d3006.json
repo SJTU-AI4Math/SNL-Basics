@@ -8,8 +8,8 @@
     "kind": "function",
     "title": "Convert Palette to CSS",
     "content": {
-      "snl": "ts.function(fn.paletteToCss,ts.function-type(ts.parameters(Type.judge(api.code(%palette%),KindPalette)),string),ts.ellipsis@remark.rv.fn.palette-to-css)",
-      "markdown": "`paletteToCss`’s formal TypeScript signature; see the linked Remark for implementation details."
+      "snl": "ts.function(fn.paletteToCss,ts.function-type(ts.parameters(Type.judge(api.code(%palette%),KindPalette),Type.judge(api.code(%colorScheme%),Type.opt(Type.union(%light%,%dark%)))),string),ts.ellipsis@remark.rv.fn.palette-to-css)",
+      "markdown": "`paletteToCss(palette: KindPalette, colorScheme: ColorScheme = \"light\"): string` resolves a palette variant and generates semantic hover/binding CSS. Macro text uses the solid stroke; outline and background use 50% alpha."
     },
     "contribution_info": null,
     "pointer": {

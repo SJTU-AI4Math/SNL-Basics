@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.ReferenceMap",
+    "kind": "concept",
+    "title": "Detailed reference map",
+    "content": {
+      "markdown": "Use these existing Libraries after reading the guide:\n\n- **concepts:** package ownership, distribution and consumer boundaries.\n- **snl-syntax-tree:** tree representation, parsing, serialization, binding and source analysis.\n- **snl-macro:** Macro data and template records.\n- **snl-react-view:** rendering, hooks, interaction, palette and popovers.\n- **entry-react:** complete query-driven Entry cards and previews.\n- **public-api:** curated API reading view, not an automatically exhaustive inventory of every current export.\n\nThe attached nodes reuse their canonical Entry identities. Historical interface-field breakdowns may be useful for navigation, but `package.json#exports` and current TypeScript declarations determine the actual public surface. A reference view must not claim a fixed export count after the surface has evolved.\n\nFor exact automatic Style selection, consult the existing dedicated Spec beneath the Specification's Macro chapter. For migration behavior consult `MIGRATION.md` and the public migration entry points. For working integration start with `examples/basic-demo`, then verify the exact packed artifact and your actual consuming host.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

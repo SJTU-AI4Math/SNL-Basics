@@ -1,0 +1,181 @@
+{
+  "nodes": [
+    {
+      "id": "Basics.Document",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document"
+      }
+    },
+    {
+      "id": "Basics.Document.Setup",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Setup"
+      }
+    },
+    {
+      "id": "Basics.Document.FirstTree",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.FirstTree"
+      }
+    },
+    {
+      "id": "Basics.Document.Entries",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Entries"
+      }
+    },
+    {
+      "id": "Basics.Document.Theme",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Theme"
+      }
+    },
+    {
+      "id": "Basics.Document.Templates",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Templates"
+      }
+    },
+    {
+      "id": "Basics.Document.Debugging",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Debugging"
+      }
+    },
+    {
+      "id": "Basics.Document.Maintenance",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Maintenance"
+      }
+    },
+    {
+      "id": "Basics.Document.ReferenceMap",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.ReferenceMap"
+      }
+    },
+    {
+      "id": "npm.snl-basics-react",
+      "label": "Entry",
+      "props": {
+        "entryId": "npm.snl-basics-react"
+      }
+    },
+    {
+      "id": "mod.snl-syntax-tree",
+      "label": "Entry",
+      "props": {
+        "entryId": "mod.snl-syntax-tree"
+      }
+    },
+    {
+      "id": "mod.snl-macro",
+      "label": "Entry",
+      "props": {
+        "entryId": "mod.snl-macro"
+      }
+    },
+    {
+      "id": "mod.snl-react-view",
+      "label": "Entry",
+      "props": {
+        "entryId": "mod.snl-react-view"
+      }
+    },
+    {
+      "id": "mod.entry-react",
+      "label": "Entry",
+      "props": {
+        "entryId": "mod.entry-react"
+      }
+    },
+    {
+      "id": "overview.public-api",
+      "label": "Entry",
+      "props": {
+        "entryId": "overview.public-api"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Basics.Document",
+      "to": "Basics.Document.Setup",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document",
+      "to": "Basics.Document.FirstTree",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document",
+      "to": "Basics.Document.Entries",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document",
+      "to": "Basics.Document.Theme",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document",
+      "to": "Basics.Document.Templates",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document",
+      "to": "Basics.Document.Debugging",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document",
+      "to": "Basics.Document.Maintenance",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document",
+      "to": "Basics.Document.ReferenceMap",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "npm.snl-basics-react",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "mod.snl-syntax-tree",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "mod.snl-macro",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "mod.snl-react-view",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "mod.entry-react",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "overview.public-api",
+      "label": "branch"
+    }
+  ]
+}

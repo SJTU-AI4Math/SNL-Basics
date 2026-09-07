@@ -6,9 +6,9 @@
   "entry": {
     "id": "rv.iface.kind-coloring.background",
     "kind": "field",
-    "title": "$\\texttt{background}$",
+    "title": "Color variant: background",
     "content": {
-      "markdown": "Background base + hover border; hover background = this color @ 50% alpha."
+      "markdown": "The `background` field of `KindColoringVariant`: base fill for the 50%-alpha Macro highlight. It is not the border color. Entry cards separately use their selected Kind background literally. For a themed KindColoring, select light/dark before reading this field."
     },
     "contribution_info": null,
     "pointer": {

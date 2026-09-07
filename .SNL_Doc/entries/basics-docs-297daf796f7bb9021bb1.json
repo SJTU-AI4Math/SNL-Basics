@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.FirstTree",
+    "kind": "concept",
+    "title": "Render a first SNL tree",
+    "content": {
+      "markdown": "Define an ordinary Macro in your data source, query it by name, and let Basics render the positional children. This example deliberately keeps the Macro outside library defaults:\n\n```tsx\nimport { MacroDataDriver, SnlSyntaxTreeView, parseSnlSyntaxTree } from '@sjtu-ai4math/snl-basics'\nimport type { SnlMacro } from '@sjtu-ai4math/snl-basics'\nimport 'katex/dist/katex.min.css'\nimport '@sjtu-ai4math/snl-basics/style.css'\n\nconst equals: SnlMacro = {\n  name: 'equals', description: 'Equality', kind: 'const',\n  source: { entries: [], urls: [] }, tags: [], dynamic_arity: false,\n  styles: [{ style_name: 'default', tags: [],\n    template: { mode: 'formula_inline', body: '#0 = #1' } }],\n}\nconst macros = new MacroDataDriver({\n  queries: { query_macro: async ({ macro_name }) => macro_name === 'equals' ? equals : null },\n})\nconst tree = parseSnlSyntaxTree('equals($x$, $x$)')\nexport function Example() {\n  return <SnlSyntaxTreeView tree={tree} macro_data_driver={macros} />\n}\n```\n\nThe formula leaves intentionally use literal delimiters. Plain prose belongs in `%…%`; raw KaTeX commands outside formula delimiters are not an alternative SNL grammar. For binders and source references, use the semantic-resolution/binding APIs and test the resulting target paths, not only this example's printed formula.\n\nUse the non-throwing parser when editing incomplete user input. Keep the original source and display diagnostics; do not silently replace a failed parse with a plausible formula.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

@@ -8,14 +8,14 @@
     "kind": "interface",
     "title": "Kind Coloring",
     "content": {
-      "snl": "interface(KindColoring,enumerate(Type.judge(KindColoring.stroke,string),Type.judge(KindColoring.background,string)))",
-      "markdown": "The color pair for one kind: `{ stroke, background }`. `stroke` is used for the border and text color, while `background` is used for the hover-highlight background."
+      "snl": "Type.judge(KindColoring,Type.union(FlatKindColoring,ThemedKindColoring))",
+      "markdown": "`KindColoring = FlatKindColoring | ThemedKindColoring`. A current themed palette has complete `light` and `dark` variants, each with `stroke` and `background`. A complete flat pair remains a runtime compatibility input and applies to both themes. `KindColoringVariant` owns the two scalar fields; they are not top-level fields of every KindColoring. Mixed flat/themed records or incomplete theme variants are rejected by `resolveKindColoring`. This workspace authors complete theme variants."
     },
     "contribution_info": null,
     "pointer": {
       "file": "src/snl-react-view/kind-palette.ts",
       "mode": "regex",
-      "pattern": "export\\s+interface\\s+KindColoring\\b"
+      "pattern": "export\\s+type\\s+KindColoring\\b"
     },
     "package": "_unpackaged"
   }

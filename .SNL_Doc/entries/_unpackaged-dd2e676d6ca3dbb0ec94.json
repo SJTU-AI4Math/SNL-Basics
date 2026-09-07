@@ -8,8 +8,8 @@
     "kind": "remark",
     "title": "Serialize SNL Syntax Tree — Remark",
     "content": {
-      "snl": "%The current implementation serializes only name and children. It does not write back style, envMode, binder prefixes, kind, scope, or mdata, so it is not a general lossless round trip.%",
-      "markdown": "The current implementation serializes only `name` and `children`. It does not write back `style`, `envMode`, binder prefixes, `kind`, `scope`, or `mdata`, so it is not a general lossless round trip."
+      "snl": "%Serializes parser-readable SNL through SnlDslFormatter, including explicit Style selection, delimiter literals, binder prefixes and postfix source syntax. It is not JSON serialization of arbitrary metadata and does not preserve original whitespace. Empty slots retain positional meaning where expressible in the DSL.%",
+      "markdown": "Serializes parser-readable SNL through SnlDslFormatter, including explicit Style selection, delimiter literals, binder prefixes and postfix source syntax. It is not JSON serialization of arbitrary metadata and does not preserve original whitespace. Empty slots retain positional meaning where expressible in the DSL."
     },
     "contribution_info": null,
     "pointer": {

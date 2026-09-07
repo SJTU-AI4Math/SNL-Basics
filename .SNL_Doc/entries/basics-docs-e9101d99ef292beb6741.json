@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.Setup",
+    "kind": "concept",
+    "title": "Choose an import surface",
+    "content": {
+      "markdown": "Install the package together with its peers:\n\n```sh\nnpm install @sjtu-ai4math/snl-basics katex react react-dom\n```\n\nPin an exact Basics version in a real consuming project. Before upgrading, inspect `MIGRATION.md`, schema constants, and the packed export/type gates. A published version and a newer repository commit may differ.\n\nUse the package root for a React syntax-tree view. Prefer the documented `/core`, `/runtime`, or `/hover` subpath when it matches your integration; do not deep-import an implementation file. Complete Entry cards use `/entry` so the root path does not acquire Markdown processing.\n\nLoad KaTeX CSS and the matching Basics stylesheet once. A tree-only app imports `/style.css`; an Entry app imports `/entry/style.css`. These are actual package assets, not magic CSS injected by a query driver. Preserve required fonts/assets in the bundler or exporter.\n\nFor a full local example, use `examples/basic-demo`:\n\n```sh\ncd examples/basic-demo\nnpm install\nnpm run dev\n```\n\nIts lifecycle builds the local package through public imports. It proves source-linked integration when exercised, not the bytes currently served by npm.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

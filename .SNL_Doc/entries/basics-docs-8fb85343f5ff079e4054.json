@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Specification.Interaction",
+    "kind": "concept",
+    "title": "Semantic interaction and host actions",
+    "content": {
+      "markdown": "`SnlInteractionDriver` receives hover, leave, click and Ctrl-click context, including semantic tree paths. Display layout is not identity: a repeated SVG placement must still identify the correct child. Binding hover must reach the actual binder, not merely another token with equal text.\n\n`EntryPreviewProvider` renders recursive Entry previews from Macro source Entries through the supplied drivers. Shared hover/popover mechanisms own opening, pinning, dismissal and viewport placement. Consumers should inherit those defaults unless deliberately changing policy, rather than copying their current timing constants.\n\nEntry title/source/preview actions are injected host callbacks. Block hover, Ctrl-hover and Ctrl-click remain distinct from nested semantic/title/button actions; a nested action must not be dispatched again as a block Ctrl-click. Ctrl pressed after entering the block must update the hover mode. Callback failures are contained by the renderer rather than tearing down the Entry.\n\n**Acceptance requirements:** test a real semantic-node hover, a bound variable and its binder, nested preview creation, pin/dismiss behavior, Ctrl-before/after-enter, theme switching while a preview is open, and unmount cleanup. Passing only static CSS or event-handler unit tests is not evidence that an installed host behaves correctly.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/interaction-driver.ts",
+      "mode": "regex",
+      "pattern": "export class SnlInteractionDriver"
+    }
+  }
+}

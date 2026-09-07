@@ -48,6 +48,15 @@ SNL-Basics 由 **Claude Opus + 基于 ChatGPT 的 Hermes Agent 通过 vibe codin
 
 ---
 
+## 持续维护的 Specification 与 Document
+
+仓库自身的权威文档位于 `.SNL_Doc`：
+
+- **[Specification](.SNL_Doc/libraries/specification)**：职责边界、语法与绑定、模板与 Style 选择、查询驱动、渲染/SVG、明暗主题、交互和兼容性契约。
+- **[Document](.SNL_Doc/libraries/document)**：安装、首个语法树、Entry 接入、实时主题/语言切换、模板、排障和文档维护。
+
+在 SNL Doc Extension 中打开这两个 Library 阅读。原有模块和 Public API Library 保留为详细参考视图，不再宣称自动穷尽当前全部导出。当前 Entry、Kind 和 Library graph 通过公开 Toolkit CLI 维护；冻结的迁移备份不是编辑对象。
+
 ## 可运行的示例
 
 [`examples/basic-demo`](examples/basic-demo) 是一个自包含的 Vite + React 本地集成应用。

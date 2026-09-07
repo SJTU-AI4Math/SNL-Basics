@@ -379,13 +379,6 @@
       }
     },
     {
-      "id": "entry-rv-comp-snl-syntax-tree-editor",
-      "label": "Entry",
-      "props": {
-        "entryId": "rv.comp.snl-syntax-tree-editor"
-      }
-    },
-    {
       "id": "entry-rv-comp-hover-popover-provider",
       "label": "Entry",
       "props": {
@@ -839,11 +832,6 @@
     {
       "from": "entry-sub-public-rendering-components",
       "to": "entry-rv-comp-snl-syntax-tree-view",
-      "label": "branch"
-    },
-    {
-      "from": "entry-sub-public-rendering-components",
-      "to": "entry-rv-comp-snl-syntax-tree-editor",
       "label": "branch"
     },
     {

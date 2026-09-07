@@ -6,9 +6,9 @@
   "entry": {
     "id": "rv.iface.kind-coloring.stroke",
     "kind": "field",
-    "title": "$\\texttt{stroke}$",
+    "title": "Color variant: stroke",
     "content": {
-      "markdown": "Border + hover text color (also the base text color)."
+      "markdown": "The `stroke` field of `KindColoringVariant`: solid semantic hover text and the base of the 50%-alpha highlight outline. For a themed KindColoring, access the selected light/dark variant first. Entry framing separately uses the full stroke."
     },
     "contribution_info": null,
     "pointer": {

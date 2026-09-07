@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Specification.Theme",
+    "kind": "concept",
+    "title": "Light and dark presentation",
+    "content": {
+      "markdown": "The maintained workspace uses `coloring: { light: { stroke, background }, dark: { stroke, background } }` for Entry and Macro Kinds. Both pairs must be complete. The runtime also accepts a complete legacy flat pair and applies it to either theme; that compatibility path is not a suitable new dark palette. Do not mix flat and themed fields.\n\nEntry framing is selected by `EntryDataDriver`; nested Macro highlighting is selected by `MacroDataDriver` and the supplied Kind palette. Hosts should derive both from the same theme source. A theme switch must repaint existing content and open previews without changing Entry IDs, ASTs, Style identities, or binding/source paths.\n\nMacro hover text uses the solid stroke; its highlight fill and outline use 50% alpha. `alpha` supports hex/rgb and CSS-native mixing for other colors. Structural `sub` remains `inherit`/`transparent`. Entry frame and block-hover paint are separate: the current Entry hover uses a dark neutral fill, a Ctrl-hover alternate, and an inset edge. Do not apply element-level opacity to dim the text and its children together.\n\n**This repository's palette policy:** dark reading surfaces use near-neutral deep fills and muted, readable category strokes. Bright pastel light fills must not be copied into dark records. Existing light variants are retained. The missing built-in semantic kinds are supplied locally using their original light fallback and a deliberate dark variant; the shared runtime default palette is unchanged.\n\n**Maintenance requirements:** opaque dark fills have relative luminance below 0.04; opaque stroke/fill pairs have contrast at least 4.5:1. Structural transparent kinds are exempt. These numerical guards prevent obvious regressions; they are not complete WCAG certification. Verify actual body/code/hover/preview paint in a browser, with alpha blending, light↔dark switching and narrow layouts. Subjective comfort still requires author feedback.\n\nConsumers may choose a different palette. Configuring a better palette in this workspace neither migrates other repositories nor proves the author's installed Extension is running the same renderer.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/kind-palette.ts",
+      "mode": "regex",
+      "pattern": "export function paletteToCss"
+    }
+  }
+}

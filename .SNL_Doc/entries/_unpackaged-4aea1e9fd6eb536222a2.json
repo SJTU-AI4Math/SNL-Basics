@@ -8,8 +8,8 @@
     "kind": "constant",
     "title": "HTML Data KaTeX Defaults",
     "content": {
-      "snl": "%The default allowlist of attribute names permitted by KaTeX \\htmlData. It includes name, kind, style, scope, bindRef, src, and others. The component passes it to katex.renderToString so these attributes pass KaTeX’s sanitizer.%",
-      "markdown": "The default allowlist of attribute names permitted by KaTeX `\\htmlData`. It includes `name`, `kind`, `style`, `scope`, `bindRef`, `src`, and others. The component passes it to `katex.renderToString` so these attributes pass KaTeX’s sanitizer."
+      "snl": "%KaTeX options with a command-scoped trust callback admitting htmlData and htmlClass commands for semantic metadata and class wrappers. This is not a per-attribute-name allowlist or a general sanitizer for arbitrary untrusted HTML/SVG. Inspect katex-defaults.ts for the exact callback.%",
+      "markdown": "KaTeX options with a command-scoped trust callback admitting htmlData and htmlClass commands for semantic metadata and class wrappers. This is not a per-attribute-name allowlist or a general sanitizer for arbitrary untrusted HTML/SVG. Inspect katex-defaults.ts for the exact callback."
     },
     "contribution_info": null,
     "pointer": {

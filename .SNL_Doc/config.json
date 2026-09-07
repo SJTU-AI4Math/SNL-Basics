@@ -10,8 +10,8 @@
           "background": "#ede9fe"
         },
         "dark": {
-          "stroke": "#8b5cf6",
-          "background": "#ede9fe"
+          "stroke": "#b9a5d6",
+          "background": "#282431"
         }
       },
       "style": "",
@@ -26,8 +26,8 @@
           "background": "#e0e7ff"
         },
         "dark": {
-          "stroke": "#6366f1",
-          "background": "#e0e7ff"
+          "stroke": "#a7b0d8",
+          "background": "#242735"
         }
       },
       "style": "",
@@ -42,8 +42,8 @@
           "background": "#e2e8f0"
         },
         "dark": {
-          "stroke": "#475569",
-          "background": "#e2e8f0"
+          "stroke": "#aab5c3",
+          "background": "#252a32"
         }
       },
       "style": "",
@@ -58,8 +58,8 @@
           "background": "#f1f5f9"
         },
         "dark": {
-          "stroke": "#64748b",
-          "background": "#f1f5f9"
+          "stroke": "#aab5c3",
+          "background": "#232830"
         }
       },
       "defaultCounterName": "Subsection",
@@ -74,8 +74,8 @@
           "background": "#cffafe"
         },
         "dark": {
-          "stroke": "#0891b2",
-          "background": "#cffafe"
+          "stroke": "#8fbfc9",
+          "background": "#202c31"
         }
       },
       "style": "",
@@ -90,8 +90,8 @@
           "background": "#ccfbf1"
         },
         "dark": {
-          "stroke": "#0d9488",
-          "background": "#ccfbf1"
+          "stroke": "#8fc5b4",
+          "background": "#202d29"
         }
       },
       "style": "",
@@ -106,8 +106,8 @@
           "background": "#ecfccb"
         },
         "dark": {
-          "stroke": "#65a30d",
-          "background": "#ecfccb"
+          "stroke": "#b2c49a",
+          "background": "#282d23"
         }
       },
       "style": "",
@@ -122,8 +122,8 @@
           "background": "#ffedd5"
         },
         "dark": {
-          "stroke": "#ea580c",
-          "background": "#ffedd5"
+          "stroke": "#cdb08e",
+          "background": "#302920"
         }
       },
       "style": "",
@@ -138,8 +138,8 @@
           "background": "#fce7f3"
         },
         "dark": {
-          "stroke": "#db2777",
-          "background": "#fce7f3"
+          "stroke": "#c7a0b9",
+          "background": "#302530"
         }
       },
       "style": "",
@@ -154,8 +154,8 @@
           "background": "#ffe4e6"
         },
         "dark": {
-          "stroke": "#e11d48",
-          "background": "#ffe4e6"
+          "stroke": "#cc9fa8",
+          "background": "#302428"
         }
       },
       "style": "",
@@ -170,8 +170,8 @@
           "background": "#fef9c3"
         },
         "dark": {
-          "stroke": "#ca8a04",
-          "background": "#fef9c3"
+          "stroke": "#c9be8f",
+          "background": "#2e2b21"
         }
       },
       "style": "",
@@ -186,8 +186,8 @@
           "background": "#f5f5f5"
         },
         "dark": {
-          "stroke": "#525252",
-          "background": "#f5f5f5"
+          "stroke": "#b5b8be",
+          "background": "#27292d"
         }
       },
       "style": "",
@@ -202,8 +202,8 @@
           "background": "#f1f5f9"
         },
         "dark": {
-          "stroke": "#64748b",
-          "background": "#f1f5f9"
+          "stroke": "#aab5c3",
+          "background": "#252a32"
         }
       },
       "style": "",
@@ -221,8 +221,8 @@
           "background": "#DDEEFF"
         },
         "dark": {
-          "stroke": "#0078D4",
-          "background": "#DDEEFF"
+          "stroke": "#9bb9d6",
+          "background": "#232b35"
         }
       }
     },
@@ -236,8 +236,8 @@
           "background": "#ddffee"
         },
         "dark": {
-          "stroke": "#4EC9A2",
-          "background": "#ddffee"
+          "stroke": "#8fc5b4",
+          "background": "#202d29"
         }
       }
     },
@@ -251,8 +251,8 @@
           "background": "#eeeeee"
         },
         "dark": {
-          "stroke": "#888888",
-          "background": "#eeeeee"
+          "stroke": "#b5b8be",
+          "background": "#27292d"
         }
       }
     },
@@ -266,14 +266,90 @@
           "background": "#f1f5f9"
         },
         "dark": {
-          "stroke": "#64748b",
-          "background": "#f1f5f9"
+          "stroke": "#aab5c3",
+          "background": "#252a32"
+        }
+      }
+    },
+    {
+      "id": "rule",
+      "name": "rule",
+      "description": "Semantic rendering kind; sub remains structurally transparent.",
+      "coloring": {
+        "light": {
+          "stroke": "#009C27",
+          "background": "#D6FEE0"
+        },
+        "dark": {
+          "stroke": "#98bf9d",
+          "background": "#232d26"
+        }
+      }
+    },
+    {
+      "id": "binder",
+      "name": "binder",
+      "description": "Semantic rendering kind; sub remains structurally transparent.",
+      "coloring": {
+        "light": {
+          "stroke": "#E07B00",
+          "background": "#FFEBD2"
+        },
+        "dark": {
+          "stroke": "#cdb08e",
+          "background": "#302920"
+        }
+      }
+    },
+    {
+      "id": "bvar",
+      "name": "bvar",
+      "description": "Semantic rendering kind; sub remains structurally transparent.",
+      "coloring": {
+        "light": {
+          "stroke": "#7700E4",
+          "background": "#EFDFFF"
+        },
+        "dark": {
+          "stroke": "#b9a5d6",
+          "background": "#282431"
+        }
+      }
+    },
+    {
+      "id": "fvar",
+      "name": "fvar",
+      "description": "Semantic rendering kind; sub remains structurally transparent.",
+      "coloring": {
+        "light": {
+          "stroke": "#D20022",
+          "background": "#FFD6DC"
+        },
+        "dark": {
+          "stroke": "#cc9fa8",
+          "background": "#302428"
+        }
+      }
+    },
+    {
+      "id": "sub",
+      "name": "sub",
+      "description": "Semantic rendering kind; sub remains structurally transparent.",
+      "coloring": {
+        "light": {
+          "stroke": "inherit",
+          "background": "transparent"
+        },
+        "dark": {
+          "stroke": "inherit",
+          "background": "transparent"
         }
       }
     }
   ],
   "active_macro_packages": [
     "api-doc",
+    "basics-docs",
     "katex",
     "react",
     "ts"

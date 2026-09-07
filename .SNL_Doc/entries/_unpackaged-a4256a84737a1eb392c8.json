@@ -8,8 +8,8 @@
     "kind": "constant",
     "title": "Default Kind Palette",
     "content": {
-      "snl": "%The built-in kind-color palette: bvar purple, fvar red, rule green, const blue, binder dark purple, and rewrite yellow. A host can replace the entire palette or override individual kinds as needed.%",
-      "markdown": "The built-in kind-color palette: `bvar` purple, `fvar` red, `rule` green, `const` blue, `binder` dark purple, and `rewrite` yellow. A host can replace the entire palette or override individual kinds as needed."
+      "snl": "%The built-in runtime palette contains rule (green), const (blue), bvar (purple), binder (orange), fvar (red), and structurally transparent sub. There is no built-in rewrite entry. The default light/dark pairs deliberately retain the same legacy colors; use an explicit host/workspace palette for intentional dark styling. This repository supplies its own themed palette without changing the shared runtime defaults.%",
+      "markdown": "The built-in runtime palette contains rule (green), const (blue), bvar (purple), binder (orange), fvar (red), and structurally transparent sub. There is no built-in rewrite entry. The default light/dark pairs deliberately retain the same legacy colors; use an explicit host/workspace palette for intentional dark styling. This repository supplies its own themed palette without changing the shared runtime defaults."
     },
     "contribution_info": null,
     "pointer": {

@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Specification.Compatibility",
+    "kind": "concept",
+    "title": "Compatibility and evidence boundaries",
+    "content": {
+      "markdown": "Package version, runtime Macro schema, runtime Tree schema, and `.SNL_Doc` workspace storage version are independent. For this baseline they are 0.3.4, 11, 3, and 0.1.0 respectively. A palette or prose edit does not by itself require a runtime schema bump.\n\nCurrent canonical Entries are the per-entity envelopes under `.SNL_Doc/entries`; Packages own membership, and Library graphs own ordered reading occurrences. `.SNL_Doc/entries.json` and `term_macros` are frozen migration predecessors, not editable mirrors of today's content. The public Toolkit writer is the authoring route; successful raw JSON parsing is not a substitute for its revision and cross-reference checks.\n\nVerification is layered:\n1. Toolkit validation: current storage shape, memberships, topology and reference closure.\n2. Source/type/unit tests: parser, selector, binding, driver and renderer behavior for exercised cases.\n3. Production browser: actual Entry/text/formula/block/code/hover/preview rendering and interactions in both themes.\n4. Packed consumer: emitted exports, declarations, styles and dependency boundaries.\n5. Installed consumer/export: real host or exported artifact, with its actual version and data.\n\nEach layer has its own claim. A green document validator does not prove rendering; a built source package does not prove npm publication; a browser harness is not the author's Windows F5 host. Record inherited failures separately rather than rewriting old snapshots until an unrelated test passes.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/schema/versions.ts",
+      "mode": "regex",
+      "pattern": "export const MACRO_SCHEMA_VERSION"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.Entries",
+    "kind": "concept",
+    "title": "Render complete Entry cards",
+    "content": {
+      "markdown": "Provide an `EntryDataDriver` with `query_entry({ entry_id, signal })` and `query_entry_kind({ kind_id, signal })`. Add optional context queries when your document uses context-backed declarations. Return `null` for an actual missing record and propagate genuine I/O errors.\n\nWrap `EntryView` in `EntryPreviewProvider`, supplying the same Entry and Macro drivers. A Macro's `source.entries` can then open another real Entry. Pass the same `kind_palette` into the preview provider and outer Entry view; customizing only the outer card leaves nested syntax/previews on a different palette.\n\n```tsx\n<EntryPreviewProvider entry_data_driver={entries} macro_data_driver={macros}\n  kind_palette={palette}>\n  <EntryView entry_id=\"example.definition\" entry_data_driver={entries}\n    macro_data_driver={macros} kind_palette={palette} />\n</EntryPreviewProvider>\n```\n\nAlso import `/entry/style.css` and KaTeX CSS. For a host that already has the Entry and Kind objects, use `EntrySurface` rather than copying its HTML/CSS into a local renderer.\n\nAn Entry can store SNL plus explanatory Markdown, but the normal card shows the first nonblank representation, not both. SNL wins. Put prose-only chapters in Markdown or provide an explicit supplementary source reader if readers need both representations simultaneously. Typst content is a source preview here, not a compiled Typst document.\n\nAttach title/source/preview activation through `interaction_ports`; only the host resolves a Pointer to an editor or route. Do not fabricate file pointers for conceptual guide chapters.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

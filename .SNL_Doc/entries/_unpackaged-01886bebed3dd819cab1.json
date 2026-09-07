@@ -9,7 +9,7 @@
     "title": "SNL Syntax Tree Parse Options",
     "content": {
       "snl": "interface(SnlSyntaxTreeParseOptions,enumerate(Type.judge(SnlSyntaxTreeParseOptions.activeBinderIds,Type.opt(Type.array(string)))))",
-      "markdown": "The set of enclosing binder names passed when parsing a fragment."
+      "markdown": "Compatibility parser options. `activeBinderIds` is deprecated and has no effect in the current parser; enclosing semantic context belongs to the resolution stage, not this no-op parser option."
     },
     "contribution_info": null,
     "pointer": {

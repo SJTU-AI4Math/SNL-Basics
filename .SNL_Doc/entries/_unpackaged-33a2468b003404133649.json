@@ -6,10 +6,10 @@
   "entry": {
     "id": "con.stability-stable",
     "kind": "concept",
-    "title": "Stability Level — Stable",
+    "title": "Stability target and current beta status",
     "content": {
-      "snl": "%Semantics and signatures are frozen; changes require a semver-major release. Symbols already used by Extension or Toolkit belong to this level by default.%",
-      "markdown": "Semantics and signatures are frozen; changes require a semver-major release. Symbols already used by Extension or Toolkit belong to this level by default."
+      "snl": "%Stable is the intended post-review contract level, not a claim that current 0.x APIs are frozen. The package remains beta: API and serialized schema can change, with the documented migration and deprecation measures. Use by Extension or Toolkit does not automatically make a symbol stable.%",
+      "markdown": "Stable is the intended post-review contract level, not a claim that current 0.x APIs are frozen. The package remains beta: API and serialized schema can change, with the documented migration and deprecation measures. Use by Extension or Toolkit does not automatically make a symbol stable."
     },
     "contribution_info": null,
     "pointer": null,

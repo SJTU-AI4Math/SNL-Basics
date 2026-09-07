@@ -1,0 +1,29 @@
+{
+  "id": "basics-docs",
+  "name": "SNL-Basics Documentation",
+  "description": "Maintained behavioral specification and integration guide. Existing API reference Entries retain their identities and ownership.",
+  "entry_ids": [
+    "Basics.Document",
+    "Basics.Document.Debugging",
+    "Basics.Document.Entries",
+    "Basics.Document.FirstTree",
+    "Basics.Document.Maintenance",
+    "Basics.Document.ReferenceMap",
+    "Basics.Document.Setup",
+    "Basics.Document.Templates",
+    "Basics.Document.Theme",
+    "Basics.Specification",
+    "Basics.Specification.Compatibility",
+    "Basics.Specification.Drivers",
+    "Basics.Specification.Interaction",
+    "Basics.Specification.Macros",
+    "Basics.Specification.Ownership",
+    "Basics.Specification.Rendering",
+    "Basics.Specification.Svg",
+    "Basics.Specification.Syntax",
+    "Basics.Specification.Theme"
+  ],
+  "format": "snl-package",
+  "version": 1,
+  "schema_version": 2
+}

@@ -1,0 +1,133 @@
+{
+  "nodes": [
+    {
+      "id": "Basics.Specification",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification"
+      }
+    },
+    {
+      "id": "Basics.Specification.Ownership",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Ownership"
+      }
+    },
+    {
+      "id": "Basics.Specification.Syntax",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Syntax"
+      }
+    },
+    {
+      "id": "Basics.Specification.Macros",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Macros"
+      }
+    },
+    {
+      "id": "Basics.Specification.Drivers",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Drivers"
+      }
+    },
+    {
+      "id": "Basics.Specification.Rendering",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Rendering"
+      }
+    },
+    {
+      "id": "Basics.Specification.Svg",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Svg"
+      }
+    },
+    {
+      "id": "Basics.Specification.Theme",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Theme"
+      }
+    },
+    {
+      "id": "Basics.Specification.Interaction",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Interaction"
+      }
+    },
+    {
+      "id": "Basics.Specification.Compatibility",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Compatibility"
+      }
+    },
+    {
+      "id": "spec.rv.automatic-style-selection-034",
+      "label": "Entry",
+      "props": {
+        "entryId": "spec.rv.automatic-style-selection-034"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Ownership",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Syntax",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Macros",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Drivers",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Rendering",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Svg",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Theme",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Interaction",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Compatibility",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Macros",
+      "to": "spec.rv.automatic-style-selection-034",
+      "label": "branch"
+    }
+  ]
+}

@@ -13,7 +13,7 @@
       "pattern": "export\\s+class\\s+MacroDataDriver\\b"
     },
     "content": {
-      "markdown": "Query-only macro data source with bounded LRU cache and in-flight deduplication. All macro lookups go through `query_macro()`. Added in v0.10.0."
+      "markdown": "Query-only Macro source with a bounded hit-and-miss LRU (default 256), unsignalled in-flight deduplication, independently cancellable signalled queries, and epoch-protected cache clearing. `query_macro` is the injected lookup boundary. `context_reader` / `read_context()` carry the live light/dark scheme; the consumer triggers rerenders. See `Basics.Specification.Drivers` for the lifecycle contract."
     },
     "contribution_info": null,
     "legacy_predecessor_draft": {

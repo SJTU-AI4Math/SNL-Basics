@@ -9,7 +9,7 @@
     "title": "Formula SNL Syntax Tree Node",
     "content": {
       "snl": "interface(SnlSyntaxTreeFormulaNode,enumerate(Type.judge(SnlSyntaxTreeFormulaNode.mode,Type.literal(formula))))",
-      "markdown": "The branch whose `envMode` is `formula_inline` or `formula_display`. In this branch, `name` carries LaTeX source and is rendered directly by KaTeX."
+      "markdown": "Auxiliary node type in `node-types.ts` with `mode: \"formula\"`; not a parser output branch. The real parser emits the flat primary tree with `env_mode: \"formula_inline\"` or `\"formula_display\"` for literal formulas and stores their source in `temporary_source`. A regular Macro selects its formula mode from a Style template."
     },
     "contribution_info": null,
     "pointer": {

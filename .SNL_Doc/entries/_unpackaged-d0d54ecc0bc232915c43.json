@@ -8,8 +8,8 @@
     "kind": "concept",
     "title": "Entry-Kinds Decision for This Document (Metadocumentation)",
     "content": {
-      "snl": "%Ten kinds are used: NpmPackage, Module, Interface, Class, Field, Function, ReactComponent, Property, Constant, and Concept. Interface members are documented within content rather than as separate entries. Class members receive separate subentries. Methods reuse Function; the full name Property avoids ambiguity with Lean’s Prop = Proposition; and default implementations reuse Constant.%",
-      "markdown": "Ten kinds are used: `NpmPackage`, `Module`, `Interface`, `Class`, `Field`, `Function`, `ReactComponent`, `Property`, `Constant`, and `Concept`. Interface members are documented within `content` rather than as separate entries. Class members receive separate subentries. Methods reuse `Function`; the full name `Property` avoids ambiguity with Lean’s `Prop = Proposition`; and default implementations reuse `Constant`."
+      "snl": "%This document uses thirteen Entry kinds: NpmPackage, Module, Section, Subsection, Interface, Class, Field, Function, ReactComponent, Property, Constant, Concept and Remark. Existing interface and class member Entries remain detailed reference nodes; the maintained Specification and Document organize contracts and integration topics rather than regenerating every field. Methods reuse Function, and Property is distinct from a mathematical proposition.%",
+      "markdown": "This document uses thirteen Entry kinds: NpmPackage, Module, Section, Subsection, Interface, Class, Field, Function, ReactComponent, Property, Constant, Concept and Remark. Existing interface and class member Entries remain detailed reference nodes; the maintained Specification and Document organize contracts and integration topics rather than regenerating every field. Methods reuse Function, and Property is distinct from a mathematical proposition."
     },
     "contribution_info": null,
     "pointer": null,

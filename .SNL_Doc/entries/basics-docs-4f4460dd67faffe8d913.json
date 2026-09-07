@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Specification.Drivers",
+    "kind": "concept",
+    "title": "Query drivers and live context",
+    "content": {
+      "markdown": "`MacroDataDriver` is the single injected Macro backend. `query_macro({ macro_name, signal? })` returns a Macro or `null`. The driver has a bounded hit-and-miss LRU (default capacity 256), shares unsignalled in-flight requests, and leaves signalled requests independently cancellable. Errors propagate; a failed fetch is not a successful Macro miss. `clear_cache(name?)` invalidates the corresponding cached/in-flight generation so stale completions cannot repopulate it.\n\n`EntryDataDriver` supplies Entry/Kind/context queries with its own cache and cancellation lifecycle. Query identity is separate from presentation: do not add Style occupancy or current theme to Macro-name lookup just to implement rendering.\n\nBoth drivers accept a synchronous `context_reader: () => ({ color_scheme })`, with `color_scheme` equal to `light` or `dark`; absence defaults to light. `read_context()` reads the live source rather than a construction-time snapshot. **Consumer responsibility:** changing that source must also trigger the relevant React render, including open Entry previews. The driver is not a theme-event subscription system.\n\nLanguage and preferences travel through `ReaderRuntime` and its injected `query_environment`; theme selection for current Entry and Macro rendering travels through the drivers' context readers. Supplying only a ReaderRuntime does not configure both driver palettes. Storage and setting subscriptions remain outside Basics.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/macro-data-driver.ts",
+      "mode": "regex",
+      "pattern": "export class MacroDataDriver"
+    }
+  }
+}

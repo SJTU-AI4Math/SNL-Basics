@@ -59,6 +59,15 @@ correctness.
 
 ---
 
+## Maintained Specification and Document
+
+The repository's canonical documentation is in `.SNL_Doc`:
+
+- **[Specification](.SNL_Doc/libraries/specification)** — ownership, syntax/binding, templates and Style selection, drivers, rendering/SVG, light/dark presentation, interaction, and compatibility contracts.
+- **[Document](.SNL_Doc/libraries/document)** — setup, first tree, Entry integration, live theme/language, templates, debugging, and document maintenance.
+
+Open those Libraries with SNL Doc Extension. Existing module and Public API Libraries remain detailed reference views; they are not an exhaustive generated export inventory. Author current Entries/Kinds/Library graphs through the public Toolkit CLI. Frozen migration backups are not authoring targets.
+
 ## Runnable example
 
 [`examples/basic-demo`](examples/basic-demo) is a self-contained Vite + React

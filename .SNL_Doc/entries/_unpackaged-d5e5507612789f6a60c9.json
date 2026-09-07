@@ -8,8 +8,8 @@
     "kind": "constant",
     "title": "Default Renderers",
     "content": {
-      "snl": "%The default block-renderer registry. It includes built-in renderers such as list, enumerate, matrix, table, and centered. A host can extend it with spread syntax: { ...defaultRenderers, custom: MyRenderer }.%",
-      "markdown": "The default block-renderer registry. It includes built-in renderers such as `list`, `enumerate`, `matrix`, `table`, and `centered`. A host can extend it with spread syntax: `{ ...defaultRenderers, custom: MyRenderer }`."
+      "snl": "%The default block-renderer registry contains list, enumerate, table, centered and right. It does not register matrix or svg_template. Extend it with a spread of defaultRenderers plus consumer-owned renderer keys; replacing hooks.renderers without that spread replaces the nested registry.%",
+      "markdown": "The default block-renderer registry contains list, enumerate, table, centered and right. It does not register matrix or svg_template. Extend it with a spread of defaultRenderers plus consumer-owned renderer keys; replacing hooks.renderers without that spread replaces the nested registry."
     },
     "contribution_info": null,
     "pointer": {

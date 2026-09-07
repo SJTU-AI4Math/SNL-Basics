@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Specification.Ownership",
+    "kind": "concept",
+    "title": "Ownership and public boundaries",
+    "content": {
+      "markdown": "SNL-Basics owns a domain-neutral SNL parser, tree/semantic utilities, Macro template resolution, rendering, and injectable interaction mechanisms. It does not own mathematical terminology, an Entry database, a workspace writer, a filesystem, editor routing, or a Lean elaborator.\n\nThe consumer supplies `MacroDataQueries`, `EntryDataQueries`, language/theme context, source activation, and any additional block renderers. `.SNL_Doc` is documentation data consumed through those mechanisms; the repository's TypeScript/API terminology is not a built-in mathematical ontology.\n\nPublic imports are the package root and the subpaths declared in `package.json#exports`: `/core`, `/runtime`, `/hover`, `/entry`, `/style.css`, and `/entry/style.css`. A file present under `src/` or `dist-lib/` is not automatically a public import. `/entry` is optional and owns the Markdown dependency chain; the package root must not acquire it merely to render a syntax tree.\n\nRenderer output and publication/export are different layers. Typst/PDF generation, standalone HTML packaging, workspace mutations, and editor Pointer resolution belong to consumer products. Basics can display a Typst source body but does not compile it into a typeset document.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": {
+      "file": "package.json",
+      "mode": "regex",
+      "pattern": "\"exports\""
+    }
+  }
+}

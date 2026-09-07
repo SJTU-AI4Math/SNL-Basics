@@ -8,8 +8,8 @@
     "kind": "module",
     "title": "SNL React View Module",
     "content": {
-      "snl": "%The React component layer, which depends on KaTeX and React. It provides the main SnlSyntaxTreeView rendering component, the SnlSyntaxTreeEditor editor, and a complete rendering infrastructure including hooks, a palette, a DB loader, and a block-renderer registry.%",
-      "markdown": "The React component layer, which depends on KaTeX and React. It provides the main `SnlSyntaxTreeView` rendering component, the `SnlSyntaxTreeEditor` editor, and a complete rendering infrastructure including hooks, a palette, a DB loader, and a block-renderer registry."
+      "snl": "%The React and KaTeX rendering layer provides SnlSyntaxTreeView, query-driven Macro resolution, hooks, palettes, interaction and a block-renderer registry. The source also contains an internal/demo SnlSyntaxTreeEditor; it is not a package-root export. The complete Entry route is the optional entry subpath. Public imports are determined by package.json exports and their barrel declarations.%",
+      "markdown": "The React and KaTeX rendering layer provides SnlSyntaxTreeView, query-driven Macro resolution, hooks, palettes, interaction and a block-renderer registry. The source also contains an internal/demo SnlSyntaxTreeEditor; it is not a package-root export. The complete Entry route is the optional entry subpath. Public imports are determined by package.json exports and their barrel declarations."
     },
     "contribution_info": null,
     "pointer": {

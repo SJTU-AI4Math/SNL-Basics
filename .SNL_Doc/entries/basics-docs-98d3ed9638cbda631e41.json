@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Specification.Svg",
+    "kind": "concept",
+    "title": "SVG slots and foreign child placement",
+    "content": {
+      "markdown": "SVG support is opt-in: the consumer registers `createSvgTemplateRenderer` with `SvgTemplateAssetRegistry`; `svg_template` is not in `defaultRenderers`. It supports fixed-arity templates. Formula embedding requires the admitted `formula_embed` metric policy; a failed asset/policy has a visible fallback.\n\nThe `svg_template` renderer projects ordinary child trees into SVG slots. A slot index addresses the original child array. Valid indices may be omitted or repeated; indices outside the admitted arity are invalid. Each repeated placement needs its own rendering/lifecycle identity, but all placements of one child retain that child's canonical semantic tree path.\n\nFormula, text and block children must go through the normal child-rendering mechanism. Children are semantic trees, never string-interpolated HTML/SVG. A host-supplied SVG asset loader, sanitized template, and actual geometry are separate prerequisites.\n\nFormula-embedded SVGs participate in KaTeX/ForeignBox sizing. Ordinary block SVGs retain their intrinsic canvas contract rather than being silently squeezed until labels overlap. Test actual placement, clipping, baselines, narrow containers, repeated-slot hover and teardown, not just slot-count metadata.\n\nThe SVG asset/template contract does not promise that arbitrary external images, fonts or URLs will become self-contained in an exported HTML file. Offline asset closure and export settlement belong to the exporting consumer and require separate end-to-end tests.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

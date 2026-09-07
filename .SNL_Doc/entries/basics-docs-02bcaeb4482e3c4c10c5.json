@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.Debugging",
+    "kind": "concept",
+    "title": "Diagnose a failed rendering layer",
+    "content": {
+      "markdown": "Follow the actual pipeline rather than changing authored data until an error disappears.\n\n1. **Storage:** run the public Toolkit validator. Distinguish malformed current records from frozen migration backups; do not edit a backup to make the current workspace pass.\n2. **Parsing:** reproduce with the exact SNL bytes. Check delimiter boundaries, empty slots and explicit Style. A failed Macro query is not a parse failure.\n3. **Data:** inspect the returned Macro, Style order, complete localized template, Entry Kind and active Package. Clear or replace a driver cache after a backend change when appropriate.\n4. **Selection:** compare filled child indices with the eligible template's referenced set. Unknown explicit Styles are errors; an implicit mismatch can legitimately retain the first Style.\n5. **Rendering:** inspect the effective block registry, CSS/assets, container widths, actual computed colors, and browser console. Typst source display is not a compiler failure.\n6. **Identity:** check semantic tree/source/binder paths. Equal visible labels and a successful click handler do not prove the right target was selected.\n7. **Host:** identify the exact loaded package/bundle and host palette/context wiring. A source test in Basics cannot establish which VSIX or Webview is installed elsewhere.\n\nKeep failures visible and preserve the source. Fix a mechanism in its owning layer; do not rewrite a correct Entry to hide a renderer defect. Report a source-level or harness-level result as such, especially before claiming Windows Extension or standalone export parity.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

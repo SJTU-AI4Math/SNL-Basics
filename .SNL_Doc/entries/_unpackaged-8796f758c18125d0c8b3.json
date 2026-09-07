@@ -8,7 +8,7 @@
     "kind": "component",
     "title": "EntrySurface",
     "content": {
-      "markdown": "Renders a loaded Entry as a kind-colored card. Body precedence is nonblank SNL, Markdown, LaTeX, text, then header-only empty state."
+      "markdown": "Renders a loaded Entry as a Kind-colored card. Body precedence is nonblank SNL, Markdown, Typst, LaTeX, text, then header-only. Typst is displayed as source rather than compiled. The Entry driver chooses frame theme, while nested SNL uses the Macro driver and supplied palette."
     },
     "pointer": {
       "file": "src/entry-react/entry-render.tsx",

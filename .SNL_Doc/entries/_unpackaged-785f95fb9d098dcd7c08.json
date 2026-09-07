@@ -9,7 +9,7 @@
     "title": "SNL Renderer Registry",
     "content": {
       "snl": "Type.judge(SnlRendererRegistry,Type.record(string,SnlBlockRenderer))",
-      "markdown": "The block-renderer registry type, `Record<string, SnlBlockRenderer>`. A resolved complete `SnlBlockMacroTemplate` uses its `block_template_name` (`list`, `enumerate`, `matrix`, and so on) as the dispatch key."
+      "markdown": "`Record<string, SnlBlockRenderer>` maps a selected complete block template's `block_template_name` to its renderer. Built-in keys are `list`, `enumerate`, `table`, `centered`, and `right`. SVG and other custom keys require explicit consumer registration."
     },
     "contribution_info": null,
     "pointer": {

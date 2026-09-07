@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Specification.Macros",
+    "kind": "concept",
+    "title": "Macro templates, arity, and Style identity",
+    "content": {
+      "markdown": "A Macro has a name, description, source Entry/URL references, tags, an ordered nonempty Style list, and a Macro-level `dynamic_arity`. Each Style has a unique `style_name`, tags and one `template`. A localized template selects a **complete projection atomically**: mode, body, separator and block renderer must come from the same language projection.\n\nTemplate modes are `text`, `formula_inline`, `formula_display`, and `block`. Fixed placeholders use positional child indices `#0` through `#99`; repeated and omitted references are valid. The arity bound is the highest referenced index plus one, not the number of occurrences. Dynamic templates use `#*` and their separator; that is a Macro contract, not a Style-specific reindexing permission.\n\nSelection order is: explicit selector → retained deprecated runtime `default_style` compatibility → first eligible exact occupied-slot match → original first-Style fallback. An unknown explicit selector is an error. On a no-match fallback, the selected Style remains selected even if it omits supplied children or exposes missing arguments.\n\nAutomatic selection compares sets of **filled child indices**, not types, rendered text, visible argument count, or a Lean pattern. Eligibility inspects every locale projection and excludes opaque/custom/block projections from inference; explicit use of those Styles remains valid. Changing language selects a projection inside the same automatically selected Style. Inference never persists `style_name` or mutates children.\n\nThe existing Entry `spec.rv.automatic-style-selection-034`, attached directly below this chapter, gives the exact eligibility, escaping, legacy compatibility, and acceptance matrix. It is the detailed contract when a summary here is insufficient.\n\nConsumer-owned output extensions remain opaque. Basics must not guess their slot use, rewrite their program, or specialize selection by Macro name.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/render-source.ts",
+      "mode": "regex",
+      "pattern": "export function resolveStyle"
+    }
+  }
+}

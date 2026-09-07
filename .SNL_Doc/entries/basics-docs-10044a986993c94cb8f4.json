@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.Theme",
+    "kind": "concept",
+    "title": "Connect light/dark and language",
+    "content": {
+      "markdown": "Theme needs two connections: a live context reader, and a React rerender. Both Entry and Macro drivers must observe the same value. The complete palette has separate light and dark pairs.\n\n```tsx\nconst schemeRef = useRef<'light' | 'dark'>('dark')\nconst [scheme, setScheme] = useState<'light' | 'dark'>('dark')\nconst context_reader = () => ({ color_scheme: schemeRef.current })\n// Construct stable drivers once, with that context_reader:\n// new MacroDataDriver({ queries: macroQueries, context_reader })\n// new EntryDataDriver({ queries: entryQueries, context_reader })\nfunction switchTheme(next: 'light' | 'dark') {\n  schemeRef.current = next\n  setScheme(next) // rerender the views/provider, not only the toolbar\n}\n```\n\nThe surrounding host owns its own page background and controls. Changing `data-theme` on the page alone does not change a driver created without a context reader. Conversely, changing only the reader without a React update leaves existing DOM unchanged. Ensure memoized ancestors and already-open previews receive the update.\n\nFor language, inject `ReaderRuntime({ queries: { query_environment: () => ({ language: currentLanguage }) } })` and rerender on the host's language change. Localized templates are chosen atomically inside the selected Style. Do not use a locale toggle to reorder the Style list.\n\nThis workspace supplies muted dark colors for its Entry and Macro Kinds. Its actual color values live in `.SNL_Doc/config.json`, not in this prose. `sub` remains transparent. The shared `DEFAULT_KIND_PALETTE` retains legacy-compatible defaults, so a consumer that wants these colors must read/pass the workspace palette; there is no automatic connection from a repository config file into a runtime driver.\n\nWhen checking comfort, inspect long Markdown/code chapters, ordinary SNL hover, binder highlighting, and recursive previews in both themes. A palette swatch by itself misses foreground inheritance and alpha blending.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

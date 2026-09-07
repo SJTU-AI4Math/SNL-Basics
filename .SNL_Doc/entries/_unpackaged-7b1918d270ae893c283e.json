@@ -6,10 +6,10 @@
   "entry": {
     "id": "con.surface-b-deep-path",
     "kind": "concept",
-    "title": "Surface B — Toolkit Deep Path (Parser Only)",
+    "title": "Historical deep imports and current subpaths",
     "content": {
-      "snl": "%SNL-Agent-Toolkit currently imports external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts directly through a git submodule. This is pure TypeScript with no React, KaTeX, or DOM dependencies and can run in a Node CLI. See the related decision concept for whether to formalize it as a subpath export.%",
-      "markdown": "SNL-Agent-Toolkit currently imports `external/SNL-Basics/src/snl-syntax-tree/{parser,types}.ts` directly through a git submodule. This is pure TypeScript with no React, KaTeX, or DOM dependencies and can run in a Node CLI. See the related decision concept for whether to formalize it as a subpath export."
+      "snl": "%Historical Toolkit integrations vendored parser source through a Git submodule. Such implementation paths are not public package exports. The current package exposes core, runtime, hover and entry subpaths as declared in package.json; it does not expose a parser-only subpath. An adapter migration requires checking its actual dependencies and the pinned public API, not assuming that a source file is a supported import.%",
+      "markdown": "Historical Toolkit integrations vendored parser source through a Git submodule. Such implementation paths are not public package exports. The current package exposes core, runtime, hover and entry subpaths as declared in package.json; it does not expose a parser-only subpath. An adapter migration requires checking its actual dependencies and the pinned public API, not assuming that a source file is a supported import."
     },
     "contribution_info": null,
     "pointer": null,

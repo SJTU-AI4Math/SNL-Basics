@@ -8,8 +8,8 @@
     "kind": "remark",
     "title": "Parse SNL Syntax Tree — Remark",
     "content": {
-      "snl": "%Parses SNL source into a syntax tree and annotates its bindings; syntax errors throw a parse exception carrying a character position.%",
-      "markdown": "Parses SNL source into a syntax tree and annotates its bindings; syntax errors throw a parse exception carrying a character position."
+      "snl": "%Parses SNL syntax and assigns temporary-node coordinates; it does not annotate bindings. Use the Macro-aware semantic resolution stage for current Tree3 binding and source resolution. Parse errors preserve their source position.%",
+      "markdown": "Parses SNL syntax and assigns temporary-node coordinates; it does not annotate bindings. Use the Macro-aware semantic resolution stage for current Tree3 binding and source resolution. Parse errors preserve their source position."
     },
     "contribution_info": null,
     "pointer": {

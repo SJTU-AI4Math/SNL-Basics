@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.Templates",
+    "kind": "concept",
+    "title": "Author templates without changing meaning",
+    "content": {
+      "markdown": "Use one stable Macro identity for a concept and named Styles for alternative presentations. A Style can omit or repeat positional children, but those children remain in the semantic tree. Use `[style]` when selection is intentional; otherwise the current selector may find the first eligible exact occupied-slot match and falls back to the first Style if none matches.\n\nFor a sparse tree with filled children 0 and 2, a clean template `#0 = #2` can match; `#0 = #1 = #2` cannot. This is positional occupancy, not inferred mathematical type. A visible empty string `%%` is still a filled child.\n\nFixed-arity placeholders and dynamic `#*` are different contracts. Do not add a separator or remove children to force a fixed template to behave like a list. Keep every localized projection complete and compatible with the intended slot semantics.\n\nCustom block renderers belong in an extended registry:\n\n```ts\nconst hooks = {\n  renderers: { ...defaultRenderers, my_block: MyBlockRenderer },\n}\n```\n\nImport the documented renderer types and implement `renderChild` use through the received props. Do not interpolate child text into raw HTML. A host-owned output backend or opaque extension may make a Style ineligible for automatic selection; this does not prevent selecting it explicitly.\n\nFor parameterized SVG, use original child indices at anchors. Repeated slots need independent placement/lifecycle keys but the same semantic child path. Check block and formula embedding separately; a diagram that looks right in a wide card can still clip in a formula or a narrow preview.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document",
+    "kind": "section",
+    "title": "Document",
+    "content": {
+      "markdown": "Start here to understand and use SNL-Basics. The **Specification** Library states behavioral contracts; this Library follows the work of an integrator and document author.\n\nThe central path is:\n\n`authored SNL → parser → query-backed Macro/semantic resolution → Style and language projection → text/formula/block view → injected interaction`\n\nFor complete documents, wrap that path in the optional Entry renderer: Entry and Kind queries supply cards, and a preview provider gives source-backed recursive reading.\n\nRead the guide chapters below in order. They cover setup, a minimal rendered expression, complete Entry cards, live language/theme, templates and custom blocks, debugging and verification, and maintenance of this repository's own docs. The closing reference map links the existing detailed API Entries without duplicating their identities.\n\nThis is an integration guide for the current beta API, not a promise of a stable 1.0 interface or an exhaustive catalog of every internal helper.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

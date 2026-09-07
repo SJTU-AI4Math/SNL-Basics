@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Specification.Rendering",
+    "kind": "concept",
+    "title": "Tree, Entry, and block rendering",
+    "content": {
+      "markdown": "`SnlSyntaxTreeView` resolves the Macro and Style before dispatching to native text, inline/display formula, or block rendering. Formulas use KaTeX plus semantic metadata. Temporary names do not require a stored Macro. On an actual query miss, ordinary multi-letter identifier bases are displayed using `mathsf` with escaped underscores; typography does not change the raw identity or bind arguments inside the name's font command. This is not a fallback for an existing Macro's Style mismatch.\n\nThe optional `/entry` route supplies `EntryDataDriver`, `EntryView`, `EntrySurface` and `EntryPreviewProvider`. An Entry chooses its first nonblank body in this order: **SNL → Markdown → Typst → LaTeX → text → header only**. It does not concatenate them. Non-SNL content may be localized through ReaderRuntime. Typst is shown as source, not compiled. Markdown supports GFM, KaTeX and lexical code highlighting; this is not semantic Lean tooling.\n\nEntry titles support prose with balanced inline-math islands. Parse/query/localization failures are visible and must not be mistaken for an empty successful document. Source activation and Pointer values remain host ports.\n\nCustom blocks use the renderer registry and `renderChild`, preserving child semantics and paths. Extending `hooks.renderers` must retain required defaults explicitly: an object spread of hooks is not a recursive merge of its nested registry. A selected renderer/mode must be shared across the normal rendering surfaces, not re-inferred differently inside each host.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/entry-react/entry-render.tsx",
+      "mode": "regex",
+      "pattern": "export function EntrySurface"
+    }
+  }
+}

@@ -9,7 +9,7 @@
     "title": "Kind Palette",
     "content": {
       "snl": "Type.judge(KindPalette,Type.record(string,KindColoring))",
-      "markdown": "The complete kind-color palette, `Record<string, KindColoring>`. Built-in kinds include `bvar` (purple), `fvar` (red), `rule`, `const`, `binder`, and `rewrite`."
+      "markdown": "`KindPalette = Record<string, KindColoring>` maps semantic display kinds to flat-compatible or complete themed coloring. Default keys are `rule`, `const`, `bvar`, `binder`, `fvar`, and transparent `sub`. Custom kinds keep their palette identity; there is no built-in `rewrite` key."
     },
     "contribution_info": null,
     "pointer": {

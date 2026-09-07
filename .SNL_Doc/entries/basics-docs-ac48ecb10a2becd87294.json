@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Specification.Syntax",
+    "kind": "concept",
+    "title": "Source, identity, and binding",
+    "content": {
+      "markdown": "A parsed tree is a mode-agnostic semantic object with `macro_name`, `kind`, `mdata`, and ordered `children`, plus optional Style, temporary-literal, binder, postfix, and source fields. Rendering mode is derived from the selected Macro template; it is not inferred from a domain name.\n\n- `f(a,b)` is a Macro/variable application with positional children. `[style]` is an explicit Style selector.\n- `%…%`, `$…$`, and `$$…$$` create temporary text, inline-formula, and display-formula nodes. Their payload lives in `temporary_source`; `macro_name` is a temporary coordinate such as `#0.1`, not that payload or a Macro lookup key. Backticks add `texttt` presentation to inline-formula mode. Outside these delimiters the input is SNL, not arbitrary KaTeX.\n- `@x` declares an explicit leaf binder; applying children to a prefix binder is rejected. Postfix syntax and resolved source references must remain distinct from displayed names. Local identity is a tree position; equal-looking glyphs do not establish equal binders.\n- `f(a,,b)` preserves an unfilled middle slot. An intentional empty text `%%` is a filled child. Never pack children leftward because a Style omits them.\n- `parseSnlSyntaxTree` throws a typed parse error; `tryParseSnlSyntaxTree` provides the non-throwing route. The parser only parses syntax; it does not annotate bindings. `activeBinderIds` is a deprecated no-op. Parsing alone does not prove a Macro exists or a source reference resolves.\n\n`annotateBindings` and semantic resolution supply binding/source metadata. Host transformations that move children must preserve or correctly reconstruct those coordinates. Rendering, theme switching, and implicit Style selection must not rewrite the authored tree or invent source identity.\n\n`serializeSnlSyntaxTree` / `SnlDslFormatter` produce parser-readable SNL. Round-trip checks compare semantics, explicit selection, empty slots and binding/source coordinates; exact original whitespace is not the contract. `isSnlSyntaxTree` is a shallow runtime guard, not whole-workspace or semantic validation.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-syntax-tree/types.ts",
+      "mode": "regex",
+      "pattern": "export interface SnlSyntaxTree"
+    }
+  }
+}

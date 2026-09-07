@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Specification",
+    "kind": "section",
+    "title": "Specification",
+    "content": {
+      "markdown": "This Library specifies the current SNL-Basics behavior that an implementation and a consuming adapter must preserve. It is organized by contracts, not by the order of exported TypeScript declarations. **Document** explains how to use those contracts; the existing module and Public API Libraries remain detailed reference views rather than competing specifications.\n\nThe reference baseline is repository commit `24b271e` (package 0.3.4, Macro schema 11, Tree schema 3). This revision additionally adjusts this repository's own `.SNL_Doc` palette; it does not change runtime schemas, global palette defaults, npm publication, or downstream installations. The package remains beta.\n\nRead in order: ownership → source and binding → Macro templates and selection → query lifecycle → rendering → light/dark → interaction → compatibility and acceptance. The dedicated automatic-selection Spec is incorporated as the detailed selection contract, not duplicated into a new algorithm.\n\nNormative statements below describe current mechanisms unless explicitly marked **maintenance requirement** or **consumer responsibility**. A requirement is not a claim that every host has already passed its acceptance tests.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

@@ -9,7 +9,7 @@
     "title": "Text SNL Syntax Tree Node",
     "content": {
       "snl": "interface(SnlSyntaxTreeTextNode,enumerate(Type.judge(SnlSyntaxTreeTextNode.mode,Type.literal(text))))",
-      "markdown": "The branch whose `envMode` is `text`. The `name` field carries text content, which is rendered as a React text run rather than in KaTeX math mode."
+      "markdown": "Auxiliary node type in `node-types.ts` with `mode: \"text\"`; not a parser output branch. The real parser emits the flat primary tree and represents delimited text using `env_mode: \"text\"`, a coordinate `macro_name`, and `temporary_source` for the payload."
     },
     "contribution_info": null,
     "pointer": {

@@ -3,6 +3,7 @@
   "version": 1,
   "package": "api-doc",
   "macro": {
+    "name": "api.code",
     "description": "Inline monospace fallback for arbitrary code snippets (e.g. \\forall, `dist-lib/index.js`). No color; use when no other kind fits.",
     "kind": "fvar",
     "dynamic_arity": false,
@@ -16,12 +17,11 @@
         "tags": [],
         "template": {
           "mode": "formula_inline",
-          "body": "\\textcolor{Black}{\\texttt{#0}}"
+          "body": "\\texttt{#0}"
         }
       }
     ],
-    "tags": [],
-    "name": "api.code"
+    "tags": []
   },
   "schema_version": 1
 }

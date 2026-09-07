@@ -1,0 +1,17 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.Maintenance",
+    "kind": "concept",
+    "title": "Maintain these documents",
+    "content": {
+      "markdown": "The canonical prose and SNL live in current Entry envelopes under `.SNL_Doc/entries`. The **Specification** and **Document** Library graphs assemble reading order. Existing API and module Libraries remain available; their Entry identities and references are preserved rather than regenerated from a new naming scheme.\n\nUse the unified `snl` public CLI:\n\n```sh\nsnl validate --root . --json\nsnl entry get Basics.Specification.Theme --root . --json\n# Prepare a complete updated Entry as a temporary JSON payload.\nsnl entry update Basics.Specification.Theme --root . --if-match <revision> --input <payload.json> --json\nsnl validate --root . --json\n```\n\nUse the exact opaque revision from the latest read; on conflict, reread and reconsider. Kind, Package and Library changes also go through public entity operations. A sequence of successful entity writes is not a whole-workspace atomic batch.\n\nDo not hand-edit hashed canonical files, Package indexes, migration receipts, frozen `entries.json` or `term_macros`. Keep payloads and local browser/test evidence out of canonical content. Source-backed corrections update the existing Entry instead of creating a second contradictory API record.\n\nWhen code changes, update the relevant contract chapter and guide example, then the affected detailed reference. Verify graph readback, current entities, real rendered examples, and the appropriate tests. Keep version/publication/installed-consumer claims separate. READMEs are discovery entry points, not independently maintained copies of this Specification.\n"
+    },
+    "package": "basics-docs",
+    "contribution_info": null,
+    "pointer": null
+  }
+}

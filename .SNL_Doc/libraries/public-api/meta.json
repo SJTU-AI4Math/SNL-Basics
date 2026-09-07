@@ -1,4 +1,4 @@
 {
   "title": "Public API",
-  "description": "Complete package-root API view for @sjtu-ai4math/snl-basics. This library references canonical Entries only; its nodes correspond one-to-one with the 75 named exports from src/snl-react-view/index.ts."
+  "description": "Curated public API reference view using canonical Entries. It is not an exhaustive generated export inventory; package.json exports and current TypeScript declarations define the public surface."
 }

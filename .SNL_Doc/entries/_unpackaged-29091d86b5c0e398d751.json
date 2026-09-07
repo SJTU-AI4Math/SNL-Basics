@@ -8,8 +8,8 @@
     "kind": "remark",
     "title": "Convert Palette to CSS — Remark",
     "content": {
-      "snl": "%Compiles a Kind Palette into the CSS required for hover and binding-scope highlighting.%",
-      "markdown": "Compiles a Kind Palette into the CSS required for hover and binding-scope highlighting."
+      "snl": "%Compiles a Kind Palette for the selected light/dark scheme into hover and binding-scope CSS. Text uses the solid selected stroke; highlight outline and fill use 50 percent alpha. This does not select a host theme or subscribe to theme changes. Pass the same live theme to both Entry and Macro rendering.%",
+      "markdown": "Compiles a Kind Palette for the selected light/dark scheme into hover and binding-scope CSS. Text uses the solid selected stroke; highlight outline and fill use 50% alpha. This does not select a host theme or subscribe to theme changes. Pass the same live theme to both Entry and Macro rendering."
     },
     "contribution_info": null,
     "pointer": {

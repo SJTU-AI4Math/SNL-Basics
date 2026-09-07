@@ -6,10 +6,10 @@
   "entry": {
     "id": "rv.comp.snl-syntax-tree-editor",
     "kind": "component",
-    "title": "SNL Syntax Tree Editor",
+    "title": "SNL Syntax Tree Editor (internal/demo)",
     "content": {
-      "snl": "%A GUI syntax-tree editor (Inductive). It lets users edit a SnlSyntaxTree structurally rather than editing plain-text SNL source. CreateEntryApp currently uses it as an alternative UI for SNL input.%",
-      "markdown": "A GUI syntax-tree editor (Inductive). It lets users edit a `SnlSyntaxTree` structurally rather than editing plain-text SNL source. `CreateEntryApp` currently uses it as an alternative UI for SNL input."
+      "snl": "%An internal/demo structural syntax-tree editor present in the source tree. It is not exported by the current package-root public API. Retained here as an implementation reference, not as an npm import promise.%",
+      "markdown": "An internal/demo structural syntax-tree editor present in the source tree. It is not exported by the current package-root public API. Retained here as an implementation reference, not as an npm import promise."
     },
     "contribution_info": null,
     "pointer": {

@@ -6,9 +6,9 @@
   "entry": {
     "id": "mac.iface.snl-macro.kind",
     "kind": "field",
-    "title": "$\\texttt{kind}$ [REMOVED v0.10.0]",
+    "title": "$\\texttt{kind}$",
     "content": {
-      "markdown": "Semantic kind (rule / const / bvar / binder / fvar / custom). If unset, nodes rendered for this macro get `data-kind=\"fvar\"`. (There is no more `'default'` kind — un-classified = fvar.)"
+      "markdown": "Optional display kind. A resolved Macro without a kind defaults to `const`, not `fvar`; a true Macro miss can fall back to `fvar`. Explicit node semantic kinds are preserved, while Macro `sub` is structurally transparent. Non-special custom kinds retain their display identity and use const behavior. See `resolveRenderedKind` and `behaviorKind` in `src/snl-react-view/kind-behavior.ts`."
     },
     "contribution_info": null,
     "pointer": {
@@ -17,7 +17,6 @@
       "pattern": "^\\s*kind\\??\\s*(?::|\\()",
       "flags": "m"
     },
-    "deprecated": true,
     "package": "_unpackaged"
   }
 }
