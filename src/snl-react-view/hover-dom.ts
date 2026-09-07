@@ -122,18 +122,38 @@ export interface SemanticHighlightRect {
 export function measureSemanticHighlightRects(target: HTMLElement): SemanticHighlightRect[] {
   if (target.classList.contains('snl-text') &&
       target.ownerDocument.defaultView?.getComputedStyle(target).display === 'inline') {
-    const anchors = Array.from(target.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0)
-    const lines: SemanticHighlightRect[] = anchors.map(({ left, top, right, bottom, width, height }) =>
-      ({ left, top, right, bottom, width, height }))
+    // One inline element can expose multiple adjacent/duplicate rectangles on
+    // the SAME line (nested spans, repeated slots, break boundaries). Normalize
+    // those fragments before expanding any line to include formula overflow.
+    const fragments = Array.from(target.getClientRects())
+      .filter((rect) => rect.width > 0 && rect.height > 0)
+      .sort((a, b) => a.top - b.top || a.bottom - b.bottom || a.left - b.left)
+    const anchors: SemanticHighlightRect[] = []
+    for (const { left, top, right, bottom, width, height } of fragments) {
+      const previous = anchors.at(-1)
+      if (previous && previous.top === top && previous.bottom === bottom && left <= previous.right) {
+        previous.right = Math.max(previous.right, right)
+        previous.width = previous.right - previous.left
+      } else {
+        anchors.push({ left, top, right, bottom, width, height })
+      }
+    }
+    const lines = anchors.map((rect) => ({ ...rect }))
     if (!lines.length) return []
     const include = (rect: SemanticHighlightRect, anchor = rect) => {
       // Match against the original line boxes, never an already expanded frame:
       // a tall formula must not absorb the preceding/following prose line.
       let index = 0
       let distance = Number.POSITIVE_INFINITY
+      let horizontalDistance = Number.POSITIVE_INFINITY
       anchors.forEach((line, i) => {
         const vertical = Math.abs((line.top + line.bottom) - (anchor.top + anchor.bottom))
-        if (vertical < distance) { index = i; distance = vertical }
+        const horizontal = Math.abs((line.left + line.right) - (anchor.left + anchor.right))
+        if (vertical < distance || (vertical === distance && horizontal < horizontalDistance)) {
+          index = i
+          distance = vertical
+          horizontalDistance = horizontal
+        }
       })
       const line = lines[index]
       line.left = Math.min(line.left, rect.left)

@@ -442,7 +442,7 @@ function TextRun({
           <Fragment key={i}>
             {children.map((child, ci) => (
               <Fragment key={ci}>
-                {ci > 0 && sep ? <span>{sep}</span> : null}
+                {ci > 0 && sep ? renderTextWithMathIslands(sep) : null}
                 {renderChild(child, ci)}
               </Fragment>
             ))}

@@ -26,6 +26,45 @@ import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
 import { serializeSnlSyntaxTree } from './serialize'
 import { automaticStyleFixture, automaticStyleText } from '../../test-fixtures/root-text-typography/automatic-style'
 
+
+describe('native text separators share literal-run processing', () => {
+  it.each(['\n', '\r\n', '\r', '\n\n'])('materializes authored breaks in a #* separator (%j)', async (sep) => {
+    const macro: SnlMacro = { ...listAllPeople, name: 'Breaks', kind: 'const', styles: [
+      { style_name: 'default', tags: [], template: { mode: 'text', body: 'HEADER #* END', separator: sep } },
+    ] }
+    const tree = parseSnlSyntaxTree('Breaks(%first%,%second%,%third%)')
+    const original = JSON.stringify(tree)
+    const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver({ Breaks: macro })} />)
+    await waitFor(() => expect(container.querySelector('.snl-text[data-name="Breaks"]')).not.toBeNull())
+    const target = container.querySelector('.snl-text[data-name="Breaks"]')!
+    expect(target.querySelectorAll('br')).toHaveLength(2 * (sep.match(/\r\n?|\n/g)?.length ?? 0))
+    expect(target.textContent).toBe('HEADER firstsecondthird END')
+    expect(JSON.stringify(tree)).toBe(original)
+    expect(macro.styles[0].template).toEqual({ mode: 'text', body: 'HEADER #* END', separator: sep })
+  })
+
+  it.each(['', '#*'])('keeps empty-template and #* joining equivalent for authored separators (body %j)', async (body) => {
+    const macro: SnlMacro = { ...listAllPeople, name: 'Breaks', kind: 'const', dynamic_arity: body === '#*', styles: [
+      { style_name: 'default', tags: [], template: { mode: 'text', body, separator: '\n\n' } },
+    ] }
+    const { container } = render(<SnlSyntaxTreeView tree={parseSnlSyntaxTree('Breaks(%first%,%second%)')} macro_data_driver={testDriver({ Breaks: macro })} />)
+    await waitFor(() => expect(container.querySelector('.snl-text[data-name="Breaks"]')).not.toBeNull())
+    expect(container.querySelectorAll('br')).toHaveLength(2)
+    expect(container.querySelector('.snl-text[data-name="Breaks"]')?.textContent).toBe('firstsecond')
+  })
+
+  it('retains blank lines next to slots and renders separator math as a math island', async () => {
+    const macro: SnlMacro = { ...listAllPeople, name: 'Breaks', kind: 'const', styles: [
+      { style_name: 'default', tags: [], template: { mode: 'text', body: 'HEADER\n\n#*\nEND', separator: '\n$x$\n' } },
+    ] }
+    const { container } = render(<SnlSyntaxTreeView tree={parseSnlSyntaxTree('Breaks(%first%,%second%)')} macro_data_driver={testDriver({ Breaks: macro })} />)
+    await waitFor(() => expect(container.querySelector('.snl-text[data-name="Breaks"]')).not.toBeNull())
+    expect(container.querySelectorAll('br')).toHaveLength(5)
+    expect(container.querySelector('.snl-math-span .katex-html')?.textContent).toBe('x')
+    expect(container.querySelector('.katex-error')).toBeNull()
+  })
+})
+
 function leaf(name: string): SnlSyntaxTree {
   return createSnlSyntaxTreeNode(name, { kind: 'fvar' })
 }

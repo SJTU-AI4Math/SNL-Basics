@@ -144,6 +144,29 @@ describe('applySnlHoverHighlight', () => {
     expect(byId('t').classList.contains(SNL_HOVER_CLASS.geometry)).toBe(false)
   })
 
+  it('consolidates adjacent and duplicate native fragments on one visual line', () => {
+    const container = mount('<span id="t" class="snl-text" style="display:inline" data-kind="const" data-name="parent"><span id="nested">nested</span> literal <span>repeat</span></span>')
+    const rects = [new DOMRect(80, 20, 40, 20), new DOMRect(10, 44, 30, 20), new DOMRect(40, 44, 20, 20), new DOMRect(60, 44, 40, 20), new DOMRect(60, 44, 40, 20)]
+    byId('t').getClientRects = () => Object.assign(rects, { item: (i: number) => rects[i] ?? null })
+    const nested = [rects[1], rects[3]]
+    byId('nested').getClientRects = () => Object.assign(nested, { item: (i: number) => nested[i] ?? null })
+    applySnlHoverHighlight(byId('t'), container)
+    const boxes = [...document.querySelectorAll<HTMLElement>('[data-snl-highlight-overlay]')]
+      .map(el => [el.style.left, el.style.top, el.style.width, el.style.height])
+    expect(boxes).toEqual([['80px', '20px', '40px', '20px'], ['10px', '44px', '90px', '20px']])
+  })
+
+  it('does not expand the first segment with a disjoint same-line descendant', () => {
+    const container = mount('<span id="t" class="snl-text" style="display:inline" data-kind="const" data-name="text"><span id="right">right</span></span>')
+    const rects = [new DOMRect(10, 20, 30, 20), new DOMRect(80, 20, 30, 20), new DOMRect(10, 64, 30, 20)]
+    byId('t').getClientRects = () => Object.assign(rects, { item: (i: number) => rects[i] ?? null })
+    byId('right').getClientRects = () => Object.assign([rects[1]], { item: () => rects[1] })
+    applySnlHoverHighlight(byId('t'), container)
+    const boxes = [...document.querySelectorAll<HTMLElement>('[data-snl-highlight-overlay]')]
+      .map(el => [el.style.left, el.style.top, el.style.width, el.style.height])
+    expect(boxes).toEqual([['10px', '20px', '30px', '20px'], ['80px', '20px', '30px', '20px'], ['10px', '64px', '30px', '20px']])
+  })
+
   it('keeps a tall inline formula atomic on its own text line, including escaped descendants', () => {
     const container = mount('<span id="t" class="snl-text" style="display:inline" data-kind="const" data-name="mixed"><span id="nested" class="snl-text">text</span><span id="math" class="snl-math-span"><span id="fraction"></span></span></span>')
     const stub = (id: string, rects: DOMRect[]) => {

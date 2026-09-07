@@ -1,4 +1,5 @@
 import React from 'react'
+import { verifyNativeLineFrames } from './native-lines'
 import { createRoot } from 'react-dom/client'
 import { SnlSyntaxTreeView } from '../../src/components/SnlSyntaxTreeView'
 import { createSnlSyntaxTreeNode } from '../../src/snl-syntax-tree/types'
@@ -259,7 +260,7 @@ requestAnimationFrame(async () => {
     }
     clearSnlHoverHighlight(app)
     const nativeText = await verifyNativeText()
-    Object.assign(payload, { nativeText })
+    Object.assign(payload, { nativeText, nativeLineFrames: await verifyNativeLineFrames() })
     result.dataset.status = 'pass'
     result.textContent = JSON.stringify(payload)
   } catch (error) {
