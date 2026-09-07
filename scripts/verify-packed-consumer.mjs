@@ -211,6 +211,12 @@ try { await resolveRootLatex(invalidResolved.tree, autoDriver); }
 catch (error) { rejected = error.message.includes('unknown style') && error.message.includes('missing'); }
 if (!rejected) throw new Error('packed semantic/render pipeline silently fell back from explicit Style');
 console.log('packed automatic Style selection and source-preservation smoke pass');
+const queryMiss = parseSnlSyntaxTree('variable_name(a,b)');
+const queryMissLatex = await resolveRootLatex(queryMiss, autoDriver);
+if (!queryMissLatex.includes(${JSON.stringify('\\mathsf{variable\\_name}(')})) throw new Error('packed query-miss mathsf/underscore contract failed');
+if (serializeSnlSyntaxTree(queryMiss) !== 'variable_name(a,b)') throw new Error('packed query-miss source changed');
+console.log('packed query-miss typography smoke pass');
+
 const template = {
   mode: 'block', body: '#0', block_template_name: 'consumer-svg',
   svg_template: {

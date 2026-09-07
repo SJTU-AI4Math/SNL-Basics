@@ -516,7 +516,8 @@ export interface FormulaRenderPlan {
  * Recursively resolve a node into its KaTeX source. Templates get filled;
  * children get wrapped with `wrapForParent` so text/formula splicing is
  * valid; missing macros use the same fallback the react view uses
- * (`\operatorname{…}` head for applied form, `\mathrm{…}` for leaf).
+ * (multi-letter plain heads use `\\mathsf`; backslash heads retain
+ * `\\operatorname` for applications and `\\mathrm` for leaves).
  *
  * `driver` is queried for each unique macro_name encountered. The driver's
  * internal cache avoids redundant queries.
@@ -657,21 +658,21 @@ export async function resolveNodeLatex(
       )
   }
 
-  // Query-miss fallback for plain-identifier names.
+  // Query-miss names are literal labels, independent of semantic kind.
+  // Font scope covers only the head, never parentheses or child expressions.
   if (!hasDbMacro) {
     const bs = node.macro_name.startsWith('\\')
-    if (node.children.length > 0) {
-      const stem = bs ? node.macro_name.slice(1) : node.macro_name
-      const head = bs
-        ? `\\operatorname{${escapeLatexText(stem)}}`
-        : node.macro_name
-      const argList = wrappedChildren.join(', ')
-      return wrapHtmlData(node, `${head}(${argList})`, macro, treePath)
-    }
-    if (bs) {
-      const stem = node.macro_name.slice(1)
-      return wrapHtmlData(node, `\\mathrm{${escapeLatexText(stem)}}`, macro, treePath)
-    }
+    const stem = bs ? node.macro_name.slice(1) : node.macro_name
+    const escaped = escapeLatexText(stem)
+    const head = bs
+      ? node.children.length > 0
+        ? `\\operatorname{${escaped}}`
+        : `\\mathrm{${escaped}}`
+      : Array.from(stem).length > 1 && /\p{L}/u.test(stem)
+        ? `\\mathsf{${escaped}}`
+        : escaped
+    const body = node.children.length > 0 ? `${head}(${wrappedChildren.join(', ')})` : head
+    return wrapHtmlData(node, body, macro, treePath)
   }
 
   const template = resolvedTemplate?.body ?? node.macro_name

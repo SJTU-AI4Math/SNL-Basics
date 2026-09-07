@@ -8,8 +8,8 @@
     "kind": "remark",
     "title": "Resolve Node LaTeX — Remark",
     "content": {
-      "snl": "%Recursively resolves a node and its subtree, producing KaTeX source with source and binding metadata.%",
-      "markdown": "Recursively resolves a node and its subtree, producing KaTeX source with source and binding metadata."
+      "snl": "%Recursively resolves a node and its subtree with source and binding metadata. On Macro query miss, multi-character plain names containing a letter use sans-serif math typography for all semantic kinds; underscores are escaped. Arguments remain outside the name font group. Registered templates and source trees are unchanged.%",
+      "markdown": "Recursively resolves a node and its subtree, producing KaTeX source with source and binding metadata.\n\n## Query-miss identifier typography\n\nFor plain identifier nodes whose Macro query returns null, names containing a Unicode letter and more than one Unicode code point render as `\\mathsf{escapedName}`. This applies equally to binder, bvar, fvar and ordinary/custom kinds. Escape underscores in the name as `\\_`, including repeated underscores; reuse the existing name-escaping routine. Parentheses and recursively rendered comma-separated operands remain outside the font group. Examples: `variable` → `\\mathsf{variable}`; `variable_name(a,b)` → `\\mathsf{variable\\_name}(a, b)`.\n\nSingle-letter names retain their prior math font; numeric names are not converted to mathsf. A leading-backslash identifier retains the existing `\\mathrm` / `\\operatorname` fallback. Registered Macro templates (including their deliberately empty projections), explicit env-mode payloads, source names, semantic kinds, bindings, child order and serialization are not rewritten. Macro-query errors are not query misses. This is shared renderer behavior, not a synthetic Macro or Style registration.\n"
     },
     "contribution_info": null,
     "pointer": {

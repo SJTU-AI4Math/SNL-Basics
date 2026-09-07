@@ -1,5 +1,6 @@
 import React from 'react'
 import { verifyAutomaticStyle } from './automatic-style'
+import { verifyQueryMissTypography } from './query-miss-typography'
 import { createRoot } from 'react-dom/client'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
@@ -143,8 +144,10 @@ async function verify() {
   const cjkFontLoaded = cjkFaces.length > 0
   const katexFontLoaded = katexFaces.length > 0
   const automaticStyle = await verifyAutomaticStyle()
+  const queryMissTypography = await verifyQueryMissTypography()
   const metrics = {
     automaticStyle,
+    queryMissTypography,
     mode,
     rootClass: root.className,
     rootFamily: rootStyle.fontFamily,

@@ -136,7 +136,7 @@ describe('envMode synthetic-macro path', () => {
 })
 
 describe('macroDb-miss fallback for plain names', () => {
-  it('applied `foo(a)` with no db entry renders as `foo(a)` (no \\operatorname)', async () => {
+  it('applied `foo(a)` with no db entry uses a mathsf head (no \\operatorname)', async () => {
     const t: SnlSyntaxTree = {
       macro_name: 'foo',
       kind: 'fvar',
@@ -145,7 +145,7 @@ describe('macroDb-miss fallback for plain names', () => {
     }
     const latex = await collectLatex(t, emptyDb)
     expect(latex).not.toContain('\\operatorname')
-    expect(latex).toMatch(/foo\(.*a.*\)/)
+    expect(latex).toMatch(/\\mathsf\{foo\}\(.*a.*\)/)
   })
 
   it('applied `\\foo(a)` with no db entry renders as \\operatorname{foo}(a)', async () => {
