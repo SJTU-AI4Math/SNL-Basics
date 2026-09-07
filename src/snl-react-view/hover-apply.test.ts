@@ -167,6 +167,19 @@ describe('applySnlHoverHighlight', () => {
     expect(boxes).toEqual([['10px', '20px', '30px', '20px'], ['80px', '20px', '30px', '20px'], ['10px', '64px', '30px', '20px']])
   })
 
+  it.each([false, true])('keeps a contained descendant in an unequal-width segment (mirrored: %s)', (mirrored) => {
+    const container = mount('<span id="t" class="snl-text" style="display:inline" data-kind="const" data-name="text"><span id="inside">inside</span></span>')
+    const interval = (left: number, right: number) => new DOMRect(mirrored ? 300 - right : left, 20, right - left, 20)
+    const rects = [interval(10, 210), interval(220, 250)].sort((a, b) => a.left - b.left)
+    const child = interval(190, 210)
+    byId('t').getClientRects = () => Object.assign(rects, { item: (i: number) => rects[i] ?? null })
+    byId('inside').getClientRects = () => Object.assign([child], { item: () => child })
+    applySnlHoverHighlight(byId('t'), container)
+    const boxes = [...document.querySelectorAll<HTMLElement>('[data-snl-highlight-overlay]')]
+      .map(el => [parseFloat(el.style.left), parseFloat(el.style.width)])
+    expect(boxes).toEqual(rects.map(r => [r.left, r.width]))
+  })
+
   it('keeps a tall inline formula atomic on its own text line, including escaped descendants', () => {
     const container = mount('<span id="t" class="snl-text" style="display:inline" data-kind="const" data-name="mixed"><span id="nested" class="snl-text">text</span><span id="math" class="snl-math-span"><span id="fraction"></span></span></span>')
     const stub = (id: string, rects: DOMRect[]) => {

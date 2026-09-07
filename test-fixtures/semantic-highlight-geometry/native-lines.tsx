@@ -34,6 +34,36 @@ function wordRect(host: HTMLElement, word: string) {
   throw new Error(`Missing word ${word}`)
 }
 
+// A real multi-column inline creates unequal disjoint rectangles at one
+// vertical position. Unlike mocked unit geometry, these are browser boxes.
+function verifyUnequalColumnSegments() {
+  const columns = document.createElement('div')
+  columns.className = 'katex-html'
+  columns.style.cssText = 'font:20px/24px monospace;column-count:2;column-gap:10px;column-fill:auto;height:24px'
+  const target = document.createElement('span')
+  target.className = 'snl-text'
+  target.style.font = 'inherit'
+  target.dataset.kind = 'const'; target.dataset.name = 'unequal-columns'
+  const prefix = document.createTextNode('x '.repeat(9))
+  const tail = document.createElement('span'); tail.textContent = 'yy'
+  const suffix = document.createTextNode(' z')
+  target.append(prefix, tail, suffix); columns.append(target); document.body.append(columns)
+  try {
+    const first = document.createRange(); first.setStart(prefix, 0); first.setEnd(prefix, 1)
+    const glyphWidth = first.getBoundingClientRect().width
+    columns.style.width = `${glyphWidth * 40 + 10}px`
+    const last = document.createRange(); last.setStart(suffix, 1); last.setEnd(suffix, 2)
+    const left = first.getBoundingClientRect(), inside = tail.getBoundingClientRect(), right = last.getBoundingClientRect()
+    if (Math.abs(left.top - right.top) > .5 || !(right.left > inside.right) || !(inside.right - left.left > right.width * 3)) throw new Error('Unequal column fixture did not form disjoint line segments')
+    applySnlHoverHighlight(target, columns)
+    const paint = frames()
+    if (paint.length !== 2 || Math.abs(paint[0].left - left.left) > .5 || Math.abs(paint[0].right - inside.right) > .5 || Math.abs(paint[1].left - right.left) > .5 || Math.abs(paint[1].right - right.right) > .5) {
+      throw new Error('Unequal native segments bridged their gap')
+    }
+    return { source: 'unequal-columns', frames: paint.map(r => r.toJSON()) }
+  } finally { clearSnlHoverHighlight(columns); columns.remove() }
+}
+
 export async function verifyNativeLineFrames() {
   const host = document.createElement('div')
   host.style.cssText = 'width:270px;font-size:20px;line-height:1.2;margin:20px'
@@ -96,6 +126,7 @@ export async function verifyNativeLineFrames() {
       clearSnlHoverHighlight(host)
       if (frames().length) throw new Error('Native line cleanup leaked frames')
     }
+    results.push(verifyUnequalColumnSegments())
     return results
   } finally { clearSnlHoverHighlight(host); root.unmount(); host.remove() }
 }

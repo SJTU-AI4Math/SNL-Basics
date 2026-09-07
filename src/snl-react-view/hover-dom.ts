@@ -145,13 +145,20 @@ export function measureSemanticHighlightRects(target: HTMLElement): SemanticHigh
       // a tall formula must not absorb the preceding/following prose line.
       let index = 0
       let distance = Number.POSITIVE_INFINITY
+      let horizontalOverlap = Number.NEGATIVE_INFINITY
       let horizontalDistance = Number.POSITIVE_INFINITY
       anchors.forEach((line, i) => {
         const vertical = Math.abs((line.top + line.bottom) - (anchor.top + anchor.bottom))
+        // A contained fragment belongs to its interval, even if an adjacent
+        // narrow interval has a nearer center. Negative overlap ranks gaps.
+        const overlap = Math.min(line.right, anchor.right) - Math.max(line.left, anchor.left)
         const horizontal = Math.abs((line.left + line.right) - (anchor.left + anchor.right))
-        if (vertical < distance || (vertical === distance && horizontal < horizontalDistance)) {
+        if (vertical < distance || (vertical === distance && (
+          overlap > horizontalOverlap || (overlap === horizontalOverlap && horizontal < horizontalDistance)
+        ))) {
           index = i
           distance = vertical
+          horizontalOverlap = overlap
           horizontalDistance = horizontal
         }
       })
