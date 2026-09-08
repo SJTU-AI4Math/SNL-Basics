@@ -20,8 +20,9 @@ function verifyPaint(clippers: HTMLElement[]) {
   const paint = nodes.map(el => {
     const raw = el.getBoundingClientRect(), css = getComputedStyle(el).clipPath
     const values = css === 'none' ? [0, 0, 0, 0] : css.slice(6, -1).split(/\s+/).map(parseFloat)
-    const [t, r, b, l] = values.length === 1 ? Array(4).fill(values[0]) : values.length === 2 ? [values[0], values[1], values[0], values[1]] : values
+    const [t, r, b, l] = values.length === 1 ? Array(4).fill(values[0]) : values.length === 2 ? [values[0], values[1], values[0], values[1]] : values.length === 3 ? [values[0], values[1], values[2], values[1]] : values
     const painted = { left: raw.left + l, top: raw.top + t, right: raw.right - r, bottom: raw.bottom - b }
+    if (!Object.values(painted).every(Number.isFinite)) throw new Error('Invalid computed clip inset')
     if (painted.left < clip.left - .8 || painted.right > clip.right + .8 || painted.top < clip.top - .8 || painted.bottom > clip.bottom + .8) throw new Error('Highlight paint escaped overflow clip')
     if (painted.right <= painted.left || painted.bottom <= painted.top) throw new Error('Fully clipped frame still visible')
     return { raw: box(raw), painted, css }
