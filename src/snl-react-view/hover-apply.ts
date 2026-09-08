@@ -58,6 +58,15 @@ function overflowClip(fragment: HTMLElement, view: Window) {
   let left = -Infinity, top = -Infinity, right = Infinity, bottom = Infinity
   for (let el: HTMLElement | null = fragment; el && el !== fragment.ownerDocument.documentElement; el = el.parentElement) {
     const style = view.getComputedStyle(el)
+    if (el === fragment.ownerDocument.body) {
+      const rootStyle = view.getComputedStyle(fragment.ownerDocument.documentElement)
+      const uncontained = (s: CSSStyleDeclaration) => !s.contain || s.contain === 'none'
+      // CSS Overflow 3 §3.1.4: body overflow can be used by the viewport,
+      // leaving body's used overflow visible. Its short client box is then
+      // NOT a clip. Non-visible root overflow or containment disables this.
+      if (rootStyle.overflowX === 'visible' && rootStyle.overflowY === 'visible' &&
+          uncontained(rootStyle) && uncontained(style)) continue
+    }
     if (style.display === 'inline' || style.display === 'contents') continue
     const clips = (value: string) => /^(auto|scroll|hidden|clip|overlay)$/.test(value)
     const x = clips(style.overflowX), y = clips(style.overflowY)

@@ -29,6 +29,41 @@ function verifyPaint(clippers: HTMLElement[]) {
   })
   return { clip, paint }
 }
+
+async function verifyBodyPropagation() {
+  const iframe = document.createElement('iframe')
+  iframe.style.cssText = 'width:600px;height:400px;border:0'
+  document.body.append(iframe)
+  const doc = iframe.contentDocument!
+  doc.open(); doc.write('<!doctype html><html><head><style>html{overflow:visible}body{margin:0;height:100px;overflow:auto}.snl-highlight-overlay{position:absolute;display:block}.snl-highlight-overlay[hidden]{display:none}</style></head><body><div style="height:200px"></div><div id="host" class="katex-html"><span id="target" data-kind="const" data-name="target">Visible target</span></div><div style="height:500px"></div></body></html>'); doc.close()
+  const host = doc.getElementById('host')!, target = doc.getElementById('target')!
+  const results: unknown[] = []
+  try {
+    await settle()
+    for (const mode of ['viewport', 'body-scroll', 'html-contain', 'body-contain']) {
+      clearSnlHoverHighlight(host)
+      doc.documentElement.style.overflow = mode === 'body-scroll' ? 'hidden' : 'visible'
+      doc.documentElement.style.contain = mode === 'html-contain' ? 'layout' : 'none'
+      doc.body.style.contain = mode === 'body-contain' ? 'layout' : 'none'
+      doc.body.scrollTop = 0; doc.defaultView!.scrollTo(0, 0)
+      await settle()
+      const rect = target.getBoundingClientRect()
+      const hit = doc.elementFromPoint(rect.left + 3, rect.top + 3)
+      const visible = hit === target || !!hit && target.contains(hit)
+      if (visible !== (mode === 'viewport')) throw new Error(`Body fixture did not establish ${mode} used overflow`)
+      applySnlHoverHighlight(target, host)
+      const overlay = doc.querySelector<HTMLElement>('[data-snl-highlight-overlay]')!
+      if (overlay.hidden === visible) throw new Error(`Body overflow propagation mismatch: ${mode}`)
+      results.push({ mode, visible, hidden: overlay.hidden })
+      if (mode !== 'viewport') {
+        doc.body.scrollTop = 180; doc.body.dispatchEvent(new Event('scroll'))
+        if (overlay.hidden || doc.body.scrollTop === 0) throw new Error(`Independent body scroll did not restore target: ${mode}`)
+      }
+    }
+    return results
+  } finally { clearSnlHoverHighlight(host); iframe.remove() }
+}
+
 export async function verifyOverflowClipping() {
   const outer = document.createElement('div'), scroller = document.createElement('div'), mount = document.createElement('div'), spacer = document.createElement('div')
   outer.style.cssText = 'width:330px;height:160px;overflow:hidden;border:5px solid gray;padding:8px;transform:translate(11px,7px) scale(1.1);transform-origin:top left'
@@ -71,6 +106,7 @@ export async function verifyOverflowClipping() {
     results.push({ state: 'atomic-formula', ...verifyPaint([outer, scroller]) })
     clearSnlHoverHighlight(mount)
     if (document.querySelector('[data-snl-highlight-overlay]')) throw new Error('Clipping cleanup leaked owned overlays')
+    results.push({ bodyPropagation: await verifyBodyPropagation() })
     return results
   } finally { clearSnlHoverHighlight(mount); root.unmount(); outer.remove() }
 }
