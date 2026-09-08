@@ -33,17 +33,17 @@ export type CompatibleKindColoring = LegacyKindColoring | ThemedKindColoring
 
 export type KindPalette = Record<string, KindColoring>
 
-const themed = (stroke: string, background: string): ThemedKindColoring => ({
+const themed = (stroke: string, background: string, darkStroke = stroke, darkBackground = background): ThemedKindColoring => ({
   light: { stroke, background },
-  dark: { stroke, background },
+  dark: { stroke: darkStroke, background: darkBackground },
 })
 
 export const DEFAULT_KIND_PALETTE: Record<string, ThemedKindColoring> = {
-  rule: themed('#009C27', '#D6FEE0'),
-  const: themed('#005B9C', '#DAF0FF'),
-  bvar: themed('#7700E4', '#EFDFFF'),
-  binder: themed('#E07B00', '#FFEBD2'),
-  fvar: themed('#D20022', '#FFD6DC'),
+  rule: themed('#009C27', '#D6FEE0', '#82D9A0', '#1F3D2B'),
+  const: themed('#005B9C', '#DAF0FF', '#87CEFA', '#20394C'),
+  bvar: themed('#7700E4', '#EFDFFF', '#CBA6FF', '#38274D'),
+  binder: themed('#E07B00', '#FFEBD2', '#FFBD69', '#49351D'),
+  fvar: themed('#D20022', '#FFD6DC', '#FF8FAD', '#4A2330'),
   sub: themed('inherit', 'transparent'),
 }
 

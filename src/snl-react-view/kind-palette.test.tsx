@@ -10,16 +10,34 @@ import {
 describe('DEFAULT_KIND_PALETTE', () => {
   it('has the 5 Lean-Expr defaults + sub helper entry', () => {
     expect(DEFAULT_KIND_PALETTE).toMatchObject({
-      rule: { light: { stroke: '#009C27', background: '#D6FEE0' }, dark: { stroke: '#009C27', background: '#D6FEE0' } },
-      const: { light: { stroke: '#005B9C', background: '#DAF0FF' }, dark: { stroke: '#005B9C', background: '#DAF0FF' } },
-      bvar: { light: { stroke: '#7700E4', background: '#EFDFFF' }, dark: { stroke: '#7700E4', background: '#EFDFFF' } },
-      binder: { light: { stroke: '#E07B00', background: '#FFEBD2' }, dark: { stroke: '#E07B00', background: '#FFEBD2' } },
-      fvar: { light: { stroke: '#D20022', background: '#FFD6DC' }, dark: { stroke: '#D20022', background: '#FFD6DC' } },
+      rule: { light: { stroke: '#009C27', background: '#D6FEE0' }, dark: { stroke: '#82D9A0', background: '#1F3D2B' } },
+      const: { light: { stroke: '#005B9C', background: '#DAF0FF' }, dark: { stroke: '#87CEFA', background: '#20394C' } },
+      bvar: { light: { stroke: '#7700E4', background: '#EFDFFF' }, dark: { stroke: '#CBA6FF', background: '#38274D' } },
+      binder: { light: { stroke: '#E07B00', background: '#FFEBD2' }, dark: { stroke: '#FFBD69', background: '#49351D' } },
+      fvar: { light: { stroke: '#D20022', background: '#FFD6DC' }, dark: { stroke: '#FF8FAD', background: '#4A2330' } },
       // Partial is a hover-transparent kind — see kind-palette.ts.
       sub: { light: { stroke: 'inherit', background: 'transparent' }, dark: { stroke: 'inherit', background: 'transparent' } },
     })
     expect(Object.keys(DEFAULT_KIND_PALETTE)).toHaveLength(6)
   })
+})
+
+
+describe('default dark palette contrast', () => {
+  const rgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16))
+  const luminance = (c: number[]) => c.map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((s, v, i) => s + v * [.2126, .7152, .0722][i], 0)
+  for (const kind of ['rule', 'const', 'bvar', 'binder', 'fvar']) {
+    it(`${kind} is readable on dark neutral surfaces and its 50% scope fill`, () => {
+      const c = DEFAULT_KIND_PALETTE[kind].dark
+      for (const surface of ['#151B26', '#212B39']) {
+        const bg = rgb(surface), fill = rgb(c.background).map((v, i) => (v + bg[i]) / 2)
+        for (const background of [bg, fill]) {
+          const a = luminance(rgb(c.stroke)), b = luminance(background)
+          expect((Math.max(a, b) + .05) / (Math.min(a, b) + .05)).toBeGreaterThanOrEqual(4.5)
+        }
+      }
+    })
+  }
 })
 
 describe('alpha', () => {
@@ -105,7 +123,7 @@ describe('paletteToCss', () => {
     expect(css).toContain('--snl-highlight-stroke: rgba(254, 220, 186, 0.5);')
     // A default kind (rule) is still present in its hover rule.
     expect(css).toContain('.katex-html .snl-single-hover[data-kind="rule"]')
-    expect(css).toContain('color: #009C27;')
+    expect(css).toContain('color: #82D9A0;')
   })
 
   it('throws on an unsafe kind name (CSS-injection guard)', () => {

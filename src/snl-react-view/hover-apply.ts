@@ -51,12 +51,34 @@ type ObserverWindow = Window & {
 
 const geometryStates = new WeakMap<HTMLElement, HighlightGeometryState>()
 
+// Overlays live at the document root, outside the target's overflow chain.
+// Preserve their original frame and clip only its paint, rather than drawing
+// a new outline around the intersection (which invents edges at scrollports).
+function overflowClip(fragment: HTMLElement, view: Window) {
+  let left = -Infinity, top = -Infinity, right = Infinity, bottom = Infinity
+  for (let el: HTMLElement | null = fragment; el && el !== fragment.ownerDocument.documentElement; el = el.parentElement) {
+    const style = view.getComputedStyle(el)
+    if (style.display === 'inline' || style.display === 'contents') continue
+    const clips = (value: string) => /^(auto|scroll|hidden|clip|overlay)$/.test(value)
+    const x = clips(style.overflowX), y = clips(style.overflowY)
+    if (!x && !y) continue
+    const box = el.getBoundingClientRect()
+    const sx = el.offsetWidth ? box.width / el.offsetWidth : 1
+    const sy = el.offsetHeight ? box.height / el.offsetHeight : 1
+    const l = box.left + el.clientLeft * sx, t = box.top + el.clientTop * sy
+    if (x) { left = Math.max(left, l); right = Math.min(right, l + el.clientWidth * sx) }
+    if (y) { top = Math.max(top, t); bottom = Math.min(bottom, t + el.clientHeight * sy) }
+  }
+  return { left, top, right, bottom }
+}
+
 function syncGeometry(state: HighlightGeometryState): void {
   if (state.disposed) return
   let index = 0
   for (const fragment of state.fragments) {
     const rects = fragment.isConnected ? measureSemanticHighlightRects(fragment) : []
     const computed = state.view.getComputedStyle(fragment)
+    const clip = overflowClip(fragment, state.view)
     // Preserve an owned, hidden placeholder for fragments without visible boxes.
     for (const rect of rects.length ? rects : [null]) {
       let overlay = state.overlays[index++]
@@ -68,8 +90,13 @@ function syncGeometry(state: HighlightGeometryState): void {
         state.container.ownerDocument.documentElement.append(overlay)
         state.overlays.push(overlay)
       }
-      overlay.hidden = rect === null
-      if (!rect) continue
+      overlay.hidden = rect === null || Math.min(rect.right, clip.right) <= Math.max(rect.left, clip.left) ||
+        Math.min(rect.bottom, clip.bottom) <= Math.max(rect.top, clip.top)
+      if (!rect || overlay.hidden) continue
+      const insets = [Math.max(0, clip.top - rect.top), Math.max(0, rect.right - clip.right),
+        Math.max(0, rect.bottom - clip.bottom), Math.max(0, clip.left - rect.left)]
+      overlay.style.clipPath = insets.some(value => value > 0)
+        ? `inset(${insets.map(value => `${value}px`).join(' ')})` : 'none'
       // Absolute offsets are relative to the actual containing-block origin,
       // which can be shifted by author borders/padding on the root element.
       // Measuring this owned overlay at (0, 0) avoids assuming an unstyled html.
@@ -124,7 +151,9 @@ function observeGeometry(state: HighlightGeometryState): void {
   state.mutationObservers = []
   const MutationObserverCtor = (state.view as ObserverWindow).MutationObserver
   for (const fragment of state.fragments) {
-    state.resizeObserver?.observe(fragment)
+    // Ancestor-only resizes can change the clip without resizing an inline
+    // target (or its glyphs). Observe the same chain that supplies the clip.
+    for (let el: HTMLElement | null = fragment; el; el = el.parentElement) state.resizeObserver?.observe(el)
     for (const descendant of fragment.querySelectorAll('*')) state.resizeObserver?.observe(descendant)
   }
   if (typeof MutationObserverCtor === 'function') {
@@ -178,16 +207,10 @@ function installGeometryState(container: HTMLElement, fragments: HTMLElement[], 
     onResize: () => {},
     disposed: false,
   }
-  state.onScroll = (event) => {
-    const document = state.container.ownerDocument
-    if (event.target === state.view || event.target === document ||
-        event.target === document.scrollingElement) {
-      // Root scrolling moves an absolute document-coordinate overlay together
-      // with its target without any JavaScript correction.
-      return
-    }
-    // Nested scrollers do change the target's document coordinates. Refresh in
-    // the scroll event itself; deferring to RAF leaves a visible floating frame.
+  state.onScroll = () => {
+    // Absolute frames follow ordinary root scrolling in the compositor, but
+    // fixed/sticky clipping ancestors can change their intersection even then.
+    // Refresh in the event itself: no deferred floating frame after a wheel.
     syncGeometry(state)
   }
   state.onResize = () => scheduleGeometry(state)

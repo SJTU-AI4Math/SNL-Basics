@@ -1,4 +1,5 @@
 import React from 'react'
+import { verifyOverflowClipping } from './overflow-clips'
 import { verifyNativeLineFrames } from './native-lines'
 import { createRoot } from 'react-dom/client'
 import { SnlSyntaxTreeView } from '../../src/components/SnlSyntaxTreeView'
@@ -259,8 +260,13 @@ requestAnimationFrame(async () => {
       scrollTop: window.scrollY,
     }
     clearSnlHoverHighlight(app)
+    // End the independent-body-scroll scenario before testing unrelated hosts.
+    document.documentElement.style.overflow = 'visible'
+    Object.assign(document.body.style, { overflow: 'visible', height: 'auto' })
+    document.body.scrollTop = 0
+    window.scrollTo(0, 0)
     const nativeText = await verifyNativeText()
-    Object.assign(payload, { nativeText, nativeLineFrames: await verifyNativeLineFrames() })
+    Object.assign(payload, { nativeText, nativeLineFrames: await verifyNativeLineFrames(), overflowClipping: await verifyOverflowClipping() })
     result.dataset.status = 'pass'
     result.textContent = JSON.stringify(payload)
   } catch (error) {
