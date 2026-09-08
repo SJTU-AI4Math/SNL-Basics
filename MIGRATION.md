@@ -2,6 +2,29 @@
 
 **Date:** 2026-07-01
 
+## Package 0.3.5
+
+- On a Macro query miss, multi-letter ordinary names use `\mathsf` with escaped
+  underscores; application arguments remain outside the name font group. Raw
+  names, bindings, tree paths and serialization are unchanged.
+- Native inline text highlights consolidate contiguous fragments on each visual
+  line, preserving disjoint segments and excluding outside prose. Nested/repeated
+  text and unequal-width same-height segments no longer create duplicate frames.
+- Text `#*` separators use the same authored-break/math-island processing as
+  literal text and the retained empty-body join path; consecutive breaks retain
+  empty lines without inventing empty-line frames.
+- Highlight paint respects rectangular overflow clipping without inventing an
+  outline at the cut edge. Nested scrolling, clipping-ancestor resize and body
+  overflow propagation are handled separately; no layout or scroll ownership
+  change is required. Arbitrary rotated clip polygons, masks and nonzero
+  `overflow-clip-margin` are outside this rectangular clipping contract.
+- Built-in dark semantic colors use brighter text and dark scope fills. Light
+  variants and explicit consumer palettes remain unchanged. To retain previous
+  dark colors, pass an explicit `kindPalette` rather than relying on defaults.
+- Specification/Document library organization and authored documentation themes
+  were refreshed. No Macro schema (11), Tree schema (3), or workspace data (0.1.0)
+  migration is introduced by this release.
+
 ## Package 0.3.4
 
 - Omitted `[style]` now performs conservative exact filled-slot selection for
