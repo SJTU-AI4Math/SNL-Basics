@@ -679,6 +679,26 @@ describe('ForeignBoxHost lifecycle', () => {
     expect(view.getAllByTestId('foreign-child').map(node => node.parentElement?.parentElement?.style.width)).toEqual(['10px', '20px'])
   })
 
+  it('does not emit no-op accessibility or state mutations after geometry has settled', async () => {
+    const apiRef = { current: null as UseForeignBoxResult | null }
+    const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
+    const marker = view.getByTestId('marker')
+    const wrapper = view.getByTestId('foreign-child').parentElement!.parentElement as HTMLElement
+    const host = view.container.querySelector('[data-snl-foreign-box-host]') as HTMLElement
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(rect({ left: 0, top: 0, width: 100, height: 100 }))
+    vi.spyOn(marker, 'getBoundingClientRect').mockReturnValue(rect({ left: 20, top: 20, width: 10, height: 10 }))
+    act(() => { apiRef.current!.reportMetrics({ width: 10, height: 8, depth: 0, baseline: 'bottom' }); flushRaf() })
+
+    const mutations: MutationRecord[] = []
+    const observer = new MutationObserver(records => mutations.push(...records))
+    observer.observe(wrapper, { attributes: true })
+    act(flushRaf)
+    await Promise.resolve()
+    observer.disconnect()
+
+    expect(mutations.filter(record => record.attributeName === 'data-state' || record.attributeName === 'aria-hidden')).toEqual([])
+  })
+
   it('keeps staging foreign controls inert and hidden until positioning, preserving the child node', () => {
     const apiRef = { current: null as UseForeignBoxResult | null }
     const view = render(<ForeignBoxHost><Slot apiRef={apiRef} /></ForeignBoxHost>)
