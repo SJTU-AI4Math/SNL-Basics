@@ -5,9 +5,11 @@ import {
   useMemo,
   useState,
   type FC,
+  type CSSProperties,
   type ReactElement,
 } from 'react'
 import type { SnlBlockMacroTemplate } from '../snl-macro/types'
+import { readSnlSvgBlockWidthPx } from '../snl-macro/svg-template-options'
 import {
   FORMULA_FOREIGN_RENDERER_CAPABILITY,
   deriveFixedFormulaMetrics,
@@ -33,6 +35,7 @@ export interface SvgTemplateProjection {
   readonly generation: number
   readonly producerRevision: string
   readonly accessibilityLabel: string
+  readonly blockWidthPx: number
 }
 
 export interface SvgTemplateRendererOptions {
@@ -46,6 +49,7 @@ interface ProjectionRecord {
   readonly generation?: unknown
   readonly producer_revision?: unknown
   readonly accessibility?: unknown
+  readonly block_width_px?: unknown
 }
 
 function requiredString(value: unknown, label: string): string {
@@ -90,6 +94,7 @@ export function readSvgTemplateProjection(template: SnlBlockMacroTemplate): SvgT
     generation: nonnegativeInteger(record.generation, 'foreign generation'),
     producerRevision: requiredString(record.producer_revision, 'producer revision'),
     accessibilityLabel: requiredString(accessibilityRecord.label, 'accessibility label'),
+    blockWidthPx: readSnlSvgBlockWidthPx(template),
   })
 }
 
@@ -218,7 +223,10 @@ function ReadySurface(props: ReadySurfaceProps): ReactElement {
     props.projection.producerRevision,
   ])
   return (
-    <ForeignBoxHost className="snl-svg-template">
+    <ForeignBoxHost
+      className="snl-svg-template"
+      style={{ '--snl-svg-template-block-width': `${props.projection.blockWidthPx}px` } as CSSProperties}
+    >
       <div className="snl-svg-template-canvas" ref={mountSvg} />
       {prepared.slots.map(({ index, occurrence, marker, child }) => (
         <SlotSurface

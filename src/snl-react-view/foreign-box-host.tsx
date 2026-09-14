@@ -8,6 +8,7 @@ import {
   useReducer,
   useRef,
   type ReactNode,
+  type CSSProperties,
 } from 'react'
 import { assertForeignBoxMetrics, foreignBoxIdentityKey, snapshotForeignBoxIdentity, type ForeignBoxIdentity, type ForeignBoxMetricReport, type ForeignBoxMetrics } from './foreign-box'
 
@@ -172,6 +173,7 @@ export function useForeignBoxRegistry(): ForeignBoxRegistry {
 export interface ForeignBoxHostProps {
   readonly children?: ReactNode
   readonly className?: string
+  readonly style?: CSSProperties
   /** Correlates serialized host markup with every live sidecar registration. */
   readonly authorityKey?: unknown
 }
@@ -182,7 +184,7 @@ export interface ForeignBoxHostProps {
  * scroll coordinate space. Browser-specific non-affine transform correction is
  * intentionally left behind this single geometry seam until browser-tested.
  */
-export function ForeignBoxHost({ children, className, authorityKey }: ForeignBoxHostProps) {
+export function ForeignBoxHost({ children, className, style, authorityKey }: ForeignBoxHostProps) {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const entriesRef = useRef(new Map<string, Entry>())
   const registrationNonceRef = useRef(0)
@@ -569,7 +571,7 @@ export function ForeignBoxHost({ children, className, authorityKey }: ForeignBox
   const records = [...entriesRef.current.values()]
   return (
     <ForeignBoxContext.Provider value={registry}>
-      <div ref={hostRef} className={className ? `snl-foreign-box-host ${className}` : 'snl-foreign-box-host'} data-snl-foreign-box-host="true">
+      <div ref={hostRef} className={className ? `snl-foreign-box-host ${className}` : 'snl-foreign-box-host'} style={style} data-snl-foreign-box-host="true">
         {children}
         <div className="snl-foreign-box-overlay">
           {records.map((entry) => (

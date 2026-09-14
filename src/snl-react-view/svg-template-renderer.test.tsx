@@ -64,15 +64,64 @@ function makeRenderer(svgSource = source) {
 afterEach(cleanup)
 
 describe('SvgTemplateRenderer', () => {
-  it('owns a fixed 680×423-ish block canvas without responsively squashing labels', () => {
+  it('owns a default 680px block canvas without responsively squashing labels', () => {
     const hostRule = rendererCss.match(/\.snl-svg-template\s*\{([^}]*)\}/)?.[1] ?? ''
     const slotRule = rendererCss.match(/\.snl-svg-template-slot-content\s*\{([^}]*)\}/)?.[1] ?? ''
     expect(hostRule).toMatch(/container-type\s*:\s*inline-size\s*;/)
-    expect(hostRule).toMatch(/width\s*:\s*680px\s*;/)
+    expect(hostRule).toMatch(/width\s*:\s*var\(--snl-svg-template-block-width,\s*680px\)\s*;/)
     expect(hostRule).toMatch(/max-width\s*:\s*none\s*;/)
     expect(slotRule).toMatch(/max-width\s*:\s*9rem\s*;/)
     expect(slotRule).not.toMatch(/\b(?:cqw|vw)\b/)
     expect(slotRule).not.toMatch(/min-width\s*:\s*[1-9]/)
+  })
+
+  it('reads an optional per-template block width while preserving the exact 680px default', () => {
+    expect(readSvgTemplateProjection(projection()).blockWidthPx).toBe(680)
+    for (const block_width_px of [0.5, 340, 4096]) {
+      expect(readSvgTemplateProjection(projection({ block_width_px })).blockWidthPx).toBe(block_width_px)
+    }
+  })
+
+  it.each([
+    ['NaN', Number.NaN],
+    ['infinity', Infinity],
+    ['negative infinity', -Infinity],
+    ['null', null],
+    ['boolean', true],
+    ['zero', 0],
+    ['negative', -1],
+    ['too large', 4097],
+    ['string', '340'],
+  ] as const)('rejects an invalid %s block_width_px', (_name: string, block_width_px: unknown) => {
+    expect(() => readSvgTemplateProjection(projection({ block_width_px })))
+      .toThrow(/block_width_px/i)
+  })
+
+  it('applies block_width_px only as the ordinary block host canvas token', async () => {
+    const { Renderer } = makeRenderer()
+    const view = render(<Renderer {...rendererProps(projection({ block_width_px: 340 }))} />)
+    await waitFor(() => expect(view.container.querySelector('svg')).not.toBeNull())
+    const host = view.container.querySelector<HTMLElement>('.snl-svg-template')!
+    expect(host.style.getPropertyValue('--snl-svg-template-block-width')).toBe('340px')
+    expect(host.style.width).toBe('')
+    expect(host.style.height).toBe('')
+  })
+
+  it('resizes a width-only update without reacquiring assets or replacing artwork and child DOM', async () => {
+    const loader = vi.fn(async () => source)
+    const registry = new SvgTemplateAssetRegistry({ loader, maxSettled: 4 })
+    const Renderer = createSvgTemplateRenderer({ assetRegistry: registry })
+    const props = rendererProps()
+    const view = render(<Renderer {...props} />)
+    await waitFor(() => expect(view.container.querySelector('svg')).not.toBeNull())
+    const svg = view.container.querySelector('svg')
+    const child = view.container.querySelector('[data-child="A"]')
+    view.rerender(<Renderer {...props} template={projection({ block_width_px: 340 })} />)
+    const host = view.container.querySelector<HTMLElement>('.snl-svg-template')!
+    expect(host.style.getPropertyValue('--snl-svg-template-block-width')).toBe('340px')
+    expect(view.container.querySelector('svg')).toBe(svg)
+    expect(view.container.querySelector('[data-child="A"]')).toBe(child)
+    expect(loader).toHaveBeenCalledTimes(1)
   })
 
   it('loads immutable raw source, sanitizes per consumer, scopes IDs, and mounts the real transformed g markers', async () => {

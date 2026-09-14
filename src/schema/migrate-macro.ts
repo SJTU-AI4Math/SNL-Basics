@@ -8,6 +8,7 @@
 import type { I18n } from '../runtime'
 import type { SnlBlockMacroTemplate, SnlMacro, SnlMacroTemplate } from '../snl-macro/types'
 import { readSnlTableRenderOptions } from '../snl-macro/table-renderer-options'
+import { readSnlSvgBlockWidthPx } from '../snl-macro/svg-template-options'
 import { isSnlIdentifier } from '../snl-syntax-tree/identifier'
 import { analyzeLatexTemplatePlaceholders } from '../snl-syntax-tree/template'
 
@@ -589,6 +590,14 @@ function isTemplateSpec(value: unknown): value is SnlMacroTemplate {
     if (spec.mode !== 'block') return false
     try {
       readSnlTableRenderOptions(spec as unknown as SnlBlockMacroTemplate)
+    } catch {
+      return false
+    }
+  }
+  if (spec.svg_template !== undefined) {
+    if (spec.mode !== 'block') return false
+    try {
+      readSnlSvgBlockWidthPx(spec as unknown as SnlBlockMacroTemplate)
     } catch {
       return false
     }

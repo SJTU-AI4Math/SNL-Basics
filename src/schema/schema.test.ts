@@ -478,6 +478,57 @@ describe('schema/migrate-macro', () => {
     expect(isMacroDocumentV11({ X: nonBlock })).toBe(false)
   })
 
+  it('validates the public SVG block_width_px contract on every v11 projection', () => {
+    const base = migrateMacroDocument({ X: {
+      ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)), kind: 'const',
+    } } as any).X as any
+    base.dynamic_arity = false
+    base.styles[0].template = {
+      mode: 'block', body: '#0', block_template_name: 'svg',
+      svg_template: {
+        asset: { source: 'diagram.svg', base_identity: 'course', revision: 'r1', request_epoch: 0 },
+        generation: 0,
+        producer_revision: 'renderer-r1',
+        accessibility: { label: 'Diagram' },
+        block_width_px: 340,
+      },
+    }
+    expect(isMacroDocumentV11({ X: base })).toBe(true)
+
+    for (const width of [undefined, 0.5, 4096]) {
+      const valid = structuredClone(base)
+      valid.styles[0].template.svg_template.block_width_px = width
+      expect(isMacroDocumentV11({ X: valid })).toBe(true)
+      expect(migrateMacroDocument({ X: valid }).X).toEqual(valid)
+    }
+    const localized = structuredClone(base)
+    localized.styles[0].template = {
+      type: 'i18n', default_language: 'en',
+      values: { en: structuredClone(base.styles[0].template), zh: structuredClone(base.styles[0].template) },
+    }
+    expect(isMacroDocumentV11({ X: localized })).toBe(true)
+    expect(migrateMacroDocument({ X: localized }).X).toEqual(localized)
+    for (const invalid of [Number.NaN, Infinity, -Infinity, null, true, 0, -1, 4097, '340']) {
+      const malformed = structuredClone(base)
+      malformed.styles[0].template.svg_template.block_width_px = invalid
+      expect(isMacroDocumentV11({ X: malformed })).toBe(false)
+      const malformedLocalized = structuredClone(localized)
+      malformedLocalized.styles[0].template.values.zh.svg_template.block_width_px = invalid
+      expect(isMacroDocumentV11({ X: malformedLocalized })).toBe(false)
+    }
+    for (const svg_template of [null, [], 'svg']) {
+      const malformed = structuredClone(base)
+      malformed.styles[0].template.svg_template = svg_template
+      expect(isMacroDocumentV11({ X: malformed })).toBe(false)
+    }
+
+    const nonBlockSvg = structuredClone(base)
+    nonBlockSvg.styles[0].template = {
+      mode: 'text', body: '#0', svg_template: base.styles[0].template.svg_template,
+    }
+    expect(isMacroDocumentV11({ X: nonBlockSvg })).toBe(false)
+  })
+
   it('rejects v11 localized projections with inconsistent or invalid dynamic arity', () => {
     const base = migrateMacroDocument({ X: {
       ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)), kind: 'const',

@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { spawnOwnedProcess, terminateOwnedProcess } from './process-group-cleanup.mjs'
 import { Cdp } from './cdp-client.mjs'
+import { startProductionFixture } from './production-fixture-server.mjs'
 import { closeOwnedVite, raceVerifierLifecycle, startOwnedVite } from './verifier-infrastructure.mjs'
 
 const root = new URL('..', import.meta.url).pathname
@@ -46,7 +47,7 @@ const networkRequests = new Map()
 const networkFailures = []
 const fontRequests = []
 try {
-  vite = await startOwnedVite(fixture)
+  vite = await (process.env.SNL_VERIFY_PRODUCTION === '1' ? startProductionFixture : startOwnedVite)(fixture)
   profile = mkdtempSync(join(tmpdir(), 'snl-formula-foreign-chrome-'))
   browser = await spawnOwnedProcess(chrome, ['--headless', '--no-sandbox', '--disable-gpu', `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] })
   browser.child.stderr.on('data', chunk => { browserLog += chunk })

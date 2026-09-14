@@ -15,6 +15,7 @@ const template = {
     generation: 4,
     producer_revision: 'producer-r2',
     accessibility: { label: 'trusted diagram' },
+    block_width_px: 340,
     formula_embed: { total_height_em: 2, baseline_ratio: 0.7 },
   },
 }

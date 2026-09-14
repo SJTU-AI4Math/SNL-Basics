@@ -325,7 +325,7 @@
 /* Opt-in parameterized SVG renderer. Artwork remains ordinary sanitized SVG;
  * live SNL labels are independently owned foreign boxes positioned at its g markers. */
 .snl-svg-template {
-  width: 680px;
+  width: var(--snl-svg-template-block-width, 680px);
   min-width: 0;
   max-width: none;
   overflow: visible;

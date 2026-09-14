@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnOwnedProcess, terminateOwnedProcess } from './process-group-cleanup.mjs'
 import { Cdp } from './cdp-client.mjs'
+import { startProductionFixture } from './production-fixture-server.mjs'
 import { closeOwnedVite, raceVerifierLifecycle, startOwnedVite } from './verifier-infrastructure.mjs'
 import { setTimeout as delay } from 'node:timers/promises'
 
@@ -47,7 +48,9 @@ const networkRequests = new Map()
 const networkFailures = []
 const fontRequests = []
 try {
-  vite = await startOwnedVite(fixture)
+  vite = process.env.SNL_VERIFY_PRODUCTION === '1'
+    ? await startProductionFixture(fixture)
+    : await startOwnedVite(fixture)
   profile = mkdtempSync(join(tmpdir(), 'snl-svg-template-chrome-'))
   browser = await spawnOwnedProcess(chrome, ['--headless', '--no-sandbox', '--disable-gpu', `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] })
   browser.child.stderr.on('data', (chunk) => { browserLog += chunk })
@@ -135,6 +138,7 @@ try {
       const frame = document.querySelector('.fixture-frame');
       const panel = document.querySelector('.fixture-frame .katex-panel');
       const host = document.querySelector('.fixture-frame .snl-svg-template');
+      const candidateHost = document.querySelector('.candidate-width-fixture .snl-svg-template');
       const labels = [...document.querySelectorAll('.fixture-frame .snl-foreign-box[data-state="positioned"]')];
       const markers = [...svg.querySelectorAll('g[data-snl-slot]')];
       const frameRect = frame.getBoundingClientRect();
@@ -252,6 +256,7 @@ try {
           frame: { clientWidth: frame.clientWidth, scrollWidth: frame.scrollWidth, clientHeight: frame.clientHeight, scrollHeight: frame.scrollHeight, rect: rectValue(frameRect) },
           panel: { clientWidth: panel.clientWidth, scrollWidth: panel.scrollWidth, clientHeight: panel.clientHeight, scrollHeight: panel.scrollHeight, overflowX: getComputedStyle(panel).overflowX },
           host: { clientWidth: host.clientWidth, scrollWidth: host.scrollWidth, clientHeight: host.clientHeight, scrollHeight: host.scrollHeight, overflowX: getComputedStyle(host).overflowX, overflowY: getComputedStyle(host).overflowY, rect: rectValue(hostRect) },
+          candidateHost: candidateHost ? { clientWidth: candidateHost.clientWidth, clientHeight: candidateHost.clientHeight, inlineWidth: candidateHost.style.width, blockWidthToken: candidateHost.style.getPropertyValue('--snl-svg-template-block-width') } : null,
           artworkViewBox: { width: svg.viewBox.baseVal.width, height: svg.viewBox.baseVal.height },
           labelRects,
           markerRects,
@@ -332,9 +337,16 @@ try {
     assert(before.accessibleArtwork === 1, `${caseLabel} (viewport ${width}px) exposes exactly one labelled SVG artwork`)
     assert(before.accessibleForeign === 4, `${caseLabel} (viewport ${width}px) exposes exactly four positioned foreign labels`)
     assert(before.geometry.host.clientWidth === 680, `${caseLabel} (viewport ${width}px) keeps the renderer-owned 680px intrinsic canvas (received ${before.geometry.host.clientWidth}px)`)
+    assert(before.geometry.candidateHost?.clientWidth === 340,
+      `${caseLabel} (viewport ${width}px) applies the per-template 340px intrinsic canvas: ${JSON.stringify(before.geometry.candidateHost)}`)
+    assert(before.geometry.candidateHost.inlineWidth === '' && before.geometry.candidateHost.blockWidthToken === '340px',
+      `${caseLabel} (viewport ${width}px) uses only the block canvas token, not an unconditional inline width: ${JSON.stringify(before.geometry.candidateHost)}`)
     const expectedCanvasHeight = 680 * before.geometry.artworkViewBox.height / before.geometry.artworkViewBox.width
     assert(Math.abs(before.geometry.host.clientHeight - expectedCanvasHeight) <= 1,
       `${caseLabel} (viewport ${width}px) derives the intrinsic canvas height from the artwork viewBox (received ${before.geometry.host.clientHeight}px, expected ${expectedCanvasHeight}px)`)
+    const expectedCandidateHeight = 340 * before.geometry.artworkViewBox.height / before.geometry.artworkViewBox.width
+    assert(Math.abs(before.geometry.candidateHost.clientHeight - expectedCandidateHeight) <= 1,
+      `${caseLabel} (viewport ${width}px) derives the 340px candidate height from the artwork viewBox (received ${before.geometry.candidateHost.clientHeight}px, expected ${expectedCandidateHeight}px)`)
     if (before.geometry.panel.clientWidth < before.geometry.host.clientWidth) {
       assert(before.geometry.panel.overflowX === 'auto' && before.geometry.panel.scrollWidth > before.geometry.panel.clientWidth + 1,
         `${caseLabel} (viewport ${width}px) narrow KaTeX panel owns horizontal scrolling for the transformed fixed canvas: ${JSON.stringify({ panel: before.geometry.panel, host: before.geometry.host })}`)
@@ -463,6 +475,48 @@ try {
       `${caseLabel} (viewport ${width}px) keeps updated child centers on SVG slot centers: ${JSON.stringify(identity.centerDeltas)}`)
     assert(identity.ready, `${caseLabel} (viewport ${width}px) projection update keeps all children positioned`)
     assert(identity.errors.length === 0, `${caseLabel} (viewport ${width}px) update has no console/runtime errors: ${identity.errors.join(' | ')}`)
+    await waitFor(() => evaluate(cdp, `document.querySelectorAll('.candidate-width-fixture .snl-foreign-box[data-state="positioned"]').length === 4`), `${caseLabel} candidate slots`)
+    await evaluate(cdp, `(() => {
+      const root = document.querySelector('.candidate-width-fixture');
+      window.__widthBefore = { svg: root.querySelector('svg'), children: [...root.querySelectorAll('.snl-foreign-box-measure > *')], widths: [...root.querySelectorAll('.snl-foreign-box[data-state="positioned"]')].map(x => x.getBoundingClientRect().width) };
+      window.__svgFixture.setBlockWidth(510);
+    })()`)
+    const widthSnapshot = `(() => {
+      const root = document.querySelector('.candidate-width-fixture');
+      const host = root.querySelector('.snl-svg-template');
+      const svg = root.querySelector('svg');
+      const labels = [...root.querySelectorAll('.snl-foreign-box[data-state="positioned"]')];
+      const markers = [...root.querySelectorAll('g[data-snl-slot]')];
+      const children = [...root.querySelectorAll('.snl-foreign-box-measure > *')];
+      return {
+        width: host.clientWidth, height: host.getBoundingClientRect().height,
+        expectedHeight: 510 * svg.viewBox.baseVal.height / svg.viewBox.baseVal.width,
+        svgPreserved: svg === window.__widthBefore.svg,
+        childrenPreserved: children.length === window.__widthBefore.children.length && children.every((x,i) => x === window.__widthBefore.children[i]),
+        widths: labels.map(x => x.getBoundingClientRect().width), beforeWidths: window.__widthBefore.widths,
+        deltas: labels.map((x,i) => { const a=x.getBoundingClientRect(), b=markers[i].getBoundingClientRect(); return {x:a.left+a.width/2-b.left-b.width/2,y:a.top+a.height/2-b.top-b.height/2}; })
+      };
+    })()`
+    await waitFor(async () => {
+      const state = await evaluate(cdp, widthSnapshot)
+      return state.width === 510 && state.deltas.length === 4 && state.deltas.every(d => Math.abs(d.x) <= .75 && Math.abs(d.y) <= .75)
+    }, `${caseLabel} width-only resize and remeasurement`)
+    const widthUpdate = await evaluate(cdp, widthSnapshot)
+    assert(widthUpdate.svgPreserved && widthUpdate.childrenPreserved, `${caseLabel} width-only change replaced stable DOM`)
+    assert(Math.abs(widthUpdate.height - widthUpdate.expectedHeight) <= 1, `${caseLabel} width-only aspect ratio failed`)
+    assert(widthUpdate.widths.every((w,i) => Math.abs(w-widthUpdate.beforeWidths[i]) <= .75), `${caseLabel} block width scaled semantic labels`)
+    const settledWidthMutations = await evaluate(cdp, `(async () => {
+      await new Promise(r => setTimeout(r, 100));
+      let count = 0; const observer = new MutationObserver(records => count += records.length);
+      observer.observe(document.querySelector('.candidate-width-fixture'), {subtree:true, attributes:true});
+      await new Promise(r => setTimeout(r, 150)); observer.disconnect(); return count;
+    })()`)
+    assert(settledWidthMutations === 0, `${caseLabel} settled width-only surface kept mutating attributes: ${settledWidthMutations}`)
+    await evaluate(cdp, `document.querySelector('#popover-width-trigger').click()`)
+    await waitFor(() => evaluate(cdp, `document.querySelectorAll('.popover-width-fixture .snl-foreign-box[data-state="positioned"]').length === 4`), `${caseLabel} actual popover SVG`)
+    const popoverWidth = await evaluate(cdp, `document.querySelector('.popover-width-fixture .snl-svg-template').clientWidth`)
+    assert(popoverWidth === 340, `${caseLabel} actual popover lost natural 340px width: ${popoverWidth}`)
+    assert((await evaluate(cdp, 'window.__fixtureErrors')).length === 0, `${caseLabel} width/popover runtime errors`)
     const screenshot = join(artifactDir, `parameterized-svg-${caseLabel}.png`)
     const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
     writeFileSync(screenshot, Buffer.from(capture.data, 'base64'))
@@ -470,6 +524,8 @@ try {
     writeFileSync(domSnapshot, await evaluate(cdp, 'document.documentElement.outerHTML'))
     results.push({
       case: caseLabel,
+      widthUpdate, settledWidthMutations, popoverWidth,
+      initialCandidateWidth: before.geometry.candidateHost.clientWidth,
       width,
       markers: before.markerCount,
       positioned: before.positioned,

@@ -56,12 +56,14 @@ export interface SnlFormulaMacroTemplate extends SnlMacroTemplateBase {
   mode: 'formula_inline' | 'formula_display'
   block_template_name?: never
   table?: never
+  svg_template?: never
 }
 
 export interface SnlTextMacroTemplate extends SnlMacroTemplateBase {
   mode: 'text'
   block_template_name?: never
   table?: never
+  svg_template?: never
 }
 
 export type SnlTableComposition = 'rows' | 'cells'
@@ -82,11 +84,20 @@ export interface SnlTableRenderOptions {
   css?: SnlTableCssThemes
 }
 
+/** Consumer-owned parameterized-SVG projection with a Basics-owned block size. */
+export interface SnlSvgTemplateRenderOptions {
+  [key: string]: unknown
+  /** Intrinsic width for ordinary block/popover SVG surfaces, in CSS pixels. */
+  block_width_px?: number
+}
+
 export interface SnlBlockMacroTemplate extends SnlMacroTemplateBase {
   mode: 'block'
   block_template_name?: string
   /** Basics-owned options for the built-in `table` renderer. */
   table?: SnlTableRenderOptions
+  /** Consumer-owned SVG projection; Basics validates its optional block width. */
+  svg_template?: SnlSvgTemplateRenderOptions
 }
 
 export type SnlMacroTemplate =

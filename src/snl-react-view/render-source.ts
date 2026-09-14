@@ -37,6 +37,7 @@ import { isEmptySnlSyntaxTreeNode, type SnlSyntaxTree } from '../snl-syntax-tree
 import { encodeTreePath, type TreePath } from './interaction-driver'
 import { resolveRenderedKind } from './kind-behavior'
 import { readSnlTableRenderOptions } from '../snl-macro/table-renderer-options'
+import { readSnlSvgBlockWidthPx } from '../snl-macro/svg-template-options'
 
 /**
  * Sanitize a value for use inside a `\htmlData{key=value,…}` attribute list.
@@ -141,6 +142,12 @@ function assert_valid_template_spec(template: unknown, styleName: string): void 
       throw new Error('template.table is valid only in block mode')
     }
     readSnlTableRenderOptions(value as unknown as SnlBlockMacroTemplate)
+  }
+  if (value.svg_template !== undefined) {
+    if (value.mode !== 'block') {
+      throw new Error('template.svg_template is valid only in block mode')
+    }
+    readSnlSvgBlockWidthPx(value as unknown as SnlBlockMacroTemplate)
   }
 }
 

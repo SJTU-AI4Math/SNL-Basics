@@ -12,6 +12,7 @@ import { SvgTemplateAssetRegistry } from '../../src/snl-react-view/svg-template-
 import { createSvgTemplateRenderer } from '../../src/snl-react-view/svg-template-renderer'
 import { ForeignBoxHost } from '../../src/snl-react-view/foreign-box-host'
 import { useForeignBox } from '../../src/snl-react-view/use-foreign-box'
+import { HoverPopoverProvider, useHoverPopovers } from '../../src/snl-react-view/hover-popovers'
 import squareSource from './commutative-square.svg?raw'
 
 if (new URLSearchParams(location.search).has('narrow-sidebar')) {
@@ -42,6 +43,11 @@ const projection = {
   },
 }
 
+const narrowProjection = {
+  ...projection,
+  svg_template: { ...projection.svg_template, block_width_px: 340 },
+}
+
 const sparseProjection = {
   ...projection,
   body: '#0#1#2#3',
@@ -60,6 +66,10 @@ const db: SnlMacroRecord = {
   square: {
     name: 'square', description: '', source: { entries: [], urls: [] }, kind: 'const',
     dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: projection }],
+  },
+  square340: {
+    name: 'square340', description: '', source: { entries: [], urls: [] }, kind: 'const',
+    dynamic_arity: false, tags: [], styles: [{ style_name: 'default', tags: [], template: narrowProjection }],
   },
   sparseSquare: {
     name: 'sparseSquare', description: '', source: { entries: [], urls: [] }, kind: 'const',
@@ -98,17 +108,20 @@ const driver = new MacroDataDriver({ queries: { query_macro: async ({ macro_name
 const registry = new SvgTemplateAssetRegistry({ loader: async (identity) => identity.source === 'sparse-repeated.svg' ? sparseRepeatedSource : squareSource, maxSettled: 2 })
 const BaseSvgRenderer = createSvgTemplateRenderer({ assetRegistry: registry })
 const ProjectionUpdateContext = createContext(false)
+const WidthUpdateContext = createContext<number | undefined>(undefined)
 const SvgRenderer: SnlBlockRenderer = (props) => {
   const alternate = useContext(ProjectionUpdateContext)
+  const width = useContext(WidthUpdateContext)
   const raw = props.template.svg_template as Record<string, unknown>
   const template = alternate ? {
     ...props.template,
     svg_template: { ...raw, accessibility: { label: 'Updated commutative square projection' } },
   } : props.template
-  return <BaseSvgRenderer {...props} template={template} />
+  return <BaseSvgRenderer {...props} template={width === undefined ? template : { ...template, svg_template: { ...template.svg_template, block_width_px: width } }} />
 }
 const labelChildren = ['labelA', 'labelB', 'labelC', 'labelD'].map((name) => createSnlSyntaxTreeNode(name))
 const tree = createSnlSyntaxTreeNode('square', { children: labelChildren })
+const narrowTree = createSnlSyntaxTreeNode('square340', { children: labelChildren })
 const invalidTree = createSnlSyntaxTreeNode('invalidSquare', { children: labelChildren })
 const sparseChildren = [
   createSnlSyntaxTreeNode('labelA'),
@@ -134,14 +147,21 @@ function DepthCenterProbe() {
 
 declare global {
   interface Window {
-    __svgFixture?: { toggle(): void; ready(): boolean; snapshot(): unknown }
+    __svgFixture?: { toggle(): void; setBlockWidth(width: number): void; ready(): boolean; snapshot(): unknown }
   }
+}
+
+function PopoverWidthTrigger() {
+  const popovers = useHoverPopovers<string>()
+  return <button id="popover-width-trigger" onClick={event => popovers.pin('diagram', event.currentTarget, 20, 20, null)}>show SVG popover</button>
 }
 
 function App() {
   const [alternate, setAlternate] = useState(false)
+  const [blockWidth, setBlockWidth] = useState(340)
   window.__svgFixture = {
     toggle: () => setAlternate((value) => !value),
+    setBlockWidth,
     ready: () => document.querySelectorAll('.fixture-frame .snl-foreign-box[data-state="positioned"]').length === 4,
     snapshot: () => {
       const svg = document.querySelector('svg.snl-svg-template-artwork')
@@ -169,6 +189,18 @@ function App() {
         />
       </ProjectionUpdateContext.Provider>
     </section>
+    <WidthUpdateContext.Provider value={blockWidth}>
+    <section className="candidate-width-fixture" aria-label="per-template SVG block canvas">
+      <SnlSyntaxTreeView
+        tree={narrowTree}
+        macro_data_driver={driver}
+        hooks={{ renderers: { ...defaultRenderers, 'fixture-svg': SvgRenderer } }}
+      />
+    </section>
+    </WidthUpdateContext.Provider>
+    <HoverPopoverProvider style={{ background: 'white', color: 'black', border: '1px solid #94a3b8', padding: '12px' }} renderPopover={() => <div className="popover-width-fixture"><SnlSyntaxTreeView tree={narrowTree} macro_data_driver={driver} hooks={{ renderers: { ...defaultRenderers, 'fixture-svg': SvgRenderer } }} /></div>} options={{ openDelayMs: 0, fadeMs: 0 }}>
+      <PopoverWidthTrigger />
+    </HoverPopoverProvider>
     <section className="sparse-block-fixture" aria-label="sparse repeated block slots">
       <SnlSyntaxTreeView
         tree={sparseTree}

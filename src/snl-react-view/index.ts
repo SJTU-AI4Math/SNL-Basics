@@ -166,6 +166,12 @@ export {
   type SnlTableCssThemes,
   type SnlTableRenderOptions,
 } from '../snl-macro/table-renderer-options'
+export {
+  DEFAULT_SNL_SVG_BLOCK_WIDTH_PX,
+  MAX_SNL_SVG_BLOCK_WIDTH_PX,
+  readSnlSvgBlockWidthPx,
+} from '../snl-macro/svg-template-options'
+export type { SnlSvgTemplateRenderOptions } from '../snl-macro/types'
 
 // === Hooks & customization ===
 export { defaultRenderHooks, defaultHighlightStrategy, defaultRenderers } from './hooks'

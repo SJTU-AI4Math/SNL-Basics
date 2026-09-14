@@ -26,6 +26,7 @@ const projection = {
     generation: 1,
     producer_revision: 'fixture-formula-renderer-v1',
     accessibility: { label: 'Arrow from A to B' },
+    block_width_px: 340,
     formula_embed: { total_height_em: 1.8, baseline_ratio: 0.72 },
   },
 }
@@ -147,8 +148,9 @@ Object.defineProperty(SvgRenderer, FORMULA_FOREIGN_RENDERER_CAPABILITY, {
 const BadgeBase: SnlBlockRenderer = ({ node, renderChild }) => (
   <span className="interactive-formula-block generic-badge" role="img" aria-label="Build passed">✓ {renderChild(node.children[0])}</span>
 )
+const DefaultTableRenderer = defaultRenderers.table
 const TableBase: SnlBlockRenderer = props => (
-  <div className="interactive-formula-block generic-table" role="group" aria-label="Fixed formula table">{defaultRenderers.table(props)}</div>
+  <div className="interactive-formula-block generic-table" role="group" aria-label="Fixed formula table"><DefaultTableRenderer {...props} /></div>
 )
 const BadgeRenderer = createFormulaBlockRenderer(BadgeBase, { prepare: async candidate => {
   if ((candidate.template.formula_embed as { kind?: unknown } | undefined)?.kind !== 'badge') throw new Error('badge projection missing')
