@@ -1,0 +1,349 @@
+{
+  "nodes": [
+    {
+      "id": "Basics.Specification",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification"
+      }
+    },
+    {
+      "id": "Basics.Specification.Ownership",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Ownership"
+      }
+    },
+    {
+      "id": "Basics.Specification.Syntax",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Syntax"
+      }
+    },
+    {
+      "id": "Basics.Specification.Macros",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Macros"
+      }
+    },
+    {
+      "id": "Basics.Specification.Drivers",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Drivers"
+      }
+    },
+    {
+      "id": "Basics.Specification.Rendering",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Rendering"
+      }
+    },
+    {
+      "id": "Basics.Specification.Svg",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Svg"
+      }
+    },
+    {
+      "id": "Basics.Specification.Theme",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Theme"
+      }
+    },
+    {
+      "id": "Basics.Specification.Interaction",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Interaction"
+      }
+    },
+    {
+      "id": "Basics.Specification.Compatibility",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Specification.Compatibility"
+      }
+    },
+    {
+      "id": "spec.rv.automatic-style-selection-034",
+      "label": "Entry",
+      "props": {
+        "entryId": "spec.rv.automatic-style-selection-034"
+      }
+    },
+    {
+      "id": "Basics.Document",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document"
+      }
+    },
+    {
+      "id": "Basics.Document.Setup",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Setup"
+      }
+    },
+    {
+      "id": "Basics.Document.FirstTree",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.FirstTree"
+      }
+    },
+    {
+      "id": "Basics.Document.Entries",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Entries"
+      }
+    },
+    {
+      "id": "Basics.Document.Theme",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Theme"
+      }
+    },
+    {
+      "id": "Basics.Document.Templates",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Templates"
+      }
+    },
+    {
+      "id": "Basics.Document.Debugging",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Debugging"
+      }
+    },
+    {
+      "id": "Basics.Document.Maintenance",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Maintenance"
+      }
+    },
+    {
+      "id": "Basics.Document.ReferenceMap",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.ReferenceMap"
+      }
+    },
+    {
+      "id": "npm.snl-basics-react",
+      "label": "Entry",
+      "props": {
+        "entryId": "npm.snl-basics-react"
+      }
+    },
+    {
+      "id": "mod.snl-syntax-tree",
+      "label": "Entry",
+      "props": {
+        "entryId": "mod.snl-syntax-tree"
+      }
+    },
+    {
+      "id": "mod.snl-macro",
+      "label": "Entry",
+      "props": {
+        "entryId": "mod.snl-macro"
+      }
+    },
+    {
+      "id": "mod.snl-react-view",
+      "label": "Entry",
+      "props": {
+        "entryId": "mod.snl-react-view"
+      }
+    },
+    {
+      "id": "mod.entry-react",
+      "label": "Entry",
+      "props": {
+        "entryId": "mod.entry-react"
+      }
+    },
+    {
+      "id": "overview.public-api",
+      "label": "Entry",
+      "props": {
+        "entryId": "overview.public-api"
+      }
+    },
+    {
+      "id": "Basics.Document.Drivers",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Drivers"
+      }
+    },
+    {
+      "id": "Basics.Document.Svg",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Svg"
+      }
+    },
+    {
+      "id": "Basics.Document.Interaction",
+      "label": "Entry",
+      "props": {
+        "entryId": "Basics.Document.Interaction"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Document",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Ownership",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Ownership",
+      "to": "Basics.Document.Setup",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Syntax",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Syntax",
+      "to": "Basics.Document.FirstTree",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Macros",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Macros",
+      "to": "Basics.Document.Templates",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Drivers",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Drivers",
+      "to": "Basics.Document.Drivers",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Rendering",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Rendering",
+      "to": "Basics.Document.Entries",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Svg",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Svg",
+      "to": "Basics.Document.Svg",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Theme",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Theme",
+      "to": "Basics.Document.Theme",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Interaction",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Interaction",
+      "to": "Basics.Document.Interaction",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification",
+      "to": "Basics.Specification.Compatibility",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Compatibility",
+      "to": "Basics.Document.Debugging",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Compatibility",
+      "to": "Basics.Document.Maintenance",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Specification.Macros",
+      "to": "spec.rv.automatic-style-selection-034",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document",
+      "to": "Basics.Document.ReferenceMap",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "npm.snl-basics-react",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "mod.snl-syntax-tree",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "mod.snl-macro",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "mod.snl-react-view",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "mod.entry-react",
+      "label": "branch"
+    },
+    {
+      "from": "Basics.Document.ReferenceMap",
+      "to": "overview.public-api",
+      "label": "branch"
+    }
+  ]
+}

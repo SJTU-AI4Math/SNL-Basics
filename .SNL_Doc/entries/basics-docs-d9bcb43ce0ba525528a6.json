@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.Svg",
+    "title": "SVG Templates and Semantic Placement",
+    "kind": "concept",
+    "package": "basics-docs",
+    "content": {
+      "markdown": "`createSvgTemplateRenderer` in `src/snl-react-view/svg-template-renderer.tsx` constructs an opt-in renderer around a consumer-supplied asset registry. `readSvgTemplateProjection` requires an explicit asset identity and accessibility label; Macro names do not select assets. `LiveRenderer` acquires a registry handle, guards asynchronous completion against unmounting, and releases the handle during cleanup.\n\n`ReadySurface` separates stable artwork from changing semantic children. In `src/snl-react-view/svg-template.ts`, `parseSanitizedSvgTemplate` validates the SVG and its local references; `instantiateSvgTemplate` scopes IDs and rewrites references for each instance. `bindSvgTemplateChildren` projects each slot through the normal `renderChild` callback rather than inserting child source as markup. Slots may omit or repeat valid child indices; a missing referenced child produces an explicit fallback.\n\nEach occurrence retains the child's canonical `treePath` but receives a distinct placement identifier. `SlotSurface` registers it through `useForeignBox`, allowing repeated visual placements without inventing new semantic nodes. `ForeignBoxHost` in `src/snl-react-view/foreign-box-host.tsx` converts marker positions into host coordinates and centers measured child surfaces. The ordinary-tree fallback is hidden only when live placement succeeds, and registrations are removed on cleanup.\n\nFormula embedding uses the renderer's capability hook to derive reserved metrics from the sanitized viewBox and explicit embedding policy. This preparation path releases its asset handle even on failure. Dynamic-arity SVG templates are rejected rather than assigned an implicit layout.\n"
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-react-view/svg-template-renderer.tsx",
+      "mode": "regex",
+      "pattern": "export function createSvgTemplateRenderer\\("
+    }
+  }
+}

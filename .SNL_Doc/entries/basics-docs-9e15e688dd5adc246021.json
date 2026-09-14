@@ -1,0 +1,21 @@
+{
+  "format": "snl-entry",
+  "version": 1,
+  "schema_version": 1,
+  "package": "basics-docs",
+  "entry": {
+    "id": "Basics.Document.Drivers",
+    "title": "Query Driver Lifecycle",
+    "kind": "concept",
+    "package": "basics-docs",
+    "content": {
+      "markdown": "The query-only contract is implemented by `MacroDataDriver` in `src/snl-macro/macro-data-driver.ts` and `EntryDataDriver` in `src/entry-react/entry-data-driver.ts`. Consumers supply backend queries; the drivers manage reuse without choosing filesystem, HTTP, or editor transport.\n\n`query_macro` and the Entry driver's private `query` store both successful lookups and `null` misses in bounded LRU caches. Entry and Kind lookups use separate key prefixes. Concurrent unsignalled requests share backend work; calls carrying an `AbortSignal` remain independent so one caller's cancellation does not cancel another caller's request. Backend errors propagate rather than becoming cached misses.\n\n`clear_cache` removes cached and in-flight lookup records and advances global or per-key epochs. A request started before invalidation may still resolve to its original caller, but cannot repopulate the invalidated cache. Cancellation is forwarded to the backend; these drivers do not manufacture transport cancellation themselves.\n\nThe rendering lifecycle adds another guard. `EntryView` in `src/entry-react/entry-render.tsx` keys displayed state by driver identity and Entry ID, aborts its request on cleanup, and ignores inactive completions. Loading, missing, and error states remain distinct. Finally, `read_context` reads injected color context, while `ReaderRuntime.run_reader` in `src/runtime/reader-runtime.ts` queries the environment afresh, keeping language projection separate from cached entity data.\n"
+    },
+    "contribution_info": null,
+    "pointer": {
+      "file": "src/snl-macro/macro-data-driver.ts",
+      "mode": "regex",
+      "pattern": "export class MacroDataDriver \\{"
+    }
+  }
+}
