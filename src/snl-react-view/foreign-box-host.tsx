@@ -16,6 +16,12 @@ const useSsrSafeLayoutEffect = typeof window === 'undefined' ? useEffect : useLa
 
 type MarkerElement = HTMLElement | SVGElement
 
+function ownedIntrinsicMeasurement(measurement: HTMLDivElement | null): HTMLElement | null {
+  const candidate = measurement?.querySelector<HTMLElement>('[data-snl-foreign-intrinsic="true"]')
+  // A nested host's intrinsic child cannot stand in for this entire slot.
+  return candidate?.closest('.snl-foreign-box-measure') === measurement ? candidate : null
+}
+
 function hasOnlySupportedTransforms(element: Element): boolean {
   if (typeof getComputedStyle === 'undefined') return true
   for (let current: Element | null = element; current; current = current.parentElement) {
@@ -225,7 +231,7 @@ export function ForeignBoxHost({ children, className, style, authorityKey }: For
               stageEntry(entry)
             }
             if (entry.measurement) {
-              const intrinsic = entry.measurement.querySelector<HTMLElement>('[data-snl-foreign-intrinsic="true"]')
+              const intrinsic = ownedIntrinsicMeasurement(entry.measurement)
               if (intrinsic !== entry.intrinsicMeasurement) {
                 const previousTarget = entry.intrinsicMeasurement ?? entry.measurement
                 observerRef.current?.unobserve(previousTarget)
@@ -335,7 +341,7 @@ export function ForeignBoxHost({ children, className, style, authorityKey }: For
           elementEntriesRef.current.delete(entry.intrinsicMeasurement)
         }
         entry.measurement = measurement
-        entry.intrinsicMeasurement = measurement?.querySelector<HTMLElement>('[data-snl-foreign-intrinsic="true"]') ?? null
+        entry.intrinsicMeasurement = ownedIntrinsicMeasurement(measurement)
         const target = entry.intrinsicMeasurement ?? measurement
         if (target) {
           elementEntriesRef.current.set(target, entry)

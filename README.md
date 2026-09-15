@@ -121,6 +121,14 @@ npm i @sjtu-ai4math/snl-basics katex react react-dom
 `react`, `react-dom`, and `katex` are **peerDependencies** — the library never
 bundles its own copy (see [Bundling](#bundling-vite--webpack)).
 
+A consumer can also pin an exact source commit using an npm Git dependency.
+The `prepare` lifecycle builds the same public `dist-lib/` exports, declarations,
+and stylesheets before npm packs a Git installation. Such a source pin is not an
+npm release: keep the full commit in the dependency and lockfile, and do not use
+`--ignore-scripts` for Git installs. Registry/tarball consumers use the prebuilt
+public payload. Source preparation requires the development build toolchain.
+
+
 Import the stylesheets once (KaTeX + the SNL hover/block styles):
 
 ```ts

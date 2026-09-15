@@ -105,6 +105,13 @@ npm i @sjtu-ai4math/snl-basics katex react react-dom
 `react`、`react-dom` 与 `katex` 是 **peerDependencies** —— 本库绝不打包自己的副本
 （参见[打包](#打包vite--webpack)）。
 
+消费端也可以通过 npm Git 依赖固定一个完整的源码提交。`prepare` 生命周期会在
+npm 打包 Git 安装来源之前，构建同样的公开 `dist-lib/` 导出、类型声明和样式表。
+源码固定不等于 npm 版本发布：依赖声明及 lockfile 应保留完整提交，Git 安装时
+不能使用 `--ignore-scripts`。Registry／tarball 消费端使用预构建的公开产物；
+源码准备需要开发构建工具链。
+
+
 引入一次样式表（KaTeX + SNL 的悬停/块级样式）：
 
 ```ts

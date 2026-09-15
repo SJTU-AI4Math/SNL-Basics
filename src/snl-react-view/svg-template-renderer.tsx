@@ -305,7 +305,10 @@ export function createSvgTemplateRenderer(options: SvgTemplateRendererOptions): 
           const abort = candidate.signal
             ? new Promise<never>((_resolve, reject) => {
                 const signal = candidate.signal!
-                const onAbort = () => reject(new DOMException('SVG formula embedding aborted', 'AbortError'))
+                const onAbort = () => {
+                  handle.release()
+                  reject(new DOMException('SVG formula embedding aborted', 'AbortError'))
+                }
                 signal.addEventListener('abort', onAbort, { once: true })
                 removeAbortListener = () => signal.removeEventListener('abort', onAbort)
                 if (signal.aborted) onAbort()

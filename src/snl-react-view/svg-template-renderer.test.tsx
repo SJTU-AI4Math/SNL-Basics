@@ -343,7 +343,7 @@ describe('SvgTemplateRenderer', () => {
 
     await waitFor(() => expect(view.container.querySelector('svg')).not.toBeNull())
     expect(view.container.querySelector('[data-name="textShell"][data-tree-path="0.0"]')).not.toBeNull()
-    expect(view.container.querySelector('[data-name="formulaLeaf"][data-tree-path="0.0.0"]')).not.toBeNull()
+    await waitFor(() => expect(view.container.querySelector('[data-name="formulaLeaf"][data-tree-path="0.0.0"]')).not.toBeNull())
     expect(view.container.querySelector('[role="alert"]')).toBeNull()
   })
 

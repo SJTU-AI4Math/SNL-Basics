@@ -48,6 +48,26 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 describe('generic block renderers inside formulas', () => {
+  it.each(['text', 'block'] as const)('keeps foreign formulas and absolute child paths under a %s parent', async mode => {
+    const Badge: SnlBlockRenderer = ({ node, renderChild }) => <span data-testid="nested-formula-badge">{renderChild(node.children[0])}</span>
+    const { renderer, prepare } = generic(Badge)
+    const Parent: SnlBlockRenderer = ({ node, renderChild }) => <div>{node.children.map((child, i) => <span key={i}>{renderChild(child, i)}</span>)}</div>
+    const db: SnlMacroRecord = {
+      'outer': macro('outer', mode === 'text' ? { mode: 'text', body: 'before #0 after' } : { mode: 'block', body: '#0', block_template_name: 'outer-parent' }),
+      'formula.root': rootMacro,
+      'formula.leaf': leafMacro,
+      'consumer.badge': macro('consumer.badge', { ...blockTemplate('generic-badge'), body: '#0' }),
+    }
+    const tree = createSnlSyntaxTreeNode('outer', { children: [formulaTree(createSnlSyntaxTreeNode('consumer.badge', { children: [createSnlSyntaxTreeNode('formula.leaf')] }))] })
+    const preimage = JSON.stringify(tree)
+    const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} hooks={{ renderers: { 'generic-badge': renderer, 'outer-parent': Parent } }} />)
+    const badge = await waitFor(() => view.getByTestId('nested-formula-badge'))
+    expect(view.container.textContent).not.toContain('cannot be used inside a formula')
+    await waitFor(() => expect(badge.querySelector('[data-tree-path="0.0.0"]')).not.toBeNull())
+    expect(prepare).toHaveBeenCalledWith(expect.objectContaining({ treePath: [0, 0], dynamicArity: false }))
+    expect(JSON.stringify(tree)).toBe(preimage)
+  })
+
   it('renders an explicitly opted-in intrinsic badge between formula siblings', async () => {
     const Badge: SnlBlockRenderer = ({ node, renderChild }) => <span data-testid="formula-badge">✓ {renderChild(node.children[0])}</span>
     const prepare = vi.fn(async () => ({
@@ -69,7 +89,7 @@ describe('generic block renderers inside formulas', () => {
     expect(view.container.querySelector('.katex')?.textContent).toContain('a+')
     expect(view.container.querySelector('.katex')?.textContent).toContain('+b')
     expect(badge.closest<HTMLElement>('.snl-formula-foreign-surface')?.style.width).toBe('max-content')
-    expect(badge.querySelector('[data-tree-path="0.0"]')).not.toBeNull()
+    await waitFor(() => expect(badge.querySelector('[data-tree-path="0.0"]')).not.toBeNull())
     expect(view.container.querySelector('.snlFormulaForeignFallbackText')?.textContent?.replaceAll(' ', ' ')).toBe('build passed')
     expect(prepare).toHaveBeenCalledWith(expect.objectContaining({ template, treePath: [0], dynamicArity: false }))
   })
@@ -138,8 +158,8 @@ describe('generic block renderers inside formulas', () => {
     expect(surface.style.width).toBe('240px')
     expect(surface.style.minWidth).toBe('240px')
     expect(surface.style.maxWidth).toBe('240px')
-    expect(table.querySelector('[data-tree-path="0.0.0"]')).not.toBeNull()
-    expect(table.querySelector('[data-tree-path="0.0.1"]')).not.toBeNull()
+    await waitFor(() => expect(table.querySelector('[data-tree-path="0.0.0"]')).not.toBeNull())
+    await waitFor(() => expect(table.querySelector('[data-tree-path="0.0.1"]')).not.toBeNull())
     expect(table.querySelector('.snl-math-span')).not.toBeNull()
     expect(table.querySelector('.snl-text')).not.toBeNull()
   })
