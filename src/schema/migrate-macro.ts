@@ -652,7 +652,8 @@ export function isMacroDocumentV11(db: Record<string, unknown>): boolean {
       const arityContracts = new Set(specs.map(templateArityContract))
       if (arityContracts.size !== 1 || specs.some((spec) => {
         const analysis = analyzeLatexTemplatePlaceholders(spec.body)
-        return analysis.invalid || analysis.variadic !== value.dynamic_arity
+        return analysis.invalid ||
+           (value.dynamic_arity ? analysis.positional_arity !== 0 : analysis.variadic)
       })) return false
       names.push(style.style_name)
     }

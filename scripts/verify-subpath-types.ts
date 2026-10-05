@@ -27,6 +27,9 @@ import {
 } from '../dist-lib/index.js';
 import {
   EntrySurface,
+  useHoverPopovers,
+  useCurrentPopoverId,
+  type HoverPopoverApi,
   HoverPopoverDismissController,
   SnlDeactivationController,
   type EntryData,
@@ -43,6 +46,14 @@ import {
   isMacroDocumentV11,
   type SnlMacroTemplate,
 } from '../dist-lib/core.js';
+
+function DismissFromEntry(): void {
+  const api: HoverPopoverApi<string> = useHoverPopovers<string>();
+  const id = useCurrentPopoverId();
+  if (id) { api.dismissSubtree(id); api.dismissDescendants(id); }
+  api.dismissAll();
+}
+void DismissFromEntry;
 
 const descriptorBounds: HoverPopoverBoundsPolicy = 'viewport';
 const descriptorOrigin: HoverPopoverOrigin = { element: document.body, bounds: descriptorBounds };

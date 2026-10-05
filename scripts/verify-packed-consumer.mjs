@@ -82,6 +82,9 @@ import {
 } from '@sjtu-ai4math/snl-basics';
 import {
   EntrySurface,
+  useHoverPopovers,
+  useCurrentPopoverId,
+  type HoverPopoverApi,
   type EntryContent,
   type EntryData,
   type EntryKind,
@@ -90,6 +93,15 @@ import {
 import { ReaderRuntime, type LanguageEnvironment } from '@sjtu-ai4math/snl-basics/runtime';
 import '@sjtu-ai4math/snl-basics/entry/style.css';
 
+function ExternalDismissButton() {
+  const api: HoverPopoverApi<string> = useHoverPopovers<string>();
+  const id = useCurrentPopoverId();
+  return createElement('button', { onClick: () => {
+    if (id) { api.dismissDescendants(id); api.dismissSubtree(id); }
+    else api.dismissAll();
+  } }, 'Dismiss');
+}
+void ExternalDismissButton;
 const svgSource = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 10"><g data-snl-slot="0"/></svg>';
 const registry = new SvgTemplateAssetRegistry({
   loader: async () => svgSource,
@@ -181,7 +193,9 @@ import {
   formulaForeignCapability,
   readSvgTemplateProjection,
 } from '@sjtu-ai4math/snl-basics';
-import { EntrySurface } from '@sjtu-ai4math/snl-basics/entry';
+import { EntrySurface, useHoverPopovers, useCurrentPopoverId, HoverPopoverDismissController } from '@sjtu-ai4math/snl-basics/entry';
+const rootApi = await import('@sjtu-ai4math/snl-basics');
+if (useHoverPopovers !== rootApi.useHoverPopovers || useCurrentPopoverId !== rootApi.useCurrentPopoverId || HoverPopoverDismissController !== rootApi.HoverPopoverDismissController) throw new Error('Entry popover API must share root identity');
 import { ReaderRuntime } from '@sjtu-ai4math/snl-basics/runtime';
 const registry = new SvgTemplateAssetRegistry({ loader: async () => '<svg/>', maxSettled: 1 });
 const { MacroDataDriver, PACKAGE_VERSION, parseSnlSyntaxTree, resolveStyle, resolveRootLatex, serializeSnlSyntaxTree } = await import('@sjtu-ai4math/snl-basics');

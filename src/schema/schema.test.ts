@@ -29,7 +29,7 @@ describe('schema/versions', () => {
   it('exports correct version constants', () => {
     expect(MACRO_SCHEMA_VERSION).toBe(11)
     expect(TREE_SCHEMA_VERSION).toBe(3)
-    expect(PACKAGE_VERSION).toBe('0.3.5')
+    expect(PACKAGE_VERSION).toBe('0.3.6')
   })
 })
 
@@ -420,7 +420,7 @@ describe('schema/migrate-macro', () => {
     expect(values.__proto__.body).toBe('Proto #0')
   })
 
-  it('rejects hybrid, retired, escaped-variadic, and fixed-variadic v11 data', () => {
+  it('rejects hybrid, retired, positional-dynamic, and fixed-variadic v11 data', () => {
     const makeBase = () => migrateMacroDocument({ X: {
       ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)), kind: 'const',
     } } as any).X as any
@@ -441,7 +441,11 @@ describe('schema/migrate-macro', () => {
 
     const escapedDynamic = makeBase()
     escapedDynamic.styles[0].template = { mode: 'text', body: '\\#*' }
-    expect(isMacroDocumentV11({ X: escapedDynamic })).toBe(false)
+    expect(isMacroDocumentV11({ X: escapedDynamic })).toBe(true)
+
+    const positionalDynamic = makeBase()
+    positionalDynamic.styles[0].template = { mode: 'text', body: '#0' }
+    expect(isMacroDocumentV11({ X: positionalDynamic })).toBe(false)
 
     const fixedVariadic = makeBase()
     fixedVariadic.dynamic_arity = false

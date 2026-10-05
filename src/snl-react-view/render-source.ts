@@ -155,6 +155,11 @@ function template_arity_contract(body: string): string {
   return slotContractKey(analyzeLatexTemplatePlaceholders(body))
 }
 
+function matches_macro_template_arity(body: string, dynamicArity: boolean): boolean {
+  const slots = analyzeLatexTemplatePlaceholders(body)
+  return dynamicArity ? slots.positional_arity === 0 : !slots.variadic
+}
+
 const RETIRED_STYLE_FIELDS = [
   'tag', 'mode', 'separator', 'block_template_name',
   'variadic_left', 'variadic_join', 'variadic_right', 'react_renderer_key',
@@ -188,7 +193,7 @@ export function assert_valid_style_template(style: SnlMacroStyle, dynamicArity?:
       const body = (value as SnlMacroTemplate).body
       arityContracts.add(template_arity_contract(body))
       if (dynamicArity !== undefined &&
-          analyzeLatexTemplatePlaceholders(body).variadic !== dynamicArity) {
+          !matches_macro_template_arity(body, dynamicArity)) {
         throw new Error(`style "${style.style_name}" template variadic marker disagrees with macro arity`)
       }
     }
@@ -199,7 +204,7 @@ export function assert_valid_style_template(style: SnlMacroStyle, dynamicArity?:
   }
   assert_valid_template_spec(template, style.style_name)
   if (dynamicArity !== undefined &&
-      analyzeLatexTemplatePlaceholders((template as SnlMacroTemplate).body).variadic !== dynamicArity) {
+      !matches_macro_template_arity((template as SnlMacroTemplate).body, dynamicArity)) {
     throw new Error(`style "${style.style_name}" template variadic marker disagrees with macro arity`)
   }
 }
@@ -691,26 +696,8 @@ export async function resolveNodeLatex(
   const separator = resolvedTemplate?.separator ?? defaultSep
   const children_joined = wrappedChildren.join(separator)
 
-  // Dynamic-arity macro handling
-  if (macro?.dynamic_arity) {
-    // If template contains #*, fill it (this handles \\begin{pmatrix}#*\\end{pmatrix} etc.)
-    if (template.includes('#*')) {
-      const filled = fillLatexTemplate(
-        template,
-        { ...childValues, children_joined },
-        selfBucket,
-      )
-      if (selfBucket === 'formula') {
-        return wrapTopLevelAlignmentSegments(
-          filled,
-          (segment) => wrapHtmlData(node, segment, macro, treePath),
-        )
-      }
-      return wrapHtmlData(node, filled, macro, treePath)
-    }
-    throw new Error(`dynamic macro "${macro.name}" requires #* in its template`)
-  }
-
+  // A dynamic template without #* displays only its literal body; children
+  // remain in the semantic tree and are not spliced into this presentation.
   const filled = fillLatexTemplate(
     template,
     { ...childValues, children_joined },

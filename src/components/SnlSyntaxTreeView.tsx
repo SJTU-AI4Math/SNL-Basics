@@ -49,7 +49,7 @@ import {
   type FormulaForeignResolverOptions,
   resolve_style_template,
 } from '../snl-react-view/render-source'
-import { resolveDeepestHoverHitFromStack } from '../snl-react-view/hover-dom'
+import { ownsSemanticEvent, resolveDeepestHoverHitFromStack } from '../snl-react-view/hover-dom'
 import { applySnlHoverHighlight, clearSnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
 import { deriveConvergedFormulaMetrics, formulaForeignCapability, formulaForeignMarkerId, type FixedFormulaMetrics } from '../snl-react-view/formula-foreign-box'
@@ -118,6 +118,7 @@ const StableKatexContainer = memo(forwardRef<HTMLDivElement, StableKatexContaine
     return <div
       ref={ref}
       className="katex-html"
+      data-snl-render-root=""
       dangerouslySetInnerHTML={{ __html: html }}
       onMouseMove={(event) => handlersRef.current.onMouseMove(event)}
       onMouseLeave={(event) => handlersRef.current.onMouseLeave(event)}
@@ -1482,7 +1483,7 @@ export function SnlSyntaxTreeView({
 
   const handleKaTeXMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
     const container = containerRef.current
-    if (!container) return
+    if (!container || !ownsSemanticEvent(container, event.target)) return
     if (tooltip?.locked) return
 
     // elementsFromPoint returns every element painted at (x,y) in front-to-back
@@ -1544,6 +1545,7 @@ export function SnlSyntaxTreeView({
     if (!container || !_interaction_driver?.on_click) return
     const interactive: HTMLElement[] = []
     for (const element of container.querySelectorAll<HTMLElement>('[data-tree-path]')) {
+      if (!ownsSemanticEvent(container, element)) continue
       const path = decodeTreePath(element.getAttribute('data-tree-path') ?? '')
       const node = resolveTreePath(renderTree, path)
       const macro = node ? resolvedMacros[node.macro_name] : undefined
@@ -1597,7 +1599,7 @@ export function SnlSyntaxTreeView({
   // Delegated click handler — resolves data-tree-path → actual node → dispatch
   const handleClick: MouseEventHandler<HTMLDivElement> = (event) => {
     const container = containerRef.current
-    if (!container) return
+    if (!container || !ownsSemanticEvent(container, event.target)) return
     const ElementCtor = container.ownerDocument.defaultView?.Element
     const HTMLElementCtor = container.ownerDocument.defaultView?.HTMLElement
     const eventTarget = ElementCtor && event.target instanceof ElementCtor
@@ -1606,7 +1608,7 @@ export function SnlSyntaxTreeView({
     let el: HTMLElement | null = eventTarget && HTMLElementCtor && eventTarget instanceof HTMLElementCtor
       ? eventTarget as HTMLElement
       : eventTarget?.parentElement ?? null
-    while (el && el !== container && !el.hasAttribute('data-tree-path')) el = el.parentElement
+    while (el && el !== container && !el.matches('[data-name], [data-tree-path]')) el = el.parentElement
     if (!el || !el.hasAttribute('data-tree-path')) {
       const active = currentActivationRef.current
       if (active) active.lease.request_deactivate('blank-activation', event.nativeEvent)
@@ -1624,14 +1626,15 @@ export function SnlSyntaxTreeView({
 
   const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return
+    if (!ownsSemanticEvent(event.currentTarget, event.target)) return
     const ElementCtor = event.currentTarget.ownerDocument.defaultView?.Element
     const eventTarget = ElementCtor && event.target instanceof ElementCtor
       ? event.target as Element
       : null
     const target = eventTarget
-      ? eventTarget.closest<HTMLElement>('[data-snl-keyboard-activation="true"]')
+      ? eventTarget.closest<HTMLElement>('[data-name], [data-tree-path]')
       : null
-    if (!target || !event.currentTarget.contains(target)) return
+    if (!target || target.dataset.snlKeyboardActivation !== 'true' || !event.currentTarget.contains(target)) return
     if (eventTarget && hasOwnedInteractionBoundary(eventTarget, target)) return
     event.preventDefault()
     const rect = target.getBoundingClientRect()
@@ -1847,6 +1850,7 @@ export function SnlSyntaxTreeView({
           key="react"
           ref={setContainerRef}
           className={`katex-html${rootBucket === 'text' ? ' snl-text' : ''}`}
+          data-snl-render-root=""
           style={{ cursor: hasHoverTarget ? 'pointer' : undefined }}
           onMouseMove={handleKaTeXMouseMove}
           onMouseLeave={handleKaTeXMouseLeave}

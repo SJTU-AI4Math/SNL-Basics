@@ -8,7 +8,7 @@
     "kind": "field",
     "title": "$\\texttt{dynamic\\_arity}$",
     "content": {
-      "markdown": "True when the macro's child count is not fixed by its template — its default (styles[0]) template must contain `#*`. All styles must agree on this flag; it's a macro-level invariant so switching styles never changes the arity contract at the call site."
+      "markdown": "True when the Macro accepts an unfixed number of children. Its default and named Styles may expand children with `#*` or omit `#*` and every positional placeholder to display only a literal/name. In the latter case supplied arguments are ignored for display but remain in the semantic tree. The same rule applies to invariant and localized template projections; all projections within one Style retain a consistent placeholder contract. Dynamic Styles cannot use fixed positional placeholders; fixed macros cannot use `#*`. This is one Macro-level arity contract, not a per-Style arity setting."
     },
     "contribution_info": null,
     "pointer": {

@@ -1,8 +1,7 @@
 // Tests for cat 2026-07-14 spec additions:
 //   §numeral               — pure-digit tokens are legal SNL leaves;
 //                              render bare in math mode.
-//   §dynamic_arity-no-template — dynamic_arity macros render purely from
-//                              #* + separator; template is ignored.
+//   §dynamic_arity — dynamic templates may expand #* with a separator.
 import { describe, expect, it } from 'vitest'
 import { parseSnlSyntaxTree } from '../snl-syntax-tree/parser'
 import { resolveRootLatex } from './render-source'
@@ -17,8 +16,7 @@ const db: SnlMacroRecord = {
     tags: [],
     styles: [{ style_name: 'default',  template: { mode: 'formula_inline', body: '\\mathbb{T}(#0)' }, tags: [] }],
   },
-  // Dynamic-arity macro — template MUST contain #* per v0.10.0 contract.
-  // separator is used to join children at the #* slot.
+  // This dynamic-arity style uses #*; separator joins children at that slot.
   or: {
     name: 'or', description: '',
     source: { entries: [], urls: [] },

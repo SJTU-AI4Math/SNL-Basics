@@ -70,5 +70,11 @@ export {
   type ThemedKindColoring,
   type KindPalette,
 } from '../snl-react-view/kind-palette'
+// Reuse the provider context used by EntryPreviewProvider, including host callbacks.
+export {
+  useHoverPopovers,
+  useCurrentPopoverId,
+  type HoverPopoverApi,
+} from '../snl-react-view/hover-popovers'
 export type { ColorScheme, ContextReader, RenderContext } from '../runtime'
 export { extractExportedBinders, applyContextSource, resolveEntryContextSources } from './context-source'

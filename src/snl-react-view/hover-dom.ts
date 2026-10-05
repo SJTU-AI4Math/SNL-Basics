@@ -4,6 +4,16 @@
  */
 import { readBindRefFromDom } from '../snl-syntax-tree/binding'
 
+/** Render and popover roots are independent semantic event owners. */
+export function ownsSemanticEvent(container: HTMLElement, target: EventTarget | null): target is Element {
+  const ElementCtor = container.ownerDocument.defaultView?.Element
+  if (!ElementCtor || !(target instanceof ElementCtor) || !container.contains(target)) return false
+  for (let current: Element | null = target; current && current !== container; current = current.parentElement) {
+    if (current.matches('[data-snl-render-root], [data-popover-id]')) return false
+  }
+  return true
+}
+
 /**
  * Walk up from `start` to find the nearest binder-scope ancestor (a quantifier node marked
  * data-scope="binder" by annotate-bind) carrying the given `bindRef`.
@@ -82,6 +92,11 @@ export function resolveDeepestHoverHitFromStack(
   const HTMLElementCtor = container.ownerDocument.defaultView?.HTMLElement
   for (const element of stack) {
     if (!container.contains(element)) continue
+    // A foreground nested owner must not fall through to its outer semantic ancestor.
+    if (!ownsSemanticEvent(container, element)) {
+      if (!best || best.contains(element)) return null
+      continue
+    }
     const start = HTMLElementCtor && element instanceof HTMLElementCtor
       ? element as HTMLElement
       : element.parentElement

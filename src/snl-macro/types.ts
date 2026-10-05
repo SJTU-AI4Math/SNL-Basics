@@ -133,10 +133,11 @@ export interface SnlMacro {
   kind?: string
 
   /**
-   * True when the macro's child count is not fixed by its template — its
-   * default (styles[0]) template must contain `#*`. All styles must agree
-   * on this flag; it's a macro-level invariant so switching styles never
-   * changes the arity contract at the call site.
+   * True when the macro accepts an unfixed child count. A dynamic Style may
+   * expand children with `#*` or omit all placeholders to display only a
+   * literal/name; omitted children remain in the semantic tree. Dynamic
+   * Styles cannot use positional slots; fixed macros cannot use `#*`.
+   * This is a macro-level contract, not a per-Style arity setting.
    */
   dynamic_arity: boolean
 

@@ -164,9 +164,9 @@ describe('localized text-style templates', () => {
     const escapedVariadic = {
       style_name: 'escaped', tags: [], template: { mode: 'text', body: '\\#*' },
     } as unknown as SnlMacroStyle
-    expect(() => resolve_style_template(
+    expect(resolve_style_template(
       escapedVariadic, undefined, 'en', true,
-    )).toThrow(/variadic marker/)
+    )).toEqual({ mode: 'text', body: '\\#*' })
   })
 
   it('rejects every retired Style field and the reserved discriminator hybrid', () => {

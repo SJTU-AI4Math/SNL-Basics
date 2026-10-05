@@ -1,10 +1,53 @@
 # `@sjtu-ai4math/snl-basics` — Public API Reference
 
-Current beta surface for v0.3.5. Import from the package root:
+Current beta surface for v0.3.6. Import from the package root:
 
 ```ts
 import { MacroDataDriver, SnlSyntaxTreeView } from '@sjtu-ai4math/snl-basics'
 ```
+
+## Programmatic popover destruction and activation ownership
+
+Import `useHoverPopovers`, `useCurrentPopoverId`, `HoverPopoverApi` and
+`HoverPopoverDismissController` from the root or `/entry`. These routes
+share one provider context. `/hover` remains DOM-only, without React provider hooks. Under `EntryPreviewProvider`, use
+`useHoverPopovers<string>()`; outside a provider the hook throws. To invoke the
+API from a host callback, capture it in a descendant effect/ref—no second manager
+or raw React state is needed.
+
+```tsx
+function ClosePreviews() {
+  const api = useHoverPopovers<string>()
+  return <button onClick={() => api.dismissAll()}>Close previews</button>
+}
+```
+
+- `dismissSubtree(id): void` includes the anchor and every descendant.
+- `dismissDescendants(id): void` preserves the anchor and ancestors.
+- `dismissAll(): void` includes all live layers. These three include frozen layers
+  and issue `explicit-api` requests through the provider's `dismiss_controller`.
+- `cancelUnfrozen(id): void` preserves/reparents frozen layers. Owner-unmount
+  cancellation is noncancelable.
+
+A controller's synchronous `on_request` accepts by calling `runDefault()` at
+most once during the call; omission vetoes cancelable requests, and delayed calls
+are inert. Acceptance reserves targets as closing before deactivation leases run
+leaf-first. Pending opening previews and their open/freeze timers are removed
+immediately; visible previews fade for `fadeMs`. `isAlive(id)` is false while
+closing. Repeated calls, unknown IDs and already-closing targets do not restart
+fades or duplicate notifications. `on_removed` runs after physical removal and
+cannot veto it. Exceptions/thenables are contained, not awaited policy.
+
+Provider unmount bypasses policy, clears all timers/resources and flushes removal
+notifications once (including opening/closing layers), without dispatching
+activation deactivation policy. A retained API cannot resurrect that provider.
+
+Click/hover Entry events use **only the activated semantic node's own indices**
+(including its resolved Macro's `source.entries`). Nested nonsemantic KaTeX spans
+resolve to the nearest semantic node; an unindexed semantic node never inherits
+an ancestor's indices. Actual parent activation, own-index child events, generic
+semantic callbacks and binder behavior remain intact. Nested render roots and
+popover roots own their events; outer roots must not reinterpret them.
 
 ## Data model
 
@@ -57,7 +100,12 @@ interface SnlMacro {
 }
 ```
 
-Dynamic templates place `#*` in `body`; `separator` joins expanded children.
+A dynamic-arity Macro may use `#*` in a Style's `body` to display its children;
+`separator` joins them. Alternatively, a dynamic Style may omit `#*` and all
+positional placeholders, displaying only its literal/name body regardless of
+supplied child count; the children remain in the semantic tree. This applies
+to the default and named Styles, with invariant or localized templates. Dynamic
+Styles cannot use fixed `#N` placeholders; fixed macros cannot use `#*`.
 `block_template_name` is valid only when `mode === 'block'`. All localized
 projections within one Style must have the same escape-aware arity contract;
 different explicit Styles may intentionally omit or reveal children.
