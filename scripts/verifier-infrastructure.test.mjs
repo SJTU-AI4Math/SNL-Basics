@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { createServer } from 'node:http'
 import { readFileSync, realpathSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { closeOwnedVite, startOwnedVite } from './verifier-infrastructure.mjs'
 
 const servers = new Set()
@@ -27,11 +28,11 @@ describe('owned verifier Vite server', () => {
   it('narrowly allows the real KaTeX font directory and serves a real font', async () => {
     const fixture = new URL('../test-fixtures/parameterized-svg/', import.meta.url).pathname
     const owned = await startOwnedVite(fixture)
-    const expected = realpathSync(new URL('../node_modules/katex/dist/fonts/', import.meta.url).pathname)
+    const expected = realpathSync(fileURLToPath(new URL('../node_modules/katex/dist/fonts/', import.meta.url)))
     expect(owned.katexFontDir).toBe(expected)
-    expect(owned.server.config.server.fs.allow).toContain(expected)
+    expect(owned.server.config.server.fs.allow.map(path => path.replaceAll('\\', '/'))).toContain(expected.replaceAll('\\', '/'))
     expect(owned.server.config.server.fs.allow).not.toContain('/')
-    const fontUrl = new URL(`/@fs/${join(expected, 'KaTeX_Main-Regular.woff2')}`, owned.url)
+    const fontUrl = new URL(`/@fs/${join(expected, 'KaTeX_Main-Regular.woff2').replaceAll('\\', '/')}`, owned.url)
     const response = await fetch(fontUrl)
     expect(response.status).toBe(200)
     expect((await response.arrayBuffer()).byteLength).toBeGreaterThan(10_000)
