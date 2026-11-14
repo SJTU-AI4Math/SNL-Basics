@@ -62,7 +62,7 @@ while True: time.sleep(1)
 `
 }
 
-describe('Linux subreaper owned-process cleanup', () => {
+describe.skipIf(process.platform !== 'linux')('Linux subreaper owned-process cleanup', () => {
   it('reports a verified subreaper handshake before launching the child', async () => {
     const profile = mkdtempSync(join(tmpdir(), 'snl-subreaper-startup-'))
     profiles.add(profile)

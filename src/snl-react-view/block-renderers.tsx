@@ -16,15 +16,25 @@ function keyed(child: ReactElement, index: number): ReactElement {
   return <Fragment key={index}>{child}</Fragment>
 }
 
+/** A dedicated native marker stays at the first line even when the body is
+ * an inline-block whose own baseline comes from its last line. */
+function listItem(child: ReactElement, index: number, counter?: number): ReactElement {
+  return (
+    <li key={index} style={{ display: 'grid', gridTemplateColumns: 'max-content minmax(0, 1fr)', alignItems: 'start', columnGap: '.5em' }}>
+      <span className="snl-list-item-marker" aria-hidden="true" style={{ display: 'list-item', listStylePosition: 'inside', gridColumn: 1, gridRow: 1,
+        ...(counter === undefined ? {} : { counterSet: `list-item ${counter}` }) }} />
+      <div style={{ gridColumn: 2, gridRow: 1, minWidth: 0 }}>{child}</div>
+    </li>
+  )
+}
+
 /**
  * `list` renderer — variadic. Renders each child as a `<li>` inside a `<ul>`.
  * Children may be math, text, or nested block nodes; `renderChild` dispatches.
  */
 export const ListRenderer: SnlBlockRenderer = ({ node, renderChild }) => (
-  <ul className="snl-block snl-block-list">
-    {node.children.map((child, index) => (
-      <li key={index}>{renderChild(child, index)}</li>
-    ))}
+  <ul className="snl-block snl-block-list" role="list">
+    {node.children.map((child, index) => listItem(renderChild(child, index), index))}
   </ul>
 )
 
@@ -150,12 +160,11 @@ export const EnumerateRenderer: SnlBlockRenderer = ({ node, renderChild }) => {
   return (
     <ol
       className="snl-block snl-block-enumerate"
+      role="list"
       start={start}
       style={style}
     >
-      {node.children.map((child, index) => (
-        <li key={index}>{renderChild(child, index)}</li>
-      ))}
+      {node.children.map((child, index) => listItem(renderChild(child, index), index, Math.trunc(start ?? 1) + index))}
     </ol>
   )
 }

@@ -114,15 +114,17 @@ async function verify() {
 
   const rootStyle = getComputedStyle(root)
   const referenceStyle = getComputedStyle(reference)
-  const markerStyle = getComputedStyle(listItem, '::marker')
+  const marker = listItem.querySelector<HTMLElement>(':scope > .snl-list-item-marker')!
+  const nestedMarker = nestedListItem.querySelector<HTMLElement>(':scope > .snl-list-item-marker')!
+  const markerStyle = getComputedStyle(marker, '::marker')
   const listTextStyle = getComputedStyle(listText)
   const titleStyle = entryTitle ? getComputedStyle(entryTitle) : null
-  const nestedMarkerStyle = getComputedStyle(nestedListItem, '::marker')
+  const nestedMarkerStyle = getComputedStyle(nestedMarker, '::marker')
   const nestedListTextStyle = getComputedStyle(nestedListText)
   const formulaSemanticStyle = getComputedStyle(formulaSemantic)
   const markerBaselineProbe = document.createElement('span')
   markerBaselineProbe.textContent = '\u200b'
-  listItem.prepend(markerBaselineProbe)
+  marker.append(markerBaselineProbe)
   const listTextRects = [...listText.getClientRects()]
   const markerBaselineProbeRect = markerBaselineProbe.getBoundingClientRect()
   const markerFirstLineDelta = listTextRects.length > 0

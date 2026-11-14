@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process'
 const read = name => readFileSync(new URL(name, import.meta.url), 'utf8')
 
 describe('retained pidfd emergency process-tree shutdown', () => {
-  it('passes deterministic PID reuse, identity mismatch, and real tree tests', () => {
+  it.skipIf(process.platform !== 'linux')('passes deterministic PID reuse, identity mismatch, and real tree tests', () => {
     const result = spawnSync('python3', [new URL('./owned-process-emergency.test.py', import.meta.url).pathname], {
       encoding: 'utf8',
       timeout: 15_000,
