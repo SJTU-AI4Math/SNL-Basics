@@ -444,6 +444,7 @@ function wrapTopLevelAlignmentSegments(
  *   -----------------   -------------------    -------------------
  *   formula             (direct concat)        \text{ ... }
  *   text                $ ... $                (direct concat)
+ *                       ($$ ... $$ for a formula_display child: a display island)
  *
  * `block` never enters this function because block nodes are rendered on the
  * React side (see `renderNode`), not through the LaTeX pipeline.
@@ -459,7 +460,8 @@ export function wrapForParent(
     return `\\text{${childLatex}}`
   }
   if (parentBucket === 'text' && childBucket === 'formula') {
-    return `$${childLatex}$`
+    // A `formula_display` child of prose is a display island (`$$…$$`), not inline math.
+    return childMode === 'formula_display' ? `$$${childLatex}$$` : `$${childLatex}$`
   }
   return childLatex
 }

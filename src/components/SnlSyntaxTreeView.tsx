@@ -828,14 +828,17 @@ function MathSpan(props: Omit<FormulaRenderingOptions, 'containerRef' | 'enabled
   const formula = useFormulaRendering({ ...props, containerRef, enabled: true })
   const { result, error, lastHtmlRef, formulaMarkers, formulaHostAuthority, renderFormulaForeignBinding } = formula
   if (error) return <span className="snl-math-span katex-error snl-render-error" role="alert">{error}</span>
+  const html = result?.html ?? lastHtmlRef.current ?? ''
+  // A display island (`$$…$$` in prose) takes its own line; inline math flows with the text.
+  const display = html.startsWith('<span class="katex-display"')
   // The containing view owns semantic resolution and event delegation. Retain
   // accepted markup and captured children, staged during replacement preparation.
   return <ForeignBoxHost
     className="snl-math-span snl-formula-foreign-host"
-    style={{ display: 'inline-block' }}
+    style={{ display: display ? 'block' : 'inline-block' }}
     authorityKey={formulaHostAuthority}
   >
-    <StableMathMarkup ref={containerRef} html={result?.html ?? lastHtmlRef.current ?? ''} />
+    <StableMathMarkup ref={containerRef} html={html} />
     {formulaMarkers.map(renderFormulaForeignBinding)}
   </ForeignBoxHost>
 }
