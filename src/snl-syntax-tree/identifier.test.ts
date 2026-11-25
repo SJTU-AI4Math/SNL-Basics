@@ -11,13 +11,19 @@ describe('isSnlIdentifier', () => {
   })
 
   it('rejects structural or miscellaneous ASCII punctuation', () => {
-    const punctuation = `!"#$%&'()*+,/:;<=>?@[\\]^\`{|}~`
+    const punctuation = `!"#$%&()*+,/:;<=>?@[\\]^\`{|}~`
     for (const char of punctuation) {
       expect(isSnlIdentifier(`a${char}b`), JSON.stringify(char)).toBe(false)
     }
     expect(isSnlIdentifier('.foo')).toBe(false)
     expect(isSnlIdentifier('-foo')).toBe(false)
     expect(isSnlIdentifier('foo\\bar')).toBe(false)
+  })
+
+  it("accepts a Lean prime inside a name but never at its start", () => {
+    for (const name of ["Stream'.cons", "Stream'.WSeq.Equiv", "coe'", "f''"])
+      expect(isSnlIdentifier(name), name).toBe(true)
+    expect(isSnlIdentifier("'a")).toBe(false)
   })
 
   it('rejects whitespace, controls, format controls, and lone surrogates', () => {

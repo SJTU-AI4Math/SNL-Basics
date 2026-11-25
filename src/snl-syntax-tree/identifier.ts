@@ -7,7 +7,9 @@
  * lossless without letting structural ASCII punctuation become ambiguous.
  */
 const ASCII_START = /^[A-Za-z0-9_\\]$/
-const ASCII_CONTINUE = /^[A-Za-z0-9_.-]$/
+// `'` continues a name (Lean primes such as `Stream'.cons`); it has no SNL syntax role, KaTeX
+// escapes it in attributes, and `\htmlData` reads its values raw. Never a start character.
+const ASCII_CONTINUE = /^[A-Za-z0-9_.'-]$/
 const UNSAFE_UNICODE = /[\p{White_Space}\p{Cc}\p{Cf}\p{Cs}]/u
 
 function unicodeScalarAt(input: string, index: number): string | null {
