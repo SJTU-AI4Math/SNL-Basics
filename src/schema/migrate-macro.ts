@@ -620,9 +620,9 @@ function templateSpecs(value: unknown): SnlMacroTemplate[] | null {
   return Object.values(values) as SnlMacroTemplate[]
 }
 
-function templateArityContract(template: SnlMacroTemplate): string {
-  const analysis = analyzeLatexTemplatePlaceholders(template.body)
-  return `${analysis.variadic ? 'dynamic' : 'fixed'}:${analysis.positional_arity}`
+/** Localized projections may use different fixed slots; only variadic-ness must agree. */
+function templateVariadicShape(template: SnlMacroTemplate): string {
+  return analyzeLatexTemplatePlaceholders(template.body).variadic ? 'dynamic' : 'fixed'
 }
 
 const RETIRED_STYLE_FIELDS = [
@@ -649,8 +649,8 @@ export function isMacroDocumentV11(db: Record<string, unknown>): boolean {
           !isStringArray(style.tags) || !specs ||
           RETIRED_STYLE_FIELDS.some((field) => field in style) ||
           Object.keys(style).some((field) => !CURRENT_STYLE_FIELDS.has(field))) return false
-      const arityContracts = new Set(specs.map(templateArityContract))
-      if (arityContracts.size !== 1 || specs.some((spec) => {
+      const variadicShapes = new Set(specs.map(templateVariadicShape))
+      if (variadicShapes.size !== 1 || specs.some((spec) => {
         const analysis = analyzeLatexTemplatePlaceholders(spec.body)
         return analysis.invalid ||
            (value.dynamic_arity ? analysis.positional_arity !== 0 : analysis.variadic)

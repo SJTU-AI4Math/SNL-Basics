@@ -151,8 +151,10 @@ function assert_valid_template_spec(template: unknown, styleName: string): void 
   }
 }
 
-function template_arity_contract(body: string): string {
-  return slotContractKey(analyzeLatexTemplatePlaceholders(body))
+/** Localized projections share only the fixed/variadic shape: each language may
+ * reference a different subset of the canonical child slots. */
+function template_variadic_shape(body: string): string {
+  return slotContractKey({ ...analyzeLatexTemplatePlaceholders(body), positional_arity: 0 })
 }
 
 function matches_macro_template_arity(body: string, dynamicArity: boolean): boolean {
@@ -187,18 +189,18 @@ export function assert_valid_style_template(style: SnlMacroStyle, dynamicArity?:
         !Object.prototype.hasOwnProperty.call(values, localized.default_language)) {
       throw new Error(`style "${style.style_name}" has a malformed localized template`)
     }
-    const arityContracts = new Set<string>()
+    const variadicShapes = new Set<string>()
     for (const value of Object.values(values as Record<string, unknown>)) {
       assert_valid_template_spec(value, style.style_name)
       const body = (value as SnlMacroTemplate).body
-      arityContracts.add(template_arity_contract(body))
+      variadicShapes.add(template_variadic_shape(body))
       if (dynamicArity !== undefined &&
           !matches_macro_template_arity(body, dynamicArity)) {
         throw new Error(`style "${style.style_name}" template variadic marker disagrees with macro arity`)
       }
     }
-    if (arityContracts.size !== 1) {
-      throw new Error(`style "${style.style_name}" has localized templates with inconsistent arity`)
+    if (variadicShapes.size !== 1) {
+      throw new Error(`style "${style.style_name}" has localized templates with inconsistent variadic markers`)
     }
     return
   }

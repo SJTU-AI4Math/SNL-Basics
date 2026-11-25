@@ -134,9 +134,9 @@ describe('localized text-style templates', () => {
     })
   })
 
-  it('rejects localized projections with different arity contracts', () => {
+  it('accepts localized projections that reference different fixed slots', () => {
     const style = {
-      style_name: 'bad', tags: [],
+      style_name: 'slots', tags: [],
       template: {
         type: 'i18n', default_language: 'en',
         values: {
@@ -145,7 +145,22 @@ describe('localized text-style templates', () => {
         },
       },
     } as unknown as SnlMacroStyle
-    expect(() => resolve_style_template(style, undefined, 'en')).toThrow(/inconsistent arity/)
+    expect(resolve_style_template(style, undefined, 'en')).toEqual({ mode: 'text', body: '#0' })
+    expect(resolve_style_template(style, undefined, 'zh-CN')).toEqual({ mode: 'text', body: '#0 与 #1' })
+  })
+
+  it('rejects localized projections that disagree on the variadic marker', () => {
+    const style = {
+      style_name: 'bad', tags: [],
+      template: {
+        type: 'i18n', default_language: 'en',
+        values: {
+          en: { mode: 'text', body: '#0' },
+          'zh-CN': { mode: 'text', body: '#*' },
+        },
+      },
+    } as unknown as SnlMacroStyle
+    expect(() => resolve_style_template(style, undefined, 'en')).toThrow(/inconsistent variadic markers/)
   })
 
   it('uses escape-aware arity and macro-level variadic validation', () => {
@@ -154,12 +169,13 @@ describe('localized text-style templates', () => {
       template: {
         type: 'i18n', default_language: 'en',
         values: {
-          en: { mode: 'text', body: '\\#1 #0' },
+          en: { mode: 'text', body: '\\#* #0' },
           'zh-CN': { mode: 'text', body: '#1' },
         },
       },
     } as unknown as SnlMacroStyle
-    expect(() => resolve_style_template(localizedStyle, undefined, 'en')).toThrow(/inconsistent arity/)
+    // `\#*` is an escaped literal, not a variadic marker: both projections are fixed.
+    expect(resolve_style_template(localizedStyle, undefined, 'zh-CN')).toEqual({ mode: 'text', body: '#1' })
 
     const escapedVariadic = {
       style_name: 'escaped', tags: [], template: { mode: 'text', body: '\\#*' },

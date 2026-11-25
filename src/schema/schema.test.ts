@@ -533,10 +533,11 @@ describe('schema/migrate-macro', () => {
     expect(isMacroDocumentV11({ X: nonBlockSvg })).toBe(false)
   })
 
-  it('rejects v11 localized projections with inconsistent or invalid dynamic arity', () => {
+  it('accepts localized fixed slots but rejects inconsistent or invalid dynamic arity', () => {
     const base = migrateMacroDocument({ X: {
       ...migrateMacroV7toV9(migrateMacroV6toV7(v6Macro)), kind: 'const',
     } } as any).X as any
+    base.dynamic_arity = false
     base.styles[0].template = {
       type: 'i18n', default_language: 'en',
       values: {
@@ -544,6 +545,9 @@ describe('schema/migrate-macro', () => {
         'zh-CN': { mode: 'text', body: '#0 #1' },
       },
     }
+    // Each translation may reference a different subset of the canonical slots.
+    expect(isMacroDocumentV11({ X: base })).toBe(true)
+    base.styles[0].template.values['zh-CN'] = { mode: 'text', body: '#*' }
     expect(isMacroDocumentV11({ X: base })).toBe(false)
     base.styles[0].template.values['zh-CN'] = { mode: 'text', body: '#0' }
     base.dynamic_arity = true
