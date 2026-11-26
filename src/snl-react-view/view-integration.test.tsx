@@ -653,6 +653,92 @@ describe('SnlInteractionDriver integration', () => {
     }
   })
 
+  it('renders an equal tree with cached macros in its first frame, without a loading state', async () => {
+    const textDb: SnlMacroRecord = {
+      greet: {
+        name: 'greet', description: '', source: { entries: [], urls: [] }, dynamic_arity: false, tags: [],
+        styles: [{ style_name: 'default', template: { mode: 'text', body: 'hello' }, tags: [] }],
+      },
+    }
+    const cached = testDriver(textDb)
+    await cached.query_macro({ macro_name: 'greet' })
+    expect(cached.peek_macro('greet')?.name).toBe('greet')
+    expect(cached.peek_macro('unknown')).toBeUndefined()
+    // A fresh tree object (as a host re-render creates) must not drop to loading.
+    const { container, rerender } = render(<SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('greet')} macro_data_driver={cached} />)
+    expect(container.querySelector('[data-snl-render-state="loading"]')).toBeNull()
+    expect(container.textContent).toContain('hello')
+    rerender(<SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('greet')} macro_data_driver={cached} />)
+    expect(container.querySelector('[data-snl-render-state="loading"]')).toBeNull()
+    expect(container.textContent).toContain('hello')
+  })
+
+  it('reports a render failure through renderError and never shows its message or source', async () => {
+    const failures: Array<{ stage: string; message: string; language: string }> = []
+    const broken: SnlMacroRecord = {
+      bad: {
+        name: 'bad', description: '', source: { entries: [], urls: [] }, dynamic_arity: false, tags: [],
+        styles: [{ style_name: 'default', template: { mode: 'formula_inline', body: '\\frac{#0' }, tags: [] }],
+      },
+    }
+    const tree = createSnlSyntaxTreeNode('bad', { children: [createSnlSyntaxTreeNode('x')] })
+    const { container, rerender } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(broken)} />)
+    await waitFor(() => expect(container.querySelector('.snl-render-fallback')).not.toBeNull())
+    expect(container.textContent).toBe('(cannot display)')
+    expect(container.querySelector('.katex-error')).toBeNull()
+    rerender(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(broken)} hooks={{
+      renderError: (failure) => {
+        failures.push({ stage: failure.stage, message: String((failure.error as Error)?.message ?? failure.error), language: failure.language })
+        return <i data-testid="custom-failure">!</i>
+      },
+    }} />)
+    await waitFor(() => expect(container.querySelector('[data-testid="custom-failure"]')).not.toBeNull())
+    expect(failures.at(-1)?.stage).toBe('typeset')
+    expect(failures.at(-1)?.message).not.toBe('')
+  })
+
+  it('does not hold a hidden lock when renderTooltip suppresses the tooltip', async () => {
+    const tree = createSnlSyntaxTreeNode('sum', {
+      children: [createSnlSyntaxTreeNode('x'), createSnlSyntaxTreeNode('x')],
+    })
+    const { container } = render(
+      <SnlSyntaxTreeView tree={tree} macro_data_driver={driver} hooks={{ renderTooltip: () => null }} />,
+    )
+    const [first, second] = await waitFor(() => {
+      const a = container.querySelector<HTMLElement>('[data-tree-path="0"]')
+      const b = container.querySelector<HTMLElement>('[data-tree-path="1"]')
+      expect(a && b).toBeTruthy()
+      return [a!, b!]
+    })
+    const surface = container.querySelector<HTMLElement>('.katex-html')!
+    const original = document.elementsFromPoint
+    let hit: HTMLElement = first
+    Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: () => [hit] })
+    vi.useFakeTimers()
+    try {
+      fireEvent.mouseMove(first, { clientX: 10, clientY: 20 })
+      act(() => vi.advanceTimersByTime(2500))
+      // Past the 2-second lock time, the pointer still moves the highlight ...
+      hit = second
+      fireEvent.mouseMove(second, { clientX: 40, clientY: 20 })
+      expect(second.classList.contains('snl-single-hover')).toBe(true)
+      expect(first.classList.contains('snl-single-hover')).toBe(false)
+      // ... and leaving the surface clears it.
+      fireEvent.mouseLeave(surface)
+      expect(container.querySelectorAll('.snl-single-hover')).toHaveLength(0)
+      // A click activates the node without freezing later hovers either.
+      hit = first
+      fireEvent.click(first, { clientX: 10, clientY: 20 })
+      expect(first.classList.contains('snl-single-hover')).toBe(true)
+      hit = second
+      fireEvent.mouseMove(second, { clientX: 40, clientY: 20 })
+      expect(second.classList.contains('snl-single-hover')).toBe(true)
+    } finally {
+      vi.useRealTimers()
+      Object.defineProperty(document, 'elementsFromPoint', { configurable: true, value: original })
+    }
+  })
+
   it('does not let a phase default resurrect an activation deactivated reentrantly by its controller', async () => {
     let lease: SnlInteractionContext['activation']
     const controller = new SnlActivationController({
@@ -1084,8 +1170,8 @@ describe('macro query lifecycle', () => {
     const { container } = render(
       <SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('x')} macro_data_driver={failing} />,
     )
-    await waitFor(() => expect(container.textContent).toContain('backend unavailable'))
-    expect(container.querySelector('.katex-error')).not.toBeNull()
+    await waitFor(() => expect(container.querySelector('[data-snl-render-fallback="macro-query"]')).not.toBeNull())
+    expect(container.textContent).not.toContain('backend unavailable')
   })
 
   it('never renders the previous driver projection after a driver swap', async () => {
@@ -1107,7 +1193,6 @@ describe('macro query lifecycle', () => {
       queries: { query_macro: () => new Promise(() => {}) },
     })
     view.rerender(<SnlSyntaxTreeView tree={tree} macro_data_driver={pending} />)
-    expect(view.container.textContent).toContain('Loading macro data')
     expect(view.container.querySelector('[data-snl-render-state="loading"]')).not.toBeNull()
     expect(view.container.textContent).not.toContain('old backend')
   })
@@ -1153,7 +1238,7 @@ describe('block_template_name validation', () => {
       <SnlSyntaxTreeView tree={createSnlSyntaxTreeNode('bad')} macro_data_driver={testDriver(formulaDb)} />,
     )
     await waitFor(() => {
-      expect(container.querySelector('.katex-error')?.textContent).toMatch(/malformed template projection/)
+      expect(container.querySelector('.snl-render-fallback')).not.toBeNull()
     })
   })
 

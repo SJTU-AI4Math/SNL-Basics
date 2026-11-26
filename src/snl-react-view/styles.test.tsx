@@ -50,7 +50,7 @@ describe('style dispatch via [style] bracket', () => {
         onDiagnostics={(items) => { codes = items.map((item) => item.code) }}
       />,
     )
-    await waitFor(() => expect(container.querySelector('.katex-error')?.textContent ?? '').toContain('unknown style "nope"'))
+    await waitFor(() => expect(container.querySelector('.snl-render-fallback')).not.toBeNull())
     expect(latex).toBe('')
     expect(tree.style_name).toBe('nope')
     expect(codes).toContain('SNL_STYLE_NOT_FOUND')

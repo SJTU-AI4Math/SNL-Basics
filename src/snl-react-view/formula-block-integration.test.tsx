@@ -62,7 +62,7 @@ describe('generic block renderers inside formulas', () => {
     const preimage = JSON.stringify(tree)
     const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} hooks={{ renderers: { 'generic-badge': renderer, 'outer-parent': Parent } }} />)
     const badge = await waitFor(() => view.getByTestId('nested-formula-badge'))
-    expect(view.container.textContent).not.toContain('cannot be used inside a formula')
+    expect(view.container.querySelector('.snl-block-in-formula')).toBeNull()
     await waitFor(() => expect(badge.querySelector('[data-tree-path="0.0.0"]')).not.toBeNull())
     expect(prepare).toHaveBeenCalledWith(expect.objectContaining({ treePath: [0, 0], dynamicArity: false }))
     expect(JSON.stringify(tree)).toBe(preimage)
@@ -175,7 +175,7 @@ describe('generic block renderers inside formulas', () => {
       macro_data_driver={testDriver(db)}
       hooks={{ renderers: { plain: Plain } }}
     />)
-    await waitFor(() => expect(view.container.textContent).toContain('cannot be used inside a formula'))
+    await waitFor(() => expect(view.container.querySelector('.snl-block-in-formula')).not.toBeNull())
     expect(view.queryByTestId('plain-should-not-render')).toBeNull()
     expect(view.container.querySelector('.snl-formula-foreign-surface')).toBeNull()
   })
@@ -200,7 +200,7 @@ describe('generic block renderers inside formulas', () => {
     await waitFor(() => expect(view.container.querySelectorAll('.snl-formula-foreign-surface')).toHaveLength(1))
     expect([...view.container.querySelectorAll('[data-recursive-block]')].map(element => element.getAttribute('data-recursive-block')))
       .toEqual(['outer.block', 'inner.block'])
-    expect(view.container.textContent).not.toContain('cannot be used inside a formula')
+    expect(view.container.querySelector('.snl-block-in-formula')).toBeNull()
     expect(view.container.querySelectorAll('[data-snl-formula-foreign-marker]')).toHaveLength(1)
   })
 })

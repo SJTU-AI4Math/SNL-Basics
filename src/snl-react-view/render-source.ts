@@ -30,7 +30,7 @@ import {
 } from '../runtime'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
 import { getBindRef, getSrc, getTreeSourcePath } from '../snl-syntax-tree/binding'
-import { escapeLatexText, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
+import { escapeLatexText, escapeLatexTextMode, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
 import { slotContractKey } from '../snl-syntax-tree/slot-contract'
 import { analyzeLatexTemplatePlaceholders, analyzeLatexTemplateSlotUsage, fillLatexTemplate } from '../snl-syntax-tree/template'
 import { isEmptySnlSyntaxTreeNode, type SnlSyntaxTree } from '../snl-syntax-tree/types'
@@ -254,6 +254,9 @@ function current_language(
  * write `\htmlData` themselves. Accepts resolved macro (or null) for the node.
  * Unclassified roots default to `partial`; unclassified descendants to `fvar`.
  */
+/** Class of the quiet placeholder for a block macro used inside a formula. */
+export const BLOCK_IN_FORMULA_CLASS = 'snl-block-in-formula'
+
 export function wrapHtmlData(
   node: SnlSyntaxTree,
   inner: string,
@@ -637,10 +640,9 @@ export async function resolveNodeLatex(
         return wrapHtmlData(node, formulaForeignMarkerLatex(resolution.identity, resolution.metrics, resolution.accessibilityLabel), macro, treePath)
       }
     }
-    const body =
-      '\\text{\\color{red}\\{block macro `' +
-      escapeLatexText(node.macro_name) +
-      '` cannot be used inside a formula\\}}'
+    // A block cannot be typeset inside a formula: a quiet placeholder, never
+    // an error message in the reader's text.
+    const body = `\\htmlClass{${BLOCK_IN_FORMULA_CLASS}}{\\textcolor{gray}{\\cdots}}`
     return wrapHtmlData(node, body, macro, treePath)
   }
 
@@ -653,7 +655,7 @@ export async function resolveNodeLatex(
     const isText = node.env_mode === 'text'
     const temporarySource = node.temporary_source ?? node.macro_name
     const templateBody = node.temporary_format === 'texttt'
-      ? `\\texttt{${escapeLatexText(temporarySource)}}`
+      ? `\\texttt{${escapeLatexTextMode(temporarySource)}}`
       : isText
         ? escapeTextButPreservePlaceholders(temporarySource)
         : temporarySource

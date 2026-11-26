@@ -252,6 +252,9 @@ export function useCurrentPopoverId(): string | null {
 
 let popoverCounter = 0
 
+/** Tolerance (px) around the origin of a preview that has not opened yet. */
+const PENDING_HIT_PADDING = 2
+
 interface TimerBucket {
   open?: ReturnType<typeof setTimeout>
   close?: ReturnType<typeof setTimeout>
@@ -602,12 +605,16 @@ export function HoverPopoverProvider<TSubject>({
     } : popover))
   }, [offset, resolveBounds, updatePopovers])
 
+  // Only a pending preview tracks the pointer. Once visible, a popover stays
+  // put: moving it on every origin mousemove makes it flee from a pointer that
+  // is travelling towards it.
   const updatePointer = useCallback((id: string, pointerX: number, pointerY: number) => {
-    updatePopovers((list) => list.map((p) =>
-      p.id === id && !p.frozen && p.phase !== 'closing'
-        ? { ...p, x: pointerX + offset, y: pointerY + offset }
-        : p,
-    ))
+    const target = popoversRef.current.find((p) => p.id === id)
+    if (!target || target.frozen || target.phase !== 'opening') return
+    const x = pointerX + offset
+    const y = pointerY + offset
+    if (target.x === x && target.y === y) return
+    updatePopovers((list) => list.map((p) => p.id === id ? { ...p, x, y } : p))
   }, [offset, updatePopovers])
 
   const preview = useCallback((
@@ -730,15 +737,26 @@ export function HoverPopoverProvider<TSubject>({
     const onPointerMove = (event: PointerEvent) => {
       const live = popoversRef.current.filter((p) => p.phase !== 'closing')
       if (live.length === 0) return
-      const inside = (rect: DOMRect) =>
-        event.clientX >= rect.left - hitPadding &&
-        event.clientX <= rect.right + hitPadding &&
-        event.clientY >= rect.top - hitPadding &&
-        event.clientY <= rect.bottom + hitPadding
+      const inside = (rect: DOMRect, padding: number) =>
+        event.clientX >= rect.left - padding &&
+        event.clientX <= rect.right + padding &&
+        event.clientY >= rect.top - padding &&
+        event.clientY <= rect.bottom + padding
       const insideIds = new Set<string>()
       for (const popover of live) {
+        // A pending preview is invisible and inert: its frame must not keep it
+        // alive (the pointer moving on across the formula would otherwise open
+        // it a moment later), and it needs the pointer to dwell on its origin,
+        // not merely near it.
+        if (popover.phase === 'opening') {
+          // KaTeX descendants may paint outside their wrapper's box, so a hit on
+          // any descendant of the origin counts as well.
+          const onOrigin = event.target instanceof Node && popover.originElement?.contains(event.target)
+          if (onOrigin || inside(popover.originRect, PENDING_HIT_PADDING)) insideIds.add(popover.id)
+          continue
+        }
         const element = elementsRef.current.get(popover.id)
-        if (inside(popover.originRect) || (element && inside(element.getBoundingClientRect()))) {
+        if (inside(popover.originRect, hitPadding) || (element && inside(element.getBoundingClientRect(), hitPadding))) {
           insideIds.add(popover.id)
         }
       }
@@ -824,6 +842,28 @@ export function HoverPopoverProvider<TSubject>({
         }
       }))
       boundsRef.current = nextBounds
+      // A popover whose origin has scrolled out of sight (or left the DOM)
+      // would otherwise float, clamped to the edge, over unrelated content.
+      const hidden = popoversRef.current.filter((popover) => {
+        const origin = popover.originElement
+        if (!origin || popover.phase === 'closing') return false
+        if (!origin.isConnected) return true
+        const rect = popover.originRect
+        const visible = findPopoverBounds(origin)
+        return rect.right <= visible.left || rect.left >= visible.right ||
+          rect.bottom <= visible.top || rect.top >= visible.bottom
+      })
+      const hiddenIds = new Set(hidden.map((popover) => popover.id))
+      for (const popover of hidden) {
+        // Dismissing an ancestor already takes its descendants along.
+        let parentId = popover.parentId
+        let covered = false
+        while (parentId && !covered) {
+          covered = hiddenIds.has(parentId)
+          parentId = popoversRef.current.find((item) => item.id === parentId)?.parentId ?? null
+        }
+        if (!covered) requestDismiss('origin-hidden', { kind: 'subtree', anchor_id: popover.id })
+      }
     }
     window.addEventListener('resize', refreshGeometry)
     document.addEventListener('scroll', refreshGeometry, true)
@@ -831,7 +871,7 @@ export function HoverPopoverProvider<TSubject>({
       window.removeEventListener('resize', refreshGeometry)
       document.removeEventListener('scroll', refreshGeometry, true)
     }
-  }, [resolveBounds, updatePopovers])
+  }, [requestDismiss, resolveBounds, updatePopovers])
 
   useEffect(() => {
     const timers = timersRef.current

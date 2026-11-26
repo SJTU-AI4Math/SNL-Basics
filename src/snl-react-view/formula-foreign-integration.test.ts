@@ -62,7 +62,7 @@ describe('formula foreign render planning', () => {
     }))
     const result = await resolveRootFormulaRender(root, driver(), { resolveBlock })
     expect(result.latex).toContain('snl-formula-foreign-marker')
-    expect(result.latex).not.toContain('cannot be used inside a formula')
+    expect(result.latex).not.toContain('\\htmlClass{snl-block-in-formula}')
     expect(result.foreignBoxes).toHaveLength(1)
     expect(result.foreignBoxes[0]).toMatchObject({ treePath: [1], node: root.children[1], template: svgTemplate })
     expect(resolveBlock).toHaveBeenCalledWith(expect.objectContaining({
@@ -127,13 +127,13 @@ describe('formula foreign render planning', () => {
             rendererKey: template.block_template_name!, producer: 'p', generation: 1, accessibilityLabel: 'nested',
           },
     })
-    expect(result.latex).toContain('cannot be used inside a formula')
+    expect(result.latex).toContain('\\htmlClass{snl-block-in-formula}')
     expect(result.foreignBoxes).toEqual([])
   })
 
   it('keeps the visible warning when no trusted block embed capability accepts the selected projection', async () => {
     const result = await resolveRootFormulaRender(root, driver(), { resolveBlock: async () => null })
-    expect(result.latex).toContain('cannot be used inside a formula')
+    expect(result.latex).toContain('\\htmlClass{snl-block-in-formula}')
     expect(result.foreignBoxes).toEqual([])
   })
 })

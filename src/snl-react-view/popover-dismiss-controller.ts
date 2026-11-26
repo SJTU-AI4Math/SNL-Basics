@@ -10,6 +10,8 @@ export type HoverPopoverDismissReason =
   | 'sibling-replaced'
   | 'owner-unmount'
   | 'explicit-api'
+  /** The origin element was removed or scrolled out of its visible area. */
+  | 'origin-hidden'
 
 export type HoverPopoverDismissScope =
   | { readonly kind: 'descendants'; readonly anchor_id: string }

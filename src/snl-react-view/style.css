@@ -413,3 +413,10 @@
 .katex-panel.snl-has-formula-foreign > .snl-formula-foreign-host {
   overflow: visible;
 }
+
+/* Content that could not be rendered: quiet, never an error-coloured source dump. */
+.snl-render-fallback {
+  color: var(--vscode-descriptionForeground, #8a8f98);
+  font-size: 0.9em;
+  font-style: italic;
+}

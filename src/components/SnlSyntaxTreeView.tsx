@@ -1,5 +1,6 @@
 import {
   Fragment,
+  createContext,
   forwardRef,
   memo,
   useCallback,
@@ -9,6 +10,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useContext,
   type KeyboardEventHandler,
   type MouseEventHandler,
   type MutableRefObject,
@@ -78,9 +80,15 @@ import {
   type SnlRenderHooks,
   type SnlHoverPhaseEvent,
   type SnlHoverSession,
+  type SnlRenderFailure,
   type SnlResolvedSource,
   type SnlTooltipState,
 } from '../snl-react-view/hooks'
+
+type RenderFailureReporter = (failure: Omit<SnlRenderFailure, 'language'>) => ReactNode
+
+/** The enclosing view's `renderError` hook, for nested formula islands and text runs. */
+const RenderFailureContext = createContext<RenderFailureReporter>(() => null)
 
 interface RenderResult {
   latex: string
@@ -266,6 +274,9 @@ function TextRun({
   // popover machinery treats a TextRun span exactly like a KaTeX
   // \htmlData-wrapped node. `data-name` drives hover-root discovery,
   // `data-kind` drives the palette CSS.
+  const reportFailure = useContext(RenderFailureContext)
+  const renderTextWithMathIslands = (src: string): ReactNode[] => renderTextWithIslands(
+    src, (error, display) => reportFailure({ stage: 'math-island', node, error, block: display }))
   const kind = resolveNodeKind(node, macros, treePath === '')
   const dataAttrs: Record<string, string | undefined> = {
     'data-name': node.macro_name || undefined,
@@ -418,7 +429,10 @@ function unescapeTextLiterals(s: string): string {
  * On KaTeX throw, the offending run is emitted as literal text in red so
  * a broken formula never eats the surrounding prose.
  */
-function renderTextWithMathIslands(src: string): ReactNode[] {
+function renderTextWithIslands(
+  src: string,
+  onIslandError: (error: unknown, display: boolean) => ReactNode,
+): ReactNode[] {
   const parts: ReactNode[] = []
   // Scanner state — walk char by char so we can honor `\$` cleanly.
   let i = 0
@@ -499,15 +513,7 @@ function renderTextWithMathIslands(src: string): ReactNode[] {
       })
     } catch (err) {
       html = ''
-      parts.push(
-        <span
-          key={key}
-          style={{ color: 'var(--vscode-errorForeground, #f48771)' }}
-          title={err instanceof Error ? err.message : String(err)}
-        >
-          {src.slice(i, closeAt + openLen)}
-        </span>,
-      )
+      parts.push(<Fragment key={key}>{onIslandError(err, isDisplay)}</Fragment>)
     }
     if (html) {
       parts.push(
@@ -519,6 +525,11 @@ function renderTextWithMathIslands(src: string): ReactNode[] {
   }
   flushLiteral(src.length, src.length)
   return parts
+}
+
+function collectMacroNames(node: SnlSyntaxTree, names: Set<string>): void {
+  if (!node.env_mode && node.macro_name) names.add(node.macro_name)
+  for (const child of node.children) collectMacroNames(child, names)
 }
 
 function useSnlSyntaxTreeRender(
@@ -536,11 +547,11 @@ function useSnlSyntaxTreeRender(
     enabled, katexOptions, driver, reader_runtime, tree, language, formulaForeign, treePath,
   ])
   const [resultState, setResultState] = useState<{ readonly authority: object; readonly value: RenderResult } | null>(null)
-  const [errorState, setErrorState] = useState<{ readonly authority: object; readonly value: string } | null>(null)
+  const [errorState, setErrorState] = useState<{ readonly authority: object; readonly value: unknown } | null>(null)
   const [loading, setLoading] = useState(false)
   const reqIdRef = useRef(0)
   const result = resultState?.authority === renderAuthority ? resultState.value : null
-  const error = errorState?.authority === renderAuthority ? errorState.value : null
+  const failure = errorState?.authority === renderAuthority ? { error: errorState.value } : null
 
   useEffect(() => {
     if (!enabled) {
@@ -569,8 +580,9 @@ function useSnlSyntaxTreeRender(
             }
         const { latex, foreignBoxes } = formulaRender
         const rootMacro = tree.env_mode ? null : await driver.query_macro({ macro_name: tree.macro_name, signal: controller.signal })
+        // Throw instead of KaTeX's red source dump; the view reports the failure.
         const html = katex.renderToString(latex, {
-          throwOnError: false,
+          throwOnError: true,
           ...HTMLDATA_KATEX_DEFAULTS,
           displayMode: nodeDisplay(
             tree,
@@ -584,8 +596,7 @@ function useSnlSyntaxTreeRender(
         }
       } catch (err) {
         if (!cancelled && reqIdRef.current === reqId) {
-          const message = err instanceof Error ? err.message : String(err)
-          setErrorState({ authority: renderAuthority, value: `渲染失败: ${message}` })
+          setErrorState({ authority: renderAuthority, value: err })
           setResultState(null)
         }
       } finally {
@@ -602,7 +613,7 @@ function useSnlSyntaxTreeRender(
     }
   }, [enabled, katexOptions, driver, reader_runtime, tree, language, formulaForeign, renderAuthority, treePath])
 
-  return { loading, error, result, reqIdRef, renderAuthority }
+  return { loading, failure, result, reqIdRef, renderAuthority }
 }
 
 interface FormulaRenderingOptions {
@@ -628,6 +639,7 @@ function useFormulaRendering({
   enabled, renderLanguage, resolvedMacros, renderers, semanticAuthority,
   containerRef, renderForeignChild, onMarkupCommitted,
 }: FormulaRenderingOptions) {
+  const reportFailure = useContext(RenderFailureContext)
   const [formulaMetricOverrides, setFormulaMetricOverrides] = useState<ReadonlyMap<string, FixedFormulaMetrics>>(() => new Map())
   const [formulaFallbacks, setFormulaFallbacks] = useState<ReadonlyMap<string, string>>(() => new Map())
   const formulaMetricEpochRef = useRef(0)
@@ -715,7 +727,7 @@ function useFormulaRendering({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [renderers, resolvedMacros, reader_runtime, renderLanguage, formulaMetricOverrides])
 
-  const { loading, error, result, renderAuthority } = useSnlSyntaxTreeRender(
+  const { loading, failure, result, renderAuthority } = useSnlSyntaxTreeRender(
     renderTree, macro_data_driver, reader_runtime, katexOptions, enabled,
     renderLanguage, formulaForeignResolver, pathStr,
   )
@@ -791,13 +803,11 @@ function useFormulaRendering({
   const renderFormulaForeignBinding = (binding: FormulaMarkerBinding): ReactElement => {
     if (formulaFallbacks.has(binding.plan.identity)) {
       const reason = formulaFallbacks.get(binding.plan.identity)
-      return <span key={binding.plan.identity} className="snl-formula-foreign-error" data-convergence-fallback={reason} role="alert"><span role="img" aria-label={binding.plan.accessibilityLabel}>{binding.plan.accessibilityLabel}</span><span className="snl-formula-foreign-error-reason"> ({reason})</span></span>
+      return <span key={binding.plan.identity} className="snl-formula-foreign-error" data-convergence-fallback={reason}><span role="img" aria-label={binding.plan.accessibilityLabel}>{binding.plan.accessibilityLabel}</span></span>
     }
-    if (binding.error || !binding.marker) {
-      return <span key={binding.plan.identity} className="snl-formula-foreign-error" role="alert">Formula foreign box unavailable: {binding.error ?? 'marker missing'}</span>
-    }
-    if (!binding.child) {
-      return <span key={binding.plan.identity} className="snl-formula-foreign-error" role="alert">Formula foreign box unavailable: renderer capability missing</span>
+    if (binding.error || !binding.marker || !binding.child) {
+      const error = new Error(binding.error ?? (binding.marker ? 'renderer capability missing' : 'marker missing'))
+      return <span key={binding.plan.identity} className="snl-formula-foreign-error">{reportFailure({ stage: 'foreign', node: binding.plan.node, error, block: false })}</span>
     }
     return (
       <FormulaForeignSurface
@@ -814,7 +824,7 @@ function useFormulaRendering({
     )
   }
 
-  return { loading, error, result, formulaHostAuthority, lastHtmlRef, formulaMarkers, renderFormulaForeignBinding }
+  return { loading, failure, result, formulaHostAuthority, lastHtmlRef, formulaMarkers, renderFormulaForeignBinding }
 }
 
 const StableMathMarkup = memo(forwardRef<HTMLSpanElement, { html: string }>(
@@ -826,8 +836,9 @@ const StableMathMarkup = memo(forwardRef<HTMLSpanElement, { html: string }>(
 function MathSpan(props: Omit<FormulaRenderingOptions, 'containerRef' | 'enabled'>): ReactElement {
   const containerRef = useRef<HTMLSpanElement | null>(null)
   const formula = useFormulaRendering({ ...props, containerRef, enabled: true })
-  const { result, error, lastHtmlRef, formulaMarkers, formulaHostAuthority, renderFormulaForeignBinding } = formula
-  if (error) return <span className="snl-math-span katex-error snl-render-error" role="alert">{error}</span>
+  const { result, failure, lastHtmlRef, formulaMarkers, formulaHostAuthority, renderFormulaForeignBinding } = formula
+  const reportFailure = useContext(RenderFailureContext)
+  if (failure) return <>{reportFailure({ stage: 'typeset', node: props.renderTree, error: failure.error, block: false })}</>
   const html = result?.html ?? lastHtmlRef.current ?? ''
   // A display island (`$$…$$` in prose) takes its own line; inline math flows with the text.
   const display = html.startsWith('<span class="katex-display"')
@@ -880,18 +891,33 @@ export function SnlSyntaxTreeView({
     error: null,
   }))
 
+  // Every macro already known to the driver: render in the first frame (no
+  // loading state, so re-rendering an equal tree never flickers).
+  const syncMacroValues = useMemo(() => {
+    const names = new Set<string>()
+    collectMacroNames(tree, names)
+    const values = Object.create(null) as Record<string, SnlMacro | null>
+    for (const name of names) {
+      const known = macro_data_driver.peek_macro?.(name)
+      if (known === undefined) return null
+      values[name] = known
+    }
+    return values
+  }, [tree, macro_data_driver])
+
   const macroStateIsCurrent = macroState.tree === tree && macroState.driver === macro_data_driver
-  const macroCache = macroStateIsCurrent ? macroState.values : {}
-  const macroStatus = macroStateIsCurrent ? macroState.status : 'pending'
+  const macroCache = macroStateIsCurrent ? macroState.values : (syncMacroValues ?? {})
+  const macroStatus = macroStateIsCurrent ? macroState.status : (syncMacroValues ? 'ready' : 'pending')
   const macroError = macroStateIsCurrent ? macroState.error : null
 
   useEffect(() => {
+    if (syncMacroValues) {
+      // Same object identity as the synchronous frame: no second projection.
+      setMacroState({ tree, driver: macro_data_driver, values: syncMacroValues, status: 'ready', error: null })
+      return
+    }
     let cancelled = false
     const controller = new AbortController()
-    function collectMacroNames(node: SnlSyntaxTree, names: Set<string>): void {
-      if (!node.env_mode && node.macro_name) names.add(node.macro_name)
-      for (const child of node.children) collectMacroNames(child, names)
-    }
     const names = new Set<string>()
     collectMacroNames(tree, names)
 
@@ -922,9 +948,16 @@ export function SnlSyntaxTreeView({
       cancelled = true
       controller.abort()
     }
-  }, [tree, macro_data_driver])
+  }, [tree, macro_data_driver, syncMacroValues])
 
   const mergedHooks = useMemo(() => ({ ...defaultRenderHooks, ...hooks }), [hooks])
+  const reportFailure = useCallback<RenderFailureReporter>((failure) => {
+    try {
+      return (mergedHooks.renderError ?? defaultRenderHooks.renderError!)({ ...failure, language: renderLanguage })
+    } catch {
+      return null
+    }
+  }, [mergedHooks, renderLanguage])
   const colorScheme = macro_data_driver.read_context().color_scheme
   const paletteCss = useMemo(() => {
     return paletteToCss({ ...DEFAULT_KIND_PALETTE, ...kindPalette }, colorScheme)
@@ -991,6 +1024,11 @@ export function SnlSyntaxTreeView({
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
   const [hasHoverTarget, setHasHoverTarget] = useState(false)
+  // A lock pins a *rendered* tooltip. When `renderTooltip` suppresses it
+  // (returns null), there is nothing visible to pin: a hidden lock would
+  // freeze the highlight and swallow every later hover in this view.
+  const renderedTooltip = tooltip ? (mergedHooks.renderTooltip?.(tooltip) ?? null) : null
+  const tooltipLocked = tooltip?.locked === true && renderedTooltip !== null
 
   const prefetchTimerRef = useRef<number | null>(null)
   const showTimerRef = useRef<number | null>(null)
@@ -1049,7 +1087,7 @@ export function SnlSyntaxTreeView({
   })
   const bvarScopeIndexRef = useRef<Map<string, BvarScopeEntry>>(new Map())
 
-  const { loading, error, result, formulaHostAuthority, lastHtmlRef, formulaMarkers, renderFormulaForeignBinding } = useFormulaRendering({
+  const { loading, failure, result, formulaHostAuthority, lastHtmlRef, formulaMarkers, renderFormulaForeignBinding } = useFormulaRendering({
     renderTree, macro_data_driver, reader_runtime, katexOptions, enabled: isKatexRoot,
     renderLanguage, resolvedMacros, renderers: mergedHooks.renderers,
     semanticAuthority: renderTree, containerRef,
@@ -1297,7 +1335,7 @@ export function SnlSyntaxTreeView({
     }
 
     const key = `${pathAttr ?? 'unresolved'}|${name}|${kind}|${bindingKey}`
-    if (tooltip?.locked && !lockImmediately) return null
+    if (tooltipLocked && !lockImmediately) return null
 
     const active = currentActivationRef.current
     if (active && active.snapshot.target !== target) {
@@ -1487,7 +1525,7 @@ export function SnlSyntaxTreeView({
   const handleKaTeXMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
     const container = containerRef.current
     if (!container || !ownsSemanticEvent(container, event.target)) return
-    if (tooltip?.locked) return
+    if (tooltipLocked) return
 
     // elementsFromPoint returns every element painted at (x,y) in front-to-back
     // order. In principle every DOM ancestor of the topmost hit is present, so
@@ -1537,7 +1575,7 @@ export function SnlSyntaxTreeView({
     if (_interaction_driver) {
       void _interaction_driver.dispatch_leave().catch(() => {})
     }
-    if (tooltip?.locked) return
+    if (tooltipLocked) return
     const active = currentActivationRef.current
     if (active) active.lease.request_deactivate('pointer-leave')
     else clearActivationState(true)
@@ -1671,7 +1709,7 @@ export function SnlSyntaxTreeView({
         renderChild={(candidate: SnlSyntaxTree) => {
           const canonicalPath = treePaths.get(candidate)
           if (canonicalPath === undefined) {
-            return <span className="snl-formula-foreign-error" role="alert">Formula foreign renderer rejected an unowned synthetic child</span>
+            return <span className="snl-formula-foreign-error">{reportFailure({ stage: 'foreign', node: candidate, error: new Error('foreign renderer rejected an unowned synthetic child'), block: false })}</span>
           }
           return renderNode(candidate, canonicalPath)
         }}
@@ -1694,8 +1732,7 @@ export function SnlSyntaxTreeView({
         )
       }
     } catch (reason) {
-      const message = reason instanceof Error ? reason.message : String(reason)
-      return <span className="katex-error snl-render-error" role="alert">SNL render error: {message}</span>
+      return <>{reportFailure({ stage: 'template', node, error: reason, block: false })}</>
     }
     const mode = nodeMode(node, macro, renderLanguage)
     if (mode === 'block') {
@@ -1804,28 +1841,27 @@ export function SnlSyntaxTreeView({
     containerRef.current.style.cursor = hasHoverTarget ? 'pointer' : ''
   }, [hasHoverTarget, isKatexRoot])
 
+  // Loading states reserve no text: a host never sees "Loading …" flash by.
   if (macroStatus === 'pending') {
-    return <div className="katex-panel" data-snl-render-state="loading">Loading macro data ...</div>
+    return <div className="katex-panel" data-snl-render-state="loading" aria-busy="true" />
   }
   if (macroStatus === 'error') {
-    return <div className="katex-panel katex-error">Macro query failed: {macroError}</div>
+    return <div className="katex-panel">{reportFailure({ stage: 'macro-query', node: tree, error: new Error(macroError ?? 'macro query failed'), block: true })}</div>
   }
 
   const hasRetainedFormulaForeignShell = formulaMarkers.length > 0 && lastHtmlRef.current !== null
   if (isKatexRoot) {
-    if (loading && !result && !hasRetainedFormulaForeignShell) {
-      return <div className="katex-panel" data-snl-render-state="loading">Loading KaTeX ...</div>
-    }
-    if (error) {
-      return <div className="katex-panel katex-error">{error}</div>
+    if (failure) {
+      return <div className="katex-panel">{reportFailure({ stage: 'typeset', node: renderTree, error: failure.error, block: true })}</div>
     }
     if (!result && !hasRetainedFormulaForeignShell) {
-      return <div className="katex-panel">无可渲染结果</div>
+      return <div className="katex-panel" data-snl-render-state={loading ? 'loading' : 'empty'} aria-busy={loading || undefined} />
     }
   }
 
   const committedFormulaHtml = result?.html ?? lastHtmlRef.current ?? ''
   return (
+    <RenderFailureContext.Provider value={reportFailure}>
     <div ref={setPanelRef} className={formulaMarkers.length > 0 ? 'katex-panel snl-has-formula-foreign' : 'katex-panel'}>
       <style dangerouslySetInnerHTML={{ __html: paletteCss }} />
       {/*
@@ -1864,8 +1900,9 @@ export function SnlSyntaxTreeView({
         </div>
       )}
       {tooltip ? <span data-snl-tooltip-root style={{ display: 'contents' }}>
-        {mergedHooks.renderTooltip?.(tooltip) ?? null}
+        {renderedTooltip}
       </span> : null}
     </div>
+    </RenderFailureContext.Provider>
   )
 }

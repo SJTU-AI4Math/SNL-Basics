@@ -59,7 +59,7 @@ describe('query-miss name typography', () => {
     const driver = testDriver({ scope: testMacro('scope', { body: '#0; #1', mode: 'text' }) })
     const { container } = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} />)
     await waitFor(() => {
-      expect(container.querySelector('.katex-error')).toBeNull()
+      expect(container.querySelector('.snl-render-fallback')).toBeNull()
       const binder = container.querySelector('[data-tree-path="0"][data-kind="binder"]')!
       const use = container.querySelector('[data-tree-path="1"][data-kind="bvar"]')!
       expect(binder?.querySelector('.mathsf')?.textContent).toBe('variable_name')

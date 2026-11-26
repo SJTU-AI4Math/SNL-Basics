@@ -850,6 +850,97 @@ describe('HoverPopoverProvider', () => {
     expect(renders).toBe(1)
   })
 
+  it('does not let an unopened preview keep itself alive through its own invisible frame', () => {
+    vi.useFakeTimers()
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(
+      <HoverPopoverProvider<string> renderPopover={() => <div>preview</div>} options={{ openDelayMs: 1000, fadeMs: 0 }}>
+        <ApiObserver onValue={(value) => { api = value }} />
+      </HoverPopoverProvider>,
+    )
+    const origin = document.createElement('span')
+    const inner = document.createElement('span')
+    origin.appendChild(inner)
+    document.body.appendChild(origin)
+    const rect = (left: number, top: number, right: number, bottom: number) =>
+      ({ left, top, right, bottom, width: right - left, height: bottom - top, x: left, y: top, toJSON: () => ({}) }) as DOMRect
+    origin.getBoundingClientRect = () => rect(0, 0, 10, 10)
+    const original = HTMLElement.prototype.getBoundingClientRect
+    HTMLElement.prototype.getBoundingClientRect = function (this: HTMLElement) {
+      return this.hasAttribute('data-popover-id') ? rect(20, 20, 700, 300) : original.call(this)
+    }
+    try {
+      act(() => { api!.spawn('pending', origin, 5, 5, null) })
+      // A descendant of the origin still counts as dwelling on the origin.
+      fireEvent.pointerMove(inner, { clientX: 400, clientY: 900 })
+      expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(1)
+      // Over the not-yet-visible frame but off the origin: the preview is cancelled.
+      fireEvent.pointerMove(document, { clientX: 100, clientY: 100 })
+      expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(0)
+
+      act(() => { api!.spawn('shown', origin, 5, 5, null) })
+      act(() => vi.advanceTimersByTime(1000))
+      expect(document.querySelector('[data-popover-id]')?.getAttribute('data-phase')).toBe('visible')
+      // A visible popover is kept while the pointer travels into it.
+      fireEvent.pointerMove(document, { clientX: 100, clientY: 100 })
+      expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(1)
+    } finally {
+      HTMLElement.prototype.getBoundingClientRect = original
+      origin.remove()
+    }
+  })
+
+  it('moves a pending preview with the pointer but keeps a visible popover in place', () => {
+    vi.useFakeTimers()
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    const positions: Array<[number, number]> = []
+    render(
+      <HoverPopoverProvider<string>
+        renderPopover={(popover) => { positions.push([popover.x, popover.y]); return <div>preview</div> }}
+        options={{ openDelayMs: 1000, fadeMs: 0, offset: 0 }}
+      >
+        <ApiObserver onValue={(value) => { api = value }} />
+      </HoverPopoverProvider>,
+    )
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let id = ''
+    act(() => { id = api!.spawn('entry-a', origin, 0, 0, null) })
+    act(() => api!.updatePointer(id, 3, 4))
+    expect(positions.at(-1)).toEqual([3, 4])
+    act(() => vi.advanceTimersByTime(1000))
+    act(() => api!.updatePointer(id, 30, 40))
+    expect(positions.at(-1)).toEqual([3, 4])
+    origin.remove()
+  })
+
+  it('dismisses a pinned popover once its origin scrolls out of view', () => {
+    const requests: HoverPopoverDismissRequest<string>[] = []
+    const controller = new HoverPopoverDismissController<null, string>({
+      params: null,
+      on_request: ({ request, runDefault }) => { requests.push(request); runDefault() },
+    })
+    let api: ReturnType<typeof useHoverPopovers<string>> | null = null
+    render(
+      <HoverPopoverProvider<string> dismiss_controller={controller} renderPopover={() => <div>pinned</div>} options={{ openDelayMs: 0, fadeMs: 0 }}>
+        <ApiObserver onValue={(value) => { api = value }} />
+      </HoverPopoverProvider>,
+    )
+    const origin = document.createElement('button')
+    document.body.appendChild(origin)
+    let top = 100
+    origin.getBoundingClientRect = () => ({ left: 10, top, right: 30, bottom: top + 20, width: 20, height: 20, x: 10, y: top, toJSON: () => ({}) }) as DOMRect
+    act(() => { api!.pin('entry-a', origin, 15, 105, null) })
+    top = 200
+    act(() => { fireEvent.scroll(document) })
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(1)
+    top = -400
+    act(() => { fireEvent.scroll(document) })
+    expect(requests.map((request) => request.reason)).toEqual(['origin-hidden'])
+    expect(document.querySelectorAll('[data-popover-id]')).toHaveLength(0)
+    origin.remove()
+  })
+
   it('renders consumer-owned content through a shared portal stack', () => {
     render(
       <HoverPopoverProvider<string>

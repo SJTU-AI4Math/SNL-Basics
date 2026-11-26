@@ -66,6 +66,24 @@ export interface SnlTooltipState {
   source: SnlResolvedSource | null             // resolved via resolveSource hook
 }
 
+/** What could not be rendered; passed to {@link SnlRenderHooks.renderError}. */
+export interface SnlRenderFailure {
+  /**
+   * `macro-query`: the macro backend failed; `template`: no valid Style/template
+   * projection; `typeset`: the formula could not be typeset; `math-island`: a
+   * `$…$` island in text failed; `foreign`: an embedded block renderer failed.
+   */
+  stage: 'macro-query' | 'template' | 'typeset' | 'math-island' | 'foreign'
+  /** The node whose output is replaced, when known. */
+  node?: SnlSyntaxTree
+  /** The underlying error, for host logging. The default renderer never shows it. */
+  error: unknown
+  /** Content language of the view (`en`, `zh-CN`, …). */
+  language: string
+  /** True when the failed content is a block (e.g. a whole display formula). */
+  block: boolean
+}
+
 /**
  * Hover-highlight policy lives in its own React-free module so the DOM-only
  * `./hover` subpath entry can import it without dragging in the block
@@ -179,6 +197,13 @@ export interface SnlRenderHooks {
   renderTooltip?: (state: SnlTooltipState) => ReactElement | null
 
   /**
+   * Sync React render of content that could not be rendered (see
+   * {@link SnlRenderFailure}). Default: a small, muted, localized "cannot
+   * display" note; error details and source are never shown to readers.
+   */
+  renderError?: (failure: SnlRenderFailure) => ReactElement | null
+
+  /**
    * Which DOM elements get highlighted on hover. Default:
    * {@link defaultHighlightStrategy}.
    */
@@ -227,6 +252,12 @@ function defaultRenderTooltip(state: SnlTooltipState): ReactElement | null {
   )
 }
 
+function defaultRenderError(failure: SnlRenderFailure): ReactElement {
+  const label = /^(zh|CN)(-|$)/i.test(failure.language) ? '（无法显示）' : '(cannot display)'
+  const Tag = failure.block ? 'div' : 'span'
+  return <Tag className="snl-render-fallback" data-snl-render-fallback={failure.stage}>{label}</Tag>
+}
+
 /** The behavior that Phase 1 SnlSyntaxTreeView had baked in. */
 export const defaultRenderHooks: SnlRenderHooks = {
   resolveMacroInfo: async (_name, macro) => ({
@@ -234,6 +265,7 @@ export const defaultRenderHooks: SnlRenderHooks = {
   }),
   resolveSource: () => null,
   renderTooltip: defaultRenderTooltip,
+  renderError: defaultRenderError,
   highlightStrategy: defaultHighlightStrategy,
   renderers: defaultRenderers,
   // onHover / onLeave intentionally undefined: the view's internal hover state

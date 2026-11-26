@@ -251,6 +251,7 @@ export type {
   SnlMacroInfo,
   SnlResolvedSource,
   SnlTooltipState,
+  SnlRenderFailure,
   SnlHighlightStrategy,
   SnlHighlightSet,
   SnlRendererRegistry,

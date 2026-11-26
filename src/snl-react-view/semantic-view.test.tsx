@@ -57,7 +57,7 @@ describe('semantic resolver integration', () => {
         onDiagnostics={(items) => { diagnostics.splice(0, diagnostics.length, ...items) }}
       />,
     )
-    await waitFor(() => expect(container.querySelector('.katex-error')?.textContent ?? '').toContain('unknown style "missing"'))
+    await waitFor(() => expect(container.querySelector('.snl-render-fallback')).not.toBeNull())
     expect(container.querySelector('[data-name="C"]')).toBeNull()
     expect(tree.style_name).toBe('missing')
     expect(diagnostics).toContainEqual(expect.objectContaining({ code: 'SNL_STYLE_NOT_FOUND', severity: 'error' }))

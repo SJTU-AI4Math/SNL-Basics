@@ -4,7 +4,22 @@ export function escapeLatexText(raw: string): string {
 }
 
 /**
- * Same as {@link escapeLatexText} but preserves `#N` / `#*` sequences —
+ * Characters KaTeX accepts only in math mode: its Unicode input maps them to
+ * math-only macros (`⟦` → `\llbracket`, `≠` → `\neq`, `ℒ` → `\mathscr{L}`, …),
+ * so inside `\text{…}` / `\texttt{…}` they abort the whole formula.
+ */
+const MATH_ONLY_UNICODE = /[ℬℰℱℋℐℒℳℛℭℌℨ≠∉≘≙≚≛≝≞≟⟂‼∌⌜⌝⌞⌟∷∹≔≕⩴⟦⟧⦃⦄⦵]/gu
+
+/**
+ * {@link escapeLatexText} for a text-mode argument (`\text{…}`, `\texttt{…}`):
+ * math-only characters become inline math islands (`$⟦$`).
+ */
+export function escapeLatexTextMode(raw: string): string {
+  return escapeLatexText(raw).replace(MATH_ONLY_UNICODE, (ch) => `$${ch}$`)
+}
+
+/**
+ * Same as {@link escapeLatexTextMode} but preserves `#N` / `#*` sequences —
  * used by the envMode 'text' path where the payload is a template body
  * (may contain `#0` / `#1` / `#*` placeholders) rather than a plain string.
  * Non-placeholder standalone `#` chars are still escaped.
@@ -18,7 +33,7 @@ export function escapeTextButPreservePlaceholders(raw: string): string {
     saved.push(match)
     return SENTINEL
   })
-  const escaped = escapeLatexText(withoutPlaceholders)
+  const escaped = escapeLatexTextMode(withoutPlaceholders)
   // Restore.
   let i = 0
   return escaped.replace(new RegExp(SENTINEL, 'g'), () => saved[i++])

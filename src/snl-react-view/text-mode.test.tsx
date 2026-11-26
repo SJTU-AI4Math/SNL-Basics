@@ -61,7 +61,7 @@ describe('native text separators share literal-run processing', () => {
     await waitFor(() => expect(container.querySelector('.snl-text[data-name="Breaks"]')).not.toBeNull())
     expect(container.querySelectorAll('br')).toHaveLength(5)
     expect(container.querySelector('.snl-math-span .katex-html')?.textContent).toBe('x')
-    expect(container.querySelector('.katex-error')).toBeNull()
+    expect(container.querySelector('.snl-render-fallback')).toBeNull()
   })
 })
 
@@ -152,7 +152,7 @@ describe('automatic Style real-component integration', () => {
     view.rerender(pair(bad))
     await waitFor(() => {
       const broken = view.container.querySelector('[data-case="bad"]')!
-      expect(broken.querySelector('.katex-error')?.textContent ?? '').toContain('unknown style "missing"')
+      expect(broken.querySelector('.snl-render-fallback')).not.toBeNull()
       expect(broken.textContent).not.toContain('BODY x')
       expect(broken.textContent).not.toContain('FULL x')
       expect(automaticStyleText(view.container.querySelector('[data-case="good"]')!)).toBe('BODY x = x')
@@ -162,7 +162,7 @@ describe('automatic Style real-component integration', () => {
     await waitFor(() => expect(automaticStyleText(view.container.querySelector('[data-case="bad"]')!)).toBe('FULL x : 1 = x'))
     view.rerender(pair(f.body))
     await waitFor(() => expect(automaticStyleText(view.container.querySelector('[data-case="bad"]')!)).toBe('BODY x = x'))
-    expect(view.container.querySelector('.katex-error')).toBeNull()
+    expect(view.container.querySelector('.snl-render-fallback')).toBeNull()
   })
 
   it('selects per-node slots through one cached Macro across rerenders, languages and explicit overrides without rewriting bindings', async () => {
@@ -195,7 +195,7 @@ describe('automatic Style real-component integration', () => {
         expect(changing.querySelector('[data-tree-path="2"]')?.getAttribute('data-src')).toBe('x')
         const paths = [...changing.querySelectorAll('[data-tree-path]')].map(node => node.getAttribute('data-tree-path'))
         expect(paths.indexOf('2') < paths.indexOf('0')).toBe(language === 'zh' && tree !== f.explicit)
-        expect(changing.querySelector('.katex-error')).toBeNull()
+        expect(changing.querySelector('.snl-render-fallback')).toBeNull()
       })
     }
     expect(await f.driver.query_macro({ macro_name: f.macro.name })).toBe(cachedMacro)
@@ -222,7 +222,7 @@ describe('automatic Style real-component integration', () => {
     const tree = parseSnlSyntaxTree('Wrapper(AutoStyle[missing](@x,,x@x))')
     const before = JSON.stringify(tree)
     const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} />)
-    await waitFor(() => expect(view.container.querySelector('.katex-error')?.textContent ?? '').toContain('unknown style "missing"'))
+    await waitFor(() => expect(view.container.querySelector('.snl-render-fallback')).not.toBeNull())
     expect(view.container.textContent).not.toContain('BODY x')
     expect(JSON.stringify(tree)).toBe(before)
   })
@@ -233,7 +233,7 @@ describe('automatic Style real-component integration', () => {
     const view = render(<SnlSyntaxTreeView tree={f.body} macro_data_driver={f.driver} reader_runtime={f.runtime} />)
     await waitFor(() => {
       expect(view.container.querySelector('.katex-display .katex-html')?.textContent).toContain('BODY')
-      expect(view.container.querySelector('.katex-error')).toBeNull()
+      expect(view.container.querySelector('.snl-render-fallback')).toBeNull()
       expect(view.container.querySelector('[data-tree-path="0"]')?.getAttribute('data-kind')).toBe('binder')
       expect(view.container.querySelector('[data-tree-path="2"]')?.getAttribute('data-kind')).toBe('bvar')
     })
@@ -270,7 +270,7 @@ describe('text-mode template splicing (regression)', () => {
       />,
     )
     await waitFor(() => {
-      expect(container.querySelector('.katex-error')).toBeNull()
+      expect(container.querySelector('.snl-render-fallback')).toBeNull()
       expect(latex).toContain('\\texttt{a\\_b}')
     })
   })
@@ -371,8 +371,9 @@ describe('text-mode template splicing (regression)', () => {
         <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(macros)} />,
       )
       await waitFor(() => {
-        const error = container.querySelector('.katex-error')
-        expect(error?.textContent).toMatch(/template projection/)
+        const error = container.querySelector('.snl-render-fallback')
+        expect(error).not.toBeNull()
+        expect(error?.textContent).not.toMatch(/template projection/)
       })
     },
   )

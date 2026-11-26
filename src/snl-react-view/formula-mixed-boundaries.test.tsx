@@ -156,10 +156,10 @@ describe.each(['text', 'block'] as const)('mixed %s → formula → foreign', mo
     const BadChild: SnlBlockRenderer = ({ renderChild }) => <span>{renderChild(createSnlSyntaxTreeNode('forged'))}</span>
     const renderer = createFormulaBlockRenderer(BadChild, { prepare: async () => preparation() })
     const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} hooks={{ renderers: { parent: Parent, foreign: renderer } }} />)
-    await waitFor(() => expect(view.container.textContent).toContain('unowned synthetic child'))
+    await waitFor(() => expect(view.container.querySelector('.snl-formula-foreign-error [data-snl-render-fallback="foreign"]')).not.toBeNull())
     const plain: SnlBlockRenderer = () => <span data-testid="ineligible">bad</span>
     view.rerender(<SnlSyntaxTreeView tree={tree} macro_data_driver={driver} hooks={{ renderers: { parent: Parent, foreign: plain } }} />)
-    await waitFor(() => expect(view.container.textContent).toContain('cannot be used inside a formula'))
+    await waitFor(() => expect(view.container.querySelector('.snl-block-in-formula')).not.toBeNull())
     expect(view.queryByTestId('ineligible')).toBeNull()
   })
 })
@@ -170,7 +170,7 @@ it('hydrates the mixed view from its truthful loading fallback without mismatche
   const ui = <SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} hooks={{ renderers: { foreign: createFormulaBlockRenderer(Foreign, { prepare: async () => preparation() }) } }} />
   const container = document.createElement('div'); document.body.append(container)
   container.innerHTML = renderToString(ui)
-  expect(container.textContent).toContain('Loading macro data')
+  expect(container.querySelector('[data-snl-render-state=\"loading\"]')).not.toBeNull()
   const recoverable = vi.fn(); let root!: ReturnType<typeof hydrateRoot>
   try {
     await act(async () => { root = hydrateRoot(container, ui, { onRecoverableError: recoverable }) })

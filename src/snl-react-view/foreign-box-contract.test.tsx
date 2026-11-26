@@ -117,6 +117,6 @@ describe('foreign rendered subtree contracts', () => {
       driver(db),
     )
 
-    expect(latex).toContain("block macro `panel` cannot be used inside a formula")
+    expect(latex).toContain('\\htmlClass{snl-block-in-formula}')
   })
 })

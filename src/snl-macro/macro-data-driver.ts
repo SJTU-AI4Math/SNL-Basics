@@ -30,6 +30,11 @@ export interface MacroQueryArgs {
 export interface MacroDataQueries {
   /** Fetch a single macro by name. Returns null if not found. */
   query_macro(args: MacroQueryArgs): Promise<SnlMacro | null>
+  /**
+   * Optional synchronous lookup of an already-known answer: the macro, `null`
+   * for a known miss, or `undefined` when only `query_macro` can tell.
+   */
+  peek_macro?(macro_name: string): SnlMacro | null | undefined
 }
 
 /** Options for creating a MacroDataDriver. */
@@ -78,6 +83,21 @@ export class MacroDataDriver {
 
   read_context(): RenderContext {
     return this.context_reader()
+  }
+
+  /**
+   * Synchronously return an answer already known to this driver (its cache or
+   * the backend's `peek_macro`): the macro, `null` for a known miss, or
+   * `undefined` when an asynchronous `query_macro` is required. Views use it to
+   * render cached content in their first frame instead of a loading state.
+   */
+  peek_macro(macro_name: string): SnlMacro | null | undefined {
+    if (this.cache.has(macro_name)) return this.cache.get(macro_name)!
+    try {
+      return this.queries.peek_macro?.(macro_name)
+    } catch {
+      return undefined
+    }
   }
 
   /**

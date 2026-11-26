@@ -72,7 +72,7 @@ describe('variadic pmatrix / matrix.row', () => {
     const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 
     await waitFor(() => expect(view.container.querySelector('.mtable')).not.toBeNull())
-    expect(view.container.querySelector('.katex-error')).toBeNull()
+    expect(view.container.querySelector('.snl-render-fallback')).toBeNull()
     expect(view.container.querySelector('[data-name="matrix.row"][data-tree-path="0"]')).not.toBeNull()
   })
 
@@ -83,7 +83,7 @@ describe('variadic pmatrix / matrix.row', () => {
     const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 
     await waitFor(() => expect(view.container.querySelector('.mtable')).not.toBeNull())
-    expect(view.container.querySelector('.katex-error')).toBeNull()
+    expect(view.container.querySelector('.snl-render-fallback')).toBeNull()
   })
 
   it('keeps a fixed-arity sub alignment node KaTeX-valid without its own metadata', async () => {
@@ -94,7 +94,7 @@ describe('variadic pmatrix / matrix.row', () => {
     const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 
     await waitFor(() => expect(view.container.querySelector('.mtable')).not.toBeNull())
-    expect(view.container.querySelector('.katex-error')).toBeNull()
+    expect(view.container.querySelector('.snl-render-fallback')).toBeNull()
     expect(view.container.querySelectorAll(
       '[data-name="matrix.fixed-row"][data-tree-path="0"]',
     )).toHaveLength(0)
@@ -110,7 +110,7 @@ describe('variadic pmatrix / matrix.row', () => {
     const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 
     await waitFor(() => expect(view.container.querySelector('.mtable')).not.toBeNull())
-    expect(view.container.querySelector('.katex-error')).toBeNull()
+    expect(view.container.querySelector('.snl-render-fallback')).toBeNull()
     expect(view.container.querySelectorAll(
       '[data-name="matrix.commented-row"][data-tree-path="0"]',
     )).toHaveLength(0)
@@ -125,7 +125,7 @@ describe('variadic pmatrix / matrix.row', () => {
     const view = render(<SnlSyntaxTreeView tree={tree} macro_data_driver={testDriver(db)} />)
 
     await waitFor(() => expect(view.container.querySelector('.mtable')).not.toBeNull())
-    expect(view.container.querySelector('.katex-error')).toBeNull()
+    expect(view.container.querySelector('.snl-render-fallback')).toBeNull()
     expect(view.container.querySelectorAll(
       `[data-name="${macroName}"][data-tree-path="0"]`,
     )).toHaveLength(0)
@@ -150,7 +150,7 @@ describe('variadic pmatrix / matrix.row', () => {
       expect(found).not.toBeNull()
       return found!
     })
-    expect(view.container.querySelector('.katex-error')).toBeNull()
+    expect(view.container.querySelector('.snl-render-fallback')).toBeNull()
     expect(link.getAttribute('href')).toBe(expectedHref)
     expect(view.container.querySelectorAll(
       `[data-name="${macroName}"][data-tree-path="0"]`,
@@ -249,7 +249,7 @@ describe('variadic pmatrix / matrix.row', () => {
     await waitFor(() => expect(view.container.querySelector('.mtable')).not.toBeNull())
     expect(view.container.querySelector('[data-name="matrix.row"][data-tree-path="0"]')).not.toBeNull()
     expect(view.container.querySelector('[data-name="matrix.row"][data-tree-path="0.0"]')).not.toBeNull()
-    expect(view.container.querySelector('.katex-error')).toBeNull()
+    expect(view.container.querySelector('.snl-render-fallback')).toBeNull()
   })
 
   it('preserves metadata for zero- and one-child alignment nodes', async () => {
