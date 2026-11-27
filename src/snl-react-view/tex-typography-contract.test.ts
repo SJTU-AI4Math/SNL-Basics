@@ -58,15 +58,10 @@ describe('SNL TeX typography contract', () => {
     expect(declaration(text, 'font-family')).toBe('var(--snl-tex-prose-font-family)')
     expect(declaration(text, 'font-size')).toBe('var(--snl-tex-prose-scale)')
 
-    for (const selector of ['.snl-block-list > li::marker', '.snl-block-enumerate > li::marker']) {
-      const marker = rule(css, selector)
-      expect(declaration(marker, 'font-family')).toBe('var(--snl-tex-prose-font-family)')
-      expect(declaration(marker, 'font-size')).toBe('var(--snl-tex-prose-scale)')
-    }
-
-    for (const selector of ['.snl-text .snl-block-list > li::marker', '.snl-text .snl-block-enumerate > li::marker']) {
-      expect(declaration(rule(css, selector), 'font-size')).toBe('1em')
-    }
+    const marker = rule(css, '.snl-list-item-marker')
+    expect(declaration(marker, 'font-family')).toBe('var(--snl-tex-prose-font-family)')
+    expect(declaration(marker, 'font-size')).toBe('var(--snl-tex-prose-scale)')
+    expect(declaration(rule(css, '.snl-text .snl-list-item-marker'), 'font-size')).toBe('1em')
   })
 
   it('binds the browser gate to its owned ephemeral server and exact fixture', () => {

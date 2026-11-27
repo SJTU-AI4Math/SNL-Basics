@@ -191,25 +191,17 @@
 .snl-block-list {
   padding-left: 2em;
 }
-.snl-block-list > li::marker {
-  font-family: var(--snl-tex-prose-font-family);
-  font-size: var(--snl-tex-prose-scale);
-  font-style: normal;
-  font-weight: 400;
-}
 .snl-block-enumerate {
   padding-left: 2em;
 }
-.snl-block-enumerate > li::marker {
+.snl-list-item-marker {
   font-family: var(--snl-tex-prose-font-family);
   font-size: var(--snl-tex-prose-scale);
   font-style: normal;
   font-weight: 400;
+  line-height: 1.2;
 }
-.snl-text .snl-block-list > li::marker {
-  font-size: 1em;
-}
-.snl-text .snl-block-enumerate > li::marker {
+.snl-text .snl-list-item-marker {
   font-size: 1em;
 }
 .snl-block-table {
