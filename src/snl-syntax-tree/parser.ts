@@ -320,18 +320,27 @@ class Parser {
     if (this.peek().type === 'AT') {
       this.consume('AT')
       if (this.peek().type === 'HASH') {
-        if (isBinder) {
-          throw new SnlSyntaxTreeParseError(
-            'Binder name override must not use #',
-            this.peek().position,
-          )
-        }
         this.consume('HASH')
-        const target = this.expect('IDENT')
-        if (/^\d+(?:\.\d+)*$/.test(target.value)) {
-          node.postfix = { type: 'tree_path', path: target.value.split('.').map(Number) }
+        // `@##id`: page-wide element identity. A binder declares it
+        // (`@x@##id`); any other node refers to that binder (`x@##id`).
+        if (this.peek().type === 'HASH') {
+          this.consume('HASH')
+          const id = this.expect('IDENT')
+          if (isBinder) node.binder_id = id.value
+          else node.postfix = { type: 'element_id', id: id.value }
         } else {
-          node.postfix = { type: 'binder_name', name: target.value }
+          if (isBinder) {
+            throw new SnlSyntaxTreeParseError(
+              'Binder name override must not use # (use @## for a page-wide binder id)',
+              this.peek().position,
+            )
+          }
+          const target = this.expect('IDENT')
+          if (/^\d+(?:\.\d+)*$/.test(target.value)) {
+            node.postfix = { type: 'tree_path', path: target.value.split('.').map(Number) }
+          } else {
+            node.postfix = { type: 'binder_name', name: target.value }
+          }
         }
       } else {
         const target = this.expect('IDENT')

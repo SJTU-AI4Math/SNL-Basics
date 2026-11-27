@@ -29,7 +29,7 @@ import {
   type SnlInteractionContext,
   type TreePath,
 } from '../snl-react-view/interaction-driver'
-import { getBindRef, getSrc, getTreeSourcePath } from '../snl-syntax-tree/binding'
+import { getBinderId, getBindRef, getElementSourceId, getSrc, getTreeSourcePath } from '../snl-syntax-tree/binding'
 import {
   buildBvarScopeIndex,
   readBindingSourceKeyFromDom,
@@ -50,8 +50,17 @@ import {
   type FormulaForeignPlan,
   type FormulaForeignResolverOptions,
   resolve_style_template,
+  sanitizeHtmlDataAttr,
 } from '../snl-react-view/render-source'
 import { ownsSemanticEvent, resolveDeepestHoverHitFromStack } from '../snl-react-view/hover-dom'
+import {
+  SnlContextMenu,
+  defaultContextMenuItems,
+  stripTexMetadata,
+  type SnlContextMenuContext,
+  type SnlContextMenuItem,
+  type SnlContextMenuState,
+} from '../snl-react-view/context-menu'
 import { applySnlHoverHighlight, clearSnlHoverHighlight } from '../snl-react-view/hover-apply'
 import { HTMLDATA_KATEX_DEFAULTS } from '../snl-react-view/katex-defaults'
 import { deriveConvergedFormulaMetrics, formulaForeignCapability, formulaForeignMarkerId, type FixedFormulaMetrics } from '../snl-react-view/formula-foreign-box'
@@ -113,6 +122,7 @@ interface KatexContainerHandlers {
   readonly onMouseMove: MouseEventHandler<HTMLDivElement>
   readonly onMouseLeave: MouseEventHandler<HTMLDivElement>
   readonly onClick: MouseEventHandler<HTMLDivElement>
+  readonly onContextMenu: MouseEventHandler<HTMLDivElement>
   readonly onKeyDown: KeyboardEventHandler<HTMLDivElement>
 }
 
@@ -131,6 +141,7 @@ const StableKatexContainer = memo(forwardRef<HTMLDivElement, StableKatexContaine
       onMouseMove={(event) => handlersRef.current.onMouseMove(event)}
       onMouseLeave={(event) => handlersRef.current.onMouseLeave(event)}
       onClick={(event) => handlersRef.current.onClick(event)}
+      onContextMenu={(event) => handlersRef.current.onContextMenu(event)}
       onKeyDown={(event) => handlersRef.current.onKeyDown(event)}
     />
   },
@@ -291,6 +302,11 @@ function TextRun({
   if (srcVal) dataAttrs['data-src'] = srcVal
   const sourcePath = getTreeSourcePath(node)
   if (sourcePath !== undefined) dataAttrs['data-source-path'] = sourcePath
+  // Same sanitizing as the KaTeX \htmlData path, so both render paths agree.
+  const binderId = getBinderId(node)
+  if (binderId) dataAttrs['data-binder-id'] = sanitizeHtmlDataAttr(binderId)
+  const sourceId = getElementSourceId(node)
+  if (sourceId) dataAttrs['data-source-id'] = sanitizeHtmlDataAttr(sourceId)
 
   const wrap = (children: ReactNode): ReactElement => kind === 'sub'
     ? <>{children}</>
@@ -1021,6 +1037,8 @@ export function SnlSyntaxTreeView({
     ? modeBucket(nodeMode(renderTree, rootMacro, renderLanguage))
     : 'formula'
   const isKatexRoot = macroStatus === 'ready' && rootBucket === 'formula'
+  const [contextMenu, setContextMenu] = useState<SnlContextMenuState | null>(null)
+  const closeContextMenu = useCallback(() => setContextMenu(null), [])
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverKey, setHoverKey] = useState('')
   const [hasHoverTarget, setHasHoverTarget] = useState(false)
@@ -1060,6 +1078,8 @@ export function SnlSyntaxTreeView({
     const semantic = target.closest<HTMLElement>('[data-tree-path]')
     if (semantic) return
     if (target.closest('[data-snl-tooltip-root]')) return
+    // SNL overlays (the right-click menu) act on the activation; they are not blank space.
+    if (target.closest('[data-snl-overlay]')) return
     const ownedBoundary = target.closest<HTMLElement>(OWNED_INTERACTION_SELECTOR)
     const HTMLElementCtor = panel.ownerDocument.defaultView?.HTMLElement
     const generatedSnlKeyboardRoot =
@@ -1083,7 +1103,7 @@ export function SnlSyntaxTreeView({
     containerRef.current = node
   }, [])
   const katexHandlersRef = useRef<KatexContainerHandlers>({
-    onMouseMove: () => {}, onMouseLeave: () => {}, onClick: () => {}, onKeyDown: () => {},
+    onMouseMove: () => {}, onMouseLeave: () => {}, onClick: () => {}, onContextMenu: () => {}, onKeyDown: () => {},
   })
   const bvarScopeIndexRef = useRef<Map<string, BvarScopeEntry>>(new Map())
 
@@ -1665,6 +1685,37 @@ export function SnlSyntaxTreeView({
     })
   }
 
+  // Right-click on a subtree: copy its TeX source, plus consumer actions.
+  const handleContextMenu: MouseEventHandler<HTMLDivElement> = (event) => {
+    const container = containerRef.current
+    if (!container || !ownsSemanticEvent(container, event.target)) return
+    const stack = container.ownerDocument.elementsFromPoint(event.clientX, event.clientY)
+    const target = resolveDeepestHoverHitFromStack(stack, container)?.root ??
+      (event.target as Element).closest<HTMLElement>('[data-tree-path]')
+    const pathAttr = target?.getAttribute('data-tree-path')
+    if (!target || pathAttr == null || !container.contains(target)) return
+    const path = decodeTreePath(pathAttr)
+    const node = resolveTreePath(renderTree, path)
+    if (!node) return
+    const context: SnlContextMenuContext = {
+      node,
+      tree_path: path,
+      target,
+      language: renderLanguage,
+      tex: async () => stripTexMetadata(
+        await resolveRootLatex(node, macro_data_driver, undefined, path, reader_runtime, renderLanguage),
+      ),
+    }
+    const defaults = defaultContextMenuItems(renderLanguage)
+    let items: readonly SnlContextMenuItem[] = defaults
+    try {
+      items = mergedHooks.contextMenuItems?.(context, defaults) ?? defaults
+    } catch { /* a consumer hook cannot break the menu */ }
+    if (items.length === 0) return
+    event.preventDefault()
+    setContextMenu({ x: event.clientX, y: event.clientY, context, items })
+  }
+
   const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return
     if (!ownsSemanticEvent(event.currentTarget, event.target)) return
@@ -1751,6 +1802,8 @@ export function SnlSyntaxTreeView({
             'data-bindref': getBindRef(node) ?? undefined,
             'data-src': getSrc(node) ?? undefined,
             'data-source-path': getTreeSourcePath(node),
+            'data-binder-id': getBinderId(node) ? sanitizeHtmlDataAttr(getBinderId(node)!) : undefined,
+            'data-source-id': getElementSourceId(node) ? sanitizeHtmlDataAttr(getElementSourceId(node)!) : undefined,
           }
       if (Renderer) {
         return (
@@ -1833,9 +1886,10 @@ export function SnlSyntaxTreeView({
       onMouseMove: handleKaTeXMouseMove,
       onMouseLeave: handleKaTeXMouseLeave,
       onClick: handleClick,
+      onContextMenu: handleContextMenu,
       onKeyDown: handleKeyDown,
     }
-  }, [handleKaTeXMouseMove, handleKaTeXMouseLeave, handleClick, handleKeyDown])
+  }, [handleKaTeXMouseMove, handleKaTeXMouseLeave, handleClick, handleContextMenu, handleKeyDown])
   useEffect(() => {
     if (!isKatexRoot || !containerRef.current) return
     containerRef.current.style.cursor = hasHoverTarget ? 'pointer' : ''
@@ -1894,6 +1948,7 @@ export function SnlSyntaxTreeView({
           onMouseMove={handleKaTeXMouseMove}
           onMouseLeave={handleKaTeXMouseLeave}
           onClick={handleClick}
+          onContextMenu={handleContextMenu}
           onKeyDown={handleKeyDown}
         >
           {renderNode(renderTree)}
@@ -1902,6 +1957,7 @@ export function SnlSyntaxTreeView({
       {tooltip ? <span data-snl-tooltip-root style={{ display: 'contents' }}>
         {renderedTooltip}
       </span> : null}
+      {contextMenu ? <SnlContextMenu state={contextMenu} onClose={closeContextMenu} /> : null}
     </div>
     </RenderFailureContext.Provider>
   )

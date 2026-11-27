@@ -243,6 +243,13 @@ export {
   type ThemedKindColoring,
   type KindPalette,
 } from './kind-palette'
+export {
+  copyTextToClipboard,
+  defaultContextMenuItems,
+  stripTexMetadata,
+  type SnlContextMenuContext,
+  type SnlContextMenuItem,
+} from './context-menu'
 export type {
   SnlRenderHooks,
   SnlHoverEvent,

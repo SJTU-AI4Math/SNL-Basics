@@ -234,9 +234,14 @@ function installGeometryState(container: HTMLElement, fragments: HTMLElement[], 
   syncGeometry(state)
 }
 
+/** Elements outside a container that its last highlight marked (page-wide binder ids). */
+const externalMarks = new WeakMap<HTMLElement, Set<HTMLElement>>()
+
 function clearHoverClasses(container: HTMLElement): void {
   const selector = ALL_HOVER_CLASSES.map((className) => `.${className}`).join(',')
-  for (const element of container.querySelectorAll<HTMLElement>(selector)) {
+  const external = externalMarks.get(container)
+  externalMarks.delete(container)
+  for (const element of [...container.querySelectorAll<HTMLElement>(selector), ...(external ?? [])]) {
     element.classList.remove(...ALL_HOVER_CLASSES)
     element.style.removeProperty('--snl-highlight-left')
     element.style.removeProperty('--snl-highlight-top')
@@ -296,5 +301,7 @@ export function applySnlHoverHighlight(
 
   for (const element of set.bvarScope) element.classList.add(SNL_HOVER_CLASS.bvarScope)
   for (const element of set.binderDecl) element.classList.add(SNL_HOVER_CLASS.binderDecl)
+  const external = [...set.bvarScope, ...set.binderDecl].filter((element) => !container.contains(element))
+  if (external.length > 0) externalMarks.set(container, new Set(external))
   return set
 }

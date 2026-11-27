@@ -5,11 +5,16 @@ export interface BvarScopeEntry {
   scopeRoot: HTMLElement
   bvars: HTMLElement[]
   binders: HTMLElement[]
+  /** Members may live in other render roots (page-wide binder ids): never reuse a cached copy. */
+  crossTree?: boolean
 }
 
 /** Canonical local source key. No allocated binder ID exists. */
 export function readBindingSourceKeyFromDom(element: HTMLElement): string {
   const kind = element.dataset.kind ?? ''
+  // Page-wide binder identity (`@x@##id` / `x@##id`) wins over tree positions.
+  if (kind === 'bvar' && element.dataset.sourceId) return `@${element.dataset.sourceId}`
+  if (kind === 'binder' && element.dataset.binderId) return `@${element.dataset.binderId}`
   if (kind === 'bvar' && element.dataset.sourcePath !== undefined) {
     return `#${element.dataset.sourcePath}`
   }
@@ -39,6 +44,26 @@ export function buildBvarScopeIndex(container: HTMLElement): Map<string, BvarSco
     map.set(`#${sourcePath}`, { scopeRoot: source, bvars, binders })
   }
 
+  // Page-wide binder ids: the binder and its uses may sit in different render
+  // roots (context rows, goals, side panels), so they are looked up in the
+  // whole document. A binder's in-tree uses (by tree path) belong to the same
+  // entry, and that binder's `#path` key shares it.
+  const ids = new Set<string>()
+  for (const element of container.querySelectorAll<HTMLElement>('[data-binder-id], [data-source-id]')) {
+    const id = element.dataset.binderId || element.dataset.sourceId
+    if (id) ids.add(id)
+  }
+  for (const id of ids) {
+    const entry = elementIdEntry(container, id)
+    if (!entry) continue
+    map.set(`@${id}`, entry)
+    for (const binder of entry.binders) {
+      if (container.contains(binder) && binder.dataset.treePath !== undefined) {
+        map.set(`#${binder.dataset.treePath}`, { ...entry, scopeRoot: binder })
+      }
+    }
+  }
+
   // Tree2 compatibility only. Tree3 never allocates bindRef.
   const scopeRoots = Array.from(container.querySelectorAll<HTMLElement>('[data-scope="binder"]'))
   const refs = new Set<string>()
@@ -62,4 +87,24 @@ export function buildBvarScopeIndex(container: HTMLElement): Map<string, BvarSco
     if (scopeRoot) map.set(ref, { scopeRoot, bvars, binders })
   }
   return map
+}
+
+/** All instances of the binder with page-wide `id`, and all of its uses, anywhere in the document. */
+function elementIdEntry(container: HTMLElement, id: string): BvarScopeEntry | undefined {
+  const doc = container.ownerDocument
+  const binders = Array.from(doc.querySelectorAll<HTMLElement>('[data-binder-id]'))
+    .filter((element) => element.dataset.binderId === id && element.dataset.kind === 'binder')
+  if (binders.length === 0) return undefined
+  const bvars = new Set(Array.from(doc.querySelectorAll<HTMLElement>('[data-source-id]'))
+    .filter((element) => element.dataset.sourceId === id && element.dataset.kind === 'bvar'))
+  for (const binder of binders) {
+    const root = binder.closest<HTMLElement>('[data-snl-render-root]')
+    const path = binder.dataset.treePath
+    if (!root || path === undefined) continue
+    for (const use of root.querySelectorAll<HTMLElement>('[data-kind="bvar"]')) {
+      if (use.dataset.sourcePath === path) bvars.add(use)
+    }
+  }
+  const scopeRoot = binders.find((binder) => container.contains(binder)) ?? binders[0]
+  return { scopeRoot, bvars: [...bvars], binders, crossTree: true }
 }

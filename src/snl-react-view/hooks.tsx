@@ -11,6 +11,7 @@ import {
   type SnlHighlightStrategy,
 } from './highlight-strategy'
 import { CenteredRenderer, EnumerateRenderer, ListRenderer, RightRenderer, TableRenderer } from './block-renderers'
+import type { SnlContextMenuContext, SnlContextMenuItem } from './context-menu'
 
 
 /** Shared mutable channel for one uninterrupted hover lifecycle. */
@@ -202,6 +203,16 @@ export interface SnlRenderHooks {
    * display" note; error details and source are never shown to readers.
    */
   renderError?: (failure: SnlRenderFailure) => ReactElement | null
+
+  /**
+   * Right-click menu of the subtree under the pointer. Receives the default
+   * items (copy TeX source) and returns the menu to show; an empty list keeps
+   * the browser's own menu. Default: the defaults unchanged.
+   */
+  contextMenuItems?: (
+    context: SnlContextMenuContext,
+    defaults: readonly SnlContextMenuItem[],
+  ) => readonly SnlContextMenuItem[]
 
   /**
    * Which DOM elements get highlighted on hover. Default:

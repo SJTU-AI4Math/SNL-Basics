@@ -804,6 +804,8 @@ export function HoverPopoverProvider<TSubject>({
         for (const element of elementsRef.current.values()) {
           if (element.contains(target)) return
         }
+        // SNL overlays (e.g. the right-click menu over a popover's content) keep the stack.
+        if (target instanceof Element && target.closest('[data-snl-overlay]')) return
       }
       requestDismiss('outside-pointer-down', { kind: 'all' }, event)
     }

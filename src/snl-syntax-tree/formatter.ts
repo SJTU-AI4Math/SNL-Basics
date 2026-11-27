@@ -98,6 +98,8 @@ export class SnlDslFormatter {
   }
 
   private sourceReference(node: SnlSyntaxTree): string | undefined {
+    if (node.binder_explicit && node.binder_id) return `##${node.binder_id}`
+    if (node.postfix?.type === 'element_id') return `##${node.postfix.id}`
     if (node.binder_explicit && node.binder_name && node.binder_name !== node.macro_name) {
       return node.binder_name
     }

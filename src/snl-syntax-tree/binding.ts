@@ -33,6 +33,16 @@ export function getSrc(node: SnlSyntaxTree): string | undefined {
   return String(v)
 }
 
+/** Page-wide binder identity of a bvar's source (`x@##id`), if it has one. */
+export function getElementSourceId(node: SnlSyntaxTree): string | undefined {
+  return node.source?.type === 'element_id' ? node.source.id : undefined
+}
+
+/** Page-wide identity declared by a binder (`@x@##id`). */
+export function getBinderId(node: SnlSyntaxTree): string | undefined {
+  return node.binder_id || undefined
+}
+
 export function getTreeSourcePath(node: SnlSyntaxTree): string | undefined {
   return node.source?.type === 'tree_path' ? node.source.path.join('.') : undefined
 }

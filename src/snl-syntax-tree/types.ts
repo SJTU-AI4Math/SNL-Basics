@@ -13,10 +13,14 @@ export type SnlPostfix =
   | { type: 'name'; name: string }
   | { type: 'tree_path'; path: number[] }
   | { type: 'binder_name'; name: string }
+  /** `x@##id`: the binder whose page-wide {@link SnlSyntaxTree.binder_id} is `id`, possibly in another tree. */
+  | { type: 'element_id'; id: string }
 
 export type SnlResolvedSource =
   | { type: 'tree_path'; path: number[] }
   | { type: 'entry'; entry_id: string }
+  /** A binder identified page-wide (`data-binder-id`), not by a position in this tree. */
+  | { type: 'element_id'; id: string }
 
 export interface SnlSyntaxTree {
   /** Macro name — key into `SnlMacroRecord`. */
@@ -62,6 +66,12 @@ export interface SnlSyntaxTree {
   binder_explicit?: boolean
   /** Binder-source name. Prefix binders default this to their node name. */
   binder_name?: string
+  /**
+   * Page-wide identity of this binder (`@x@##id`), rendered as `data-binder-id`.
+   * Bound variables in any tree on the page can point at it (`x@##id`), so a
+   * binder and its uses may live in different trees, panels or popovers.
+   */
+  binder_id?: string
   /** Parsed postfix syntax; semantic resolution happens after Macro lookup. */
   postfix?: SnlPostfix
   /** Canonical resolved source; tree positions are the only local identity. */

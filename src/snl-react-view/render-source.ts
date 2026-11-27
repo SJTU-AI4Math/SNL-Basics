@@ -29,7 +29,7 @@ import {
   read_localized,
 } from '../runtime'
 import { MacroDataDriver } from '../snl-macro/macro-data-driver'
-import { getBindRef, getSrc, getTreeSourcePath } from '../snl-syntax-tree/binding'
+import { getBinderId, getBindRef, getElementSourceId, getSrc, getTreeSourcePath } from '../snl-syntax-tree/binding'
 import { escapeLatexText, escapeLatexTextMode, escapeTextButPreservePlaceholders } from '../snl-syntax-tree/latex-escape'
 import { slotContractKey } from '../snl-syntax-tree/slot-contract'
 import { analyzeLatexTemplatePlaceholders, analyzeLatexTemplateSlotUsage, fillLatexTemplate } from '../snl-syntax-tree/template'
@@ -276,10 +276,14 @@ export function wrapHtmlData(
   const sourcePathFragment = sourcePath !== undefined
     ? `,source-path=${sanitizeHtmlDataAttr(sourcePath)}`
     : ''
+  const binderId = getBinderId(node)
+  const binderIdFragment = binderId ? `,binder-id=${sanitizeHtmlDataAttr(binderId)}` : ''
+  const sourceId = getElementSourceId(node)
+  const sourceIdFragment = sourceId ? `,source-id=${sanitizeHtmlDataAttr(sourceId)}` : ''
   const scopeFragment = node.scope ? `,scope=${sanitizeHtmlDataAttr(node.scope)}` : ''
   const styleFragment = node.style_name ? `,style=${sanitizeHtmlDataAttr(node.style_name)}` : ''
   const pathFragment = treePath ? `,tree-path=${encodeTreePath(treePath)}` : ''
-  return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}${srcFragment}${sourcePathFragment}${pathFragment}}{${inner}}`
+  return `\\htmlData{name=${name},kind=${kind}${styleFragment}${scopeFragment}${bindRefFragment}${srcFragment}${sourcePathFragment}${binderIdFragment}${sourceIdFragment}${pathFragment}}{${inner}}`
 }
 
 function readBalancedBracedEnd(source: string, openAt: number): number {

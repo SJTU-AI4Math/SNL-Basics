@@ -95,7 +95,9 @@ export const defaultHighlightStrategy: SnlHighlightStrategy = {
       // when it cannot account for the current target; never fall back to the
       // scope root's single scalar data-bindref, which represents only b1 in a
       // multi-binder scope.
-      const entry = targetIsIndexed
+      // Page-wide entries reach into other render roots, which mount and
+      // unmount independently: always read them fresh.
+      const entry = targetIsIndexed && !cachedEntry?.crossTree
         ? cachedEntry
         : buildBvarScopeIndex(container).get(sourceKey)
       let bvars: HTMLElement[]

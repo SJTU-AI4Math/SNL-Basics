@@ -149,7 +149,11 @@ export function resolveSnlSemantics(
     if (node.kind !== '') continue
 
     let resolved: SnlResolvedSource | undefined
-    if (node.postfix?.type === 'name') {
+    if (node.postfix?.type === 'element_id') {
+      // A page-wide binder identity: it may live in another tree, so it is
+      // resolved by the DOM at interaction time, never against this tree.
+      resolved = { type: 'element_id', id: node.postfix.id }
+    } else if (node.postfix?.type === 'name') {
       const status = node.mdata && typeof node.mdata === 'object'
         ? (node.mdata as Record<string, unknown>).srcStatus
         : undefined
