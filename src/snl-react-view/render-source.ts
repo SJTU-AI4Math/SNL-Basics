@@ -91,8 +91,20 @@ export function resolveStyle(
     if (!macro.dynamic_arity && legacyDefaults == null) {
       const filled = node.children.flatMap((child, index) =>
         child && !isEmptySnlSyntaxTreeNode(child) ? [index] : [])
+      // 1. A Style whose slots are exactly the filled children.
       const match = macro.styles.find(candidate => styleMatchesFilledSlots(candidate, filled))
       if (match) return match
+      // 2. Otherwise the Style that shows the most filled children without a missing-slot
+      //    placeholder. Children can fill slots no template names (e.g. Lean's implicit
+      //    arguments), so an exact match is rare; this picks `#2` for `[R, inst, n]` and a
+      //    partial-application Style for `deriv f` until `x` is applied too.
+      const covering = bestCoveringStyle(macro.styles, filled)
+      if (covering) return covering
+      // 3. Never let a Style without slots swallow a node's arguments, unless it is the only one.
+      if (filled.length > 0) {
+        const withSlots = macro.styles.find(candidate => fixedSlotUsage(candidate)?.size !== 0)
+        if (withSlots) return withSlots
+      }
     }
     return macro.styles[0]
   }
@@ -104,6 +116,43 @@ export function resolveStyle(
     )
   }
   return style
+}
+
+/**
+ * The positional slots a Style's fixed templates use (union over its localized projections),
+ * or `undefined` when that cannot be known: block or opaque renderer templates, variadic or
+ * invalid bodies, and empty text bodies (which append every child).
+ */
+function fixedSlotUsage(style: SnlMacroStyle): Set<number> | undefined {
+  const templates = 'type' in style.template
+    ? Object.values((style.template as I18n<string, SnlMacroTemplate>).values)
+    : [style.template as SnlMacroTemplate]
+  const used = new Set<number>()
+  for (const template of templates) {
+    if (!template || template.mode === 'block' ||
+        Object.keys(template).some(key => !['mode', 'body', 'separator'].includes(key)) ||
+        (template.mode === 'text' && template.body === '')) return undefined
+    const usage = analyzeLatexTemplateSlotUsage(template.body)
+    if (usage.variadic || usage.invalid) return undefined
+    usage.positional_indices.forEach(index => used.add(index))
+  }
+  return used
+}
+
+/** The Style using the most slots, all of them filled (earliest on ties); none without slots. */
+function bestCoveringStyle(styles: readonly SnlMacroStyle[], filled: readonly number[]): SnlMacroStyle | undefined {
+  const present = new Set(filled)
+  let best: SnlMacroStyle | undefined
+  let bestSize = 0
+  for (const style of styles) {
+    const used = fixedSlotUsage(style)
+    if (!used || used.size === 0 || used.size <= bestSize) continue
+    if ([...used].every(index => present.has(index))) {
+      best = style
+      bestSize = used.size
+    }
+  }
+  return best
 }
 
 /** Only infer use from fully understood fixed templates, never opaque renderer programs. */

@@ -2,6 +2,23 @@
 
 **Date:** 2026-07-01
 
+## Unreleased (after 0.3.6)
+
+- Automatic Style selection (no `[style]`): after an exact filled-slot match, the
+  Style that uses the most slots, all of them filled, wins (earliest on ties), so
+  children that fill slots no template names (e.g. Lean implicit arguments) and
+  partial applications pick a Style without missing-slot placeholders. A Style
+  without slots is never chosen for a node with filled children unless it is the
+  only Style. `styles[0]` remains the last fallback. To keep a previous choice,
+  write the Style explicitly (`[style]`).
+- Bound variables can name a binder page-wide (`x@##id`, binder `@x@##id`;
+  `binder_id`, source `{type: 'element_id'}`), and hover highlighting resolves it
+  across render roots. Right-click on a subtree offers "Copy TeX source" and host
+  items (`contextMenuItems` hook). Render failures go through the `renderError`
+  hook (quiet by default; no KaTeX red source). `MacroDataDriver.peek_macro` lets
+  cached trees render in their first frame. Identifiers may contain `'`.
+- No Macro schema (11), Tree schema (3), or workspace data (0.1.0) migration.
+
 ## Package 0.3.5
 
 - On a Macro query miss, multi-letter ordinary names use `\mathsf` with escaped

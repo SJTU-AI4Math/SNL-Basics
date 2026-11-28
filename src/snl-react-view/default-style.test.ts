@@ -52,16 +52,17 @@ describe('automatic filled-slot style selection', () => {
 describe('automatic selection boundaries', () => {
   it.each([
     ['Example.macro(x,T,y)', '#0 = #2', 'full'],
-    ['Example.macro(x,,y)', '#0', 'full'],
+    // No exact match: the Style showing the most filled slots without a placeholder.
+    ['Example.macro(x,,y)', '#0', 'body'],
     ['Example.macro(x,,y)', '#1 #2', 'full'],
     ['Example.macro(x)', '#0', 'body'],
     ['Example.macro(x,)', '#0', 'body'],
-    ['Example.macro(x,%%)', '#0', 'full'],
+    ['Example.macro(x,%%)', '#0', 'body'],
     ['Example.macro(x,,y)', '#2 + #2 + #00', 'body'],
     ['Example.macro(,x)', '#01', 'body'],
     ['Example.macro(,x)', '\\#0 #1', 'body'],
     ['Example.macro(,)', 'constant', 'body'],
-  ])('resolves %s using exact slots in %s', (source, body, expected) => {
+  ])('resolves %s using slots in %s', (source, body, expected) => {
     const data = selectionMacro()
     data.styles[1].template = { mode: 'text', body }
     expect(resolveStyle(parseSnlSyntaxTree(source), data).style_name).toBe(expected)
@@ -88,7 +89,34 @@ describe('automatic selection boundaries', () => {
     tree.children[99] = parseSnlSyntaxTree('x')
     expect(resolveStyle(tree, data).style_name).toBe('body')
     tree.children[100] = parseSnlSyntaxTree('z')
-    expect(resolveStyle(tree, data).style_name).toBe('full')
+    // #99 is still fully covered; `full` would show placeholders for #0–#2.
+    expect(resolveStyle(tree, data).style_name).toBe('body')
+  })
+
+  it('prefers the Style that shows the most filled slots, never one with a missing slot', () => {
+    const styles = (...bodies: string[]) => ({ ...macro(), styles: bodies.map((body, i) =>
+      ({ style_name: `s${i}`, tags: [], template: { mode: 'formula_inline' as const, body } })) })
+    // Lean-like: implicit arguments fill slots no template names (Nat.cast R inst n ↦ `#2`).
+    expect(resolveStyle(parseSnlSyntaxTree('M(R,inst,n)'), styles('\\uparrow #2', '#2')).style_name).toBe('s0')
+    // Partial application: `deriv f` uses the f-only Style; with `x` applied, the full one.
+    const deriv = styles('#5\\left(#6\\right)\'', '#5\'')
+    expect(resolveStyle(parseSnlSyntaxTree('deriv(a,b,c,d,e,f)'), deriv).style_name).toBe('s1')
+    expect(resolveStyle(parseSnlSyntaxTree('deriv(a,b,c,d,e,f,x)'), deriv).style_name).toBe('s0')
+    // More filled slots shown wins; ties keep the earlier Style.
+    expect(resolveStyle(parseSnlSyntaxTree('M(a,b,c)'), styles('#1', '#0 #1', '#1 #2')).style_name).toBe('s1')
+  })
+
+  it('never lets a Style without slots swallow arguments, unless it is the only Style', () => {
+    const concept = { style_name: 'concept', tags: [], template: { mode: 'text' as const, body: 'finite rank' } }
+    const applied = { style_name: 'applied', tags: [], template: { mode: 'formula_inline' as const, body: '\\operatorname{rank}(#3)' } }
+    const data = { ...macro(), styles: [concept, applied] }
+    // Applied to arguments: never the concept, even when nothing covers the slots.
+    expect(resolveStyle(parseSnlSyntaxTree('Module.finrank(R,M,i,m)'), data).style_name).toBe('applied')
+    expect(resolveStyle(parseSnlSyntaxTree('Module.finrank(R,M)'), data).style_name).toBe('applied')
+    // Bare (no arguments): the concept by exact match.
+    expect(resolveStyle(parseSnlSyntaxTree('Module.finrank'), data).style_name).toBe('concept')
+    // The only Style: used anyway.
+    expect(resolveStyle(parseSnlSyntaxTree('Module.finrank(R,M)'), { ...data, styles: [concept] }).style_name).toBe('concept')
   })
 
   it('validates all templates before selection, including malformed unselected styles', () => {
