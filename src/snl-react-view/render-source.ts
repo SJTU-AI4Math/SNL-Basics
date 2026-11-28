@@ -94,11 +94,20 @@ export function resolveStyle(
       // 1. A Style whose slots are exactly the filled children.
       const match = macro.styles.find(candidate => styleMatchesFilledSlots(candidate, filled))
       if (match) return match
-      // 2. Otherwise the Style that shows the most filled children without a missing-slot
-      //    placeholder. Children can fill slots no template names (e.g. Lean's implicit
-      //    arguments), so an exact match is rare; this picks `#2` for `[R, inst, n]` and a
-      //    partial-application Style for `deriv f` until `x` is applied too.
-      const covering = bestCoveringStyle(macro.styles, filled)
+      // 2. The default (first) Style, whenever it shows no missing-slot placeholder and does
+      //    not drop all of a node's arguments. Children often fill slots no template names
+      //    (e.g. Lean's implicit arguments), so exact matches are rare; the author's default
+      //    must still win over Styles that merely use more slots (such as ones that also
+      //    print implicit arguments).
+      const first = macro.styles[0]
+      const firstUsage = fixedSlotUsage(first)
+      if (firstUsage === undefined ||
+          ([...firstUsage].every(index => filled.includes(index)) && (firstUsage.size > 0 || filled.length === 0)))
+        return first
+      // 3. Otherwise a Style without missing slots: preferably one showing only slots the
+      //    default shows (e.g. a partial application `f'` for `deriv f` before `x` is
+      //    applied), else any; the most slots wins, earlier on ties.
+      const covering = bestCoveringStyle(macro.styles, filled, firstUsage) ?? bestCoveringStyle(macro.styles, filled)
       if (covering) return covering
       // 3. Never let a Style without slots swallow a node's arguments, unless it is the only one.
       if (filled.length > 0) {
@@ -139,14 +148,20 @@ function fixedSlotUsage(style: SnlMacroStyle): Set<number> | undefined {
   return used
 }
 
-/** The Style using the most slots, all of them filled (earliest on ties); none without slots. */
-function bestCoveringStyle(styles: readonly SnlMacroStyle[], filled: readonly number[]): SnlMacroStyle | undefined {
+/** The Style using the most slots, all of them filled (earliest on ties); none without
+ * slots. With `within`, only Styles whose slots all lie in `within`. */
+function bestCoveringStyle(
+  styles: readonly SnlMacroStyle[],
+  filled: readonly number[],
+  within?: ReadonlySet<number>,
+): SnlMacroStyle | undefined {
   const present = new Set(filled)
   let best: SnlMacroStyle | undefined
   let bestSize = 0
   for (const style of styles) {
     const used = fixedSlotUsage(style)
     if (!used || used.size === 0 || used.size <= bestSize) continue
+    if (within && ![...used].every(index => within.has(index))) continue
     if ([...used].every(index => present.has(index))) {
       best = style
       bestSize = used.size

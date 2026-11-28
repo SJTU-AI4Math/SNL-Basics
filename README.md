@@ -333,13 +333,14 @@ fixed-arity macros choose the first eligible Style whose exact referenced
 parameter slots equal the filled child slots. For example, `M(a,,c)` matches
 `#0 = #2`, not `#0 : #1 = #2`. Repeated references are deduplicated and escaped
 `\#` is literal. Explicit empty slots and missing children are unfilled;
-intentional empty text `%%` counts as filled. If no Style matches exactly, the Style
-that uses the most slots, all of them filled (so no missing-slot placeholder), wins;
-earlier Styles win ties. This covers children that fill slots no template names
-(e.g. a Lean head's implicit arguments: `[R, inst, n]` selects `#2`) and partial
-applications (`deriv(…, f)` selects an `f`-only Style until `x` is applied). A Style
+intentional empty text `%%` counts as filled. If no Style matches exactly, `styles[0]`
+is used whenever it shows no missing-slot placeholder (children may fill slots no
+template names, e.g. a Lean head's implicit arguments). Only when it would show a
+placeholder, or drop all of a node's arguments, another Style without missing slots
+is chosen: preferably one using only slots `styles[0]` uses (e.g. an `f`-only Style
+for a partial application `deriv(…, f)`), most slots first, earlier on ties. A Style
 without slots (e.g. a concept title) is never chosen for a node with filled children
-unless it is the only Style. Otherwise selection falls back to `styles[0]`.
+unless it is the only Style.
 
 Automatic inference requires every locale projection to use the same slot set
 and only ordinary text/formula fields (`mode`, `body`, optional `separator`).
@@ -350,7 +351,7 @@ inside the selected Style; they never switch an automatically selected Style.
 This is render state only: no AST rewrite, parameter reindexing or query-cache change.
 
 ```ts
-parseSnlSyntaxTree('Pow.pow(x, 2)')               // exact slots, else most fully filled slots, else styles[0]
+parseSnlSyntaxTree('Pow.pow(x, 2)')               // exact slots, else styles[0] unless it shows a placeholder
 parseSnlSyntaxTree('operator[double](a, b)')     // 'double' style → a \Rightarrow b
 ```
 

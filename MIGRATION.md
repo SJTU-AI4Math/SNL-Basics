@@ -4,13 +4,13 @@
 
 ## Unreleased (after 0.3.6)
 
-- Automatic Style selection (no `[style]`): after an exact filled-slot match, the
-  Style that uses the most slots, all of them filled, wins (earliest on ties), so
-  children that fill slots no template names (e.g. Lean implicit arguments) and
-  partial applications pick a Style without missing-slot placeholders. A Style
-  without slots is never chosen for a node with filled children unless it is the
-  only Style. `styles[0]` remains the last fallback. To keep a previous choice,
-  write the Style explicitly (`[style]`).
+- Automatic Style selection (no `[style]`): after an exact filled-slot match,
+  `styles[0]` is kept whenever it shows no missing-slot placeholder. Only when it
+  would show a placeholder (e.g. a partial application) or drop all of a node's
+  arguments (a Style without slots) is another Style without missing slots chosen,
+  preferably one using only slots `styles[0]` uses, most slots first. A Style without
+  slots is never chosen for a node with filled children unless it is the only Style.
+  To keep a previous choice, write the Style explicitly (`[style]`).
 - Bound variables can name a binder page-wide (`x@##id`, binder `@x@##id`;
   `binder_id`, source `{type: 'element_id'}`), and hover highlighting resolves it
   across render roots. Right-click on a subtree offers "Copy TeX source" and host

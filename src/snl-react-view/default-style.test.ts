@@ -102,8 +102,23 @@ describe('automatic selection boundaries', () => {
     const deriv = styles('#5\\left(#6\\right)\'', '#5\'')
     expect(resolveStyle(parseSnlSyntaxTree('deriv(a,b,c,d,e,f)'), deriv).style_name).toBe('s1')
     expect(resolveStyle(parseSnlSyntaxTree('deriv(a,b,c,d,e,f,x)'), deriv).style_name).toBe('s0')
-    // More filled slots shown wins; ties keep the earlier Style.
-    expect(resolveStyle(parseSnlSyntaxTree('M(a,b,c)'), styles('#1', '#0 #1', '#1 #2')).style_name).toBe('s1')
+    // The default wins whenever it has no missing slot, even over Styles using more slots.
+    expect(resolveStyle(parseSnlSyntaxTree('M(a,b,c)'), styles('#1', '#0 #1', '#1 #2')).style_name).toBe('s0')
+    // Otherwise, among Styles within the default's slots, the most slots; ties keep the earlier.
+    expect(resolveStyle(parseSnlSyntaxTree('M(a,b)'), styles('#0 #1 #2', '#1', '#0 #1', '#0 #1')).style_name).toBe('s2')
+  })
+
+  it('keeps the default over a Style that also prints implicit arguments (deriv_add)', () => {
+    // deriv {𝕜} [inst] {F} [inst] [inst] (f) (x): default `#5'(#6)`, an extra Leibniz Style
+    // that also shows the implicit field and space.
+    const data = { ...macro(), styles: [
+      { style_name: 'default', tags: [], template: { mode: 'formula_inline' as const, body: "#5'(#6)" } },
+      { style_name: 'leibniz', tags: [], template: { mode: 'formula_inline' as const, body: '\\frac{d_{#0}}{d #2} #5 (#6)' } },
+      { style_name: 'partial', tags: [], template: { mode: 'formula_inline' as const, body: "#5'" } },
+    ] }
+    expect(resolveStyle(parseSnlSyntaxTree('deriv(k,i,F,j,l,f,x)'), data).style_name).toBe('default')
+    // Partially applied: the partial Style, not the Leibniz one (which uses more slots).
+    expect(resolveStyle(parseSnlSyntaxTree('deriv(k,i,F,j,l,f)'), data).style_name).toBe('partial')
   })
 
   it('never lets a Style without slots swallow arguments, unless it is the only Style', () => {

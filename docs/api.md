@@ -111,11 +111,13 @@ projections within one Style must have the same escape-aware arity contract;
 different explicit Styles may intentionally omit or reveal children.
 
 When source omits `[style]`, fixed-arity macros select the first eligible Style
-whose exact referenced-slot set equals the filled-child-slot set; if none matches, the
-Style using the most slots that are all filled (earliest on ties); a Style without slots
-is never chosen for a node with filled children unless it is the only Style; then
-`styles[0]`. Exact matching requires matching slot sets across every locale (covering
-uses the union of the locales' slots)
+whose exact referenced-slot set equals the filled-child-slot set; if none matches,
+`styles[0]` when it has no missing slot (and uses a slot, for a node with filled
+children); otherwise the Style with no missing slots using the most slots, preferring
+Styles whose slots `styles[0]` also uses (earliest on ties); a Style without slots is
+never chosen for a node with filled children unless it is the only Style; then the first
+Style with slots, or `styles[0]`. Exact matching requires matching slot sets across every
+locale (the other steps use the union of the locales' slots)
 and only understood text/formula fields. Block/opaque projections, empty text
 bodies, dynamic arity and legacy `default_style` maps are not automatically inferred.
 Explicit `[style]` always wins (unknown names remain errors). Selection never
